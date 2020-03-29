@@ -443,7 +443,7 @@ class PointGenerator_RadialPack extends PointGenerator {
 //
 abstract class CollectionIterator {
 	int itemIteratorCounter = 0;
-
+	
 	boolean justfinishedFlag = false;
 	
 	boolean areItemsRemaining() {
@@ -477,8 +477,15 @@ abstract class CollectionIterator {
 	}
 	
 	void setIterator(int n) {
-		if(n < 0) itemIteratorCounter = 0;
-		if(n >= getNumItems() ) itemIteratorCounter = getNumItems();
+		if(n < 0) { 
+				itemIteratorCounter = 0;
+				return;
+		}
+		if(n >= getNumItems() ) {
+			itemIteratorCounter = getNumItems();
+			return;
+		}
+		itemIteratorCounter = n;
 		if(areItemsRemaining()) justfinishedFlag = false;
 	}
 	

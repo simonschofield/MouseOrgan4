@@ -15,6 +15,7 @@ public class SeedLayer{
 	PointGenerator pointGenerator;
 	boolean isVisible = true;
 	ArrayList<Seed> seeds = new ArrayList<Seed>();
+	int uniqueSeedIDCounter = 0;
 	
 	SeedLayer(String name){
 		layerName = name;
@@ -43,6 +44,7 @@ public class SeedLayer{
 			Seed seed = pointGenerator.getNextSeed();
 			seed.layerName = this.layerName;
 			seed.contentItemDescriptor = contentItemSelector.selectContentItemDescription();
+			seed.id = uniqueSeedIDCounter++;
 			seeds.add(seed);
 		}
 		return seeds;
@@ -316,7 +318,7 @@ class Seed implements Serializable{
 	String layerName;
 	PVector docPoint;
 	float depth;
-	
+	int id;
 	
 	ContentItemDescription contentItemDescriptor;
 	

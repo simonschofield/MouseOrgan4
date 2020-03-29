@@ -1,10 +1,12 @@
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 /////////////////////////////////////////////////////////////////////////////
-//
+// This is a proper random stream
 //
 
-	public class RandomStream{
+public class RandomStream{
 	
 	
 	Random rstream;
@@ -86,4 +88,82 @@ import java.util.Random;
 	
 	
 	
-	}// end RandomStream class
+}// end RandomStream class
+
+
+class QRandomStream{
+	private static ArrayList<Integer> visitationOrder;
+	private static ArrayList<Integer> randomNumbers;
+	private int arraySize = 10000;
+	int seed = 1;
+	
+	int iterationCounter = 0;
+	
+	
+	
+	QRandomStream(int rseed){
+		if(randomNumbers == null) {
+			initRandomNumbers();
+		}
+		seed = rseed;
+	}
+	
+	
+	
+	boolean randomEvent(float prob){
+		float r = nextFloat();
+		if( r < prob ) return true;
+		return false;
+	}
+	
+	int randRangeInt(int lo, int hi){
+		float r = nextFloat();
+		return (int)( (lo + r*(hi-lo) ) + 0.5f);
+	}
+	
+	
+	
+	float randRangeF(float lo, float hi){
+		float r = nextFloat();
+		return (lo + r*(hi-lo) );
+	}
+	
+	int nextInt() {
+		
+		int idexOfRandomNumber = (visitationOrder.get(iterationCounter) + seed)%arraySize;
+		iterationCounter++;
+		if(iterationCounter >= arraySize) iterationCounter = 0;
+		return randomNumbers.get(idexOfRandomNumber);
+	}
+	
+	float nextFloat() {
+		float f = nextInt()/(float)arraySize;
+		return f;
+	}
+	
+	/// private stuff, don't call
+	private void initRandomNumbers() {
+		randomNumbers = new ArrayList<Integer>();
+		visitationOrder = new ArrayList<Integer>();
+		for(int i = 0; i < arraySize; i++) {
+			randomNumbers.add(i);
+			visitationOrder.add(i);
+		}
+		Random rnd = new Random(1);
+		Collections.shuffle(randomNumbers, rnd);
+		Collections.shuffle(visitationOrder, rnd);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}
+
+
+
+

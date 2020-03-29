@@ -10,7 +10,7 @@ import java.awt.image.BufferedImage;
 
 
 
-class ImageSprite{
+public class ImageSprite{
 	
 	Seed seed;
 	
@@ -23,6 +23,7 @@ class ImageSprite{
 	int bufferWidth; 
 	int bufferHeight;
 	float aspect;
+	QRandomStream qRandomStream;
 	
 	SceneData3D sceneData;
 	
@@ -57,6 +58,7 @@ class ImageSprite{
 	    aspect = bufferWidth/(float)bufferHeight;
 	    origin = orig.copy();
 	    sizeInScene = sizeInScn;
+	    qRandomStream = new QRandomStream(s.id);
 	}
 	
 	
@@ -65,7 +67,9 @@ class ImageSprite{
 	}
 	
 	
-	
+	QRandomStream getRandomStream() {
+		return qRandomStream;
+	}
 	
 	Rect getPasteRect(SceneData3D sceneData) {
 		// returns a document space rect to paste this sprite into
@@ -89,7 +93,7 @@ class ImageSprite{
 	}
 	
 	
-	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float maxScale) {
+	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float scaleModifier) {
 		// scales the ImageBuffer image to the correct size for the document paste
 		PVector docPt = seed.docPoint;
 		float unit3DatDocPt = sceneData.get3DScale(docPt);
@@ -105,11 +109,11 @@ class ImageSprite{
 		PVector bufferPt2 = renderTarget.docSpaceToBufferSpace(docPt2);
 		float heightInActualPixels = (float)Math.abs(bufferPt1.y - bufferPt2.y);
 		
-		float scale = heightInActualPixels/bufferHeight;
+		float scale = (heightInActualPixels/bufferHeight) * scaleModifier;
 		if(scale > 1) {
 		 System.out.println(seed.contentItemDescriptor.contentGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInActualPixels + " scale " + scale);
 		}
-		if(scale > maxScale) scale = maxScale;
+		
 		
 		scale(scale,scale);
 		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
