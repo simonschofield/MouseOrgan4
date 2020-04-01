@@ -12,7 +12,7 @@ import java.util.ArrayList;
 //
 class ContentGroupManager {
 
-	ArrayList<ImageContentGroup> contentItemGroups = new ArrayList<ImageContentGroup>();
+	ArrayList<ImageContentGroup> imageContentGroups = new ArrayList<ImageContentGroup>();
 	Surface parentSurface;
 	float sessionScale = 1f;
 
@@ -22,10 +22,10 @@ class ContentGroupManager {
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
-	// methods germain to both vector and image based content
+	// 
 	//
-	ImageContentGroup getContentItemGroup(String name) {
-		for (ImageContentGroup cc : contentItemGroups) {
+	ImageContentGroup getImageContentGroup(String name) {
+		for (ImageContentGroup cc : imageContentGroups) {
 			if (cc.isNamed(name))
 				return cc;
 		}
@@ -33,7 +33,7 @@ class ContentGroupManager {
 	}
 
 	int getNumItems(String name) {
-		ImageContentGroup cc = getContentItemGroup(name);
+		ImageContentGroup cc = getImageContentGroup(name);
 		if (cc == null)
 			return 0;
 		return cc.getNumItems();
@@ -41,7 +41,7 @@ class ContentGroupManager {
 
 	ImageSprite getSprite(Seed seed) {
 		// got to get the correct contentItemGroup first
-		ImageContentGroup dig = getContentItemGroup(seed.contentItemDescriptor.contentGroupName);
+		ImageContentGroup dig = getImageContentGroup(seed.contentItemDescriptor.contentGroupName);
 
 		if (dig == null)
 			return null;
@@ -49,25 +49,22 @@ class ContentGroupManager {
 	}
 
 	void setSpriteOrigins(String name, PVector origin) {
-		ImageContentGroup cc = getContentItemGroup(name);
+		ImageContentGroup cc = getImageContentGroup(name);
 		if (cc == null)
 			return;
 		cc.setSpriteOrigins(origin);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////
-	// methods germain to either vector and image based content, but not both
-	//
-
+	
 	/////////////////////////////////////////////////////////////////////////////
 	// this is the short-hand method of establishing an image-collection
 	// arguments 3 and after are all nullable, and will result in defaults
-	void loadImageItemGroup(String name, String targetDirectory, Integer from, Integer to, PVector origin, Float sizeInScene) {
-		addImageItemGroupNameAndPath(name, targetDirectory);
+	void loadImageContentGroup(String name, String targetDirectory, Integer from, Integer to, PVector origin, Float sizeInScene) {
+		addImageContentGroupNameAndPath(name, targetDirectory);
 		if (from == null || to == null) {
-			loadImageItemGroup(name);
+			loadImageContentGroup(name);
 		} else {
-			loadImageItemGroup(name, from, to);
+			loadImageContentGroup(name, from, to);
 		}
 
 		if (origin == null) {
@@ -87,38 +84,50 @@ class ContentGroupManager {
 	// these are the long-hand method of establishing an image-collection
 	// If you are doing it long hand - then the method below needs to be called
 	///////////////////////////////////////////////////////////////////////////// first
-	// to establish the collection name for further commands
-	void addImageItemGroupNameAndPath(String name, String targetDirectory) {
+	
+	void addImageContentGroupNameAndPath(String name, String targetDirectory) {
 		ImageContentGroup ic = new ImageContentGroup(name, targetDirectory, parentSurface);
-		contentItemGroups.add(ic);
+		imageContentGroups.add(ic);
 	}
 
-	void loadImageItemGroup(String name, int from, int to) {
-		ImageContentGroup ic = getContentItemGroup(name);
+	void loadImageContentGroup(String name, int from, int to) {
+		ImageContentGroup ic = getImageContentGroup(name);
 		if (ic == null)
 			return;
 		ic.loadContent(from, to);
 	}
 
-	void loadImageItemGroup(String name) {
-		ImageContentGroup ic = getContentItemGroup(name);
+	void loadImageContentGroup(String name) {
+		ImageContentGroup ic = getImageContentGroup(name);
 		if (ic == null)
 			return;
 		ic.loadContent();
 	}
 
 	void setSizeInScene(String name, float size) {
-		ImageContentGroup ic = getContentItemGroup(name);
+		ImageContentGroup ic = getImageContentGroup(name);
 		if (ic == null)
 			return;
 		ic.setSizeInScene(size);
 	}
+	
+	/////////////////////////////////////////////////////////////////////////////
+	// Image Processing Effects applied to the entire content group
+	// 
+	///////////////////////////////////////////////////////////////////////////// first
 
-	void scaleImageItemGroup(String name, float inx, float iny) {
-		ImageContentGroup ic = getContentItemGroup(name);
+	void scaleImageContentGroup(String name, float inx, float iny) {
+		ImageContentGroup ic = getImageContentGroup(name);
 		if (ic == null)
 			return;
 		ic.scaleAll(inx, iny);
+	}
+	
+	void hsvAdjustImageContentGroup(String name, float dh, float ds, float dv) {
+		ImageContentGroup ic = getImageContentGroup(name);
+		if (ic == null)
+			return;
+		ic.hsvAdjustAll(dh,ds,dv);
 	}
 
 }// end of class ContentManager
@@ -169,8 +178,8 @@ class ImageContentGroup extends DirectoryImageGroup {
 	}
 
 	void loadContent(int fromIndex, int toIndex) {
-// this version does caching and loading of previously scaled images
-//
+	// this version does caching and loading of previously scaled images
+	//
 		float scl = 1;
 		if (parentSurface != null) {
 			scl = parentSurface.getSessionScale();
@@ -244,6 +253,16 @@ class ImageContentGroup extends DirectoryImageGroup {
 			BufferedImage scaled = ImageProcessing.scaleImage(img, x, y);
 			imageList.set(n, scaled);
 		}
+	}
+	
+	void hsvAdjustAll(float dh, float ds, float dv) {
+		int numImage = imageList.size();
+		for (int n = 0; n < numImage; n++) {
+			BufferedImage img = imageList.get(n);
+			BufferedImage scaled = ImageProcessing.adjustHSV(img, dh, ds, dv);
+			imageList.set(n, scaled);
+		}
+		
 	}
 
 	void compressSizes(float amount) {

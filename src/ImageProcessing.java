@@ -65,13 +65,40 @@ public class ImageProcessing {
 	}
 
 	public static boolean hasAlpha(BufferedImage image) {
-		Color pixel = new Color(image.getRGB(0, 0), true);
-		return pixel.getAlpha() > 0; // or "== 255" if you prefer
+		/* These are the Java Image Types
+		public static final int TYPE_CUSTOM = 0;
+	    public static final int TYPE_INT_RGB = 1;
+	    public static final int TYPE_INT_ARGB = 2;
+	    public static final int TYPE_INT_ARGB_PRE = 3;
+	    public static final int TYPE_INT_BGR = 4;
+	    public static final int TYPE_3BYTE_BGR = 5;
+	    public static final int TYPE_4BYTE_ABGR = 6;
+	    public static final int TYPE_4BYTE_ABGR_PRE = 7;
+	    public static final int TYPE_USHORT_565_RGB = 8;
+	    public static final int TYPE_USHORT_555_RGB = 9;
+	    public static final int TYPE_BYTE_GRAY = 10;
+	    public static final int TYPE_USHORT_GRAY = 11;
+	    public static final int TYPE_BYTE_BINARY = 12;
+	    public static final int TYPE_BYTE_INDEXED = 13;
+		*/
+		int t = image.getType();
+		if(t==2 || t==3 || t==6 || t==7) return true;
+		return false;
 	}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// Geometric transforms
-//	
+	
+	public static BufferedImage convertColorModel(BufferedImage src, int colorModel) {
+	    BufferedImage img= new BufferedImage(src.getWidth(), src.getHeight(), colorModel);
+	    Graphics2D g2d= img.createGraphics();
+	    g2d.drawImage(src, 0, 0, null);
+	    g2d.dispose();
+	    return img;
+	}
+	
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// Geometric transforms
+	//	
 	public static BufferedImage rotateImage(BufferedImage originalImage, float degree) {
 		int w = originalImage.getWidth();
 		int h = originalImage.getHeight();
@@ -181,9 +208,9 @@ public class ImageProcessing {
 		return op.filter(originalImage, null);
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// color transforms
-//
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// color transforms
+	//
 	public static BufferedImage brightenImage(BufferedImage image, float brightness) {
 		byte[][] data = new byte[3][256];
 		for (int n = 0; n < 256; n++) {
@@ -227,12 +254,22 @@ public class ImageProcessing {
 		BufferedImage outImg = op.filter(image, null);
 		return outImg;
 	}
-
+	
+	
+	
 	public static BufferedImage adjustHSV(BufferedImage img, float dh, float ds, float dv) {
+		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
 		int w = img.getWidth();
 		int h = img.getHeight();
+		int imtype = img.getType();
+		
+		if(imtype != BufferedImage.TYPE_INT_ARGB) {
+			img = convertColorModel(img, BufferedImage.TYPE_INT_ARGB);
+		}
+		//System.out.println("AFTER adjustHSV incoming image is of type " + img.getType() + " BufferedImage.TYPE_INT_ARGB is " + BufferedImage.TYPE_INT_ARGB);
 		int[] pixelsIn = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
 
+		
 		BufferedImage outputImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		int[] pixelsOut = ((DataBufferInt) outputImage.getRaster().getDataBuffer()).getData();
 
@@ -267,6 +304,7 @@ public class ImageProcessing {
 
 	}
 
+	
 	static int[] unpackARGB(int packedCol) {
 		int[] col = new int[4];
 		col[0] = (packedCol >> 24) & 0xFF;// alpha

@@ -33,8 +33,6 @@ public class ImageSprite{
 	}
 	
 	ImageSprite(Seed s, BufferedImage im, PVector orig) {
-		
-		
 		init( s,  im,  orig, 1);
 	}
 
@@ -44,9 +42,10 @@ public class ImageSprite{
 		init( s,  im,  orig, sizeInScn);
 	}
 	
+	/*
 	void setSceneData3D(SceneData3D sd3d) {
 		sceneData = sd3d;
-	}
+	}*/
 	
 	
 	void init(Seed s, BufferedImage im, PVector orig, float sizeInScn) {
@@ -61,7 +60,15 @@ public class ImageSprite{
 	    qRandomStream = new QRandomStream(s.id);
 	}
 	
+	PVector getSeedDocPoint() {
+		return seed.docPoint.copy();
+	}
 	
+	boolean seedLayerEquals(String s) {
+		return s.contentEquals(seed.layerName);
+	}
+	
+	// needed by the RenderTarget to paste
 	PVector getOriginBufferCoords() {
 	    return new PVector( (origin.x * bufferWidth), (origin.y* bufferHeight) );
 	}
@@ -92,6 +99,14 @@ public class ImageSprite{
 		return new Rect(new PVector(x1,y1), new PVector(x2,y2) );
 	}
 	
+	Rect getPasteRectDocSpace(RenderTarget rt) {
+		PVector spriteOffset = this.getOriginBufferCoords();
+		PVector docSpaceSpriteOffset = rt.bufferSpaceToDocSpace(spriteOffset);
+		PVector docSpacePt = this.getSeedDocPoint();
+		PVector shiftedDocSpacePt = PVector.sub(docSpacePt, docSpaceSpriteOffset);
+		return rt.getPasteRectDocSpace(this.image, shiftedDocSpacePt);
+	}
+
 	
 	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float scaleModifier) {
 		// scales the ImageBuffer image to the correct size for the document paste

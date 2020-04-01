@@ -36,11 +36,11 @@ class RenderTarget {
 
 	}
 
-	void setRenderBufferSize(int w, int h) { // <>//
+	void setRenderBufferSize(int w, int h) { 
 
 		bufferedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
-		// println("Setting render target to " , w, h);
+		
 		bufferWidth = w;
 		bufferHeight = h;
 		graphics2D = bufferedImage.createGraphics();
@@ -102,15 +102,15 @@ class RenderTarget {
 		if(bottom != null ) permittedPasteArea.bottom = bottom;
 	}
 	
-	String reportPermittedPasteAreaOverlap(ImageSprite sprite, PVector docSpacePt) {
-		Rect r = getPasteRectDocSpace(sprite,docSpacePt);
+	String reportPermittedPasteAreaOverlap(ImageSprite sprite) {
+		Rect r = sprite.getPasteRectDocSpace(this);
 		return r.reportIntersection(permittedPasteArea);
 
 	}
 	
-	String reportDocumentBoundaryPasteAreaOverlap(ImageSprite sprite, PVector docSpacePt) {
+	String reportDocumentBoundaryPasteAreaOverlap(ImageSprite sprite) {
 		Rect standardDocumentBoundary = new Rect(0,0,documentWidth, documentHeight);
-		Rect r = getPasteRectDocSpace(sprite,docSpacePt);
+		Rect r = sprite.getPasteRectDocSpace(this);
 		return r.reportIntersection(standardDocumentBoundary);
 	}
 	
@@ -118,12 +118,13 @@ class RenderTarget {
 	////////////////////////////////////////////////////////////////////////////////////
 	// pastes the topleft of the image at docSpacePoint
 	//
-	void pasteSprite(ImageSprite sprite, PVector docSpacePt, float alpha) {
+	void pasteSprite(ImageSprite sprite, float alpha) {
 		// work out the offset in the image from the origin
-		Rect r = getPasteRectDocSpace( sprite,  docSpacePt); 
+		Rect r = sprite.getPasteRectDocSpace(this); 
 		//System.out.println("paste rect " + r.toStr());
 		pasteImage(sprite.image, r.getTopLeft(),  alpha);
 	}
+	
 
 	////////////////////////////////////////////////////////////////////////////////////
 	// pastes the topleft of the image at docSpacePoint
@@ -140,14 +141,6 @@ class RenderTarget {
 	}
 	
 	
-	
-	Rect getPasteRectDocSpace(ImageSprite sprite, PVector docSpacePt) {
-		PVector spriteOffset = sprite.getOriginBufferCoords();
-		PVector docSpaceSpriteOffset = bufferSpaceToDocSpace(spriteOffset);
-		PVector shiftedDocSpacePt = PVector.sub(docSpacePt, docSpaceSpriteOffset);
-		return getPasteRectDocSpace(sprite.image, shiftedDocSpacePt);
-	}
-
 	Rect getPasteRectDocSpace(BufferedImage img, PVector docSpacePoint) {
 		// Final pasting always by defining the top left of the image in doc space
 		// give an image and its upperleft at docSpacePoint
@@ -155,7 +148,6 @@ class RenderTarget {
 		PVector bottomRightOffset = bufferSpaceToDocSpace(img.getWidth(), img.getHeight());
 		PVector bottomRight = PVector.add(docSpacePoint, bottomRightOffset);
 		return new Rect(docSpacePoint.x, docSpacePoint.y, bottomRight.x, bottomRight.y);
-
 	}
 
 	boolean isInsideDocument(Rect r) {

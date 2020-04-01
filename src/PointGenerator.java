@@ -305,7 +305,7 @@ class PointGenerator_RadialPack extends PointGenerator {
 			
 			
 			
-			float radius = getClosestProximityUsingBitmap1(thisPt, bitmap, rLo, rHi);
+			float radius = getClosestProximityUsingBitmap1(thisPt, bitmap, rLo, rHi );
 			boolean success = tryAddDistributedPoint(thisPt, radius);
 			
 			
@@ -416,13 +416,13 @@ class PointGenerator_RadialPack extends PointGenerator {
 
 	}
 	
-	private float getClosestProximityUsingBitmap1(PVector docPt, BufferedImage bitmap, float surfaceAraeBlack, float surfaceAreaWhite) {
-		//PVector imgPixelLoc = distributionImageCoordinateSpaceConverter.docSpaceToImageCoord(p);
-		//int c = bitmap.getRGB((int) imgPixelLoc.x, (int) imgPixelLoc.y);
-		//boolean hasAlpha = ImageProcessing.hasAlpha(bitmap);
-		//float t = ImageProcessing.packedIntToVal01(c, hasAlpha);
+	private float getClosestProximityUsingBitmap1(PVector docPt, BufferedImage bitmap, float surfaceAreaBlack, float surfaceAreaWhite) {
+		
 		float t = getBitmapValue01( docPt,  bitmap);
-		float thisSurfaceArea = MOMaths.lerp(t, surfaceAraeBlack, surfaceAreaWhite);
+		
+		// so what you want is the densist distribution at white, the thinnest distribution at the cuttoff
+		t = MOMaths.lerp(t,lowDistributionThreshold,1.0f);
+		float thisSurfaceArea = MOMaths.lerp(t, surfaceAreaBlack, surfaceAreaWhite);
 		// System.out.println("tone = " + t + " radius "+ r);
 		float r = (float) Math.sqrt(thisSurfaceArea/Math.PI);
 		return r;
