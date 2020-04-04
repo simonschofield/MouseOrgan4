@@ -21,6 +21,7 @@ class RenderTarget {
 	BufferedImage bufferedImage;
 
 	Rect permittedPasteArea;
+	boolean bespokeCropToPermittedPasteArea = false;
 	// boolean prohibitEdgeOverlap = true;
 
 	// these are the pixel dimensions of the output image
@@ -94,12 +95,17 @@ class RenderTarget {
 	
 	////////////////////////////////////////////////////////////////////////////////////
 	// sets each boundary of the permitted paste area. each field is nullable
-	//
-	void setPermittedPasteArea(Float left, Float top, Float right, Float bottom) {
+	// All measurements are in document space
+	void setPermittedPasteArea(Float left, Float top, Float right, Float bottom, boolean cropOption) {
 		if(left != null ) permittedPasteArea.left = left;
 		if(top != null ) permittedPasteArea.top = top;
 		if(right != null ) permittedPasteArea.right = right;
 		if(bottom != null ) permittedPasteArea.bottom = bottom;
+		bespokeCropToPermittedPasteArea = cropOption;
+	}
+	
+	Rect getPermittedPasteArea() {
+		return permittedPasteArea;
 	}
 	
 	String reportPermittedPasteAreaOverlap(ImageSprite sprite) {
@@ -121,7 +127,23 @@ class RenderTarget {
 	void pasteSprite(ImageSprite sprite, float alpha) {
 		// work out the offset in the image from the origin
 		Rect r = sprite.getPasteRectDocSpace(this); 
-		//System.out.println("paste rect " + r.toStr());
+		
+		
+		if (r.isWhollyInsideOther( permittedPasteArea ) == false)
+			{
+			// decide what to do
+			// the options are
+			// 1/ just return (don't allow any paste)
+			// 2/ crop to the permitted area with bespoke crop
+			// 3/ a hard geometric crop to the area
+			if( bespokeCropToPermittedPasteArea == false ) return;
+			// if you get this far, 
+			boolean cropOK = sprite.doBespokeCrop(this);
+			if(cropOK==false) return;
+			}
+		
+		
+		
 		pasteImage(sprite.image, r.getTopLeft(),  alpha);
 	}
 	
@@ -132,12 +154,16 @@ class RenderTarget {
 	void pasteImage(BufferedImage img, PVector docSpacePoint, float alpha) {
 		
 		Rect r = getPasteRectDocSpace(img, docSpacePoint);
-
-		if (r.isWhollyInsideOther( permittedPasteArea ) == false)
-			return;
-		
 		PVector bufferPt = docSpaceToBufferSpace(docSpacePoint);
-		pasteImage(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
+		pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
+	}
+	
+	private void pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha) {
+
+		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+		graphics2D.drawImage(img, x, y, null);
+		graphics2D.setComposite(ac);
+
 	}
 	
 	
@@ -150,26 +176,7 @@ class RenderTarget {
 		return new Rect(docSpacePoint.x, docSpacePoint.y, bottomRight.x, bottomRight.y);
 	}
 
-	boolean isInsideDocument(Rect r) {
-		if (isInsideDocument(r.getTopLeft()) && isInsideDocument(r.getBottomRight()))
-			return true;
-		return false;
-	}
-
-	boolean isInsideDocument(PVector p) {
-		if (p.x < 0 || p.x > documentWidth || p.y < 0 || p.y > documentHeight)
-			return false;
-		return true;
-
-	}
-
-	void pasteImage(BufferedImage img, int x, int y, float alpha) {
-
-		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
-		graphics2D.drawImage(img, x, y, null);
-		graphics2D.setComposite(ac);
-
-	}
+	
 
 	////////////////////////////////////////////////////////////////////////////////////
 	// this is called by the Surface to get the current view rect from the whole

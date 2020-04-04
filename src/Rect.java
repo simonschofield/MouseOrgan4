@@ -45,9 +45,26 @@ class Rect{
   }
   
   Rect getTranslated(float dx, float dy){
+	  // returns a translated copy
     return new Rect(left+dx, top+dy, right+dx, bottom+dy);
   }
   
+  void translate(float dx, float dy) {
+	 // translates in-place 
+	  left+=dx;
+	  top+=dy;
+	  right+=dx;
+	  bottom+=dy; 
+  }
+  
+  void moveTopLeftTo(float x, float y) {
+	  float w = getWidth();
+	  float h = getHeight();
+	  left = x;
+	  top = y;
+	  right = left+w;
+	  bottom = top+h; 
+  }
   
   Rect getNormalised(){
     // this function makes the rect a square, by lengthening the shortest edge
@@ -170,6 +187,27 @@ class Rect{
 		intersections += intersection;
 		return intersections;
 	}
+  
+  
+  Rect getBooleanIntersection(Rect otherRect) {
+	  if( intersects( otherRect) == false) return null; 
+	  
+	  float tx1 = this.left;
+	  float ty1 = this.top;
+	  float tx2 = this.right;
+	  float ty2 = this.bottom;
+	  float rx1 = otherRect.left;
+	  float ry1 = otherRect.top;
+	  float rx2 = otherRect.right;
+	  float ry2 = otherRect.bottom;
+	  
+	  if (tx1 < rx1) tx1 = rx1;
+	  if (ty1 < ry1) ty1 = ry1;
+	  if (tx2 > rx2) tx2 = rx2;
+	  if (ty2 > ry2) ty2 = ry2;
+ 
+	  return new Rect(tx1, ty1, tx2, ty2);
+  }
   
   
 }// end Rect class

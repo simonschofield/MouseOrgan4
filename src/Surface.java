@@ -33,9 +33,10 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 	int windowWidth;
 	int windowHeight;
 
-	// the rectangle for the view onto the document image
-	Rect canvasRect;
-
+	// the rectangles for the view onto the document image
+	Rect canvasRect_ViewAll;
+	Rect canvasRect_Zoomed;
+	
 	private Timer updateTimer;
 
 	private final int DELAY = 1;
@@ -118,8 +119,8 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 		int canvasWidth = (int) (theDocument.getBufferWidth() * scaledDisplayImageScale);
 		int canvasHeight = (int) (theDocument.getBufferHeight() * scaledDisplayImageScale);
 		System.out.println("creating canvas " + canvasWidth + canvasHeight);
-		canvasRect = new Rect(100, 0, 100 + canvasWidth, canvasHeight);
-
+		canvasRect_ViewAll = new Rect(100, 0, 100 + canvasWidth, canvasHeight);
+		canvasRect_Zoomed = new Rect(100,0,100+canvasMaxWidth, canvasMaxHeight);
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -137,8 +138,8 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 		TextInputBox tib = theUI.addTextInputBox("ruler size", 0, 290, "0");
 		tib.setWidgetDims(40, 30);
 		setMeasuringToolSize(0.5f);
-		theUI.addCanvas((int) canvasRect.left, (int) canvasRect.top, (int) canvasRect.getWidth(),
-				(int) canvasRect.getHeight());
+		theUI.addCanvas((int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(),
+				(int) canvasRect_ViewAll.getHeight());
 
 	}
 
@@ -212,18 +213,25 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 		// this where we need to get the portion of the image defined by theViewControl
 		Rect zoomRect = theViewControl.getZoomRectDocSpace();
 		g2d.setColor(theViewControl.getViewBackgroundColor());
-		g2d.fillRect((int) canvasRect.left, (int) canvasRect.top, (int) canvasRect.getWidth(),
-				(int) canvasRect.getHeight());
+		g2d.fillRect((int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(),
+				(int) canvasRect_ViewAll.getHeight());
 
 		if (alternateView != null) {
-			g2d.drawImage(alternateView, (int) canvasRect.left, (int) canvasRect.top, (int) canvasRect.getWidth(),
-					(int) canvasRect.getHeight(), null);
+			g2d.drawImage(alternateView, (int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(),
+					(int) canvasRect_ViewAll.getHeight(), null);
 		} else {
-			g2d.drawImage(theDocument.getCropDocSpace(zoomRect), (int) canvasRect.left, (int) canvasRect.top,
-					(int) canvasRect.getWidth(), (int) canvasRect.getHeight(), null);
+			Rect currentCanvasRect = getCurrentCanvasRect();
+			g2d.drawImage(theDocument.getCropDocSpace(zoomRect), (int) currentCanvasRect.left, (int) currentCanvasRect.top,
+					(int) currentCanvasRect.getWidth(), (int) currentCanvasRect.getHeight(), null);
 		}
 		g2d.dispose();
 
+	}
+	
+	Rect getCurrentCanvasRect() {
+		 return canvasRect_ViewAll;
+		//if(theViewControl.getScale()==1.0f) return canvasRect_ViewAll;
+		//return canvasRect_Zoomed;
 	}
 
 	@Override
@@ -293,8 +301,8 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 	}
 
 	void drawOverlayRect(Rect r) {
-		theUI.clearCanvasOverlayShapes();
-		theUI.addCanvasOverlayShape(r.getTopLeft(), r.getBottomRight(), "rect", new Color(0, 0, 0, 0), Color.gray, 2);
+		//theUI.clearCanvasOverlayShapes();
+		//theUI.addCanvasOverlayShape(r.getTopLeft(), r.getBottomRight(), "rect", new Color(0, 0, 0, 0), Color.gray, 2);
 
 	}
 
@@ -402,6 +410,7 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 
 		//System.out.println("keyPressed");
 		theViewControl.keyboardZoom(e);
+		System.out.println("zoom scale = " + theViewControl.getScale());
 		canvasUpdateFrequency = 1;
 	}
 

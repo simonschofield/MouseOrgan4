@@ -78,7 +78,7 @@ public class ImageSprite{
 		return qRandomStream;
 	}
 	
-	Rect getPasteRect(SceneData3D sceneData) {
+	Rect getPasteRectDocSpace(SceneData3D sceneData) {
 		// returns a document space rect to paste this sprite into
 		// using the sizeInWorld as a 3d calculation
 		
@@ -106,10 +106,59 @@ public class ImageSprite{
 		PVector shiftedDocSpacePt = PVector.sub(docSpacePt, docSpaceSpriteOffset);
 		return rt.getPasteRectDocSpace(this.image, shiftedDocSpacePt);
 	}
+	
+	// if the render target needs to make a bespoke crop before pasting
+	// usually because the sprite is over the permittedPasteArea, then it performs
+	// that operation here. The cropToRect is in document space
+	boolean doBespokeCrop(RenderTarget rt) {
+	
+		
+		Rect cropToRect = rt.permittedPasteArea;
+		Rect uncroppedRect = getPasteRectDocSpace(rt);
+		//System.out.println("doBespokeCrop:uncroppedRect " + uncroppedRect.toStr());
+		
+		Rect croppedRect = cropToRect.getBooleanIntersection(uncroppedRect);
+		// if there is no intersection between the two rects the method returns a null
+		if(croppedRect==null) return false;
+		//System.out.println("doBespokeCrop:rect Ref " + croppedRect);
+		//System.out.println("doBespokeCrop:croppedRect " + croppedRect.toStr());
+		// Shift the uncroppedRect to (0,0) and the croppedRect by the same amount
+		// the topleft of the croppedRect becomes top left of the crop in buffer space 
+		// and the same for bottom right, so we need to
+		// get these in buffer space
+		float uncroppedLeft = uncroppedRect.left;
+		float uncroppedTop = uncroppedRect.top;
+		croppedRect.translate(-uncroppedLeft, -uncroppedTop);
+		//System.out.println("doBespokeCrop:croppedRect trn " + croppedRect.toStr());
+		int bLeft = (int) (croppedRect.left  * rt.getBufferWidth());
+		int bTop = (int) (croppedRect.top * rt.getBufferHeight());
+		int bRight = (int) (croppedRect.right * rt.getBufferWidth());
+		int bBottom = (int) (croppedRect.bottom *  rt.getBufferHeight());
+		
+		Rect croppedRectBufferSpace = new Rect(bLeft,bTop,bRight,bBottom);
+		//System.out.println("doBespokeCrop:croppedRectBufferSpace " + croppedRectBufferSpace.toStr());
+		if(croppedRectBufferSpace.getWidth() < 1 || croppedRectBufferSpace.getHeight() < 1) return false;
+		
+		// As we don't want to complicate things, and don't want to have to adjust the origin
+		// of the sprite to adjust to the new crop, we just delete the pixels outside of the croppedRectBufferSpace
+		BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+		BufferedImage croppedImage = ImageProcessing.cropImage(image, croppedRectBufferSpace);
+		
+		ImageProcessing.pasteIntoImage(croppedImage, outputImage, bLeft, bTop);
+		image = outputImage;
+		
+		return true;
+	}
+	
+	void setBespokeCrop() {
+		
+		
+	}
 
 	
 	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float scaleModifier) {
-		// scales the ImageBuffer image to the correct size for the document paste
+		// scales the image to the correct size using  sizeInScene to represent the
+		// items's size in the 3D scene in world units.
 		PVector docPt = seed.docPoint;
 		float unit3DatDocPt = sceneData.get3DScale(docPt);
 		float heightDocSpace = sizeInScene*unit3DatDocPt;

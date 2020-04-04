@@ -94,6 +94,18 @@ public class ImageProcessing {
 	    return img;
 	}
 	
+	public static void pasteIntoImage(BufferedImage sourceImg, BufferedImage targetImg, int xPosTarget, int yPosTarget) {
+		Graphics2D g2d= targetImg.createGraphics();
+	    g2d.drawImage(sourceImg, xPosTarget, yPosTarget, null);
+	    g2d.dispose();
+	}
+	
+	public static BufferedImage cropImage(BufferedImage src, Rect r) {
+		  //System.out.println("ImageProcessing:cropImage rect " + r.toStr());
+	      BufferedImage dest = src.getSubimage((int)r.left,(int)r.top, (int)r.getWidth(), (int)r.getHeight());
+	      return dest; 
+	   }
+	
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
