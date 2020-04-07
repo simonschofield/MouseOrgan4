@@ -154,6 +154,9 @@ class Rect{
   
   
   String reportIntersection(Rect otherRect) {
+	  // retorts THIS rects intersection with OTHER
+	  // so, WHOLLYINSITE means THIS is WHOLLYINSIDE other, and LEFT means THIS LEFT intersects OTHER RECT
+	  //System.out.println("reportIntersection: this Rect: " + this.toStr() + " Other rect "  + otherRect.toStr());
 	  if( intersects( otherRect) == false) return "NONE";
 	  if( isWhollyInsideOther( otherRect) ) return "WHOLLYINSIDE";
 	  if( otherRect.isWhollyInsideOther( this) ) return "WHOLLYSURROUNDING";
@@ -162,7 +165,7 @@ class Rect{
 	  String intersections= ""; 
 	  if(this.left<otherRect.left && this.right>otherRect.right) {
 		  // straddles other rect lengthwise
-		  intersections = addIntersectionString( intersections,"LEFT_RIGHT");
+		  intersections = addIntersectionString( intersections,"LEFT,RIGHT");
 	  }else {
 		  if(this.right > otherRect.left && this.left < otherRect.left)  intersections = addIntersectionString( intersections,"LEFT");
 		  if(this.left < otherRect.right && this.right > otherRect.right) intersections = addIntersectionString( intersections,"RIGHT");
@@ -170,7 +173,7 @@ class Rect{
 	  
 	  if(this.top<otherRect.top && this.bottom>otherRect.bottom) {
 		  // straddles other rect hieghtwise
-		  intersections = addIntersectionString( intersections,"TOP_BOTTOM");
+		  intersections = addIntersectionString( intersections,"TOP,BOTTOM");
 	  }else {
 		  if(this.bottom > otherRect.top && this.top < otherRect.top)  intersections = addIntersectionString( intersections,"TOP");
 		  if(this.top < otherRect.bottom && this.bottom > otherRect.bottom) intersections = addIntersectionString( intersections,"BOTTOM");

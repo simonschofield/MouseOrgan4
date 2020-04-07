@@ -153,6 +153,15 @@ public class ImageProcessing {
 		g.dispose(); // release used resources before g is garbage-collected
 		return scaledImage;
 	}
+	
+	public static BufferedImage scaleTo(BufferedImage originalImage, int newW, int newH) {
+		// scales the originalImage to be newW, newH
+		int w = originalImage.getWidth();
+		int h = originalImage.getHeight();
+		float wScale = newW/(float)w;
+		float hScale = newH/(float)h;
+		return scaleImage( originalImage,wScale,hScale);
+	}
 
 	public static BufferedImage scaleRotateImage(BufferedImage originalImage, float scalex, float scaley,
 			float rotateDegs) {
@@ -219,7 +228,41 @@ public class ImageProcessing {
 		op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
 		return op.filter(originalImage, null);
 	}
+	
+	
+	
+	public static BufferedImage rotate90(BufferedImage src, int steps) {
+		float rotationAngle = steps*90;
+		
+	    double theta = (Math.PI * 2) / 360 * rotationAngle;
+	    int width = src.getWidth();
+	    int height = src.getHeight();
+	    BufferedImage dest;
+	    if (rotationAngle == 90 || rotationAngle == 270) {
+	        dest = new BufferedImage(src.getHeight(), src.getWidth(), src.getType());
+	    } else {
+	        dest = new BufferedImage(src.getWidth(), src.getHeight(), src.getType());
+	    }
 
+	    Graphics2D graphics2D = dest.createGraphics();
+	    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+	    if (rotationAngle == 90) {
+	        graphics2D.translate((height - width) / 2, (height - width) / 2);
+	        graphics2D.rotate(theta, height / 2, width / 2);
+	    } else if (rotationAngle == 270) {
+	        graphics2D.translate((width - height) / 2, (width - height) / 2);
+	        graphics2D.rotate(theta, height / 2, width / 2);
+	    } else {
+	        graphics2D.translate(0, 0);
+	        graphics2D.rotate(theta, width / 2, height / 2);
+	    }
+	    graphics2D.drawRenderedImage(src, null);
+	    return dest;
+	}
+	
+	
+	
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// color transforms
 	//

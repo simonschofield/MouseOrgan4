@@ -20,9 +20,7 @@ class RenderTarget {
 	Graphics2D graphics2D;
 	BufferedImage bufferedImage;
 
-	Rect permittedPasteArea;
-	boolean bespokeCropToPermittedPasteArea = false;
-	// boolean prohibitEdgeOverlap = true;
+	
 
 	// these are the pixel dimensions of the output image
 	int bufferWidth, bufferHeight;
@@ -33,6 +31,13 @@ class RenderTarget {
 
 	ShapeDrawer shapeDrawer;
 
+	
+	///
+	private Rect permittedPasteArea;
+	boolean bespokeCropToPermittedPasteArea = false;
+	ImageContentGroup permittedPasteAreaCropImages;
+	
+	
 	public RenderTarget() {
 
 	}
@@ -94,14 +99,19 @@ class RenderTarget {
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
-	// sets each boundary of the permitted paste area. each field is nullable
+	// sets each boundary of the permitted paste area. each field is nullable, in that is is not changed
 	// All measurements are in document space
-	void setPermittedPasteArea(Float left, Float top, Float right, Float bottom, boolean cropOption) {
+	// if applyCrop == false, then do not permit any pasting which overlaps the permittedPasteArea, ignore the cropImages is any
+	// if applyCrop == true, then crop the sprite to the permittedPasteArea
+	// if cropImages is not set (==null) and applyCrop == true, the  crop is a simple hard rectangular crop to the permittedPasteArea
+	// if cropImages is set and applyCrop == true, the  crop is made by adding the crop effect to the hard rectangular crop to the permittedPasteArea
+	void setPermittedPasteArea(Float left, Float top, Float right, Float bottom, boolean applyCrop, ImageContentGroup cropImages) {
 		if(left != null ) permittedPasteArea.left = left;
 		if(top != null ) permittedPasteArea.top = top;
 		if(right != null ) permittedPasteArea.right = right;
 		if(bottom != null ) permittedPasteArea.bottom = bottom;
-		bespokeCropToPermittedPasteArea = cropOption;
+		bespokeCropToPermittedPasteArea = applyCrop;
+		permittedPasteAreaCropImages = cropImages;
 	}
 	
 	Rect getPermittedPasteArea() {
@@ -138,7 +148,7 @@ class RenderTarget {
 			// 3/ a hard geometric crop to the area
 			if( bespokeCropToPermittedPasteArea == false ) return;
 			// if you get this far, 
-			boolean cropOK = sprite.doBespokeCrop(this);
+			boolean cropOK = sprite.cropToPermittedPasteArea(this);
 			if(cropOK==false) return;
 			}
 		

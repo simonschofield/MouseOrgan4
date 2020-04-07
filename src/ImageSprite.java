@@ -1,4 +1,6 @@
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.awt.image.PixelGrabber;
 //////////////////////////////////////////////////////////////////////
 // 
 
@@ -107,33 +109,45 @@ public class ImageSprite{
 		return rt.getPasteRectDocSpace(this.image, shiftedDocSpacePt);
 	}
 	
-	// if the render target needs to make a bespoke crop before pasting
-	// usually because the sprite is over the permittedPasteArea, then it performs
-	// that operation here. The cropToRect is in document space
-	boolean doBespokeCrop(RenderTarget rt) {
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// cropping the sprite image to the permittedPasteArea
+	//
+	// if the render target needs to crop to the permittedPasteArea before pasting
+	// The permittedPasteArea is in document space
+	boolean cropToPermittedPasteArea(RenderTarget rt) {
+		// assume that the sprite has been tested for being wholly-inside already, so that by here,
+		// we know a crop is due.
 		
-		Rect cropToRect = rt.permittedPasteArea;
-		Rect uncroppedRect = getPasteRectDocSpace(rt);
+		// get intersection of both in documentSpace
+		Rect permittedPasteArea = rt.getPermittedPasteArea();
+		Rect uncroppedSpriteRect = getPasteRectDocSpace(rt);
+		Rect croppedSpriteRect = permittedPasteArea.getBooleanIntersection(uncroppedSpriteRect);
 		//System.out.println("doBespokeCrop:uncroppedRect " + uncroppedRect.toStr());
 		
-		Rect croppedRect = cropToRect.getBooleanIntersection(uncroppedRect);
-		// if there is no intersection between the two rects the method returns a null
-		if(croppedRect==null) return false;
+		// if there is no intersection between the two rects (i.e. the sprite is totally outside the permitted paster area,
+		// the getBooleanIntersection method returns null and this method returns false
+		if(croppedSpriteRect==null) return false;
+		
+		// there is some sort of crop, get the edge crop report
+		String edgeCropReport = uncroppedSpriteRect.reportIntersection(permittedPasteArea);
+		System.out.println("doBespokeCrop:crop report: " + edgeCropReport);
+		
 		//System.out.println("doBespokeCrop:rect Ref " + croppedRect);
 		//System.out.println("doBespokeCrop:croppedRect " + croppedRect.toStr());
-		// Shift the uncroppedRect to (0,0) and the croppedRect by the same amount
-		// the topleft of the croppedRect becomes top left of the crop in buffer space 
-		// and the same for bottom right, so we need to
-		// get these in buffer space
-		float uncroppedLeft = uncroppedRect.left;
-		float uncroppedTop = uncroppedRect.top;
-		croppedRect.translate(-uncroppedLeft, -uncroppedTop);
+		
+		
+		// Shift the uncroppedSpriteRect so that it is relative to it's own origin, rather than the document space  
+		// 
+		float uncroppedLeft = uncroppedSpriteRect.left;
+		float uncroppedTop = uncroppedSpriteRect.top;
+		croppedSpriteRect.translate(-uncroppedLeft, -uncroppedTop);
+		
+		// work out the buffer space coords in the sprite image, by multiplying the docSpace by the doc buffer size
 		//System.out.println("doBespokeCrop:croppedRect trn " + croppedRect.toStr());
-		int bLeft = (int) (croppedRect.left  * rt.getBufferWidth());
-		int bTop = (int) (croppedRect.top * rt.getBufferHeight());
-		int bRight = (int) (croppedRect.right * rt.getBufferWidth());
-		int bBottom = (int) (croppedRect.bottom *  rt.getBufferHeight());
+		int bLeft = (int) (croppedSpriteRect.left  * rt.getBufferWidth());
+		int bTop = (int) (croppedSpriteRect.top * rt.getBufferHeight());
+		int bRight = (int) (croppedSpriteRect.right * rt.getBufferWidth());
+		int bBottom = (int) (croppedSpriteRect.bottom *  rt.getBufferHeight());
 		
 		Rect croppedRectBufferSpace = new Rect(bLeft,bTop,bRight,bBottom);
 		//System.out.println("doBespokeCrop:croppedRectBufferSpace " + croppedRectBufferSpace.toStr());
@@ -142,18 +156,128 @@ public class ImageSprite{
 		// As we don't want to complicate things, and don't want to have to adjust the origin
 		// of the sprite to adjust to the new crop, we just delete the pixels outside of the croppedRectBufferSpace
 		BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-		BufferedImage croppedImage = ImageProcessing.cropImage(image, croppedRectBufferSpace);
+		BufferedImage preCroppedImage = ImageProcessing.cropImage(image, croppedRectBufferSpace);
 		
-		ImageProcessing.pasteIntoImage(croppedImage, outputImage, bLeft, bTop);
+		if( rt.permittedPasteAreaCropImages != null){
+			boolean result = doBespokeCrop(rt, preCroppedImage, edgeCropReport );
+			if(result == false) {
+				// the bespoke crop obliterated the image
+				return false;
+			}
+		}// else, just do a hard rectangular crop to the permittedPasteArea
+		
+		ImageProcessing.pasteIntoImage(preCroppedImage, outputImage, bLeft, bTop);
 		image = outputImage;
 		
 		return true;
 	}
 	
-	void setBespokeCrop() {
+	// alters the preCroppedImage
+	boolean doBespokeCrop(RenderTarget rt, BufferedImage preCroppedImage, String edgeCropReport) {
+		// do the bespoke crop using the selected crop image
+		String splitEdgeReport[] = edgeCropReport.split(",");
+		for(String edge:splitEdgeReport) {
+			boolean result = addBespokeCropToEdge( rt,  preCroppedImage, edge);
+			if(result == false) {
+				// the addBespokeCropToEdge crop obliterated the image
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	// alters the preCroppedImage
+	boolean addBespokeCropToEdge(RenderTarget rt, BufferedImage preCroppedImage, String theEdge) {
+		int numCropImages = rt.permittedPasteAreaCropImages.getNumItems();
+		int n = qRandomStream.randRangeInt(0, numCropImages-1);
+		BufferedImage cropper = rt.permittedPasteAreaCropImages.getImage(n);
+		int sourceImageW = preCroppedImage.getWidth();
+		int sourceImageH = preCroppedImage.getHeight();
 		
+		if(theEdge.contentEquals("LEFT")) {
+			// don't need to rotate the crop image
+			if(cropper.getWidth() > sourceImageW) return false;
+			cropper = matchImageSize(cropper, cropper.getWidth(), sourceImageH);
+			modifyAplhaUsingGrayScaleMask(preCroppedImage, cropper, 0, 0);
+			return true;
+		}
+		if(theEdge.contentEquals("RIGHT")) {
+			cropper = ImageProcessing.rotate90(cropper, 2);
+			if(cropper.getWidth() > sourceImageW) return false;
+			cropper = matchImageSize(cropper, cropper.getWidth(), sourceImageH);
+			modifyAplhaUsingGrayScaleMask(preCroppedImage, cropper, preCroppedImage.getWidth()-cropper.getWidth(), 0);
+			return true;
+		}
+		if(theEdge.contentEquals("TOP")) {
+			cropper = ImageProcessing.rotate90(cropper, 1);
+			if(cropper.getHeight() > sourceImageH) return false;
+			cropper = matchImageSize(cropper, sourceImageW, cropper.getHeight());
+			modifyAplhaUsingGrayScaleMask(preCroppedImage, cropper, 0, 0);
+			return true;
+		}
+		if(theEdge.contentEquals("BOTTOM")) {
+			cropper = ImageProcessing.rotate90(cropper, 3);
+			if(cropper.getHeight() > sourceImageH) return false;
+			cropper = matchImageSize(cropper, sourceImageW, cropper.getHeight());
+			modifyAplhaUsingGrayScaleMask(preCroppedImage, cropper, 0, preCroppedImage.getHeight()-cropper.getHeight());
+			return true;
+		}
+		
+		// asked to do something unknown
+		return false;
 		
 	}
+	
+	// returns the scaled source image to match the w,h, if w or h are larger than the source image
+	BufferedImage matchImageSize(BufferedImage source, int w, int h) {
+		System.out.println("matchImageSize: sizing to " + w + " " + h);
+		System.out.println("matchImageSize: preScaledSize " + source.getWidth() + " " + source.getHeight());
+		BufferedImage outimg =  ImageProcessing.scaleTo(source,w, h);
+		System.out.println("matchImageSize: postScaledSize " + outimg.getWidth() + " " + outimg.getHeight());
+		return outimg;
+	}
+	
+	// alters the preCroppedImage
+	void modifyAplhaUsingGrayScaleMask(BufferedImage preCroppedImage, BufferedImage maskImage, int offsetX, int offsetY) {
+		// the mask image uses its own tone value to calculate the alpha written into the preCroppedImage
+		int maskW = maskImage.getWidth();
+		int maskH = maskImage.getHeight();
+		
+		Rect cropR = new Rect(offsetX, offsetY, offsetX+maskW, offsetY+maskH);
+		
+		BufferedImage preCroppedImageOverlap = ImageProcessing.cropImage(preCroppedImage, cropR);
+		
+		
+		
+		int[] maskPixelUnpacked = new int[4];
+		int[] imagePixelUnpacked = new int[4];
+
+		for(int y = 0; y < maskH; y++) {
+			for(int x = 0; x < maskW; x++) {
+				int maskPixel = maskImage.getRGB(x,y);
+				ImageProcessing.unpackARGB(maskPixel, maskPixelUnpacked);
+				int newAlpha = maskPixelUnpacked[1];// this is the red value of the pixel
+				//if(newAlpha == 255) continue;
+				
+				int imagePixel = preCroppedImageOverlap.getRGB(x,y);
+				ImageProcessing.unpackARGB(imagePixel, imagePixelUnpacked);
+				int existingAlpha = imagePixelUnpacked[0];
+				
+				
+				int newPixel = ImageProcessing.packARGB(Math.min(newAlpha, existingAlpha), imagePixelUnpacked[1], imagePixelUnpacked[2], imagePixelUnpacked[3]);
+				
+				preCroppedImageOverlap.setRGB(x,y,newPixel);
+			}
+		}
+		
+		
+		ImageProcessing.pasteIntoImage(preCroppedImageOverlap, preCroppedImage, offsetX, offsetY);
+		
+	}
+	
+	//
+	// end of cropping stuff
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	
 	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float scaleModifier) {
