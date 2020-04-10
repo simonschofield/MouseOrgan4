@@ -67,7 +67,7 @@ public class ImageSprite{
 	}
 	
 	boolean seedLayerEquals(String s) {
-		return s.contentEquals(seed.layerName);
+		return s.contentEquals(seed.batchName);
 	}
 	
 	// needed by the RenderTarget to paste
@@ -130,7 +130,7 @@ public class ImageSprite{
 		
 		// there is some sort of crop, get the edge crop report
 		String edgeCropReport = uncroppedSpriteRect.reportIntersection(permittedPasteArea);
-		System.out.println("doBespokeCrop:crop report: " + edgeCropReport);
+		//System.out.println("doBespokeCrop:crop report: " + edgeCropReport);
 		
 		//System.out.println("doBespokeCrop:rect Ref " + croppedRect);
 		//System.out.println("doBespokeCrop:croppedRect " + croppedRect.toStr());
@@ -228,13 +228,30 @@ public class ImageSprite{
 		
 	}
 	
-	// returns the scaled source image to match the w,h, if w or h are larger than the source image
-	BufferedImage matchImageSize(BufferedImage source, int w, int h) {
-		System.out.println("matchImageSize: sizing to " + w + " " + h);
-		System.out.println("matchImageSize: preScaledSize " + source.getWidth() + " " + source.getHeight());
-		BufferedImage outimg =  ImageProcessing.scaleTo(source,w, h);
-		System.out.println("matchImageSize: postScaledSize " + outimg.getWidth() + " " + outimg.getHeight());
-		return outimg;
+	// returns the source image resized to match the w,h, if w or h are larger than the source image
+	// if the existing size in h or w is larger than h,w then crop in that dimension
+	// if it is larger then scale in that dimension
+	BufferedImage matchImageSize(BufferedImage source, int newW, int newH) {
+		
+		if( source.getWidth() > newW ) {
+			Rect r = new Rect(0,0,newW, source.getHeight());
+			source = ImageProcessing.cropImage(source, r);
+		}
+		if( source.getHeight() > newH ) {
+			Rect r = new Rect(0,0,source.getWidth(), newH);
+			source = ImageProcessing.cropImage(source, r);
+		}
+		
+		
+		if( source.getWidth() < newW) {
+			source = ImageProcessing.scaleTo(source,newW, source.getHeight());
+		}
+		if( source.getHeight() < newH) {
+			source = ImageProcessing.scaleTo(source,source.getWidth(), newH);
+		}
+		
+		//System.out.println("matchImageSize: postScaledSize " + outimg.getWidth() + " " + outimg.getHeight());
+		return source;
 	}
 	
 	// alters the preCroppedImage
@@ -246,9 +263,7 @@ public class ImageSprite{
 		Rect cropR = new Rect(offsetX, offsetY, offsetX+maskW, offsetY+maskH);
 		
 		BufferedImage preCroppedImageOverlap = ImageProcessing.cropImage(preCroppedImage, cropR);
-		
-		
-		
+
 		int[] maskPixelUnpacked = new int[4];
 		int[] imagePixelUnpacked = new int[4];
 
@@ -262,8 +277,6 @@ public class ImageSprite{
 				int imagePixel = preCroppedImageOverlap.getRGB(x,y);
 				ImageProcessing.unpackARGB(imagePixel, imagePixelUnpacked);
 				int existingAlpha = imagePixelUnpacked[0];
-				
-				
 				int newPixel = ImageProcessing.packARGB(Math.min(newAlpha, existingAlpha), imagePixelUnpacked[1], imagePixelUnpacked[2], imagePixelUnpacked[3]);
 				
 				preCroppedImageOverlap.setRGB(x,y,newPixel);

@@ -9,22 +9,22 @@ import java.util.Comparator;
 // a seed factory takes a PointGenerator and a ContentItemSelector
 // and makes a number of seeds with it
 // These can then be added to the SeedStore
-public class SeedLayer{
-	String layerName = "";
+public class SeedBatch{
+	String batchName = "";
 	ContentItemSelector contentItemSelector;
 	PointGenerator pointGenerator;
 	boolean isVisible = true;
 	ArrayList<Seed> seeds = new ArrayList<Seed>();
 	int uniqueSeedIDCounter = 0;
 	
-	SeedLayer(String name){
-		layerName = name;
+	SeedBatch(String name){
+		batchName = name;
 	}
 	
 	@SuppressWarnings("unchecked")
 	void loadSeeds(String path) {
 		String seedsDirectoryPath = path + "seeds\\";
-		String pathandname = seedsDirectoryPath + layerName + ".sds";
+		String pathandname = seedsDirectoryPath + batchName + ".sds";
 		System.out.println("loading seed layer " + pathandname);
 		seeds = (ArrayList<Seed>)(SerializableFile.load(pathandname));
 		if(seeds==null) {
@@ -42,7 +42,7 @@ public class SeedLayer{
 		}
 		while(pointGenerator.areItemsRemaining()) {
 			Seed seed = pointGenerator.getNextSeed();
-			seed.layerName = this.layerName;
+			seed.batchName = this.batchName;
 			seed.contentItemDescriptor = contentItemSelector.selectContentItemDescription();
 			seed.id = uniqueSeedIDCounter++;
 			seeds.add(seed);
@@ -51,7 +51,7 @@ public class SeedLayer{
 	}
 	
 	boolean nameEquals(String n) {
-		 return n.contentEquals(layerName);
+		 return n.contentEquals(batchName);
 	}
 	
 	ArrayList<Seed> getSeeds(){
@@ -77,7 +77,7 @@ public class SeedLayer{
 	void saveSeeds(String path) {
 		// there should be a directory in the project folder called seeds
 		ensureSeedsDirectoryExists(path);
-		String pathandname = path + "seeds\\" + layerName + ".sds";
+		String pathandname = path + "seeds\\" + batchName + ".sds";
 		SerializableFile.save(pathandname, seeds);
 	}
 	
@@ -91,24 +91,24 @@ public class SeedLayer{
 
 
 ///////////////////////////////////////////////////////////////////////////
-// SeedLayerManager
+// SeedBatchManager
 //
 //
-class SeedLayerManager extends CollectionIterator {
+class SeedBatchManager extends CollectionIterator {
 	// important classes necessary for independently generating new seed layers
 	Surface theSurface;
 	ContentGroupManager contentManager;
 	SceneData3D sceneData3D;
 	
 	//
-	ArrayList<SeedLayer> seedLayers = new ArrayList<SeedLayer>();
+	ArrayList<SeedBatch> seedBatches = new ArrayList<SeedBatch>();
 	Range depthConstraintRange = new Range();
 	
 	// collated seeds are those seeds visible for a render
 	ArrayList<Seed> collatedSeeds = new ArrayList<Seed>();
 	Range collatedSeedsDepthExtrema = new Range();
 	
-	SeedLayerManager(Surface srf, ContentGroupManager cgm, SceneData3D sd3d){
+	SeedBatchManager(Surface srf, ContentGroupManager cgm, SceneData3D sd3d){
 		theSurface = srf;
 		contentManager = cgm;
 		sceneData3D = sd3d;
@@ -118,17 +118,17 @@ class SeedLayerManager extends CollectionIterator {
 	 
 	
 	
-	void addSeedLayer(SeedLayer sl) {
-		seedLayers.add(sl);
+	void addSeedBatch(SeedBatch sl) {
+		seedBatches.add(sl);
 	}
 	
-	void setSeedLayerVisible(String name, boolean vis) {
-		SeedLayer sl = getSeedLayer(name);
+	void setSeedBatchVisible(String name, boolean vis) {
+		SeedBatch sl = getSeedBatch(name);
 		sl.setVisible(vis);
 	}
 	
-	boolean isSeedLayerVisible(String name) {
-		SeedLayer sl = getSeedLayer(name);
+	boolean isSeedBatchVisible(String name) {
+		SeedBatch sl = getSeedBatch(name);
 		return sl.isVisible();
 	}
 	
@@ -138,22 +138,22 @@ class SeedLayerManager extends CollectionIterator {
 		
 	}
 	
-	SeedLayer getSeedLayer(String name) {
-		for(SeedLayer sl: seedLayers) {
+	SeedBatch getSeedBatch(String name) {
+		for(SeedBatch sl: seedBatches) {
 			if(sl.nameEquals(name)) return sl;
 		}
-		System.out.println("SeedLayerManager:getSeedLayer , cannot find layer " + name);
+		System.out.println("SeedBatchManager:getSeedBatch , cannot find batch " + name);
 		return null;
 	}
 	
 	
 	
-	void drawSeedLayerPoints(String name, Color c) {
-		theSurface.theDocument.drawPoints(getSeedLayer(name).getPoints(), c);
+	void drawSeedBatchPoints(String name, Color c) {
+		theSurface.theDocument.drawPoints(getSeedBatch(name).getPoints(), c);
 	}
 	
 	void prepareForRender() {
-		collateLayers();
+		collateSeedBatches();
 		depthSort();
 		filterOnDepth();
 		if(collatedSeeds.size()==0) {
@@ -161,14 +161,14 @@ class SeedLayerManager extends CollectionIterator {
 		}
 	}
 	
-	void collateLayers() {
+	void collateSeedBatches() {
 		collatedSeeds.clear();
-		for(SeedLayer sl: seedLayers) {
+		for(SeedBatch sl: seedBatches) {
 			if(sl.isVisible()) {
-				System.out.println("SeedLayerManager adding layer " + sl.layerName + " num seeds " + sl.getSeeds().size());
+				System.out.println("SeedBatchManager: adding batch " + sl.batchName + " num seeds " + sl.getSeeds().size());
 				collatedSeeds.addAll(sl.getSeeds());
 			}
-			System.out.println("SeedLayerManager has collated " + collatedSeeds.size());
+			System.out.println("SeedBatchManager has collated " + collatedSeeds.size());
 		}
 		
 		
@@ -234,14 +234,14 @@ class SeedLayerManager extends CollectionIterator {
 	////////////////////////////////////////////////////////////////////////////////
 	
 	////////////////////////////////////////////////////////////////////////////
-	// SeedLayer generation methods. The do rely on the globals
-	// contentManager, seedlayerManager, and scenedat3d so maybe should be part o
+	// SeedBatch generation methods. The do rely on the globals
+	// contentManager, seedBatchManager, and scenedat3d 
 	//
-	void createSeedLayer(Boolean makeNewSeeds, String layerName, String[] contentGroupNames, float[] contentGroupProbs,
+	void createSeedBatch(Boolean makeNewSeeds, String batchName, String[] contentGroupNames, float[] contentGroupProbs,
 			int cisRSeed, String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
 			int pointDistRSeed) {
 
-		SeedLayer seedLayerBiome1 = new SeedLayer(layerName);
+		SeedBatch seedBatchBiome1 = new SeedBatch(batchName);
 
 		if (makeNewSeeds) {
 
@@ -254,23 +254,23 @@ class SeedLayerManager extends CollectionIterator {
 			PointGenerator_RadialPack pointField = getPointGenerator(namePointDisImage, pointDisRLo, pointDisRHi,
 					pointDisThreshold, pointDistRSeed);
 
-			seedLayerBiome1.generateSeeds(cis, pointField);
-			seedLayerBiome1.saveSeeds(theSurface.getUserSessionPath());
+			seedBatchBiome1.generateSeeds(cis, pointField);
+			seedBatchBiome1.saveSeeds(theSurface.getUserSessionPath());
 
 		} else {
 
-			seedLayerBiome1.loadSeeds(theSurface.getUserSessionPath());
+			seedBatchBiome1.loadSeeds(theSurface.getUserSessionPath());
 
 		}
 
-		addSeedLayer(seedLayerBiome1);
+		addSeedBatch(seedBatchBiome1);
 	}
 
-	void createSeedLayer(Boolean makeNewSeeds, String layerName, String contentGroupName, int cisRSeed,
+	void createSeedBatch(Boolean makeNewSeeds, String batchName, String contentGroupName, int cisRSeed,
 			String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
 			int pointDistRSeed) {
 
-		SeedLayer seedLayerBiome1 = new SeedLayer(layerName);
+		SeedBatch seedBatchBiome1 = new SeedBatch(batchName);
 
 		if (makeNewSeeds) {
 
@@ -281,16 +281,16 @@ class SeedLayerManager extends CollectionIterator {
 			PointGenerator_RadialPack pointField = getPointGenerator(namePointDisImage, pointDisRLo, pointDisRHi,
 					pointDisThreshold, pointDistRSeed);
 
-			seedLayerBiome1.generateSeeds(cis, pointField);
-			seedLayerBiome1.saveSeeds(theSurface.getUserSessionPath());
+			seedBatchBiome1.generateSeeds(cis, pointField);
+			seedBatchBiome1.saveSeeds(theSurface.getUserSessionPath());
 
 		} else {
 
-			seedLayerBiome1.loadSeeds(theSurface.getUserSessionPath());
+			seedBatchBiome1.loadSeeds(theSurface.getUserSessionPath());
 
 		}
 
-		addSeedLayer(seedLayerBiome1);
+		addSeedBatch(seedBatchBiome1);
 	}
 
 	PointGenerator_RadialPack getPointGenerator(String namePointDisImage, float pointDisRLo, float pointDisRHi,
@@ -315,7 +315,7 @@ class SeedLayerManager extends CollectionIterator {
 
 @SuppressWarnings("serial")
 class Seed implements Serializable{
-	String layerName;
+	String batchName;
 	PVector docPoint;
 	float depth;
 	int id;
