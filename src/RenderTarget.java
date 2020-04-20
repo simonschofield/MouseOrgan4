@@ -70,11 +70,8 @@ class RenderTarget {
 	}
 
 	void fillBackground(Color c) {
-
-		// shapeDrawer.cacheCurrentDrawingStyle();
-		shapeDrawer.setFillColor(c);
-		shapeDrawer.drawRect(0, 0, bufferWidth, bufferHeight);
-		// shapeDrawer.restoreCachedDrawingStyle();
+		graphics2D.setBackground(c);
+		graphics2D.clearRect(0, 0, bufferWidth, bufferHeight);
 	}
 
 	float getDocumentAspect() {
@@ -138,7 +135,7 @@ class RenderTarget {
 		// work out the offset in the image from the origin
 		Rect r = sprite.getPasteRectDocSpace(this); 
 		
-		
+		//System.out.println(" trying to pasteSprite ");
 		if (r.isWhollyInsideOther( permittedPasteArea ) == false)
 			{
 			// decide what to do
@@ -153,7 +150,7 @@ class RenderTarget {
 			}
 		
 		
-		
+		//System.out.println(" pasted ");
 		pasteImage(sprite.image, r.getTopLeft(),  alpha);
 	}
 	

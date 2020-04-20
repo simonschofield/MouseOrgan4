@@ -44,6 +44,12 @@ public class RandomStream{
 		return (lo + r*(hi-lo) );
 	}
 	
+	float perturb(float v, float amt) {
+		
+		return v + (randRangeF(-v,v) * amt);
+		
+	}
+	
 	PVector randomPoint3(){
 		float x = rstream.nextFloat();
 		float y = rstream.nextFloat();
@@ -126,6 +132,10 @@ class QRandomStream{
 	float randRangeF(float lo, float hi){
 		float r = nextFloat();
 		return (lo + r*(hi-lo) );
+	}
+	
+	float perturb(float v, float amt) {
+		return v + (randRangeF(-v,v) * amt);
 	}
 	
 	int nextInt() {

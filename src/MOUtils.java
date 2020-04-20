@@ -36,6 +36,22 @@ public class MOUtils {
 		return targetFolder.mkdirs();
 	}
 	
+	static String getPaddedNumberString(Integer num, int lengthOfString) {
+		String  inputString =  num.toString();
+	    if (inputString.length() >= lengthOfString) {
+	        return inputString;
+	    }
+	    StringBuilder sb = new StringBuilder();
+	    while (sb.length() < lengthOfString - inputString.length()) {
+	        sb.append('0');
+	    }
+	    sb.append(inputString);
+	 
+	    return sb.toString();
+		
+		
+	}
+	
 	
 }
 

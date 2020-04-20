@@ -445,6 +445,7 @@ abstract class CollectionIterator {
 	int itemIteratorCounter = 0;
 	
 	boolean justfinishedFlag = false;
+	boolean isFinishedFlag = false;
 	
 	boolean areItemsRemaining() {
 		if (getNumItemsRemaining() <= 0)
@@ -457,9 +458,14 @@ abstract class CollectionIterator {
 		if(areItemsRemaining()) return false;
 		if(justfinishedFlag == false) {
 			justfinishedFlag = true;
+			isFinishedFlag = true;
 			return true;
 		}
 		return false;
+	}
+	
+	boolean isFinished() {
+		return isFinishedFlag;
 	}
 
 	int getNumItemsRemaining() {
@@ -467,8 +473,10 @@ abstract class CollectionIterator {
 	}
 
 	Object getNextItem() {
-		if (itemIteratorCounter >= getNumItems())
+		if (itemIteratorCounter >= getNumItems()) {
+			isFinishedFlag = true;
 			return null;
+		}
 		return getItem(itemIteratorCounter++);
 	}
 	
@@ -497,6 +505,7 @@ abstract class CollectionIterator {
 	void resetItemIterator() {
 		itemIteratorCounter = 0;
 		justfinishedFlag = false;
+		isFinishedFlag = false;
 	}
 	
 	abstract int getNumItems();

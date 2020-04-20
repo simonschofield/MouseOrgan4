@@ -422,3 +422,35 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 	}
 
 }
+
+
+
+class UserSessionSettings{
+	boolean isDraft = true;
+	float draftRenderScale = 0.2f;
+	String currentSchemea = "";
+	String userSessionPath = "";
+	
+	UserSessionSettings(boolean isFinalCopy, float draftRendScale, String currentSchm){
+		
+		isDraft = !isFinalCopy;
+		draftRenderScale = draftRendScale;
+		currentSchemea = currentSchm;
+	}
+	
+	float getRenderScale() {
+		if(isDraft) return draftRenderScale;
+		return 1.0f;
+	}
+	
+	int getRenderQuality() {
+		if(isDraft) return 0;
+		return 2;
+	}
+	
+	boolean isSchema(String s) {
+		return currentSchemea.contentEquals(s);
+	}
+	
+	boolean isDraft() { return isDraft;}
+}

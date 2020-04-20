@@ -1,5 +1,4 @@
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -99,7 +98,9 @@ public class SceneData3D {
 	}
 	
 	
-	
+    void useFilteredDistance(boolean use) {
+    	geometryBuffer3d.useFilteredDistance(use);
+	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////
 	// The mask image is an image reflecting the sky/land pixels
@@ -130,7 +131,6 @@ public class SceneData3D {
 
 	
 	BufferedImage getCurrentRenderImage() {
-
 		return currentRenderKeyImage;
 	}
 	
@@ -385,7 +385,7 @@ class GeometryBuffer3D{
 	CoordinateSpaceConverter coordinateSpaceConverter;
 	
 	DistanceBufferFilter distanceBufferFilter = new DistanceBufferFilter();
-	
+	boolean useFilteredDistance = true;
 	
 	public GeometryBuffer3D(FloatImage distanceBuff, float vfov, CoordinateSpaceConverter csc, DistanceBufferFilter dbf) {
 		distanceBufferFilter = dbf;
@@ -409,6 +409,9 @@ class GeometryBuffer3D{
 		
 	}
 
+	void useFilteredDistance(boolean use) {
+		useFilteredDistance = use;
+	}
 	
 	void makeFilteredDistanceBuffer() {
 		filteredDistanceBuffer = new FloatImage(width,height);
@@ -464,7 +467,8 @@ class GeometryBuffer3D{
 	
 	float getDistance(float x, float y) {
 		// using actual buffer pixel coords
-		return filteredDistanceBuffer.getPixelBilin(x, y); 
+		if(useFilteredDistance) return filteredDistanceBuffer.getPixelBilin(x, y); 
+		return distanceBuffer.getPixelBilin(x, y); 
 	}
 	
 

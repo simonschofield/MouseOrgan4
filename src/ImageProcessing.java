@@ -106,7 +106,52 @@ public class ImageProcessing {
 	      return dest; 
 	   }
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// pixel transforms
+	//	
 	
+	static int[] unpackARGB(int packedCol) {
+		int[] col = new int[4];
+		col[0] = (packedCol >> 24) & 0xFF;// alpha
+		col[1] = (packedCol >> 16) & 0xFF;// red
+		col[2] = (packedCol >> 8) & 0xFF; // green
+		col[3] = packedCol & 0xFF; // blue
+		return col;
+	}
+
+	static void unpackARGB(int packedCol, int[] col) {
+
+		col[0] = (packedCol >> 24) & 0xFF;// alpha
+		col[1] = (packedCol >> 16) & 0xFF;// red
+		col[2] = (packedCol >> 8) & 0xFF; // green
+		col[3] = packedCol & 0xFF; // blue
+	}
+	
+	static int getChannelFromARGB(int packedCol, int channel) {
+		return unpackARGB(packedCol)[channel];
+
+	}
+
+	static Color packedIntToColor(int packedCol, boolean hasAlpha) {
+		return new Color(packedCol, hasAlpha);
+	}
+
+	static float packedIntToVal01(int packedCol, boolean hasAlpha) {
+		Color c = packedIntToColor(packedCol, hasAlpha);
+		return (c.getRed() + c.getGreen() + c.getBlue()) / 765f;
+	}
+
+	static int packARGB(int a, int r, int g, int b) {
+		// Packs four 8 bit numbers into one 32 bit number
+
+		a = a << 24; // Binary: 11111111000000000000000000000000
+		r = r << 16; // Binary: 00000000110011000000000000000000
+		g = g << 8; // Binary: 00000000000000001100110000000000
+		// b remains untouched
+
+		int argb = a | r | g | b;
+		return argb;
+	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// Geometric transforms
@@ -359,44 +404,49 @@ public class ImageProcessing {
 
 	}
 
+	public static BufferedImage setDominantHue(BufferedImage img, float newDominantHue) {
+		// rather than simply setting the hue to a set color, we get the dominant hue of the image and use it as
+		// a centre-point for adjustment
+		float currentDominantHue = getDominantHue( img);
+		float dif = newDominantHue - currentDominantHue;
+		return adjustHSV( img, dif, 0, 0);
+	}
 	
-	static int[] unpackARGB(int packedCol) {
-		int[] col = new int[4];
-		col[0] = (packedCol >> 24) & 0xFF;// alpha
-		col[1] = (packedCol >> 16) & 0xFF;// red
-		col[2] = (packedCol >> 8) & 0xFF; // green
-		col[3] = packedCol & 0xFF; // blue
-		return col;
+	public static float getDominantHue(BufferedImage img) {
+		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
+		int imtype = img.getType();
+		
+		if(imtype != BufferedImage.TYPE_INT_ARGB) {
+			img = convertColorModel(img, BufferedImage.TYPE_INT_ARGB);
+		}
+		//System.out.println("AFTER adjustHSV incoming image is of type " + img.getType() + " BufferedImage.TYPE_INT_ARGB is " + BufferedImage.TYPE_INT_ARGB);
+		int[] pixelsIn = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+		
+		float[] hsv = new float[4];
+		int[] unpacked = new int[4];
+		
+		float hueTotal = 0;
+		int numPixelsProcessed = 0;
+		for (int i = 0; i < pixelsIn.length; i++) {
+
+			unpackARGB(pixelsIn[i], unpacked);
+
+			// if alpha is 0 then we don't need to process this pixel
+			if (unpacked[0] == 0)
+				continue;
+
+			// this converts the rgb into the array hsv
+			Color.RGBtoHSB(unpacked[1], unpacked[2], unpacked[3], hsv);
+
+			// get the hue
+			hueTotal += hsv[0]; // HSBtoRGB does its own value wrapping
+			numPixelsProcessed++;
+		}
+		float hueAverage = hueTotal/numPixelsProcessed;
+		return hueAverage;
 	}
-
-	static void unpackARGB(int packedCol, int[] col) {
-
-		col[0] = (packedCol >> 24) & 0xFF;// alpha
-		col[1] = (packedCol >> 16) & 0xFF;// red
-		col[2] = (packedCol >> 8) & 0xFF; // green
-		col[3] = packedCol & 0xFF; // blue
-	}
-
-	static Color packedIntToColor(int packedCol, boolean hasAlpha) {
-		return new Color(packedCol, hasAlpha);
-	}
-
-	static float packedIntToVal01(int packedCol, boolean hasAlpha) {
-		Color c = packedIntToColor(packedCol, hasAlpha);
-		return (c.getRed() + c.getGreen() + c.getBlue()) / 765f;
-	}
-
-	static int packARGB(int a, int r, int g, int b) {
-		// Packs four 8 bit numbers into one 32 bit number
-
-		a = a << 24; // Binary: 11111111000000000000000000000000
-		r = r << 16; // Binary: 00000000110011000000000000000000
-		g = g << 8; // Binary: 00000000000000001100110000000000
-		// b remains untouched
-
-		int argb = a | r | g | b;
-		return argb;
-	}
+	
+	
 
 	public static float contrastCurve(float v, float amt) {
 		// 0..1 decreases contrast
