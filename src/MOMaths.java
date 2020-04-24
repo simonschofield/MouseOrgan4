@@ -87,10 +87,16 @@ public static float gaussianCurve(float xVal, float curveHeight, float centreVal
 	  
 	}
 
+
+
+
+	//interpolates the input value between the low and hi values
+	public static  float ramp(float v, float low, float hi){
+		float rampedV = lerp(low, hi, v);
+		return constrain(rampedV,0,1);
+	}
+
 }
-
-
-
 
 //////////////////////////////////////////////////////////
 //Range class
@@ -209,3 +215,9 @@ class Range {
 	}
 	
 }
+
+
+
+
+
+

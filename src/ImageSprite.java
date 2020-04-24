@@ -122,19 +122,15 @@ public class ImageSprite{
 		Rect permittedPasteArea = rt.getPermittedPasteArea();
 		Rect uncroppedSpriteRect = getPasteRectDocSpace(rt);
 		Rect croppedSpriteRect = permittedPasteArea.getBooleanIntersection(uncroppedSpriteRect);
-		//System.out.println("doBespokeCrop:uncroppedRect " + uncroppedRect.toStr());
 		
-		// if there is no intersection between the two rects (i.e. the sprite is totally outside the permitted paster area,
+		
+		// if there is no intersection between the two rects (i.e. the sprite is totally outside the permitted paste area,
 		// the getBooleanIntersection method returns null and this method returns false
 		if(croppedSpriteRect==null) return false;
 		
+
 		// there is some sort of crop, get the edge crop report
 		String edgeCropReport = uncroppedSpriteRect.reportIntersection(permittedPasteArea);
-		//System.out.println("doBespokeCrop:crop report: " + edgeCropReport);
-		
-		//System.out.println("doBespokeCrop:rect Ref " + croppedRect);
-		//System.out.println("doBespokeCrop:croppedRect " + croppedRect.toStr());
-		
 		
 		// Shift the uncroppedSpriteRect so that it is relative to it's own origin, rather than the document space  
 		// 
@@ -142,14 +138,13 @@ public class ImageSprite{
 		float uncroppedTop = uncroppedSpriteRect.top;
 		croppedSpriteRect.translate(-uncroppedLeft, -uncroppedTop);
 		
-		// work out the buffer space coords in the sprite image, by multiplying the docSpace by the doc buffer size
-		//System.out.println("doBespokeCrop:croppedRect trn " + croppedRect.toStr());
-		int bLeft = (int) (croppedSpriteRect.left  * rt.getBufferWidth());
-		int bTop = (int) (croppedSpriteRect.top * rt.getBufferHeight());
-		int bRight = (int) (croppedSpriteRect.right * rt.getBufferWidth());
-		int bBottom = (int) (croppedSpriteRect.bottom *  rt.getBufferHeight());
+		// work out the buffer space coords in the sprite image
+		PVector bTopLeft = rt.docSpaceToBufferSpace(croppedSpriteRect.getTopLeft());
+		PVector bBottomRight = rt.docSpaceToBufferSpace(croppedSpriteRect.getBottomRight());
 		
-		Rect croppedRectBufferSpace = new Rect(bLeft,bTop,bRight,bBottom);
+		
+		
+		Rect croppedRectBufferSpace = new Rect(bTopLeft,bBottomRight);
 		//System.out.println("doBespokeCrop:croppedRectBufferSpace " + croppedRectBufferSpace.toStr());
 		if(croppedRectBufferSpace.getWidth() < 1 || croppedRectBufferSpace.getHeight() < 1) return false;
 		
@@ -159,14 +154,16 @@ public class ImageSprite{
 		BufferedImage preCroppedImage = ImageProcessing.cropImage(image, croppedRectBufferSpace);
 		
 		if( rt.permittedPasteAreaCropImages != null){
+			// add the bespoke crop to the cropping image set
 			boolean result = doBespokeCrop(rt, preCroppedImage, edgeCropReport );
 			if(result == false) {
 				// the bespoke crop obliterated the image
 				return false;
 			}
-		}// else, just do a hard rectangular crop to the permittedPasteArea
+		}
 		
-		ImageProcessing.pasteIntoImage(preCroppedImage, outputImage, bLeft, bTop);
+		// paste the cropped image back into the empty output image at the correct point
+		ImageProcessing.pasteIntoImage(preCroppedImage, outputImage, (int)bTopLeft.x, (int)bTopLeft.y);
 		image = outputImage;
 		
 		return true;

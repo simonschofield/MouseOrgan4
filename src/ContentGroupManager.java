@@ -123,6 +123,23 @@ class ContentGroupManager {
 		ic.scaleAll(inx, iny);
 	}
 	
+	
+	/**
+	 * 
+	 * @param groupname the ImageContentGroup to ajust
+	 * @param function the color function string either "hsv", "brightnessNoClip", "brightness", "contrast"
+	 * @param p1
+	 * @param p2
+	 * @param p3
+	 * @brief adjusts the color of a whole ImageContentGroup
+	 */
+	void colorAdjustImageContentGroup(String groupname, String function, float p1, float p2, float p3) {
+		ImageContentGroup ic = getImageContentGroup(groupname);
+		if (ic == null)
+			return;
+		ic.colorAdjustAll(function,p1,p2,p3);
+	}
+	
 	void hsvAdjustImageContentGroup(String name, float dh, float ds, float dv) {
 		ImageContentGroup ic = getImageContentGroup(name);
 		if (ic == null)
@@ -262,6 +279,25 @@ class ImageContentGroup extends DirectoryImageGroup {
 			BufferedImage scaled = ImageProcessing.adjustHSV(img, dh, ds, dv);
 			imageList.set(n, scaled);
 		}
+		
+	}
+	
+	void colorAdjustAll(String function, float p1, float p2, float p3) {
+		int numImage = imageList.size();
+		for (int n = 0; n < numImage; n++) {
+			BufferedImage img = imageList.get(n);
+			
+			BufferedImage adjustedImage;
+			switch(function){
+				case "hsv": { adjustedImage = ImageProcessing.adjustHSV(img, p1,p2,p3); break; }
+				case "brightnessNoClip": { adjustedImage = ImageProcessing.adjustBrightnessNoClip(img, p1); break; }
+				case "brightness": { adjustedImage = ImageProcessing.adjustBrightness(img, p1); break; }
+				case "contrast": { adjustedImage = ImageProcessing.adjustContrast(img, p1); break; } 
+				default: adjustedImage = img;
+			}
+			imageList.set(n, adjustedImage);
+		}
+		
 		
 	}
 

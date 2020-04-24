@@ -76,6 +76,8 @@ public class SceneData3D {
 		renderHeight = distanceImage.getHeight();
 
 		ArrayList<String> strList = readTextFile(directoryPath + "\\view.txt");
+		String fovString = strList.get(2);
+		float fov = Float.parseFloat(fovString);
 		String topleftSt = strList.get(5);
 		String botRighSt = strList.get(6);
 		
@@ -88,11 +90,11 @@ public class SceneData3D {
 		theROI = new Rect(topLeftV,botRighV);
 		
 		
-		System.out.println("roil loaded is " + theROI.toStr());
+		System.out.println("roil loaded is " + theROI.toStr() + " FOV is " + fov);
 		coordinateSpaceConverter = new CoordinateSpaceConverter(renderWidth,renderHeight, theROI, mouseOrganDocAspect);
 		
 		
-		geometryBuffer3d = new GeometryBuffer3D(distanceImage, 60f, coordinateSpaceConverter, distanceFilter);
+		geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter);
 		
 		setCurrentRenderImage(0);
 	}
@@ -298,6 +300,20 @@ class CoordinateSpaceConverter{
 		}else {
 			x = docSpace.x/mouseOrganDocAspect;
 			y = docSpace.y;
+		}
+		return new PVector(x,y);
+	}
+	
+	PVector normalizedSpaceToDocSpace(PVector normalSpace) {
+
+		float x = 0;
+		float y = 0;
+		if(mouseOrganDocAspect > 1f ) {
+			x = normalSpace.x;
+			y = normalSpace.y/mouseOrganDocAspect;
+		}else {
+			x = normalSpace.x*mouseOrganDocAspect;
+			y = normalSpace.y;
 		}
 		return new PVector(x,y);
 	}

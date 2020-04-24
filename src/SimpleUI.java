@@ -172,13 +172,7 @@ public class SimpleUI {
 	}
 	
 
-	void addCanvasOverlayShape(DrawnShape ds) {
-		canvasOverlayShapes.add(ds);
-	}
 	
-	void clearCanvasOverlayShapes() {
-		canvasOverlayShapes.clear();
-	}
 	
 	public void drawCanvas() {
 		if (canvasRect == null)
@@ -192,22 +186,51 @@ public class SimpleUI {
 		
 	}
 	
-	void addCanvasOverlayShape(PVector docPt1, PVector docPt2, String shapeType, Color fillC, Color lineC, int lineWt) {
+	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	// canvas overlay shape methods
+	//
+	void clearCanvasOverlayShapes() {
+		canvasOverlayShapes.clear();
+	}
+	
+	
+	void deleteCanvasOverlayShapes(String id) {
+		
+		ArrayList<DrawnShape> tempShapes = new ArrayList<DrawnShape>();
+		for(DrawnShape s: canvasOverlayShapes) {
+			if( s.isID(id) ) continue;
+			tempShapes.add(s);
+		}
+		canvasOverlayShapes = tempShapes;
+		
+	}
+	
+	void addCanvasOverlayShape(String idName, PVector docPt1, PVector docPt2, String shapeType, Color fillC, Color lineC, int lineWt) {
 		PVector canvasPt1 = docSpaceToCanvasCoord(docPt1);
 		PVector canvasPt2 = docSpaceToCanvasCoord(docPt2);
 		DrawnShape ds = new DrawnShape();
 		ds.setShape(canvasPt1.x, canvasPt1.y, canvasPt2.x, canvasPt2.y, shapeType, fillC, lineC, lineWt);
-		canvasOverlayShapes.add(ds);
+		
+		addCanvasOverlayShape(ds,idName);
 	}
 	
-	void addCanvasOverlayText(PVector docPt1, String content,  Color textColor, int txtSz) {
+	void addCanvasOverlayText(String idName, PVector docPt1, String content,  Color textColor, int txtSz) {
 		PVector canvasPt1 = docSpaceToCanvasCoord(docPt1);
 		DrawnShape ds = new DrawnShape();
 		ds.setTextShape(canvasPt1.x, canvasPt1.y, content, textColor, txtSz);
+
+		addCanvasOverlayShape(ds,idName);
+	}
+	
+	void addCanvasOverlayShape(DrawnShape ds, String id) {
+		ds.setID(id);
 		canvasOverlayShapes.add(ds);
 	}
 	
 
+	
+	
 	////////////////////////////////////////////////////////////////////////////
 	// widget creation
 	//

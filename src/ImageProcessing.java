@@ -311,7 +311,7 @@ public class ImageProcessing {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// color transforms
 	//
-	public static BufferedImage brightenImage(BufferedImage image, float brightness) {
+	public static BufferedImage adjustBrightness(BufferedImage image, float brightness) {
 		byte[][] data = new byte[3][256];
 		for (int n = 0; n < 256; n++) {
 			byte newVal = (byte) (MOMaths.constrain((n * brightness), 0, 255));
@@ -321,8 +321,22 @@ public class ImageProcessing {
 		}
 		return pointFunction(image, data);
 	}
+	
+	public static BufferedImage adjustBrightnessNoClip(BufferedImage image, float brightness) {
+		byte[][] data = new byte[3][256];
+		
+		for (int n = 0; n < 256; n++) {
+			float val01 = n/256f;
+			float brightness01 = brightnessCurve(val01, brightness);
+			byte newVal = (byte) (brightness01*256);
+			data[0][n] = newVal;
+			data[1][n] = newVal;
+			data[2][n] = newVal;
+		}
+		return pointFunction(image, data);
+	}
 
-	public static BufferedImage contrastImage(BufferedImage image, float contrast) {
+	public static BufferedImage adjustContrast(BufferedImage image, float contrast) {
 		byte[][] data = new byte[3][256];
 		for (int n = 0; n < 256; n++) {
 			float v = n / 256f;
@@ -446,7 +460,32 @@ public class ImageProcessing {
 		return hueAverage;
 	}
 	
-	
+	static float brightnessCurve(float v, float amt) {
+	    // 0..1 decreases brightness
+	    // 1..2 increases brightness
+	    // for brightening, ensures the white does not clip, and the blacks get a little offset
+	    // darkening is just a straight scale
+	    
+	    if (amt >= 1.0) {
+	      float brightness = MOMaths.map(amt, 1, 2, 0, 1);
+	      float brigtnessCurve = MOMaths.lerp(brightness, 1, 4);
+	     
+	      float curveValue = MOMaths.inverseGammaCurve(v, brigtnessCurve);
+	      
+	      float boostBlacks = MOMaths.lerp(brightness, 0.0f,0.2f);
+	      
+	       //println("amt,brightness, brightnessCurce, rampAmt, ranpval", amt,brightness,brigtnessCurve, rampAmount, rampValue);
+	      float curvePlusBoostBlack =  MOMaths.map(curveValue,0,1,boostBlacks,1);
+	      
+	      // in the last quartile amt = 1.5..2, make sure the whites are not totally clipped
+	      return curvePlusBoostBlack;
+	      
+	    } else {
+	      return v*amt;
+	    }
+
+	  }
+
 
 	public static float contrastCurve(float v, float amt) {
 		// 0..1 decreases contrast
@@ -474,6 +513,9 @@ public class ImageProcessing {
 	}
 
 }
+
+
+
 
 class ConvolutionFilter {
 	float[][] edge_matrix = { { 0, -2, 0 }, { -2, 8, -2 }, { 0, -2, 0 } };

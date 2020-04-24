@@ -137,7 +137,7 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 		Slider s = theUI.addSlider("ruler size slider", 0, 260);
 		TextInputBox tib = theUI.addTextInputBox("ruler size", 0, 290, "0");
 		tib.setWidgetDims(40, 30);
-		setMeasuringToolSize(0.5f);
+		//setMeasuringToolSize(0.5f);
 		theUI.addCanvas((int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(),
 				(int) canvasRect_ViewAll.getHeight());
 
@@ -167,7 +167,7 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 		
 
 		if (uied.eventIsFromWidget("ruler size slider")) {
-			setMeasuringToolSize(uied.sliderValue);
+			//setMeasuringToolSize(uied.sliderValue);
 		}
 
 		// if there are any special UI's added by the user session handle them in the
@@ -279,27 +279,7 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 	// canvas overlay drawing, maybe should be moved to UI class
 	//
 
-	void setMeasuringToolSize(float sliderval) {
-		theUI.setSliderValue("ruler size slider", sliderval);
-		measuringToolSize = MOMaths.lerp(sliderval, 1.0f, 20.0f);
-		theUI.setText("ruler size", String.valueOf(measuringToolSize));
-	}
-
-	void draw3DMeasuringTool(PVector docPt, SceneData3D sceneData3D) {
-		theUI.clearCanvasOverlayShapes();
-		PVector endPt = docPt.copy();
-		float worldScale = sceneData3D.get3DScale(docPt);
-		float depth = sceneData3D.getDepth(docPt);
-		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
-		float bothMult = worldScale * normalisedDepth;
-		endPt.y -= (worldScale * measuringToolSize);
-		theUI.addCanvasOverlayShape(docPt, endPt, "line", Color.black, Color.blue, 4);
-		theUI.addCanvasOverlayText(docPt, "  Normalized Depth = " + normalisedDepth,  Color.blue, 10);
-		// System.out.println("World 3d scaler " + worldScale + " depth " + depth + "
-		// both mult = " + bothMult);
-		// System.out.println("depth*normalisedDepth " + depth/normalisedDepth);
-	}
-
+	
 	void drawOverlayRect(Rect r) {
 		//theUI.clearCanvasOverlayShapes();
 		//theUI.addCanvasOverlayShape(r.getTopLeft(), r.getBottomRight(), "rect", new Color(0, 0, 0, 0), Color.gray, 2);

@@ -74,6 +74,7 @@ class DrawingStyle{
 
 
 class DrawnShape{
+	String idName;
 	String shapeType;
 	Shape shape; 
 	DrawingStyle style = new DrawingStyle();
@@ -104,6 +105,14 @@ class DrawnShape{
 			}
 		}
 		style.setStyle(fillC, lineC, lineWt); 
+	}
+	
+	void setID(String id) {
+		idName = id;
+	}
+	
+	boolean isID(String id) {
+		return idName.contentEquals(id);
 	}
 	
 	void setTextShape(float x1, float y1, String content, Color fillC, int txtSz) {
