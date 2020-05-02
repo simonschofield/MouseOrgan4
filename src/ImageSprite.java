@@ -119,7 +119,7 @@ public class ImageSprite{
 		// we know a crop is due.
 		
 		// get intersection of both in documentSpace
-		Rect permittedPasteArea = rt.getPermittedPasteArea();
+		Rect permittedPasteArea = rt.permittedPasteAreaClass.permittedPasteAreaRect;
 		Rect uncroppedSpriteRect = getPasteRectDocSpace(rt);
 		Rect croppedSpriteRect = permittedPasteArea.getBooleanIntersection(uncroppedSpriteRect);
 		
@@ -153,7 +153,7 @@ public class ImageSprite{
 		BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
 		BufferedImage preCroppedImage = ImageProcessing.cropImage(image, croppedRectBufferSpace);
 		
-		if( rt.permittedPasteAreaCropImages != null){
+		if( rt.permittedPasteAreaClass.permittedPasteAreaCropImages != null){
 			// add the bespoke crop to the cropping image set
 			boolean result = doBespokeCrop(rt, preCroppedImage, edgeCropReport );
 			if(result == false) {
@@ -185,9 +185,9 @@ public class ImageSprite{
 	
 	// alters the preCroppedImage
 	boolean addBespokeCropToEdge(RenderTarget rt, BufferedImage preCroppedImage, String theEdge) {
-		int numCropImages = rt.permittedPasteAreaCropImages.getNumItems();
+		int numCropImages = rt.permittedPasteAreaClass.permittedPasteAreaCropImages.getNumItems();
 		int n = qRandomStream.randRangeInt(0, numCropImages-1);
-		BufferedImage cropper = rt.permittedPasteAreaCropImages.getImage(n);
+		BufferedImage cropper = rt.permittedPasteAreaClass.permittedPasteAreaCropImages.getImage(n);
 		int sourceImageW = preCroppedImage.getWidth();
 		int sourceImageH = preCroppedImage.getHeight();
 		
@@ -325,16 +325,18 @@ public class ImageSprite{
 	
 	void rotate(float degrees) {
 		// this function has the visual effect of rotating the image of the sprite around the sprite origin
-		// It does so by rotating the image and the origin point  around it's centre (as normal) 
-		// so that, when the shape is pasted it is as if it has been rotated around the origin
+		// It does so by rotating the image and the origin point around the image centre, rather than rotating the image around
+		// the origin, which could result in a much larger resultant image.
+		// When the shape is pastes using its new origin point, it is as if it has been rotated around the origin
 		// Much more efficient than otherwise
 		
 	    double toRad = Math.toRadians(degrees);
-	    // rotate rotation point around (0,0) in image-pixel space
+	    image = ImageProcessing.rotateImage(image,  degrees);
+	    
+	    // the rest is about rotating the origin point.
+	    // Rotate rotation point around (0,0) in image-pixel space
 	 	float  rx = bufferWidth * (origin.x-0.5f);
 	 	float  ry = bufferHeight * (origin.y-0.5f);
-	 		
-		image = ImageProcessing.rotateImage(image,  degrees);
 
 		float newX = (float)(rx * Math.cos(toRad) - ry * Math.sin(toRad));
 	    float newY = (float)(ry * Math.cos(toRad) + rx * Math.sin(toRad));

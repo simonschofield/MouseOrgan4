@@ -76,6 +76,23 @@ public class Scene3DHelper {
 	}
 	
 	
+	static float getLerpDistanceEffect(ImageSprite sprite, float distMinEffect, float distMaxEffect) {
+		float dist = sceneData3D.getDistance(sprite.getSeedDocPoint());
+		float val = MOMaths.norm(dist, distMinEffect, distMaxEffect);
+		return MOMaths.constrain(val, 0, 1);
+	}
+	
+	static float getRampedDistanceEffect(ImageSprite sprite, float distMinEffectNear, float distMaxEffect, float distMinEffectFar) {
+		float dist = sceneData3D.getDistance(sprite.getSeedDocPoint());
+		if(dist < distMaxEffect) {
+			return getLerpDistanceEffect( sprite,  distMinEffectNear,  distMaxEffect);
+		}
+		
+		return getLerpDistanceEffect( sprite,  distMinEffectFar,  distMaxEffect);
+		
+	}
+	
+	
 	ImageSprite createImageSprite(PVector docPos, String imageContentGroupName, ContentGroupManager contentManager) {
 		ContentItemDescription cis = new ContentItemDescription(imageContentGroupName,1);
 		
