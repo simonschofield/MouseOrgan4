@@ -52,6 +52,16 @@ public class MOUtils {
 		
 	}
 	
+	static String addCommaSeparatedString(String exisitingString, String toAdd) {
+		if(exisitingString.contentEquals("")) {
+			exisitingString += toAdd;
+			return exisitingString;
+		}
+		exisitingString += ",";
+		exisitingString += toAdd;
+		return exisitingString;
+	}
+	
 	
 }
 

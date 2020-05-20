@@ -47,6 +47,8 @@ class ContentGroupManager {
 			return null;
 		return dig.getSprite(seed);
 	}
+	
+	
 
 	void setSpriteOrigins(String name, PVector origin) {
 		ImageContentGroup cc = getImageContentGroup(name);
@@ -246,6 +248,8 @@ class ImageContentGroup extends DirectoryImageGroup {
 		String cachFolderRoot = "C:\\mouseOrganImageCache\\";
 
 		String strippedDirectoryPath = directoryPath.replace("C:\\sample lib\\", "");
+		//System.out.println("directoryPath ..." + directoryPath);
+		//System.out.println("strippedDirectoryPath ..." + strippedDirectoryPath);
 		String cachedFolderName = cachFolderRoot + strippedDirectoryPath + "\\cached_scaled_" + scalePercentile;
 
 		//System.out.println("creating cach folder ..." + cachedFolderName);
@@ -358,7 +362,14 @@ class ContentItemDescription implements Serializable{
 //given a number of ContentItemProbability types
 //select one using randomness
 //
+// ContentItemProbabilities are added to a list. Their combined probabilities are
+// normalised 0..1, and form a "probability stack". A random number 0..1 is generated and
+// and the item at that point in the probability stack gets selected.
+//
+// Experimental: an influencer image can be added to influence the decision
+// 
 class ContentItemSelector{
+	
 	
 	// inner class ContentItemProbability
 	class ContentItemProbability{
@@ -378,15 +389,30 @@ class ContentItemSelector{
 	boolean normalised = false;
 	RandomStream randomStream;
 	
+	// an image can be set to influence the outcome
+	// the image value 0...1, is used to weight the decision to that part of the item "probability stack"
+	SceneData3D sceneData3D = null;
+	
+	
+	String influencerImageName;
+	float influencerWeighting = 0.5f;
+	
 	public ContentItemSelector(ContentGroupManager contentManager, int rseed) {
 		randomStream = new RandomStream(rseed);
 		theContentManager = contentManager;
 	}
 	
-	public ContentItemSelector(ContentGroupManager contentManager) {
-		randomStream = new RandomStream();
-		theContentManager = contentManager; 
+	public ContentItemSelector(ContentGroupManager contentManager, SceneData3D sd3d, String influencerImgName, float weighting, int rseed) {
+		sceneData3D = sd3d;
+		influencerImageName = influencerImgName;
+		influencerWeighting = weighting;
+		randomStream = new RandomStream(rseed);
+		theContentManager = contentManager;
+		//influencerImage = influence;
+		//float aspect = theContentManager.parentSurface.theDocument.getDocumentAspect();
+		//influencerImageCoordinateSpaceConverter = new CoordinateSpaceConverter(influencerImage.getWidth(),influencerImage.getHeight(),aspect);
 	}
+	
 	
 	// could pass in the image collection instead to get the name and numItems
 	void addContentItemProbability(String contentGroupName, float prob) {
@@ -409,29 +435,49 @@ class ContentItemSelector{
 		normalised = true;
 	}
 	
-	
-	ContentItemDescription selectContentItemDescription() {
+	ContentItemDescription selectContentItemDescription(PVector docPt) {
+		// called by the seed batch upon making a batch
+		// only needs docPoint if an influenceImage is set
 		if(normalised == false) normaliseProbabilities();
 		
 		if(itemProbabilities.size()==1) {
 			return getContentItemDescriptionFromGroup(itemProbabilities.get(0).contentGroupName);
 		}
 		
-		
+		if(sceneData3D==null) {
+			float r = randomStream.randRangeF(0f, 1f);
+			return getContentItemDescriptionFromProbabilityStack(r);
+			}
+		return selectContentItemDescriptionImageInfluence(docPt);
+	}
+
+	ContentItemDescription selectContentItemDescriptionImageInfluence(PVector docPt) {
+		//PVector bufferLocation = influencerImageCoordinateSpaceConverter.docSpaceToImageCoord(docPt);
+		//float imageVal = ImageProcessing.getValue01(influencerImage, (int)bufferLocation.x, (int)bufferLocation.y);
+		sceneData3D.setCurrentRenderImage(influencerImageName);
+		float imageVal = sceneData3D.getCurrentRender01Value(docPt);
 		float r = randomStream.randRangeF(0f, 1f);
+		float imageWeightedRandomNum = MOMaths.lerp(influencerWeighting,r, imageVal);
+		
+		return getContentItemDescriptionFromProbabilityStack(imageWeightedRandomNum);
+	}
+	
+	ContentItemDescription getContentItemDescriptionFromProbabilityStack(float f) {
 		float sumOfProbs = 0f;
 		
 		for(ContentItemProbability cip: itemProbabilities) {
 			sumOfProbs += cip.probability;
-			if( r < sumOfProbs) {
+			if( f <= sumOfProbs) {
 				return getContentItemDescriptionFromGroup(cip.contentGroupName);
 				}
 			}
+		// should not get here
 		return new ContentItemDescription("",  0);
-		
-		}// end method
+	}
 	
-
+	
+	
+	
 	ContentItemDescription getContentItemDescriptionFromGroup(String groupName) {
 		int numItemsInContentGroup = theContentManager.getNumItems(groupName);
 		int itemNum = randomStream.randRangeInt(0, numItemsInContentGroup-1);

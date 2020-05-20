@@ -84,16 +84,22 @@ class PermittedPasteArea {
 	}
 	
 	String cropEdgeDecision(String overlapReport) {
-		// give an intersection edge report from the Sprite
+		// given an intersection edge report from the Sprite
 		// decide what edge crop action to do.
 		
+		// if totally outside the ppa
 		if(overlapReport.contentEquals("NONE")) return "EXCLUDE";
 		
 		String action = getActionByEdgeString(overlapReport);
-		if(action.contentEquals("")==false) return action;
-		// if you get this far then the overlapReport must contains two or more edges, and we have to make a decision on this
+		if(action.contentEquals("MULTIPLE_EDGES")) {
+			// if you get this far then the overlapReport must contains two or more edges, and we have to make a decision on this
+			return getDominantAction(overlapReport);
+		}
+		// ..then the overlapReport must contain only one edge, so return the edgeAction
+		return action;
+		
 		//System.out.println("cropEdgeDecision on intersection: " + overlapReport);
-		return getDominantAction(overlapReport);
+		
 		
 	}
 	
@@ -124,7 +130,7 @@ class PermittedPasteArea {
 		if(edgeString.contentEquals("LEFT")) return leftEdgeAction;
 		if(edgeString.contentEquals("RIGHT")) return rightEdgeAction;
 		if(edgeString.contentEquals("BOTTOM")) return bottomEdgeAction;
-		return "";
+		return "MULTIPLE_EDGES";
 	}
 	
 	String reportPermittedPasteAreaOverlap(ImageSprite sprite) {
@@ -158,7 +164,7 @@ class RenderTarget {
 
 	ShapeDrawer shapeDrawer;
 
-	PermittedPasteArea permittedPasteAreaClass;
+	PermittedPasteArea permittedPasteArea;
 	
 	CoordinateSpaceConverter coordinateSpaceCoverter;
 	
@@ -189,7 +195,7 @@ class RenderTarget {
 		shapeDrawer = new ShapeDrawer(graphics2D);
 		
 		coordinateSpaceCoverter = new CoordinateSpaceConverter(w, h, getDocumentAspect());
-		permittedPasteAreaClass = new PermittedPasteArea(this);
+		permittedPasteArea = new PermittedPasteArea(this);
 	}
 
 	public BufferedImage getImage() {
@@ -240,7 +246,7 @@ class RenderTarget {
 		if(applyCrop && cropImages!=null) {
 			edgeCropAction = "BESPOKE_CROP";
 		}
-		permittedPasteAreaClass.set(left, top, right, bottom, edgeCropAction, cropImages);
+		permittedPasteArea.set(left, top, right, bottom, edgeCropAction, cropImages);
 	}
 	
 	
@@ -250,7 +256,7 @@ class RenderTarget {
 		// CROP : Crop any sprite to the hard edge
 		// BESPOKE_CROP : Apply a bespoke crop to a sprite overlapping this edge
 		
-		permittedPasteAreaClass.set(left, top, right, bottom, leftAct,  topAct,  rightAct,  bottomAct, cropImages);
+		permittedPasteArea.set(left, top, right, bottom, leftAct,  topAct,  rightAct,  bottomAct, cropImages);
 	}
 	
 	
@@ -260,10 +266,10 @@ class RenderTarget {
 	void pasteSprite(ImageSprite sprite, float alpha) {
 		// work out the offset in the image from the origin
 		Rect r = sprite.getPasteRectDocSpace(this); 
-		String overlapReport =  permittedPasteAreaClass.reportPermittedPasteAreaOverlap(sprite);
+		String overlapReport =  permittedPasteArea.reportPermittedPasteAreaOverlap(sprite);
 		
 		
-		if( overlapReport.contentEquals("WHOLLYINSIDE") || permittedPasteAreaClass.isActive()==false){
+		if( overlapReport.contentEquals("WHOLLYINSIDE") || permittedPasteArea.isActive()==false){
 			pasteImage(sprite.image, r.getTopLeft(),  alpha);
 			return;
 		}
@@ -278,7 +284,7 @@ class RenderTarget {
 		//if( bespokeCropToPermittedPasteArea == false ) return;
 		
 		
-		String cropDecision = permittedPasteAreaClass.cropEdgeDecision(overlapReport);
+		String cropDecision = permittedPasteArea.cropEdgeDecision(overlapReport);
 		if( cropDecision.contentEquals("EXCLUDE") ) return;
 		//if( permittedPasteAreaClass.leftEdgeAction.contentEquals("EXCLUDE") ) return;
 		// if you get this far, 

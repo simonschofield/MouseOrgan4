@@ -106,6 +106,17 @@ public class ImageProcessing {
 	      return dest; 
 	   }
 	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// value get 
+	//	
+	
+	static float getValue01(BufferedImage src, int x, int y) {
+		int packedCol = src.getRGB(x, y);
+		boolean hasAlpha = hasAlpha(src);
+		return packedIntToVal01( packedCol,  hasAlpha);
+	}
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// pixel transforms
 	//	
@@ -239,9 +250,9 @@ public class ImageProcessing {
 
 	}
 
-	public static BufferedImage mirrorImage(BufferedImage originalImage, boolean flipX, boolean flipY) {
+	public static BufferedImage mirrorImage(BufferedImage originalImage, boolean flipInX, boolean flipInY) {
 
-		if (!flipX && !flipY) {
+		if (!flipInX && !flipInY) {
 			// probably should catch this to stop time wasting
 			return copyImage(originalImage);
 		}
@@ -251,19 +262,19 @@ public class ImageProcessing {
 		AffineTransform tx = null;
 		AffineTransformOp op;
 
-		if (flipX && !flipY) {
-			// Flip the image vertically
-			tx = AffineTransform.getScaleInstance(1, -1);
-			tx.translate(0, -h);
-		}
-
-		if (!flipX && flipY) {
+		if (flipInX && !flipInY) {
 			// Flip the image horizontally
 			tx = AffineTransform.getScaleInstance(-1, 1);
 			tx.translate(-w, 0);
 		}
 
-		if (flipX && flipY) {
+		if (!flipInX && flipInY) {
+			// Flip the image vertically
+			tx = AffineTransform.getScaleInstance(1, -1);
+			tx.translate(0, -h);
+		}
+
+		if (flipInX && flipInY) {
 			// Flip the image vertically and horizontally; equivalent to rotating the image
 			// 180 degrees
 			tx = AffineTransform.getScaleInstance(-1, -1);
@@ -358,7 +369,7 @@ public class ImageProcessing {
 			data[2][n] = newVal;
 		}
 		BufferedImage img = pointFunction(image, data);
-		saveImage("C:\\simon\\Artwork\\MouseOrgan4\\inverted.png", img);
+		//saveImage("C:\\simon\\Artwork\\MouseOrgan4\\inverted.png", img);
 		return img;
 	}
 

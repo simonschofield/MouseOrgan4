@@ -43,7 +43,7 @@ public class SeedBatch{
 		while(pointGenerator.areItemsRemaining()) {
 			Seed seed = pointGenerator.getNextSeed();
 			seed.batchName = this.batchName;
-			seed.contentItemDescriptor = contentItemSelector.selectContentItemDescription();
+			seed.contentItemDescriptor = contentItemSelector.selectContentItemDescription(seed.docPoint);
 			seed.id = uniqueSeedIDCounter++;
 			seeds.add(seed);
 		}
@@ -171,20 +171,13 @@ class SeedBatchManager {
 	// SeedBatch generation methods. The do rely on the globals
 	// contentManager, seedBatchManager, and scenedat3d 
 	//
-	void createSeedBatch(Boolean makeNewSeeds, String batchName, String[] contentGroupNames, float[] contentGroupProbs,
-			int cisRSeed, String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
+	void createSeedBatch(Boolean makeNewSeeds, String batchName, ContentItemSelector cis,
+			String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
 			int pointDistRSeed) {
-
+		
 		SeedBatch seedBatchBiome1 = new SeedBatch(batchName);
 
 		if (makeNewSeeds) {
-
-			ContentItemSelector cis = new ContentItemSelector(contentManager, cisRSeed);
-			int numContentGroups = contentGroupNames.length;
-			for (int n = 0; n < numContentGroups; n++) {
-				cis.addContentItemProbability(contentGroupNames[n], contentGroupProbs[n]);
-			}
-
 			PointGenerator_RadialPack pointField = getPointGenerator(namePointDisImage, pointDisRLo, pointDisRHi,
 					pointDisThreshold, pointDistRSeed);
 
@@ -198,33 +191,30 @@ class SeedBatchManager {
 		}
 
 		addSeedBatch(seedBatchBiome1);
+		
+	}
+	
+	
+	void createSeedBatch(Boolean makeNewSeeds, String batchName, String[] contentGroupNames, float[] contentGroupProbs,
+			int cisRSeed, String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
+			int pointDistRSeed) {
+		
+		ContentItemSelector cis = new ContentItemSelector(contentManager, cisRSeed);
+		int numContentGroups = contentGroupNames.length;
+		for (int n = 0; n < numContentGroups; n++) {
+			cis.addContentItemProbability(contentGroupNames[n], contentGroupProbs[n]);
+			}
+		
+		createSeedBatch( makeNewSeeds,  batchName,  cis, namePointDisImage,  pointDisRLo,  pointDisRHi,  pointDisThreshold, pointDistRSeed);
 	}
 
 	void createSeedBatch(Boolean makeNewSeeds, String batchName, String contentGroupName, int cisRSeed,
 			String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
 			int pointDistRSeed) {
-
-		SeedBatch seedBatchBiome1 = new SeedBatch(batchName);
-
-		if (makeNewSeeds) {
-
-			ContentItemSelector cis = new ContentItemSelector(contentManager, cisRSeed);
-
-			cis.addContentItemProbability(contentGroupName, 1);
-
-			PointGenerator_RadialPack pointField = getPointGenerator(namePointDisImage, pointDisRLo, pointDisRHi,
-					pointDisThreshold, pointDistRSeed);
-
-			seedBatchBiome1.generateSeeds(cis, pointField);
-			seedBatchBiome1.saveSeeds(theSurface.getUserSessionPath());
-
-		} else {
-
-			seedBatchBiome1.loadSeeds(theSurface.getUserSessionPath());
-
-		}
-
-		addSeedBatch(seedBatchBiome1);
+		
+		ContentItemSelector cis = new ContentItemSelector(contentManager, cisRSeed);
+		cis.addContentItemProbability(contentGroupName, 1);
+		createSeedBatch( makeNewSeeds,  batchName,  cis, namePointDisImage,  pointDisRLo,  pointDisRHi,  pointDisThreshold, pointDistRSeed);
 	}
 
 	PointGenerator_RadialPack getPointGenerator(String namePointDisImage, float pointDisRLo, float pointDisRHi,

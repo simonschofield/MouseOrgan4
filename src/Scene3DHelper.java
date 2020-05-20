@@ -8,16 +8,33 @@ public class Scene3DHelper {
 		theSurface = s;
 		sceneData3D = sd3d;
 	}
-	
 	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount) {
+		randomRotateScaleSprite( sprite,  scaleAmt,  rotAmount, true);
+	}
+	
+	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount, boolean flipInRotationDirection) {
 		QRandomStream ranStream = sprite.qRandomStream;
 		float rscale = ranStream.randRangeF(1-scaleAmt,1+scaleAmt);
 		rotAmount = (float) Math.toRadians((double)rotAmount);
 		float rrot = ranStream.randRangeF(-rotAmount,rotAmount);
 		
-		if(rrot > 0) sprite.image = ImageProcessing.mirrorImage(sprite.image, false, true);
+		if(flipInRotationDirection && rrot > 0) sprite.mirrorSprite(true);
 		sprite.rotate(rrot);
 		sprite.scale(rscale,rscale);
+	}
+	
+	static void randomMirrorSprite(ImageSprite sprite, boolean inX, boolean inY) {
+		QRandomStream ranStream = sprite.qRandomStream;
+		boolean coinTossX = ranStream.randomEvent(0.5f);
+		boolean coinTossY = ranStream.randomEvent(0.5f);
+		if(coinTossX && inX) {
+			sprite.mirrorSprite(true);
+		}
+		if(coinTossY && inY) {
+			sprite.mirrorSprite(false);
+		}
+		
+		
 	}
 	
 	static float addWave(ImageSprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise) {
@@ -42,6 +59,7 @@ public class Scene3DHelper {
 		float v = sceneData3D.getCurrentRender01Value(sprite.getSeedDocPoint());
 		
 		if(noise > 0.001) {
+			
 		QRandomStream ranStream = sprite.qRandomStream;
 		v = ranStream.perturb(v, noise);
 		}
@@ -58,6 +76,13 @@ public class Scene3DHelper {
 		sprite.image = ImageProcessing.adjustBrightness(sprite.image, brightness);
 		//sprite.image = ImageProcessing.adjustBrightnessNoClip(sprite.image, brightness);
 
+	}
+	
+	static void addContrast(ImageSprite sprite, float contrast) {
+		// when the brightness is low, so is the contrast
+		sprite.image = ImageProcessing.adjustContrast(sprite.image, contrast);
+		
+		
 	}
 	
 	static void addRandomHSV(ImageSprite sprite, float rH, float rS, float rV) {

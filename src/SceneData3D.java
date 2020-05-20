@@ -119,9 +119,10 @@ public class SceneData3D {
 	
 	
 	
-	public void setCurrentRenderImage(String shortName) {
+	public BufferedImage setCurrentRenderImage(String shortName) {
 		currentRenderKeyImage = renderImages.getImage(shortName);
 		currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentRenderKeyImage);
+		return currentRenderKeyImage;
 	}
 	
 	public void setCurrentRenderImage(int  n) {

@@ -70,6 +70,14 @@ public class ImageSprite{
 		return s.contentEquals(seed.batchName);
 	}
 	
+	boolean contentGroupEquals(String s) {
+		return seed.contentItemDescriptor.contentGroupName.contentEquals(s);
+	}
+	
+	boolean seedBatchEquals(String s) {
+		return seed.batchName.contentEquals(s);
+	}
+	
 	// needed by the RenderTarget to paste
 	PVector getOriginBufferCoords() {
 	    return new PVector( (origin.x * bufferWidth), (origin.y* bufferHeight) );
@@ -119,7 +127,7 @@ public class ImageSprite{
 		// we know a crop is due.
 		
 		// get intersection of both in documentSpace
-		Rect permittedPasteArea = rt.permittedPasteAreaClass.permittedPasteAreaRect;
+		Rect permittedPasteArea = rt.permittedPasteArea.permittedPasteAreaRect;
 		Rect uncroppedSpriteRect = getPasteRectDocSpace(rt);
 		Rect croppedSpriteRect = permittedPasteArea.getBooleanIntersection(uncroppedSpriteRect);
 		
@@ -153,7 +161,7 @@ public class ImageSprite{
 		BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
 		BufferedImage preCroppedImage = ImageProcessing.cropImage(image, croppedRectBufferSpace);
 		
-		if( rt.permittedPasteAreaClass.permittedPasteAreaCropImages != null){
+		if( rt.permittedPasteArea.permittedPasteAreaCropImages != null){
 			// add the bespoke crop to the cropping image set
 			boolean result = doBespokeCrop(rt, preCroppedImage, edgeCropReport );
 			if(result == false) {
@@ -185,9 +193,9 @@ public class ImageSprite{
 	
 	// alters the preCroppedImage
 	boolean addBespokeCropToEdge(RenderTarget rt, BufferedImage preCroppedImage, String theEdge) {
-		int numCropImages = rt.permittedPasteAreaClass.permittedPasteAreaCropImages.getNumItems();
+		int numCropImages = rt.permittedPasteArea.permittedPasteAreaCropImages.getNumItems();
 		int n = qRandomStream.randRangeInt(0, numCropImages-1);
-		BufferedImage cropper = rt.permittedPasteAreaClass.permittedPasteAreaCropImages.getImage(n);
+		BufferedImage cropper = rt.permittedPasteArea.permittedPasteAreaCropImages.getImage(n);
 		int sourceImageW = preCroppedImage.getWidth();
 		int sourceImageH = preCroppedImage.getHeight();
 		
@@ -375,6 +383,19 @@ public class ImageSprite{
 	    
 	    origin.x = (newX/bufferWidth) + 0.5f;
 	    origin.y = (newY/bufferHeight) + 0.5f;
+	}
+	
+	
+	void mirrorSprite(boolean inX) {
+		if(inX) {
+			image = ImageProcessing.mirrorImage(image, true, false);
+			origin.x = 1.0f-origin.x;
+		} else {
+			// in Y
+			image = ImageProcessing.mirrorImage(image, false, true);
+			origin.y = 1.0f-origin.y;
+		}
+		
 	}
 	
 	
