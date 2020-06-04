@@ -42,6 +42,10 @@ public class ImageProcessing {
 			img = ImageIO.read(new File(pathAndName));
 		} catch (IOException e) {
 		}
+		
+		//System.out.println("in loadImage image type = " + img.getType());
+		//System.out.println("in loadImage image color model = " + img.getColorModel());
+		
 		return img;
 	}
 
@@ -322,7 +326,12 @@ public class ImageProcessing {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// color transforms
 	//
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// LUT-based point functions
+	//
 	public static BufferedImage adjustBrightness(BufferedImage image, float brightness) {
+		//System.out.println("in adjustBrightness image type = " + image.getType());
 		byte[][] data = new byte[3][256];
 		for (int n = 0; n < 256; n++) {
 			byte newVal = (byte) (MOMaths.constrain((n * brightness), 0, 255));
@@ -372,6 +381,50 @@ public class ImageProcessing {
 		//saveImage("C:\\simon\\Artwork\\MouseOrgan4\\inverted.png", img);
 		return img;
 	}
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	// adjustLevels is an approximation to Photoshop's levels
+	// All inputs are in the range 0..255
+	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneVal, float highlightVal){
+		  // work out gamma correction value
+		  float gamma = 1;
+		  float midtoneNormal = midtoneVal/255.0f;
+		  if(midtoneVal < 128){
+		    midtoneNormal *= 2;
+		    gamma = 1 + (9* (1-midtoneNormal));
+		    gamma = Math.min(gamma,9.99f);
+		  } else {
+		    midtoneNormal = ( midtoneNormal * 2) - 1;
+		    gamma = 1 - midtoneNormal;
+		    gamma = Math.max(gamma, 0.01f);
+		  }
+		  
+		  // create the LUT
+		  byte[][] lut = new byte[3][256];
+		  for(int n = 0; n < 256; n++) {
+		    float v  = ajustLevels_applyInputLevels(n,  shadowVal,   highlightVal);
+		    v = ajustLevels_applyMidTones( v,  gamma);
+		    
+			lut[0][n] = (byte)v;
+			lut[1][n] = (byte)v;
+			lut[2][n] = (byte)v;
+		  }
+		  
+		  return  pointFunction(image, lut);
+		}
+	
+	static float ajustLevels_applyInputLevels(float valIn, float shadowVal,  float highlightVal){
+		  return 255 * (( valIn - shadowVal) / (highlightVal - shadowVal));
+		}
+
+	static float ajustLevels_applyMidTones(float valIn, float gamma){
+		  return (float) (255 * (Math.pow( (valIn/255), gamma)));
+		}
+
+	// don't need to use this if not adjusting out values
+	static float ajustLevels_applyOutputLevels(float valIn, float outShadowVal,  float outHighlightVal){
+		  return (valIn/255.0f) * ( outHighlightVal - outShadowVal) + outShadowVal;
+		}
 
 	public static BufferedImage pointFunction(BufferedImage image, byte[][] lutArray) {
 		ByteLookupTable lut = new ByteLookupTable(0, lutArray);
@@ -381,7 +434,9 @@ public class ImageProcessing {
 	}
 	
 	
-	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// brute-force hsv
+	//
 	public static BufferedImage adjustHSV(BufferedImage img, float dh, float ds, float dv) {
 		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
 		int w = img.getWidth();

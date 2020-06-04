@@ -206,6 +206,7 @@ class ImageContentGroup extends DirectoryImageGroup {
 
 		if (scl > 0.99) {
 			super.loadContent(fromIndex, toIndex);
+			assertImageTYPE_INT_ARGB();
 			return;
 		}
 
@@ -216,6 +217,7 @@ class ImageContentGroup extends DirectoryImageGroup {
 		if (checkCacheExists(cachedImagesFolderName, fromIndex, toIndex)) {
 			// if it exists load those images, end.
 			loadContent(cachedImagesFolderName, fromIndex, toIndex);
+			assertImageTYPE_INT_ARGB();
 		} else {
 
 			boolean ok = createDirectory(cachedImagesFolderName);
@@ -225,10 +227,27 @@ class ImageContentGroup extends DirectoryImageGroup {
 			// then scale them and save them to a folder called
 			// targetDirectory//cached_scaled_*percentile*
 			scaleAll(scl, scl);
+			assertImageTYPE_INT_ARGB();
 			saveAll(cachedImagesFolderName);
 		}
 
 	}
+	
+	
+	
+	void assertImageTYPE_INT_ARGB() {
+		int numItems = getNumItems();
+		for (int n = 0; n < numItems; n++) {
+			BufferedImage thisImage = getImage(n);
+			if(thisImage.getType() != BufferedImage.TYPE_INT_ARGB) {
+				thisImage = ImageProcessing.convertColorModel(thisImage, BufferedImage.TYPE_INT_ARGB);
+				setImage(thisImage,n);
+			}
+		}
+		
+	}
+	
+	
 
 	boolean checkCacheExists(String directory, int fromIndex, int toIndex) {
 		if (checkDirectoryExist(directory) == false)
@@ -286,17 +305,29 @@ class ImageContentGroup extends DirectoryImageGroup {
 		
 	}
 	
-	void colorAdjustAll(String function, float p1, float p2, float p3) {
+	void brightnessAdjustAll(float db) {
 		int numImage = imageList.size();
 		for (int n = 0; n < numImage; n++) {
 			BufferedImage img = imageList.get(n);
-			
+			img = ImageProcessing.adjustBrightness(img, db);
+			imageList.set(n, img);
+		}
+		
+	}
+	
+	void colorAdjustAll(String function, float p1, float p2, float p3) {
+		int numImage = imageList.size();
+		
+		for (int n = 0; n < numImage; n++) {
+			BufferedImage img = imageList.get(n);
+			System.out.println("in colorAdjustAll . Function = " + function);
 			BufferedImage adjustedImage;
 			switch(function){
 				case "hsv": { adjustedImage = ImageProcessing.adjustHSV(img, p1,p2,p3); break; }
 				case "brightnessNoClip": { adjustedImage = ImageProcessing.adjustBrightnessNoClip(img, p1); break; }
 				case "brightness": { adjustedImage = ImageProcessing.adjustBrightness(img, p1); break; }
 				case "contrast": { adjustedImage = ImageProcessing.adjustContrast(img, p1); break; } 
+				case "levels" : { adjustedImage =  ImageProcessing.adjustLevels(img, p1, p2, p3); break; } 
 				default: adjustedImage = img;
 			}
 			imageList.set(n, adjustedImage);

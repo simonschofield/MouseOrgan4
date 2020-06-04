@@ -133,7 +133,10 @@ class SeedBatchManager {
 	}
 
 	void drawSeedBatchPoints(String name, Color c) {
-		theSurface.theDocument.drawPoints(getSeedBatch(name).getPoints(), c);
+		SeedBatch batch = getSeedBatch(name);
+		if(batch == null) return;
+		ArrayList<PVector> points = batch.getPoints();
+		theSurface.theDocument.drawPoints(points, c);
 	}
 
 

@@ -169,6 +169,14 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 	int getNumItems() {
 		return imageList.size();
 	}
+	
+	void setImage(BufferedImage img, int n) {
+		if (n < 0 || n >= getNumItems() ) {
+			System.out.println("setImage:: out of range ");
+			return;
+		}
+		imageList.set(n,img);
+	}
 
 }
 
