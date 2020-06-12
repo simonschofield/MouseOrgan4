@@ -177,6 +177,9 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 		}
 		imageList.set(n,img);
 	}
+	
+	
+	
 
 }
 

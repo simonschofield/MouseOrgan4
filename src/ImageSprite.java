@@ -117,6 +117,21 @@ public class ImageSprite{
 		return rt.getPasteRectDocSpace(this.image, shiftedDocSpacePt);
 	}
 	
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// experimental: towards applying masked effects
+	//
+	
+	void maskImage(BufferedImage mask) {
+		BufferedImage mask_copy = ImageProcessing.copyImage(mask);
+		if(ImageProcessing.sameDimensions(image, mask_copy) == false) {
+			mask_copy = ImageProcessing.scaleToTarget(mask, image);
+		}
+		image = ImageProcessing.getMaskedImage(image, mask_copy, 0, 0);
+	}
+	
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// cropping the sprite image to the permittedPasteArea
 	//
@@ -171,7 +186,7 @@ public class ImageSprite{
 		}
 		
 		// paste the cropped image back into the empty output image at the correct point
-		ImageProcessing.pasteIntoImage(preCroppedImage, outputImage, (int)bTopLeft.x, (int)bTopLeft.y);
+		ImageProcessing.compositeImage_ChangeTarget(preCroppedImage, outputImage, (int)bTopLeft.x, (int)bTopLeft.y, 1);
 		image = outputImage;
 		
 		return true;
@@ -289,7 +304,7 @@ public class ImageSprite{
 		}
 		
 		
-		ImageProcessing.pasteIntoImage(preCroppedImageOverlap, preCroppedImage, offsetX, offsetY);
+		ImageProcessing.compositeImage_ChangeTarget(preCroppedImageOverlap, preCroppedImage, offsetX, offsetY,1);
 		
 	}
 	

@@ -307,12 +307,10 @@ class RenderTarget {
 		pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
 	}
 	
-	private void pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha) {
-
+	public void pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha) {
 		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
-		graphics2D.drawImage(img, x, y, null);
 		graphics2D.setComposite(ac);
-
+		graphics2D.drawImage(img, x, y, null);
 	}
 	
 	
@@ -391,11 +389,14 @@ class RenderTarget {
 
 		return new PVector(docX, docY);
 	}
+	
+	
+	
 
 	
 
-	///////////////////////
-	// for debugging
+	//////////////////////////////////////////
+	// drawing operations other than paste
 	void drawPoints(ArrayList<PVector> docSpacePoints, Color c) {
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 127);
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
@@ -405,6 +406,12 @@ class RenderTarget {
 			shapeDrawer.drawEllipse(bufpt.x, bufpt.y, 4, 4);
 		}
 
+	}
+	
+	void drawText(String str, int bufferX, int bufferY, int size, Color c) {
+		DrawnShape textShape = new DrawnShape();
+		textShape.setTextShape(bufferX, bufferY, str, c, size);
+		shapeDrawer.drawDrawnShape(textShape);
 	}
 
 }

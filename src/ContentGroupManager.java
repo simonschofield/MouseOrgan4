@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.Serializable;
@@ -147,6 +148,65 @@ class ContentGroupManager {
 		if (ic == null)
 			return;
 		ic.hsvAdjustAll(dh,ds,dv);
+	}
+	
+	void paradeContent(String groupName) {
+		// might be part of ContentGroupManager???
+		ImageContentGroup contentGroup = this.getImageContentGroup(groupName);
+		int numItems = contentGroup.getNumItems();
+		int biggestItemWidth = (int) contentGroup.widthExtrema.getUpper();
+		int biggestItemHeight = (int) contentGroup.heightExtrema.getUpper();
+		float itemAspect = biggestItemWidth/(float)biggestItemHeight;
+		int outImageW = parentSurface.theDocument.getBufferWidth();
+		int outImageH = parentSurface.theDocument.getBufferHeight();
+		
+		// assume they are all fit into shapes biggestWidth/Biggestheight - this wil be a good fit for most content of similar aspects
+		// 
+		// assuming a portrait shaped item
+		// first scale the height of the outImageH by the aspect of the shaped item. Then you can deal with it as if they were all squares, which
+		// is simpler to think about
+		float outImageHScaled = outImageH * itemAspect;
+		float outImageScaledAspect = outImageW/outImageHScaled;
+		float idealNumRows = (float) Math.sqrt( (double)(numItems/outImageScaledAspect) );
+		int numItemsInRow = (int) Math.ceil(idealNumRows * outImageScaledAspect);
+		int numOfItemRows = numItems/numItemsInRow;
+		int remainingInLastRow = numItems - (numOfItemRows*numItemsInRow);
+		
+		System.out.println("paradeContent : numItems = " + numItems + ", Num In Row " + numItemsInRow + ", actualNumWholeRows "  + numOfItemRows + ", with remaining " + remainingInLastRow);
+		
+		// so now we know the arrangement of the items in the larger image
+		
+		// we also need to scale the image to fit into the box
+		int boxWidth = (int) (outImageW/(float)numItemsInRow);
+		int boxHeight = (int) (outImageH/(float)(numOfItemRows+1));
+		int itemCounter = 0;
+		for(int y= 0; y <= numOfItemRows; y++) {
+			for(int x = 0; x < numItemsInRow; x++) {
+				int thisItemX = x *  boxWidth;
+				int thisItemY = y * boxHeight + 20;
+				if(itemCounter < numItems) {
+				BufferedImage img = contentGroup.getImage(itemCounter);
+				String itemName = contentGroup.getShortNameOfItem(itemCounter);
+				int imgW = img.getWidth();
+				int imgH = img.getHeight();
+				float imgAspect = imgW/(float)imgH;
+				int scaledHeight = (int)(boxHeight * 0.75f);
+				int scaledWidth = (int)(boxHeight*imgAspect * 0.75f);
+					img = ImageProcessing.scaleTo(img, scaledWidth, scaledHeight);
+					parentSurface.theDocument.pasteImage_BufferCoordinates( img, thisItemX, thisItemY, 1.0f);
+	
+					parentSurface.theDocument.drawText(itemName, thisItemX, thisItemY+scaledHeight+50, 50, Color.DARK_GRAY);
+				}
+				itemCounter++;
+			}
+		}
+		
+		String userSessionPath = parentSurface.getUserSessionPath();
+		
+		String suggestedName = MOUtils.getDateStampedImageFileName("Parade_" + groupName + "_");
+		System.out.println("saveRenderLayer: saving " + suggestedName);
+		parentSurface.theDocument.saveRenderToFile(userSessionPath + suggestedName);
+		
 	}
 
 }// end of class ContentManager

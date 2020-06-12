@@ -207,6 +207,7 @@ class ShapeDrawer{
 	  cacheCurrentDrawingStyle();
 	  currentDrawingStyle = ds.style.copy();
 	  if(ds.shapeType.contentEquals("text")) {
+		  //setFillColor(currentDrawingStyle.fillColor);
 		  setTextStyle(ds.textSize);
 		  drawText(ds.textContent, (int)ds.textLocation.x, (int)ds.textLocation.y);
 	  } else {
@@ -234,6 +235,7 @@ class ShapeDrawer{
   
   void drawText(String str, int x, int y) {
 	  Font font = new Font("Arial", Font.PLAIN, currentDrawingStyle.textSize);
+	  graphics2D.setColor(currentDrawingStyle.fillColor);
 	  graphics2D.setFont(font);
 	  graphics2D.drawString( str,  x,  y);
   }

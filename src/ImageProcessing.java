@@ -1,3 +1,4 @@
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -22,10 +23,16 @@ public class ImageProcessing {
 	static int interpolationQuality = 2;
 
 	public static void setInterpolationQuality(int q) {
+		// this is set by the user
 		interpolationQuality = q;
+	}
+	
+	public static int getInterpolationQuality() {
+		return interpolationQuality;
 	}
 
 	private static void setInterpolationQuality(Graphics2D g) {
+		// this is called during all scale and rotation functions
 		if (interpolationQuality == 0)
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 		if (interpolationQuality == 1)
@@ -41,6 +48,7 @@ public class ImageProcessing {
 		try {
 			img = ImageIO.read(new File(pathAndName));
 		} catch (IOException e) {
+			System.out.println("loadImage: cannot load = " + pathAndName);
 		}
 		
 		//System.out.println("in loadImage image type = " + img.getType());
@@ -55,7 +63,7 @@ public class ImageProcessing {
 			File outputfile = new File(pathAndName);
 			ImageIO.write(img, "png", outputfile);
 		} catch (IOException e) {
-			// do nothing
+			System.out.println("saveImage: cannot save = " + pathAndName);
 		}
 
 	}
@@ -90,18 +98,17 @@ public class ImageProcessing {
 		return false;
 	}
 	
+	public static boolean sameDimensions(BufferedImage imageA, BufferedImage imageB) {
+		return (imageA.getWidth() == imageB.getWidth() && imageA.getHeight() == imageB.getHeight());
+	}
+	
 	public static BufferedImage convertColorModel(BufferedImage src, int colorModel) {
 	    BufferedImage img= new BufferedImage(src.getWidth(), src.getHeight(), colorModel);
-	    Graphics2D g2d= img.createGraphics();
+	    Graphics2D g2d = img.createGraphics();
+	    
 	    g2d.drawImage(src, 0, 0, null);
 	    g2d.dispose();
 	    return img;
-	}
-	
-	public static void pasteIntoImage(BufferedImage sourceImg, BufferedImage targetImg, int xPosTarget, int yPosTarget) {
-		Graphics2D g2d= targetImg.createGraphics();
-	    g2d.drawImage(sourceImg, xPosTarget, yPosTarget, null);
-	    g2d.dispose();
 	}
 	
 	public static BufferedImage cropImage(BufferedImage src, Rect r) {
@@ -109,6 +116,52 @@ public class ImageProcessing {
 	      BufferedImage dest = src.getSubimage((int)r.left,(int)r.top, (int)r.getWidth(), (int)r.getHeight());
 	      return dest; 
 	   }
+	
+	///////////////////////////////////////////////////////////////////////////////////////
+	// compositing operations
+	//
+	public static void compositeImage_ChangeTarget(BufferedImage source, BufferedImage target, int x, int y, float alpha) {
+		Graphics2D g2d= target.createGraphics();
+		AlphaComposite src_over = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+		g2d.setComposite(src_over);
+	    g2d.drawImage(source, x, y, null);
+	    g2d.dispose();
+	}
+	
+	
+	public static BufferedImage getCompositeImage(BufferedImage source, BufferedImage target, int x, int y,float alpha) {
+		BufferedImage target_copy = copyImage(target);
+		compositeImage_ChangeTarget( source,  target_copy,  x,  y,  alpha);
+		return target_copy;
+	}
+	
+	public static BufferedImage getCompositeMasked(BufferedImage source, BufferedImage mask, BufferedImage target,  float alpha) {
+		// Simplified version of below that assumes all images are in register
+		return getCompositeMasked( source,  mask, 0, 0,  target,  0,0,  alpha);
+	}
+	
+	public static BufferedImage getCompositeMasked(BufferedImage source, BufferedImage mask, int maskX, int maskY, BufferedImage target,  int x, int y, float alpha) {
+		// Adds two image together using SRC_OVER (normal pasting) but through a mask, so only the unmasked regions are changed.
+		// the mask is a normal ARGB image, and only the alpha is regarded.
+		// The mask is placed at maskX, maskY in the source image
+		
+		// first, apply the mask to the source, by using Porter Duff SRC_IN, to preserve the masked portion only
+		BufferedImage maskedImage = getMaskedImage(source,   mask, maskX, maskY);
+		// then paste the maskedImage onto the target Image
+		return getCompositeImage(maskedImage,  target, x, y, alpha);
+		
+	}
+	
+	public static BufferedImage getMaskedImage(BufferedImage source,  BufferedImage mask, int x, int y) {
+		BufferedImage source_copy = copyImage(source);
+		Graphics2D g2d= source_copy.createGraphics();
+		AlphaComposite src_in = AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f);
+		g2d.setComposite(src_in);
+		g2d.drawImage(mask, x, y, null);
+		
+		g2d.dispose();
+		return source_copy;
+	}
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -214,6 +267,7 @@ public class ImageProcessing {
 		return scaledImage;
 	}
 	
+	
 	public static BufferedImage scaleTo(BufferedImage originalImage, int newW, int newH) {
 		// scales the originalImage to be newW, newH
 		int w = originalImage.getWidth();
@@ -221,6 +275,10 @@ public class ImageProcessing {
 		float wScale = newW/(float)w;
 		float hScale = newH/(float)h;
 		return scaleImage( originalImage,wScale,hScale);
+	}
+	
+	public static BufferedImage scaleToTarget(BufferedImage originalImage, BufferedImage target) {
+		return scaleTo(originalImage, target.getWidth(),  target.getHeight());
 	}
 
 	public static BufferedImage scaleRotateImage(BufferedImage originalImage, float scalex, float scaley,

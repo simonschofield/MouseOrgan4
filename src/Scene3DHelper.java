@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 
 public class Scene3DHelper {
 	static Surface theSurface = null;
@@ -153,6 +154,8 @@ public class Scene3DHelper {
 		// both mult = " + bothMult);
 		// System.out.println("depth*normalisedDepth " + depth/normalisedDepth);
 	}
+	
+	
 
 	
 }
