@@ -80,7 +80,7 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 		globalSessionScale = sessionScale;
 		theDocument = new RenderTarget();
 		theDocument.setRenderBufferSize((int) (dw * globalSessionScale), (int) (dh * globalSessionScale));
-
+		
 		setWindowSize();
 		setCanvasSize();
 		updateTimer = new Timer(DELAY, this);
@@ -193,6 +193,17 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 
 	public float getSessionScale() {
 		return globalSessionScale;
+	}
+	
+	
+	float fullScalePixelsToDocSpace(float pixels) {
+		// Allows the user to get the doc space measurement
+		// for a number of pixels in the full scale image. This is useful for defining 
+		// certain drawing operations, such as defining line thickness and circle radius. 
+		// To be resolution independent, these operations take measurement in document space.
+		// But the user may wish to think in pixel size in the final 100% scale image.
+		float pixelsScaled = pixels*globalSessionScale;
+		return (pixelsScaled/theDocument.getLongestBufferEdge());
 	}
 
 	SimpleUI getSimpleUI() {

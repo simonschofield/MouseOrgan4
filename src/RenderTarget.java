@@ -83,6 +83,13 @@ class PermittedPasteArea {
 		return permittedPasteAreaRect.copy();
 	}
 	
+	
+	boolean isFullyPermitted(Rect r) {
+		// simple interface for drawn shapes based on their rectangle, either in or out!
+		if(isActive == false) return true;
+		return r.isWhollyInsideOther(permittedPasteAreaRect);
+	}
+	
 	String cropEdgeDecision(String overlapReport) {
 		// given an intersection edge report from the Sprite
 		// decide what edge crop action to do.
@@ -139,19 +146,27 @@ class PermittedPasteArea {
 
 	}
 	
+
 	boolean isSpriteWhollyInside(ImageSprite sprite) {
 		Rect r = sprite.getPasteRectDocSpace(theRenderTarget); 
 		return r.isWhollyInsideOther( this.permittedPasteAreaRect );
 		
 	}
 	
+	/*
+	String reportPermittedPasteAreaOverlap(DrawnShape shape) {
+		Rect r = shape.getPasteRectDocSpace(theRenderTarget);
+		return r.reportIntersection(permittedPasteAreaRect);
+
+	}
+	*/
 	
 }
 
 class RenderTarget {
 
 	Graphics2D graphics2D;
-	BufferedImage bufferedImage;
+	private BufferedImage bufferedImage;
 
 	
 
@@ -167,6 +182,8 @@ class RenderTarget {
 	PermittedPasteArea permittedPasteArea;
 	
 	CoordinateSpaceConverter coordinateSpaceCoverter;
+	
+	
 	
 	public RenderTarget() {
 
@@ -197,9 +214,22 @@ class RenderTarget {
 		coordinateSpaceCoverter = new CoordinateSpaceConverter(w, h, getDocumentAspect());
 		permittedPasteArea = new PermittedPasteArea(this);
 	}
+	
+	
+	
 
 	public BufferedImage getImage() {
 		return bufferedImage;
+	}
+	
+	public BufferedImage copyImage() {
+		return ImageProcessing.copyImage(bufferedImage);
+	}
+	
+	
+	void clearImage() {
+		Color blank = new Color(0,0,0,0);
+		fillBackground(blank); 
 	}
 
 	void fillBackground(Color c) {
@@ -207,10 +237,8 @@ class RenderTarget {
 		graphics2D.clearRect(0, 0, bufferWidth, bufferHeight);
 	}
 
-	float getDocumentAspect() {
-		return documentWidth / documentHeight;
-	}
-
+	
+	// these are in image-buffer space
 	int getBufferWidth() {
 		return bufferWidth;
 	}
@@ -218,7 +246,12 @@ class RenderTarget {
 	int getBufferHeight() {
 		return bufferHeight;
 	}
+	
+	int getLongestBufferEdge() {
+		return Math.max(bufferWidth, bufferHeight);
+	}
 
+	// these are in document space
 	float getDocumentWidth() {
 		return documentWidth;
 	}
@@ -226,6 +259,29 @@ class RenderTarget {
 	float getDocumentHeight() {
 		return documentHeight;
 	}
+	
+	float getDocumentAspect() {
+		return documentWidth / documentHeight;
+	}
+	
+	boolean isInsideDocumentSpace(PVector p) {
+        
+        if(isInsideXDocumentSpace(p.x) && isInsideYDocumentSpace(p.y)) return true;
+        return false;
+    }
+    
+    boolean isInsideXDocumentSpace(float x) {
+    	float w = getDocumentWidth();
+    	if(x >= 0 && x <= w) return true;
+    	return false;
+    }
+    
+    boolean isInsideYDocumentSpace(float y) {
+    	float h = getDocumentHeight();
+    	if(y >= 0 && y <= h) return true;
+    	return false;
+    	
+    }
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
@@ -257,6 +313,11 @@ class RenderTarget {
 		// BESPOKE_CROP : Apply a bespoke crop to a sprite overlapping this edge
 		
 		permittedPasteArea.set(left, top, right, bottom, leftAct,  topAct,  rightAct,  bottomAct, cropImages);
+	}
+	
+	void setPermittedPasteArea(boolean active) {
+		
+		permittedPasteArea.setActive(active);
 	}
 	
 	
@@ -392,11 +453,46 @@ class RenderTarget {
 	
 	
 	
+	
+	//////////////////////////////////////////////////////////////////////
+	// scaled drawing operations
+	// All units are in documentSpace, including lineThickness
+	// so, in this case, radius and lineThickness are fractions of the longest edge.
+	
+	void drawCircle(PVector docPoint, float radiusDocSpace, Color fillColor, Color lineColor, float lineThicknessDocSpace) {
+		
+		// work out if its succumbs to the permitted paste area
+		Rect r = new Rect(docPoint.x-radiusDocSpace,docPoint.y-radiusDocSpace, docPoint.x+radiusDocSpace,docPoint.y+radiusDocSpace);
+		if( permittedPasteArea.isFullyPermitted(r) == false ) {
+			//System.out.println("not permitted");
+			return;
+		}
 
+		PVector bufpt = docSpaceToBufferSpace(docPoint);
+
+		int lineThicknessInPixels = (int) (lineThicknessDocSpace * getLongestBufferEdge());
+		shapeDrawer.setDrawingStyle(fillColor, lineColor, lineThicknessInPixels);
+
+		//shapeDrawer.setDrawingStyle(fillColor, Color.BLACK, 4);
+		
+		
+	    float radiusInPixels = radiusDocSpace * getLongestBufferEdge();
+	    
+	    
+	    //
+	    float left = bufpt.x - radiusInPixels;
+	    float top = bufpt.y - radiusInPixels;
+	    float w = radiusInPixels*2;
+	    
+	    
+	    shapeDrawer.drawEllipse(left,top,w,w);
+
+	}
 	
 
 	//////////////////////////////////////////
-	// drawing operations other than paste
+	// debug drawing operations other than paste
+	// these do not scale the drawing to the document
 	void drawPoints(ArrayList<PVector> docSpacePoints, Color c) {
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 127);
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
@@ -407,6 +503,7 @@ class RenderTarget {
 		}
 
 	}
+	
 	
 	void drawText(String str, int bufferX, int bufferY, int size, Color c) {
 		DrawnShape textShape = new DrawnShape();

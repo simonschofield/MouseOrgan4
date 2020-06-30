@@ -142,3 +142,37 @@ class KeepAwake{
     }
     
 }
+
+///
+//
+
+/////////////////////////////////////////////////////////////////////////////////
+// PeriodicAction class, used for limiting actions like print statements
+// to either the first few, or every n times
+class PeriodicAction {
+	int counter;
+	int period = 1;
+
+	void setPeriod(int n) {
+		period = n;
+	}
+
+	boolean tryDoPeriodic() {
+
+		if (counter >= period) {
+			counter = 0;
+			return true;
+		}
+		counter++;
+		return false;
+	}
+
+	boolean tryDoUpto() {
+		if (counter <= period) {
+			counter = 0;
+			return true;
+		}
+		counter++;
+		return false;
+	}
+}

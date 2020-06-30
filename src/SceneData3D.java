@@ -291,7 +291,7 @@ class CoordinateSpaceConverter{
 		return new PVector(dx,dy);
 	}
 
-	private PVector docSpaceToNormalizedSpace(PVector docSpace) {
+	PVector docSpaceToNormalizedSpace(PVector docSpace) {
 
 		float x = 0;
 		float y = 0;

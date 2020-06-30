@@ -98,6 +98,14 @@ public class ImageProcessing {
 		return false;
 	}
 	
+	public static BufferedImage assertImageTYPE_INT_ARGB(BufferedImage source) {
+		// this is the preferred color model for the MouseOrgan system for output images and content items
+		if(source.getType() != BufferedImage.TYPE_INT_ARGB) {
+			return ImageProcessing.convertColorModel(source, BufferedImage.TYPE_INT_ARGB);
+			}		
+		return source;
+	}
+	
 	public static boolean sameDimensions(BufferedImage imageA, BufferedImage imageB) {
 		return (imageA.getWidth() == imageB.getWidth() && imageA.getHeight() == imageB.getHeight());
 	}
@@ -388,6 +396,14 @@ public class ImageProcessing {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// LUT-based point functions
 	//
+	
+	public static BufferedImage pointFunction(BufferedImage image, byte[][] lutArray) {
+		ByteLookupTable lut = new ByteLookupTable(0, lutArray);
+		BufferedImageOp op = new LookupOp(lut, null);
+		BufferedImage outImg = op.filter(image, null);
+		return outImg;
+	}
+	
 	public static BufferedImage adjustBrightness(BufferedImage image, float brightness) {
 		//System.out.println("in adjustBrightness image type = " + image.getType());
 		byte[][] data = new byte[3][256];
@@ -435,15 +451,17 @@ public class ImageProcessing {
 			data[1][n] = newVal;
 			data[2][n] = newVal;
 		}
-		BufferedImage img = pointFunction(image, data);
-		//saveImage("C:\\simon\\Artwork\\MouseOrgan4\\inverted.png", img);
-		return img;
+		return pointFunction(image, data);
+		
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	// point functions cont. 
 	// adjustLevels is an approximation to Photoshop's levels
 	// All inputs are in the range 0..255
-	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneVal, float highlightVal){
+	
+	
+	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneVal, float highlightVal, float outShadowVal,  float outHighlightVal){
 		  // work out gamma correction value
 		  float gamma = 1;
 		  float midtoneNormal = midtoneVal/255.0f;
@@ -462,13 +480,17 @@ public class ImageProcessing {
 		  for(int n = 0; n < 256; n++) {
 		    float v  = ajustLevels_applyInputLevels(n,  shadowVal,   highlightVal);
 		    v = ajustLevels_applyMidTones( v,  gamma);
-		    
+		    v = ajustLevels_applyOutputLevels(v,  outShadowVal,   outHighlightVal);
 			lut[0][n] = (byte)v;
 			lut[1][n] = (byte)v;
 			lut[2][n] = (byte)v;
 		  }
-		  
 		  return  pointFunction(image, lut);
+		}
+	
+	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneVal, float highlightVal) {
+			// shorthand of main function above with output set to 0,255
+			return adjustLevels( image,  shadowVal,  midtoneVal,  highlightVal, 0,  255);
 		}
 	
 	static float ajustLevels_applyInputLevels(float valIn, float shadowVal,  float highlightVal){
@@ -479,110 +501,13 @@ public class ImageProcessing {
 		  return (float) (255 * (Math.pow( (valIn/255), gamma)));
 		}
 
-	// don't need to use this if not adjusting out values
 	static float ajustLevels_applyOutputLevels(float valIn, float outShadowVal,  float outHighlightVal){
 		  return (valIn/255.0f) * ( outHighlightVal - outShadowVal) + outShadowVal;
 		}
-
-	public static BufferedImage pointFunction(BufferedImage image, byte[][] lutArray) {
-		ByteLookupTable lut = new ByteLookupTable(0, lutArray);
-		BufferedImageOp op = new LookupOp(lut, null);
-		BufferedImage outImg = op.filter(image, null);
-		return outImg;
-	}
 	
+	// end adjustLevels
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	// brute-force hsv
-	//
-	public static BufferedImage adjustHSV(BufferedImage img, float dh, float ds, float dv) {
-		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
-		int w = img.getWidth();
-		int h = img.getHeight();
-		int imtype = img.getType();
-		
-		if(imtype != BufferedImage.TYPE_INT_ARGB) {
-			img = convertColorModel(img, BufferedImage.TYPE_INT_ARGB);
-		}
-		//System.out.println("AFTER adjustHSV incoming image is of type " + img.getType() + " BufferedImage.TYPE_INT_ARGB is " + BufferedImage.TYPE_INT_ARGB);
-		int[] pixelsIn = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
-
-		
-		BufferedImage outputImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-		int[] pixelsOut = ((DataBufferInt) outputImage.getRaster().getDataBuffer()).getData();
-
-		float[] hsv = new float[4];
-		int[] unpacked = new int[4];
-		int[] newRGBUnpacked = new int[4];
-		int newRGBPacked;
-		for (int i = 0; i < pixelsIn.length; i++) {
-
-			unpackARGB(pixelsIn[i], unpacked);
-
-			// if alpha is 0 then we don't need to process this pixel
-			if (unpacked[0] == 0)
-				continue;
-
-			// this converts the rgb into the array hsv
-			Color.RGBtoHSB(unpacked[1], unpacked[2], unpacked[3], hsv);
-
-			// do your HSB shifting here
-			hsv[0] = hsv[0] + dh; // HSBtoRGB does its own value wrapping
-			hsv[1] = MOMaths.constrain(hsv[1] + ds, 0f, 1f);
-			hsv[2] = MOMaths.constrain(hsv[2] + dv, 0f, 1f);
-
-			// convert the hsb back to rgb
-			newRGBPacked = Color.HSBtoRGB(hsv[0], hsv[1], hsv[2]);
-			newRGBUnpacked = unpackARGB(newRGBPacked);
-			pixelsOut[i] = packARGB(unpacked[0], newRGBUnpacked[1], newRGBUnpacked[2], newRGBUnpacked[3]);
-
-		}
-
-		return outputImage;
-
-	}
-
-	public static BufferedImage setDominantHue(BufferedImage img, float newDominantHue) {
-		// rather than simply setting the hue to a set color, we get the dominant hue of the image and use it as
-		// a centre-point for adjustment
-		float currentDominantHue = getDominantHue( img);
-		float dif = newDominantHue - currentDominantHue;
-		return adjustHSV( img, dif, 0, 0);
-	}
-	
-	public static float getDominantHue(BufferedImage img) {
-		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
-		int imtype = img.getType();
-		
-		if(imtype != BufferedImage.TYPE_INT_ARGB) {
-			img = convertColorModel(img, BufferedImage.TYPE_INT_ARGB);
-		}
-		//System.out.println("AFTER adjustHSV incoming image is of type " + img.getType() + " BufferedImage.TYPE_INT_ARGB is " + BufferedImage.TYPE_INT_ARGB);
-		int[] pixelsIn = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
-		
-		float[] hsv = new float[4];
-		int[] unpacked = new int[4];
-		
-		float hueTotal = 0;
-		int numPixelsProcessed = 0;
-		for (int i = 0; i < pixelsIn.length; i++) {
-
-			unpackARGB(pixelsIn[i], unpacked);
-
-			// if alpha is 0 then we don't need to process this pixel
-			if (unpacked[0] == 0)
-				continue;
-
-			// this converts the rgb into the array hsv
-			Color.RGBtoHSB(unpacked[1], unpacked[2], unpacked[3], hsv);
-
-			// get the hue
-			hueTotal += hsv[0]; // HSBtoRGB does its own value wrapping
-			numPixelsProcessed++;
-		}
-		float hueAverage = hueTotal/numPixelsProcessed;
-		return hueAverage;
-	}
 	
 	static float brightnessCurve(float v, float amt) {
 	    // 0..1 decreases brightness
@@ -636,11 +561,176 @@ public class ImageProcessing {
 
 	}
 
-}
+
+	
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// HSV methods
+	//
+	public static BufferedImage adjustHSV(BufferedImage img, float dh, float ds, float dv) {
+		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
+		int w = img.getWidth();
+		int h = img.getHeight();
+		int imtype = img.getType();
+		
+		if(imtype != BufferedImage.TYPE_INT_ARGB) {
+			img = convertColorModel(img, BufferedImage.TYPE_INT_ARGB);
+		}
+		//System.out.println("AFTER adjustHSV incoming image is of type " + img.getType() + " BufferedImage.TYPE_INT_ARGB is " + BufferedImage.TYPE_INT_ARGB);
+		int[] pixelsIn = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+
+		
+		BufferedImage outputImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		int[] pixelsOut = ((DataBufferInt) outputImage.getRaster().getDataBuffer()).getData();
+
+		float[] hsv = new float[4];
+		int[] unpacked = new int[4];
+		int[] newRGBUnpacked = new int[4];
+		int newRGBPacked;
+		for (int i = 0; i < pixelsIn.length; i++) {
+
+			unpackARGB(pixelsIn[i], unpacked);
+
+			// if alpha is 0 then we don't need to process this pixel
+			if (unpacked[0] == 0)
+				continue;
+
+			// this converts the rgb into the array hsv
+			Color.RGBtoHSB(unpacked[1], unpacked[2], unpacked[3], hsv);
+
+			// do your HSB shifting here
+			hsv[0] = hsv[0] + dh; // HSBtoRGB does its own value wrapping
+			hsv[1] = MOMaths.constrain(hsv[1] + ds, 0f, 1f);
+			hsv[2] = MOMaths.constrain(hsv[2] + dv, 0f, 1f);
+
+			// convert the hsb back to rgb
+			newRGBPacked = Color.HSBtoRGB(hsv[0], hsv[1], hsv[2]);
+			newRGBUnpacked = unpackARGB(newRGBPacked);
+			pixelsOut[i] = packARGB(unpacked[0], newRGBUnpacked[1], newRGBUnpacked[2], newRGBUnpacked[3]);
+
+		}
+
+		return outputImage;
+
+	}
+	
+	
+
+	public static BufferedImage setDominantHue(BufferedImage img, float newDominantHue) {
+		// rather than simply setting the hue to a set color, we get the dominant hue of the image and use it as
+		// a centre-point for adjustment
+		float currentDominantHue = getDominantHue( img);
+		float dif = newDominantHue - currentDominantHue;
+		return adjustHSV( img, dif, 0, 0);
+	}
+	
+	public static float getDominantHue(BufferedImage img) {
+		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
+		int imtype = img.getType();
+		
+		if(imtype != BufferedImage.TYPE_INT_ARGB) {
+			img = convertColorModel(img, BufferedImage.TYPE_INT_ARGB);
+		}
+		//System.out.println("AFTER adjustHSV incoming image is of type " + img.getType() + " BufferedImage.TYPE_INT_ARGB is " + BufferedImage.TYPE_INT_ARGB);
+		int[] pixelsIn = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+		
+		float[] hsv = new float[4];
+		int[] unpacked = new int[4];
+		
+		float hueTotal = 0;
+		int numPixelsProcessed = 0;
+		for (int i = 0; i < pixelsIn.length; i++) {
+
+			unpackARGB(pixelsIn[i], unpacked);
+
+			// if alpha is 0 then we don't need to process this pixel
+			if (unpacked[0] == 0)
+				continue;
+
+			// this converts the rgb into the array hsv
+			Color.RGBtoHSB(unpacked[1], unpacked[2], unpacked[3], hsv);
+
+			// get the hue
+			hueTotal += hsv[0]; // HSBtoRGB does its own value wrapping
+			numPixelsProcessed++;
+		}
+		float hueAverage = hueTotal/numPixelsProcessed;
+		return hueAverage;
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Multiply two images
+	//
+	public static BufferedImage multiplyImages(BufferedImage img1, BufferedImage img2) {
+		// both images should be the same size
+		int w = img1.getWidth();
+		int h = img1.getHeight();
+		
+		int w2 = img2.getWidth();
+		int h2 = img2.getHeight();
+		
+		// validate
+		if( !(w == w2 && h == h2) ) {
+			System.out.println("ImageProcessing:multiplyImages input image aree not the same size - returning null");
+			return null;
+		}
+		img1 = assertImageTYPE_INT_ARGB(img1);
+		img2 = assertImageTYPE_INT_ARGB(img2);
+		
+		
+		int[] pixelsIn1 = ((DataBufferInt) img1.getRaster().getDataBuffer()).getData();
+		int[] pixelsIn2 = ((DataBufferInt) img2.getRaster().getDataBuffer()).getData();
+
+		BufferedImage outputImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		int[] pixelsOut = ((DataBufferInt) outputImage.getRaster().getDataBuffer()).getData();
+
+		for (int i = 0; i < pixelsIn1.length; i++) {
+
+			int[] unpacked1 = unpackARGB(pixelsIn1[i]);
+			int[] unpacked2 = unpackARGB(pixelsIn2[i]);
+
+			// if both alphas are 0 then we don't need to process this pixel
+			if (unpacked1[0] == 0 && unpacked2[0] == 0)
+				continue;
+			pixelsOut[i] = colorMultiply(unpacked1,unpacked2);
+		}
+
+		return outputImage;
+	}
+	
+	static int colorMultiply(int[] unpacked1, int[] unpacked2) {
+		
+		//int a = Math.max(unpacked1[0] , unpacked2[0]);
+		
+		// my idea for alpha multiplication
+		// most input image will be alpha 255, e.g. an image against a white background. These pose no problem and the output also has alpha of 255
+		// however, IF, alpha comes into play...
+		// Think of two overlapping sheets of coloured glass
+		// The result builds on the most dense alpha, but is not a straight sum;
+		// when the min value is low, we can just about add it wholesale, but not so much that it makes the final sum > 255 , i.e. min*(1-max)
+		// when the min value is around 0.5, we can add min*0.5
+		// when the min value is high, we can only add a fraction of it (*i.e min*(1-max))
+		int a = Math.max(unpacked1[0] , unpacked2[0]);
+		if(a != 255) {
+			float maxA =  a/255f;
+			float minA =  Math.min(unpacked1[0] , unpacked2[0])/255f;
+			float af  = maxA + (minA * (1-maxA));
+			a = (int) af*255;
+			}
+		int r = (int)((unpacked1[1] * unpacked2[1]) / 255f);
+		int g = (int)((unpacked1[2] * unpacked2[2]) / 255f);
+		int b = (int)((unpacked1[3] * unpacked2[3]) / 255f);
+		
+		return packARGB(a,r,g,b);
+	}
+
+	
+	
+}// end of ImageProcessing static class
 
 
-
-
+	
 class ConvolutionFilter {
 	float[][] edge_matrix = { { 0, -2, 0 }, { -2, 8, -2 }, { 0, -2, 0 } };
 
