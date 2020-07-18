@@ -29,6 +29,10 @@ abstract class DirectoryItemScanner {
 	String getShortNameOfItem(int n) {
 		return shortContentGroupNameList.get(n);
 	}
+	
+    int getNumFileTypeInTargetDirectory(String fileEndsWith) {
+		return getFilesInDirectory(directoryPath, fileEndsWith).size();
+	}
 
 	// returns the full path and filename
 	ArrayList<String> getFilesInDirectory(String dir, String extension) {
@@ -88,8 +92,6 @@ abstract class DirectoryItemScanner {
 	// abstract methods
 	abstract void loadContent();
 
-	abstract void loadContent(int fromIndex, int toIndex);
-
 	abstract int getNumItems();
 
 }
@@ -110,22 +112,44 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 		
 		// TODO Auto-generated constructor stub
 	}
+	
+	void loadContent() {
+		loadContent(directoryPath);
+	}
 
 	void loadContent(String dir) {
 		ArrayList<String> allNames = getFilesInDirectory(dir, ".png");
 		int numImage = allNames.size();
-		loadContent(0, numImage - 1);
+		loadContent(dir, 0, numImage - 1, 1 , new Rect());
+	}
+	
+	
+	
+	
+	void loadContent(int fromIndex, int toIndex, float preScale, Rect cropRect) {
+		loadContent(directoryPath, fromIndex, toIndex, preScale, cropRect);
 	}
 
-	void loadContent(String dir, int fromIndex, int toIndex) {
+	void loadContent(String dir, int fromIndex, int toIndex, float preScale, Rect cropRect) {
 
 		ArrayList<String> allNames = getFilesInDirectory(dir, ".png");
 		ArrayList<String> allSortNames = getShortFileNamesInDirectory(dir, ".png");
-		System.out.println("load content " + dir);
+		System.out.println("load content " + dir + " from to " + fromIndex + "," + toIndex);
 		for (int i = fromIndex; i <= toIndex; i++) {
 			String pathAndName = allNames.get(i);
 			BufferedImage img = ImageProcessing.loadImage(pathAndName);
 			
+			
+			if(cropRect.equals(new Rect())==false) {
+				// crop rect is in parametric form, need to turn this into actual pixel values for this image
+				img = ImageProcessing.cropImageWithParametricRect(img,cropRect);
+			}	
+			
+			if(preScale < 1) {
+				img = ImageProcessing.scaleImage(img, preScale, preScale);
+			}
+					
+					
 			widthExtrema.addExtremaCandidate(img.getWidth());
 			heightExtrema.addExtremaCandidate(img.getHeight());
 			
@@ -138,13 +162,7 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 		System.out.println("loaded " + directoryPath + " width etrema " + widthExtrema.toStr() + " height etrema " + heightExtrema.toStr());
 	}
 
-	void loadContent() {
-		loadContent(directoryPath);
-	}
-
-	void loadContent(int fromIndex, int toIndex) {
-		loadContent(directoryPath, fromIndex, toIndex);
-	}
+	
 
 	// specific to this class
 	BufferedImage getImage(int n) {

@@ -16,7 +16,7 @@ public class Scene3DHelper {
 	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount, boolean flipInRotationDirection) {
 		QRandomStream ranStream = sprite.qRandomStream;
 		float rscale = ranStream.randRangeF(1-scaleAmt,1+scaleAmt);
-		rotAmount = (float) Math.toRadians((double)rotAmount);
+		
 		float rrot = ranStream.randRangeF(-rotAmount,rotAmount);
 		
 		if(flipInRotationDirection && rrot > 0) sprite.mirrorSprite(true);

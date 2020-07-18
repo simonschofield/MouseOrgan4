@@ -121,11 +121,12 @@ public class ImageSprite{
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// experimental: towards applying masked effects
-	//
+	// Applies the mask image, which in an ARGB INT image, to the sprites image.Only the alpha of the mask image is considered, and is
+	// overlayed with the sprite image's alpha using the Porter-Duff SRC_IN blend mode -  i.e. the source image is cropped to the mask image.
 	
 	void maskImage(BufferedImage mask) {
 		BufferedImage mask_copy = ImageProcessing.copyImage(mask);
-		if(ImageProcessing.sameDimensions(image, mask_copy) == false) {
+		if(ImageProcessing.isSameDimensions(image, mask_copy) == false) {
 			mask_copy = ImageProcessing.scaleToTarget(mask, image);
 		}
 		image = ImageProcessing.getMaskedImage(image, mask_copy, 0, 0);
@@ -313,6 +314,37 @@ public class ImageSprite{
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// scaling to 3D scene
+	//
+	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float scaleModifier) {
+		// scales the image to the correct size using  sizeInScene to represent the
+		// items's size in the 3D scene in world units.
+		
+		float heightInPixels = getHeightInRenderTargetPixels( sceneData,  renderTarget);
+		
+		float scale = (heightInPixels/bufferHeight) * scaleModifier;
+		if(scale > 1) {
+		 System.out.println(seed.contentItemDescriptor.contentGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
+		}
+
+		scale(scale,scale);
+		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
+	}
+	
+	float getHeightInRenderTargetPixels(SceneData3D sceneData, RenderTarget renderTarget) {
+		
+		float heightDocSpace = sizeInScene * sceneData.get3DScale(seed.docPoint);
+		
+		PVector heightDocSpaceVector = new PVector(0, heightDocSpace);
+
+		PVector heightInPixelsVector = renderTarget.docSpaceToBufferSpace(heightDocSpaceVector);
+		return (float)Math.abs(heightInPixelsVector.y);
+		
+	}
+	
+	/*
 	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float scaleModifier) {
 		// scales the image to the correct size using  sizeInScene to represent the
 		// items's size in the 3D scene in world units.
@@ -338,8 +370,13 @@ public class ImageSprite{
 		
 		scale(scale,scale);
 		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
-	}
+	}*/
 	
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// geometric transforms change the sprite image in-place
+	//
 	void scale(float scaleW, float scaleH) {
 		image = ImageProcessing.scaleImage(image, scaleW, scaleH);
 		bufferWidth = image.getWidth();

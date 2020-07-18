@@ -3,7 +3,7 @@ class Rect{
   
   float left,top,right,bottom;
   public Rect(){
-    
+	  setRect(0,0,1,1);
   }
   
   

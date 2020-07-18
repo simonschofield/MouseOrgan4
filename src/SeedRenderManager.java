@@ -19,7 +19,7 @@ public class SeedRenderManager extends CollectionIterator{
 	
 	
 	float[] depthLayerDemarkers;
-	int numLayers;
+	int numLayers = 1;
 	
 	ArrayList<Seed> collatedSeeds = new ArrayList<Seed>();
 	ArrayList<Seed> currentLayerSeeds = new ArrayList<Seed>();

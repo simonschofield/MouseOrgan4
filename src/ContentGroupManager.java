@@ -51,36 +51,39 @@ class ContentGroupManager {
 	
 	
 
-	void setSpriteOrigins(String name, PVector origin) {
-		ImageContentGroup cc = getImageContentGroup(name);
-		if (cc == null)
-			return;
-		cc.setSpriteOrigins(origin);
-	}
+	
 
 	
 	/////////////////////////////////////////////////////////////////////////////
 	// this is the short-hand method of establishing an image-collection
 	// arguments 3 and after are all nullable, and will result in defaults
-	void loadImageContentGroup(String name, String targetDirectory, Integer from, Integer to, PVector origin, Float sizeInScene) {
-		addImageContentGroupNameAndPath(name, targetDirectory);
-		if (from == null || to == null) {
-			loadImageContentGroup(name);
-		} else {
-			loadImageContentGroup(name, from, to);
+	void loadImageContentGroup(String contentGroupName, String targetDirectory, Integer from, Integer to, float preScale, Rect cropRect, PVector origin, Float sizeInScene) {
+		
+		ImageContentGroup thisImageContentGroup = addImageContentGroupNameAndPath(contentGroupName, targetDirectory);
+		
+		if(from==null) from = 0;
+		if(to == null) {
+			to = thisImageContentGroup.getNumFileTypeInTargetDirectory(".png") - 1;
 		}
+
+		thisImageContentGroup.loadContent(from, to, preScale,  cropRect);
+		
 
 		if (origin == null) {
 			origin = new PVector(0.5f, 0.5f);
 		}
-		setSpriteOrigins(name, origin);
+		setSpriteOrigins(contentGroupName, origin);
 
 		if (sizeInScene == null) {
 			// do nothing
 		} else {
-			setSizeInScene(name, sizeInScene);
+			setSizeInScene(contentGroupName, sizeInScene);
 		}
 
+	}
+	
+	void loadImageContentGroup(String name, String targetDirectory, Integer from, Integer to, PVector origin, Float sizeInScene) {
+		loadImageContentGroup( name,  targetDirectory,  from,  to,  1,  new Rect(),  origin,  sizeInScene);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////
@@ -88,23 +91,17 @@ class ContentGroupManager {
 	// If you are doing it long hand - then the method below needs to be called
 	///////////////////////////////////////////////////////////////////////////// first
 	
-	void addImageContentGroupNameAndPath(String name, String targetDirectory) {
+	ImageContentGroup addImageContentGroupNameAndPath(String name, String targetDirectory) {
 		ImageContentGroup ic = new ImageContentGroup(name, targetDirectory, parentSurface);
 		imageContentGroups.add(ic);
+		return ic;
 	}
 
-	void loadImageContentGroup(String name, int from, int to) {
-		ImageContentGroup ic = getImageContentGroup(name);
-		if (ic == null)
+	void setSpriteOrigins(String name, PVector origin) {
+		ImageContentGroup cc = getImageContentGroup(name);
+		if (cc == null)
 			return;
-		ic.loadContent(from, to);
-	}
-
-	void loadImageContentGroup(String name) {
-		ImageContentGroup ic = getImageContentGroup(name);
-		if (ic == null)
-			return;
-		ic.loadContent();
+		cc.setSpriteOrigins(origin);
 	}
 
 	void setSizeInScene(String name, float size) {
@@ -235,6 +232,8 @@ class ImageContentGroup extends DirectoryImageGroup {
 		groupName = collectionName;
 
 	}
+	
+	
 
 	boolean isNamed(String name) {
 		if (groupName.contentEquals(name))
@@ -255,17 +254,20 @@ class ImageContentGroup extends DirectoryImageGroup {
 		return sizeInScene;
 		
 	}
+	
 
-	void loadContent(int fromIndex, int toIndex) {
-	// this version does caching and loading of previously scaled images
-	//
-		float scl = 1;
+	void loadContent(int fromIndex, int toIndex, float preScale, Rect cropRect) {
+	    // this version does caching and loading of previously scaled images
+	    // if the cache load/save is involved then cropping only takes place after the cache save/load so is never committed to the cache
+		// however cropping takes place per image load at full scale
+		float sessionScale = 1;
 		if (parentSurface != null) {
-			scl = parentSurface.getSessionScale();
+			sessionScale = parentSurface.getSessionScale();
 		}
 
-		if (scl > 0.99) {
-			super.loadContent(fromIndex, toIndex);
+		if (sessionScale > 0.99) {
+			System.out.println("NOT using cache folder ...");
+			super.loadContent(fromIndex, toIndex, preScale, cropRect);
 			assertImageTYPE_INT_ARGB();
 			return;
 		}
@@ -273,22 +275,34 @@ class ImageContentGroup extends DirectoryImageGroup {
 		// if needs rescaling
 		// check to see if a folder called targetDirectory//cached_scaled_*percentile*
 		// exists
-		String cachedImagesFolderName = getCachedScaledImagesFolderName(scl);
+		String cachedImagesFolderName = getCachedScaledImagesFolderName(sessionScale);
+		System.out.println("using cache folder ..." + cachedImagesFolderName);
 		if (checkCacheExists(cachedImagesFolderName, fromIndex, toIndex)) {
 			// if it exists load those images, end.
-			loadContent(cachedImagesFolderName, fromIndex, toIndex);
+			loadContent(cachedImagesFolderName, fromIndex, toIndex, 1, new Rect());
 			assertImageTYPE_INT_ARGB();
 		} else {
-
+			// load from the original source directory place, but create a cache
 			boolean ok = createDirectory(cachedImagesFolderName);
 			if (!ok)
 				System.out.println("problem creating cache folder ..." + cachedImagesFolderName);
-			super.loadContent(fromIndex, toIndex);
+			
+			loadContent(directoryPath, fromIndex, toIndex, 1, new Rect());
 			// then scale them and save them to a folder called
 			// targetDirectory//cached_scaled_*percentile*
-			scaleAll(scl, scl);
+			scaleAll(sessionScale, sessionScale);
 			assertImageTYPE_INT_ARGB();
 			saveAll(cachedImagesFolderName);
+		}
+		
+		if(cropRect.equals(new Rect())==false) {
+			cropAll(cropRect);
+			
+		}
+		
+		if(preScale < 1) {
+			scaleAll(preScale,preScale);
+			
 		}
 
 	}
@@ -296,6 +310,8 @@ class ImageContentGroup extends DirectoryImageGroup {
 	
 	
 	void assertImageTYPE_INT_ARGB() {
+		// all image content items should be of type INT_ARGB for all the 
+		// operations to work OK. This makes sure they are.
 		int numItems = getNumItems();
 		for (int n = 0; n < numItems; n++) {
 			BufferedImage thisImage = getImage(n);
@@ -308,7 +324,9 @@ class ImageContentGroup extends DirectoryImageGroup {
 	}
 	
 	
-
+	///////////////////////////////////////////////////////////////////////////
+	// cache related methods 
+	//
 	boolean checkCacheExists(String directory, int fromIndex, int toIndex) {
 		if (checkDirectoryExist(directory) == false)
 			return false;
@@ -346,12 +364,25 @@ class ImageContentGroup extends DirectoryImageGroup {
 
 	}
 	
+	///////////////////////////////////////////////////////////////////////////
+	// content manipulation methods - affect all members of the group
+	//
 	void scaleAll(float x, float y) {
 		int numImage = imageList.size();
 		for (int n = 0; n < numImage; n++) {
 			BufferedImage img = imageList.get(n);
 			BufferedImage scaled = ImageProcessing.scaleImage(img, x, y);
 			imageList.set(n, scaled);
+		}
+	}
+	
+	void cropAll(Rect cropRect) {
+		if(cropRect.equals(new Rect())) return;
+		int numImage = imageList.size();
+		for (int n = 0; n < numImage; n++) {
+			BufferedImage img = imageList.get(n);
+			BufferedImage cropped = ImageProcessing.cropImageWithParametricRect(img,cropRect);
+			imageList.set(n, cropped);
 		}
 	}
 	

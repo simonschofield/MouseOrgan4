@@ -106,7 +106,7 @@ public class ImageProcessing {
 		return source;
 	}
 	
-	public static boolean sameDimensions(BufferedImage imageA, BufferedImage imageB) {
+	public static boolean isSameDimensions(BufferedImage imageA, BufferedImage imageB) {
 		return (imageA.getWidth() == imageB.getWidth() && imageA.getHeight() == imageB.getHeight());
 	}
 	
@@ -124,6 +124,13 @@ public class ImageProcessing {
 	      BufferedImage dest = src.getSubimage((int)r.left,(int)r.top, (int)r.getWidth(), (int)r.getHeight());
 	      return dest; 
 	   }
+	
+	public static BufferedImage cropImageWithParametricRect(BufferedImage src, Rect r) {
+		int w = src.getWidth();
+		int h = src.getHeight();
+		Rect pixelCropRect = new Rect(r.left*w, r.top*h, r.right*w, r.bottom*h);
+		return cropImage(src, pixelCropRect);
+	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////
 	// compositing operations
