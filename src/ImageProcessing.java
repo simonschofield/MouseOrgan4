@@ -12,8 +12,14 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.LookupOp;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 public class ImageProcessing {
 
@@ -131,6 +137,9 @@ public class ImageProcessing {
 		Rect pixelCropRect = new Rect(r.left*w, r.top*h, r.right*w, r.bottom*h);
 		return cropImage(src, pixelCropRect);
 	}
+	
+	
+	
 	
 	///////////////////////////////////////////////////////////////////////////////////////
 	// compositing operations

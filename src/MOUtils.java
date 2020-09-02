@@ -3,8 +3,11 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Robot;
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Scanner;
 
 public class MOUtils {
 
@@ -63,6 +66,21 @@ public class MOUtils {
 	}
 	
 	
+	
+	static ArrayList<String> readTextFile(String pathAndName) {
+		ArrayList<String> stListOut = new ArrayList<String>();
+		File myObj = new File(pathAndName);
+		try{
+	      Scanner myReader = new Scanner(myObj);
+	      while (myReader.hasNextLine()) {
+	        String data = myReader.nextLine();
+	        stListOut.add(data);
+	        //System.out.println(data);
+	      }
+	      myReader.close();
+		}catch (IOException e) {}
+		return stListOut;
+	}
 }
 
 class SecondsTimer{
@@ -112,7 +130,34 @@ class SecondsTimer{
 	  
 }
 
-
+class GenericArrayListUtils{
+	
+	
+	public static <T> ArrayList<T> trimList(ArrayList<T> listIn, Integer from, Integer to){
+		ArrayList<T> trimmedList = new ArrayList<T>();
+		if(from == null) from = 0;
+		if(to == null) to = listIn.size()-1;
+		if(to > listIn.size()-1) to = listIn.size()-1;
+		
+		for(int n = from; n <= to; n++) {
+			T t = listIn.get(n);
+			trimmedList.add(t);
+		}
+		
+		return trimmedList;
+	}
+	
+	public static <T> boolean listsContentsAreEqual(ArrayList<T> listA, ArrayList<T> listB) {
+		if(listA.size() != listB.size()) return false;
+		for(int n = 0; n < listB.size(); n++) {
+			T sA = listA.get(n);
+			T sB = listB.get(n);
+			if( sA.equals(sB)==false ) return false;
+		}
+		return true;
+	}
+	
+}
 
 
 class KeepAwake{

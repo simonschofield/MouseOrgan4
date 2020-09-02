@@ -49,35 +49,38 @@ public class SceneData3D {
 	Range originalDepthExtrema;
 	GeometryBuffer3D geometryBuffer3d;
 	DistanceBufferFilter distanceFilter;
-	
+	FloatImage distanceImage;
+	float fov;
 	
 	public SceneData3D(float docAspect, DistanceBufferFilter dFilter) {
 		mouseOrganDocAspect = docAspect;
 		distanceFilter = dFilter;
 	}
 	
-	
+	public SceneData3D(float docAspect) {
+		mouseOrganDocAspect = docAspect;
+		distanceFilter = new DistanceBufferFilter();
+	}
 
 	public void load(String targetDirectory) {
-
 		directoryPath = targetDirectory;
 		load();
 	}
 		
     public void load(){
-		renderImages = new DirectoryImageGroup(directoryPath);
+		renderImages = new DirectoryImageGroup(directoryPath, ".png", "");
 		renderImages.loadContent();
 		
 		// this is a "distance" image, it is converted to a proper depth image
 		// in the DepthBuffer object
-		FloatImage distanceImage = new FloatImage(directoryPath + "\\distance.data");
+		distanceImage = new FloatImage(directoryPath + "\\distance.data");
 
 		renderWidth = distanceImage.getWidth();
 		renderHeight = distanceImage.getHeight();
 
-		ArrayList<String> strList = readTextFile(directoryPath + "\\view.txt");
+		ArrayList<String> strList = MOUtils.readTextFile(directoryPath + "\\view.txt");
 		String fovString = strList.get(2);
-		float fov = Float.parseFloat(fovString);
+		fov = Float.parseFloat(fovString);
 		String topleftSt = strList.get(5);
 		String botRighSt = strList.get(6);
 		
@@ -98,6 +101,14 @@ public class SceneData3D {
 		
 		setCurrentRenderImage(0);
 	}
+    
+    
+    void setDistanceBufferGamma(float g) {
+    	distanceFilter.setDistanceGamma(g);
+    	//load();
+    	geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter);
+    }
+    
 	
 	
     void useFilteredDistance(boolean use) {
@@ -222,23 +233,6 @@ public class SceneData3D {
 	}
 	
 	
-	ArrayList<String> readTextFile(String pathAndName) {
-		ArrayList<String> stListOut = new ArrayList<String>();
-		File myObj = new File(pathAndName);
-		try{
-	      Scanner myReader = new Scanner(myObj);
-	      while (myReader.hasNextLine()) {
-	        String data = myReader.nextLine();
-	        stListOut.add(data);
-	        System.out.println(data);
-	      }
-	      myReader.close();
-		}catch (IOException e) {}
-		return stListOut;
-	}
-	
-
-
 
 }
 
@@ -345,10 +339,11 @@ class CoordinateSpaceConverter{
 
 class DistanceBufferFilter{
 	Range original_extrema = new Range();
-	float zGamma = 1.7f;
+	float zGamma = 1.0f;
 	
 	void setOriginalExtrema(Range e) {
 		original_extrema = e.copy();
+		System.out.println("DistanceBufferFilter setoriginalExtrema " + original_extrema.toStr());
 	}
 	
 	void setDistanceGamma(float zbend) {
@@ -432,15 +427,70 @@ class GeometryBuffer3D{
 	
 	void makeFilteredDistanceBuffer() {
 		filteredDistanceBuffer = new FloatImage(width,height);
+		
 		distanceBufferFilter.setOriginalExtrema(distanceBuffer.getExtrema());
 		for(int y = 0; y < height; y++) {
 			for(int x = 0; x < width; x++) {
 				float rawDistance = distanceBuffer.getPixelBilin(x, y); 
-				float filteredDistance = distanceBufferFilter.applyFilter(rawDistance);
-				filteredDistanceBuffer.set(x,y, filteredDistance);
+				
+				if(rawDistance == -Float.MAX_VALUE) {
+					filteredDistanceBuffer.set(x,y, rawDistance);
+					
+				}else {
+					float filteredDistance = distanceBufferFilter.applyFilter(rawDistance);
+					filteredDistanceBuffer.set(x,y, filteredDistance);
+				}
 			}
 		}
 	}
+	
+	private void makeDepthBuffer() {
+		// this makes the depthBuffer - a floatimage containing the perpendicular distances
+		// it also contains -1 values for "sky" (infinitely distant)
+		wholeDepthImageExtrema = new Range(Float.MAX_VALUE,-Float.MAX_VALUE);
+		roiExtrema = new Range(Float.MAX_VALUE,-Float.MAX_VALUE);
+		int BLACK = ImageProcessing.packARGB(255, 0, 0, 0);
+		int WHITE = ImageProcessing.packARGB(255, 255, 255, 255);
+		substanceImage = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
+		
+		depthBuffer = new FloatImage(width,height);
+		
+		for(int y = 0; y < height; y++) {
+			for(int x = 0; x < width; x++) {
+				
+				// this gets dz from the filteredDistanceBuffer
+				float dz = getDistance(x,y);
+				
+				if(dz== -Float.MAX_VALUE) 
+					{
+					substanceImage.setRGB(x, y, BLACK);
+					filteredDistanceBuffer.set(x, y, -Float.MAX_VALUE);
+					
+					depthBuffer.set(x, y, -Float.MAX_VALUE);
+					
+					}
+				else {
+					substanceImage.setRGB(x, y, WHITE);
+					float depth = distanceBufferToDepthBufferValue( x,  y);
+					
+		
+					if( coordinateSpaceConverter.isInROI(x,y) ) roiExtrema.addExtremaCandidate(depth);
+					wholeDepthImageExtrema.addExtremaCandidate(depth);
+					depthBuffer.set(x, y, depth);
+					}
+			}
+		}
+		
+		//depthBuffer.setMaskValue(-Float.MAX_VALUE, true);
+		//distanceBuffer.setMaskValue(-Float.MAX_VALUE, true);
+		//filteredDistanceBuffer.setMaskValue(-Float.MAX_VALUE, true);
+		
+		System.out.println("depth buffer extrema are" + wholeDepthImageExtrema.limit1 + " " + wholeDepthImageExtrema.limit2);
+		System.out.println("ROI extrema are" + roiExtrema.limit1 + " " + roiExtrema.limit2);
+	}
+	
+	
+	
 	
 	//
 	float get3DScale(PVector docPt) {
@@ -552,51 +602,6 @@ class GeometryBuffer3D{
 
 	float sqr(float a) { return a*a;}
 	
-	private void makeDepthBuffer() {
-		// this makes the depthBuffer - a floatimage containing the perpendicular distances
-		// it also contains -1 values for "sky" (infinitely distant)
-		wholeDepthImageExtrema = new Range(100000,-100000);
-		roiExtrema = new Range(100000,-100000);
-		int BLACK = ImageProcessing.packARGB(255, 0, 0, 0);
-		int WHITE = ImageProcessing.packARGB(255, 255, 255, 255);
-		substanceImage = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
-		
-		depthBuffer = new FloatImage(width,height);
-		for(int y = 0; y < height; y++) {
-			for(int x = 0; x < width; x++) {
-				
-				// this gets dz from the filteredDistanceBuffer
-				float dz = getDistance(x,y);
-				
-				if(dz == -1) 
-					{
-					substanceImage.setRGB(x, y, BLACK);
-					distanceBuffer.set(x, y, -Float.MAX_VALUE);
-					filteredDistanceBuffer.set(x, y, -Float.MAX_VALUE);
-					
-					depthBuffer.set(x, y, -Float.MAX_VALUE);
-					
-					}
-				else {
-
-					substanceImage.setRGB(x, y, WHITE);
-					float depth = distanceBufferToDepthBufferValue( x,  y);
-					
-		
-					if( coordinateSpaceConverter.isInROI(x,y) ) roiExtrema.addExtremaCandidate(depth);
-					wholeDepthImageExtrema.addExtremaCandidate(depth);
-					depthBuffer.set(x, y, depth);
-					}
-			}
-		}
-		
-		depthBuffer.setMaskValue(-Float.MAX_VALUE, true);
-		distanceBuffer.setMaskValue(-Float.MAX_VALUE, true);
-		filteredDistanceBuffer.setMaskValue(-Float.MAX_VALUE, true);
-		
-		System.out.println("depth buffer extrema are" + wholeDepthImageExtrema.limit1 + " " + wholeDepthImageExtrema.limit2);
-		System.out.println("ROI extrema are" + roiExtrema.limit1 + " " + roiExtrema.limit2);
-	}
 	
 	
 	

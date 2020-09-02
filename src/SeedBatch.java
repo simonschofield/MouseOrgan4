@@ -13,7 +13,13 @@ import java.util.Comparator;
 class Seed implements Serializable{
 	String batchName;
 	PVector docPoint;
+	
+	// the depth is set to the normalised depth in the 3D scene, this is done by the 
+	// PointGenerator.getNextSeed() method
+	// 
 	float depth;
+	
+	
 	int id;
 	int layerNumber = 0;
 	
@@ -31,6 +37,11 @@ class Seed implements Serializable{
 	
 	float getDepth() {
 		return depth;
+	}
+	
+	String toStr() {
+		
+		return "seed " + id + " batchname:" + batchName + " docPoint:" + docPoint.toStr() + " content Item: " + contentItemDescriptor.toStr();
 	}
 	
 }
@@ -246,6 +257,18 @@ class SeedBatchManager {
 		createSeedBatch( makeNewSeeds,  batchName,  cis, namePointDisImage,  pointDisRLo,  pointDisRHi,  pointDisThreshold, pointDistRSeed);
 	}
 
+	/**
+	 * @brief 
+	 * @param makeNewSeeds
+	 * @param batchName
+	 * @param contentGroupName
+	 * @param cisRSeed
+	 * @param namePointDisImage
+	 * @param pointDisRLo
+	 * @param pointDisRHi
+	 * @param pointDisThreshold
+	 * @param pointDistRSeed
+	 */
 	void createSeedBatch(Boolean makeNewSeeds, String batchName, String contentGroupName, int cisRSeed,
 			String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
 			int pointDistRSeed) {

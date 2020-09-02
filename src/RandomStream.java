@@ -98,6 +98,7 @@ public class RandomStream{
 
 
 class QRandomStream{
+	private static int uniqueID = 0;
 	private static ArrayList<Integer> visitationOrder;
 	private static ArrayList<Integer> randomNumbers;
 	private int arraySize = 10000;
@@ -108,13 +109,25 @@ class QRandomStream{
 	
 	
 	QRandomStream(int rseed){
+		init(rseed);
+	}
+	
+	QRandomStream(){
+		init(  getUniqueID()  );
+	}
+	
+	void init(int rseed){
 		if(randomNumbers == null) {
 			initRandomNumbers();
 		}
 		seed = rseed;
 	}
 	
-	
+	int getUniqueID() {
+		uniqueID++;
+		if(uniqueID >= 10000) uniqueID = 0;
+		return uniqueID;
+	}
 	
 	boolean randomEvent(float prob){
 		float r = nextFloat();

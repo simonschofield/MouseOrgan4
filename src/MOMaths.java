@@ -143,6 +143,11 @@ class Range {
 	}
 	
 	void addExtremaCandidate(float v) {
+		
+		if(v == -Float.MAX_VALUE || v == Float.MAX_VALUE) return;
+		
+		
+		
 		if(limit1 == 0 && limit2 == 0) {
 			limit1 = v;
 			limit2 = v;

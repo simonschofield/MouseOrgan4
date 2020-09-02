@@ -40,6 +40,8 @@ class ContentGroupManager {
 		return cc.getNumItems();
 	}
 
+	// generates an ImageSprite from a seed
+	// the seed defines the ConentGroup and item within
 	ImageSprite getSprite(Seed seed) {
 		// got to get the correct contentItemGroup first
 		ImageContentGroup dig = getImageContentGroup(seed.contentItemDescriptor.contentGroupName);
@@ -50,20 +52,35 @@ class ContentGroupManager {
 	}
 	
 	
+	ImageSprite getSprite(String contentGroupName, int num) {
+		// got to get the correct contentItemGroup first
+		ImageContentGroup dig = getImageContentGroup(contentGroupName);
 
+		if (dig == null)
+			return null;
+		return dig.getSprite(num);
+	}
 	
 
-	
-	/////////////////////////////////////////////////////////////////////////////
-	// this is the short-hand method of establishing an image-collection
-	// arguments 3 and after are all nullable, and will result in defaults
-	void loadImageContentGroup(String contentGroupName, String targetDirectory, Integer from, Integer to, float preScale, Rect cropRect, PVector origin, Float sizeInScene) {
+/**
+ * @param contentGroupName, this is the name you give the content group for further access via the manager
+ * @param targetDirectory, this is the directory containing the files you wish to load
+ * @param fileNameMustEndWith, this is a file name filter, set to ".png" to load all png file. Set to "" or "*" if you dont want to filer on endings
+ * @param fileNameMustContain, this is a file name filter, set to "apple" to load all files containing the string"apple". Set to "" or "*" if you don't want any filter
+ * @param from, load all files FROM this item number within the target directory that meet the filter criteria (can be nulled, in which case loads from first item found)
+ * @param to, load all files TO this item number within the target directory that meet the filter criteria (can be nulled, in which case loads TO the final item found)
+ * @param preScale, apply a uniform scaling to all items. This is supplementary to the session scale.
+ * @param cropRect, apply a uniform crop to all items. The rect is in normalised coords
+ * @param origin, the origin of each sprite generated from this collection
+ * @param sizeInScene, the size in scene, in scene-units,  if using 3d etc, as calculated by the sprite and scene data
+ */
+void loadImageContentGroup(String contentGroupName, String targetDirectory, String fileNameMustEndWith, String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect, PVector origin, Float sizeInScene) {
 		
-		ImageContentGroup thisImageContentGroup = addImageContentGroupNameAndPath(contentGroupName, targetDirectory);
+		ImageContentGroup thisImageContentGroup = addImageContentGroupNameAndPath(contentGroupName, targetDirectory, fileNameMustEndWith, fileNameMustContain);
 		
 		if(from==null) from = 0;
 		if(to == null) {
-			to = thisImageContentGroup.getNumFileTypeInTargetDirectory(".png") - 1;
+			to = thisImageContentGroup.getNumFileTypeInTargetDirectory(fileNameMustEndWith, fileNameMustContain) - 1;
 		}
 
 		thisImageContentGroup.loadContent(from, to, preScale,  cropRect);
@@ -72,18 +89,24 @@ class ContentGroupManager {
 		if (origin == null) {
 			origin = new PVector(0.5f, 0.5f);
 		}
-		setSpriteOrigins(contentGroupName, origin);
+		setImageContentGroupOrigin(contentGroupName, origin);
 
 		if (sizeInScene == null) {
 			// do nothing
 		} else {
-			setSizeInScene(contentGroupName, sizeInScene);
+			setImageContentGroupSizeInScene(contentGroupName, sizeInScene);
 		}
 
 	}
 	
+
+	
+	/////////////////////////////////////////////////////////////////////////////
+	// this is the short-hand method of the above 
 	void loadImageContentGroup(String name, String targetDirectory, Integer from, Integer to, PVector origin, Float sizeInScene) {
-		loadImageContentGroup( name,  targetDirectory,  from,  to,  1,  new Rect(),  origin,  sizeInScene);
+		
+		loadImageContentGroup( name,  targetDirectory, ".png", "",  from,  to,  1,  new Rect(),  origin,  sizeInScene);
+		
 	}
 
 	/////////////////////////////////////////////////////////////////////////////
@@ -91,20 +114,20 @@ class ContentGroupManager {
 	// If you are doing it long hand - then the method below needs to be called
 	///////////////////////////////////////////////////////////////////////////// first
 	
-	ImageContentGroup addImageContentGroupNameAndPath(String name, String targetDirectory) {
-		ImageContentGroup ic = new ImageContentGroup(name, targetDirectory, parentSurface);
+	ImageContentGroup addImageContentGroupNameAndPath(String name, String targetDirectory, String filesStrEndWith, String fileStrContains) {
+		ImageContentGroup ic = new ImageContentGroup(name, targetDirectory, filesStrEndWith, fileStrContains, parentSurface);
 		imageContentGroups.add(ic);
 		return ic;
 	}
 
-	void setSpriteOrigins(String name, PVector origin) {
+	void setImageContentGroupOrigin(String name, PVector origin) {
 		ImageContentGroup cc = getImageContentGroup(name);
 		if (cc == null)
 			return;
-		cc.setSpriteOrigins(origin);
+		cc.setOrigins(origin);
 	}
 
-	void setSizeInScene(String name, float size) {
+	void setImageContentGroupSizeInScene(String name, float size) {
 		ImageContentGroup ic = getImageContentGroup(name);
 		if (ic == null)
 			return;
@@ -125,12 +148,12 @@ class ContentGroupManager {
 	
 	
 	/**
-	 * 
-	 * @param groupname the ImageContentGroup to ajust
-	 * @param function the color function string either "hsv", "brightnessNoClip", "brightness", "contrast"
-	 * @param p1
-	 * @param p2
-	 * @param p3
+	 * Generalised color processing method applied to the entire contents of an ImageContentGroup
+	 * @param groupname the ImageContentGroup to adjust
+	 * @param function the color function string either "hsv", "brightnessNoClip", "brightness", "contrast", "levels"
+	 * @param p1 first parameter if needed
+	 * @param p2 second parameter if needed
+	 * @param p3 third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
 	void colorAdjustImageContentGroup(String groupname, String function, float p1, float p2, float p3) {
@@ -148,7 +171,7 @@ class ContentGroupManager {
 	}
 	
 	void paradeContent(String groupName) {
-		// might be part of ContentGroupManager???
+		
 		ImageContentGroup contentGroup = this.getImageContentGroup(groupName);
 		int numItems = contentGroup.getNumItems();
 		int biggestItemWidth = (int) contentGroup.widthExtrema.getUpper();
@@ -227,13 +250,18 @@ class ImageContentGroup extends DirectoryImageGroup {
 	
 	// this method is used for image content groups, so global scaling is applied
 	public ImageContentGroup(String collectionName, String targetDirectory, Surface parent) {
-		super(targetDirectory);
+		super(targetDirectory, ".png", "");
 		parentSurface = parent;
 		groupName = collectionName;
 
 	}
 	
-	
+	public ImageContentGroup(String collectionName, String targetDirectory, String filesStrEndWith, String fileStrContains, Surface parent) {
+		super(targetDirectory, filesStrEndWith, fileStrContains);
+		parentSurface = parent;
+		groupName = collectionName;
+
+	}
 
 	boolean isNamed(String name) {
 		if (groupName.contentEquals(name))
@@ -241,7 +269,7 @@ class ImageContentGroup extends DirectoryImageGroup {
 		return false;
 	}
 
-	void setSpriteOrigins(PVector orig) {
+	void setOrigins(PVector orig) {
 		spriteOrigin = orig;
 	}
 
@@ -250,12 +278,13 @@ class ImageContentGroup extends DirectoryImageGroup {
 		
 	}
 
-	float getSizeInScene(int itemNum) {
+	float getSizeInScene() {
 		return sizeInScene;
 		
 	}
 	
-
+	
+	
 	void loadContent(int fromIndex, int toIndex, float preScale, Rect cropRect) {
 	    // this version does caching and loading of previously scaled images
 	    // if the cache load/save is involved then cropping only takes place after the cache save/load so is never committed to the cache
@@ -266,28 +295,37 @@ class ImageContentGroup extends DirectoryImageGroup {
 		}
 
 		if (sessionScale > 0.99) {
-			System.out.println("NOT using cache folder ...");
+			//System.out.println("NOT using cache folder ...");
+			
+			// this base class method loads at 100% scale, and then does the preScaling and rect cropping.
 			super.loadContent(fromIndex, toIndex, preScale, cropRect);
 			assertImageTYPE_INT_ARGB();
 			return;
 		}
 
-		// if needs rescaling
+		// if needs rescaling due to session scale, then the cache comes into play.
 		// check to see if a folder called targetDirectory//cached_scaled_*percentile*
 		// exists
+		
+		// first get the list of files, as they should be, in the non-cache directory (the original files in the sample lib)
+		ArrayList<String> sampleLibFileNames = getShortFileNamesInDirectory(directoryPath, fileStringEndsWith, fileStringContains);
+		sampleLibFileNames = GenericArrayListUtils.trimList(sampleLibFileNames, fromIndex, toIndex);
+		
+		
 		String cachedImagesFolderName = getCachedScaledImagesFolderName(sessionScale);
-		System.out.println("using cache folder ..." + cachedImagesFolderName);
-		if (checkCacheExists(cachedImagesFolderName, fromIndex, toIndex)) {
+		//System.out.println("using cache folder ..." + cachedImagesFolderName);
+		if (checkCacheExists(cachedImagesFolderName, sampleLibFileNames, fromIndex, toIndex)) {
 			// if it exists load those images, end.
-			loadContent(cachedImagesFolderName, fromIndex, toIndex, 1, new Rect());
+			loadContent(cachedImagesFolderName, fileStringEndsWith, fileStringContains, fromIndex, toIndex, 1, new Rect());
 			assertImageTYPE_INT_ARGB();
 		} else {
+			// if these is a problemns with the cache (it doesnt exist or the files in the cache do not match the 
 			// load from the original source directory place, but create a cache
-			boolean ok = createDirectory(cachedImagesFolderName);
+			boolean ok = MOUtils.createDirectory(cachedImagesFolderName);
 			if (!ok)
 				System.out.println("problem creating cache folder ..." + cachedImagesFolderName);
 			
-			loadContent(directoryPath, fromIndex, toIndex, 1, new Rect());
+			loadContent(directoryPath, fileStringEndsWith, fileStringContains, fromIndex, toIndex, 1, new Rect());
 			// then scale them and save them to a folder called
 			// targetDirectory//cached_scaled_*percentile*
 			scaleAll(sessionScale, sessionScale);
@@ -295,14 +333,15 @@ class ImageContentGroup extends DirectoryImageGroup {
 			saveAll(cachedImagesFolderName);
 		}
 		
+		
+		
+		
 		if(cropRect.equals(new Rect())==false) {
 			cropAll(cropRect);
-			
 		}
 		
 		if(preScale < 1) {
 			scaleAll(preScale,preScale);
-			
 		}
 
 	}
@@ -327,18 +366,22 @@ class ImageContentGroup extends DirectoryImageGroup {
 	///////////////////////////////////////////////////////////////////////////
 	// cache related methods 
 	//
-	boolean checkCacheExists(String directory, int fromIndex, int toIndex) {
-		if (checkDirectoryExist(directory) == false)
+	
+	// this checks to see if the directory exists, and if it does then it checks to see if all the cached files exist also.
+	// if not then return false.
+	boolean checkCacheExists(String directory, ArrayList<String> sampleLibFileNames, int fromIndex, int toIndex) {
+		if (MOUtils.checkDirectoryExist(directory) == false)
 			return false;
-		File folder = new File(directory);
-		File[] listOfFiles = folder.listFiles();
-		int numFilesInDir = listOfFiles.length;
-		int numFilesRequested = (toIndex - fromIndex) + 1;
+		ArrayList<String> cachedFileNames = getShortFileNamesInDirectory(directory, fileStringEndsWith, fileStringContains);
+		cachedFileNames = GenericArrayListUtils.trimList(cachedFileNames, fromIndex, toIndex);
 
-		if (numFilesInDir < numFilesRequested)
-			return false;
-		return true;
+		if( GenericArrayListUtils.listsContentsAreEqual(sampleLibFileNames, cachedFileNames) ) return true;
+
+		return false;
+		
 	}
+	
+	
 
 	String getCachedScaledImagesFolderName(float scale) {
 		int scalePercentile = (int) (scale * 100);
@@ -448,8 +491,25 @@ class ImageContentGroup extends DirectoryImageGroup {
 			n = getNumItems() - 1;
 		}
 
-		float world3Dheight = getSizeInScene(n);
+		float world3Dheight = getSizeInScene();
+		//System.out.println("gImageSprite getSprite() world3Dheight " + world3Dheight);
 		ImageSprite sprite = new ImageSprite(seed, getImage(n), spriteOrigin.copy(), world3Dheight);
+
+		return sprite;
+	}
+	
+	ImageSprite getSprite(int num) {
+		if (getNumItems() == 0) {
+			System.out.println("getSprite:: ImageGroup has no images ");
+			return null;
+		}
+		if (num >= getNumItems() || num < 0) {
+			System.out.println("getSprite:: index out of range - setting to uppermost available image");
+			num = getNumItems() - 1;
+		}
+
+		float world3Dheight = getSizeInScene();
+		ImageSprite sprite = new ImageSprite(getImage(num), spriteOrigin.copy(), world3Dheight);
 
 		return sprite;
 	}
@@ -475,6 +535,11 @@ class ContentItemDescription implements Serializable{
 	public ContentItemDescription(String collectionName, int itemNum) {
 		contentGroupName = collectionName;
 		itemNumber = itemNum;
+	}
+	
+	String toStr() {
+		
+		return " content group name " + contentGroupName + ", itemNumber " + itemNumber;
 	}
 }
 

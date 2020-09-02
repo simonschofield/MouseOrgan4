@@ -15,6 +15,8 @@ import java.awt.Transparency;
 //very useful for storing depth buffers
 //many of the operations expect the range of floats to be 0...1
 //
+// Values that are at the extreme ends of the float range (+/- Float.MAX_VALUE) are treated as "NaN" and ignored in equaliszation ,and extrema finding. 
+// so can be used as Mask values. 
 ///////////////////////////////////////////////////////////
 
 class FloatImage{
@@ -48,11 +50,7 @@ class FloatImage{
 	  maskValue = val;
   }
   
-  boolean isMaskValue(float val) {
-	  if(maskValueSet == false) return false;
-	  if(val == maskValue) return true;
-	  return false;
-  }
+ 
   
   public FloatImage(String pathandfile){
 	if(pathandfile.endsWith(".png")) load16BitPNG(pathandfile);
@@ -76,8 +74,8 @@ class FloatImage{
   }
   
   void updateExtrema(){
-    float min = 100000000.0f;
-    float max = -100000000.0f;
+    float min = Float.MAX_VALUE;
+    float max = -Float.MAX_VALUE;
     
     
     for(int y = 0; y < ydim; y++) {
@@ -85,6 +83,7 @@ class FloatImage{
    
 			float val = get(x,y);
 			if(isMaskValue(val)) continue;
+			
 			if(val < min) { min = val; }
 			if(val > max) { max = val; }
 		}
@@ -92,6 +91,17 @@ class FloatImage{
     extrema.limit1 = min;
     extrema.limit2 = max;
     System.out.println("FloatImage extrema are " + extrema.limit1 + " " + extrema.limit2);
+  }
+  
+  
+  boolean isMaskValue(float val) {
+	  
+	  if(val == -Float.MAX_VALUE) return true;
+	  if(val == Float.MAX_VALUE)  return true;
+	  
+	  if(maskValueSet == false) return false;
+	  if(val == maskValue) return true;
+	  return false;
   }
   
 
@@ -465,8 +475,9 @@ class FloatImage{
     int len = getArrayLength();
     for(int i = 0; i < len; i++){
       float originalval = floatArray[i];
-      float eqval = MOMaths.map(originalval,extrema.limit1,extrema.limit2,0.0f,1.0f);
-      floatArray[i] = eqval;
+      if(isMaskValue(originalval)) continue;
+      float norm = MOMaths.map(originalval,extrema.limit1,extrema.limit2,0.0f,1.0f);
+      floatArray[i] = norm;
       //if( i%1000 == 0) println("val is", minval, maxval, originalval, eqval);
     }
     updateExtrema();

@@ -8,7 +8,9 @@ public class Scene3DHelper {
 	static void initialise(Surface s, SceneData3D sd3d) {
 		theSurface = s;
 		sceneData3D = sd3d;
+		sceneData3D.makeRenderImageMenu(theSurface.getSimpleUI(), 0, 100);
 	}
+	
 	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount) {
 		randomRotateScaleSprite( sprite,  scaleAmt,  rotAmount, true);
 	}
@@ -40,7 +42,7 @@ public class Scene3DHelper {
 	
 	static float addWave(ImageSprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise) {
 		sceneData3D.setCurrentRenderImage(waveImageName);
-		float v = sceneData3D.getCurrentRender01Value(sprite.getSeedDocPoint());
+		float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
 		
 		QRandomStream ranStream = sprite.qRandomStream;
 		degreesLeft = ranStream.perturb(degreesLeft, noise);
@@ -57,7 +59,7 @@ public class Scene3DHelper {
 	////
 	static float addLighting(ImageSprite sprite, String lightingImage, float dark, float bright, float noise) {
 		sceneData3D.setCurrentRenderImage(lightingImage);
-		float v = sceneData3D.getCurrentRender01Value(sprite.getSeedDocPoint());
+		float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
 		
 		if(noise > 0.001) {
 			
@@ -103,13 +105,13 @@ public class Scene3DHelper {
 	
 	
 	static float getLerpDistanceEffect(ImageSprite sprite, float distMinEffect, float distMaxEffect) {
-		float dist = sceneData3D.getDistance(sprite.getSeedDocPoint());
+		float dist = sceneData3D.getDistance(sprite.getDocPoint());
 		float val = MOMaths.norm(dist, distMinEffect, distMaxEffect);
 		return MOMaths.constrain(val, 0, 1);
 	}
 	
 	static float getRampedDistanceEffect(ImageSprite sprite, float distMinEffectNear, float distMaxEffect, float distMinEffectFar) {
-		float dist = sceneData3D.getDistance(sprite.getSeedDocPoint());
+		float dist = sceneData3D.getDistance(sprite.getDocPoint());
 		if(dist < distMaxEffect) {
 			return getLerpDistanceEffect( sprite,  distMinEffectNear,  distMaxEffect);
 		}
@@ -130,6 +132,20 @@ public class Scene3DHelper {
 		return sprite;
 	}
 	
+	
+	static void handle3DRenderImageMenuCall(UIEventData uied) {
+		
+		if (uied.eventIsFromWidget("SceneData View")) {
+			System.out.println("change scene view to " + uied.menuItem);
+			if(uied.menuItem.contentEquals("none")) {
+				theSurface.setAlternateView(null);
+			} else {
+				BufferedImage viewIm = sceneData3D.getRenderImageROI(uied.menuItem);
+				theSurface.setAlternateView(viewIm);
+			}
+		}
+
+	}
 	
 	static void draw3DMeasuringTool(PVector docPt, boolean visible) {
 		
@@ -156,6 +172,6 @@ public class Scene3DHelper {
 	}
 	
 	
-
+	
 	
 }

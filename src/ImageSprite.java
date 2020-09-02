@@ -19,6 +19,9 @@ public class ImageSprite{
 	BufferedImage image;
 	
 	PVector origin = new PVector(0.5f,0.5f);
+	
+	PVector docPoint;
+	
 	float sizeInScene = 1; // 
 	
 	
@@ -34,24 +37,26 @@ public class ImageSprite{
 		
 	}
 	
-	ImageSprite(Seed s, BufferedImage im, PVector orig) {
-		init( s,  im,  orig, 1);
+	ImageSprite(BufferedImage im, PVector orig, float sizeInScn){
+		seed = new Seed(new PVector(0,0));
+		init(im,orig,sizeInScn);
 	}
-
-
+	
+	
 	ImageSprite(Seed s, BufferedImage im, PVector orig, float sizeInScn) {
-		
-		init( s,  im,  orig, sizeInScn);
+		//System.out.println("ImageSprite constructor sizeInScn " + sizeInScn);
+		initWithSeed( s,  im,  orig, sizeInScn);
 	}
 	
-	/*
-	void setSceneData3D(SceneData3D sd3d) {
-		sceneData = sd3d;
-	}*/
+
+	String toStr() {
+		return "ImageSprite seed:" + seed.toStr() + " own doc pt:" + docPoint + " Image:" + image;
+		
+	}
 	
 	
-	void init(Seed s, BufferedImage im, PVector orig, float sizeInScn) {
-		seed = s;
+	
+	void init(BufferedImage im, PVector orig, float sizeInScn) {
 		
 		image = im;
 		bufferWidth = image.getWidth();
@@ -59,11 +64,99 @@ public class ImageSprite{
 	    aspect = bufferWidth/(float)bufferHeight;
 	    origin = orig.copy();
 	    sizeInScene = sizeInScn;
-	    qRandomStream = new QRandomStream(s.id);
+	    //System.out.println("ImageSprite:init sizeInScene " + sizeInScene);
+	    qRandomStream = new QRandomStream();
 	}
 	
-	PVector getSeedDocPoint() {
-		return seed.docPoint.copy();
+	void initWithSeed(Seed s, BufferedImage im, PVector orig, float sizeInScn) {
+		seed = s;
+		docPoint = seed.docPoint.copy();
+		init(im,orig,sizeInScn);
+	}
+	
+	PVector getDocPoint() {
+		return docPoint.copy();
+	}
+	
+	void setDocPoint(PVector p) {
+		seed.docPoint = p.copy();
+		docPoint = seed.docPoint;
+	}
+	
+	
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// geometric transforms change the sprite image in-place
+	//
+	void scale(float scaleW, float scaleH) {
+		image = ImageProcessing.scaleImage(image, scaleW, scaleH);
+		bufferWidth = image.getWidth();
+		bufferHeight = image.getHeight();
+	}
+	
+	void rotate(float degrees) {
+		// this function has the visual effect of rotating the image of the sprite around the sprite origin
+		// It does so by rotating the image and the origin point around the image centre, rather than rotating the image around
+		// the origin, which could result in a much larger resultant image.
+		// When the shape is pastes using its new origin point, it is as if it has been rotated around the origin
+		// Much more efficient than otherwise
+	
+		double toRad = Math.toRadians(degrees);
+		image = ImageProcessing.rotateImage(image, degrees);
+	
+		// the rest is about rotating the origin point.
+		// Rotate rotation point around (0,0) in image-pixel space
+		float rx = bufferWidth * (origin.x - 0.5f);
+		float ry = bufferHeight * (origin.y - 0.5f);
+
+		float newX = (float) (rx * Math.cos(toRad) - ry * Math.sin(toRad));
+		float newY = (float) (ry * Math.cos(toRad) + rx * Math.sin(toRad));
+
+		//shift rotation point back into parametric space of new image size
+		bufferWidth = image.getWidth();
+		bufferHeight = image.getHeight();
+
+		origin.x = (newX / bufferWidth) + 0.5f;
+		origin.y = (newY / bufferHeight) + 0.5f;
+	
+	}
+	
+	void scaleRotateSprite(float scaleX, float scaleY, float degrees) {
+		// this function has the visual effect of rotating the image of the sprite around the sprite origin
+		// It does so by rotating the image and the origin point  around it's centre (as normal) 
+		// so that, when the shape is pasted it is as if it has been rotated around the origin
+		// Much more efficient than otherwise
+	
+		double toRad = Math.toRadians(degrees);
+
+		// rotate rotation point around (0,0) in image-pixel space
+		float rx = bufferWidth * (origin.x - 0.5f) * scaleX;
+		float ry = bufferHeight * (origin.y - 0.5f) * scaleY;
+
+		image = ImageProcessing.scaleRotateImage(image, scaleX, scaleY, degrees);
+
+		float newX = (float) (rx * Math.cos(toRad) - ry * Math.sin(toRad));
+		float newY = (float) (ry * Math.cos(toRad) + rx * Math.sin(toRad));
+
+		//shift rotation point back into parametric space of new image size
+		bufferWidth = image.getWidth();
+		bufferHeight = image.getHeight();
+
+		origin.x = (newX / bufferWidth) + 0.5f;
+		origin.y = (newY / bufferHeight) + 0.5f;
+	}
+	
+	void mirrorSprite(boolean inX) {
+		if (inX) {
+			image = ImageProcessing.mirrorImage(image, true, false);
+			origin.x = 1.0f - origin.x;
+		} else {
+			// in Y
+			image = ImageProcessing.mirrorImage(image, false, true);
+			origin.y = 1.0f - origin.y;
+		}
+	
 	}
 	
 	boolean seedLayerEquals(String s) {
@@ -112,7 +205,7 @@ public class ImageSprite{
 	Rect getPasteRectDocSpace(RenderTarget rt) {
 		PVector spriteOffset = this.getOriginBufferCoords();
 		PVector docSpaceSpriteOffset = rt.bufferSpaceToDocSpace(spriteOffset);
-		PVector docSpacePt = this.getSeedDocPoint();
+		PVector docSpacePt = this.getDocPoint();
 		PVector shiftedDocSpacePt = PVector.sub(docSpacePt, docSpaceSpriteOffset);
 		return rt.getPasteRectDocSpace(this.image, shiftedDocSpacePt);
 	}
@@ -323,7 +416,7 @@ public class ImageSprite{
 		// items's size in the 3D scene in world units.
 		
 		float heightInPixels = getHeightInRenderTargetPixels( sceneData,  renderTarget);
-		
+		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
 		float scale = (heightInPixels/bufferHeight) * scaleModifier;
 		if(scale > 1) {
 		 System.out.println(seed.contentItemDescriptor.contentGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
@@ -344,111 +437,10 @@ public class ImageSprite{
 		
 	}
 	
-	/*
-	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float scaleModifier) {
-		// scales the image to the correct size using  sizeInScene to represent the
-		// items's size in the 3D scene in world units.
-		PVector docPt = seed.docPoint;
-		float unit3DatDocPt = sceneData.get3DScale(docPt);
-		float heightDocSpace = sizeInScene*unit3DatDocPt;
-		
-		float y1 = docPt.y - (heightDocSpace * origin.y);
-		float y2 = docPt.y + (heightDocSpace* (1.0f-origin.y));
-		
-		PVector docPt1 = new PVector(docPt.x, y1);
-		PVector docPt2 = new PVector(docPt.x, y2);
-		
-		PVector bufferPt1 = renderTarget.docSpaceToBufferSpace(docPt1);
-		PVector bufferPt2 = renderTarget.docSpaceToBufferSpace(docPt2);
-		float heightInActualPixels = (float)Math.abs(bufferPt1.y - bufferPt2.y);
-		
-		float scale = (heightInActualPixels/bufferHeight) * scaleModifier;
-		if(scale > 1) {
-		 System.out.println(seed.contentItemDescriptor.contentGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInActualPixels + " scale " + scale);
-		}
-		
-		
-		scale(scale,scale);
-		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
-	}*/
 	
 	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// geometric transforms change the sprite image in-place
-	//
-	void scale(float scaleW, float scaleH) {
-		image = ImageProcessing.scaleImage(image, scaleW, scaleH);
-		bufferWidth = image.getWidth();
-		bufferHeight = image.getHeight();
-	}
-	
-	void rotate(float degrees) {
-		// this function has the visual effect of rotating the image of the sprite around the sprite origin
-		// It does so by rotating the image and the origin point around the image centre, rather than rotating the image around
-		// the origin, which could result in a much larger resultant image.
-		// When the shape is pastes using its new origin point, it is as if it has been rotated around the origin
-		// Much more efficient than otherwise
-		
-	    double toRad = Math.toRadians(degrees);
-	    image = ImageProcessing.rotateImage(image,  degrees);
-	    
-	    // the rest is about rotating the origin point.
-	    // Rotate rotation point around (0,0) in image-pixel space
-	 	float  rx = bufferWidth * (origin.x-0.5f);
-	 	float  ry = bufferHeight * (origin.y-0.5f);
-
-		float newX = (float)(rx * Math.cos(toRad) - ry * Math.sin(toRad));
-	    float newY = (float)(ry * Math.cos(toRad) + rx * Math.sin(toRad));
-	    
-	    //shift rotation point back into parametric space of new image size
-	    bufferWidth = image.getWidth();
-	    bufferHeight = image.getHeight();
-	    
-	    origin.x = (newX/bufferWidth) + 0.5f;
-	    origin.y = (newY/bufferHeight) + 0.5f;
-	    
-	   
-	}
 	
 	
-	void scaleRotateSprite(float scaleX, float scaleY, float degrees) {
-		// this function has the visual effect of rotating the image of the sprite around the sprite origin
-		// It does so by rotating the image and the origin point  around it's centre (as normal) 
-		// so that, when the shape is pasted it is as if it has been rotated around the origin
-		// Much more efficient than otherwise
-		
-	    double toRad = Math.toRadians(degrees);
-	    
-	    // rotate rotation point around (0,0) in image-pixel space
-	 	float  rx = bufferWidth * (origin.x-0.5f) * scaleX;
-	 	float  ry = bufferHeight * (origin.y-0.5f) * scaleY;
-
-		image = ImageProcessing.scaleRotateImage(image,  scaleX, scaleY, degrees);
-
-		float newX = (float)(rx * Math.cos(toRad) - ry * Math.sin(toRad));
-	    float newY = (float)(ry * Math.cos(toRad) + rx * Math.sin(toRad));
-	    
-	    //shift rotation point back into parametric space of new image size
-	    bufferWidth = image.getWidth();
-	    bufferHeight = image.getHeight();
-	    
-	    origin.x = (newX/bufferWidth) + 0.5f;
-	    origin.y = (newY/bufferHeight) + 0.5f;
-	}
-	
-	
-	void mirrorSprite(boolean inX) {
-		if(inX) {
-			image = ImageProcessing.mirrorImage(image, true, false);
-			origin.x = 1.0f-origin.x;
-		} else {
-			// in Y
-			image = ImageProcessing.mirrorImage(image, false, true);
-			origin.y = 1.0f-origin.y;
-		}
-		
-	}
 	
 	
 	

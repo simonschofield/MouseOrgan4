@@ -34,6 +34,7 @@ import javax.swing.JFileChooser;
 
 public class SimpleUI {
 
+	
 	Surface parentSurface;
 
 	Rect canvasRect;

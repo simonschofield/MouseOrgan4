@@ -327,15 +327,19 @@ class RenderTarget {
 	void pasteSprite(ImageSprite sprite, float alpha) {
 		// work out the offset in the image from the origin
 		Rect r = sprite.getPasteRectDocSpace(this); 
-		String overlapReport =  permittedPasteArea.reportPermittedPasteAreaOverlap(sprite);
 		
+		//System.out.println("pasteSprite pasteRectDocSpace = " + r.toStr());
+		
+		String overlapReport =  permittedPasteArea.reportPermittedPasteAreaOverlap(sprite);
+		//System.out.println("overlap report " + overlapReport);
 		
 		if( overlapReport.contentEquals("WHOLLYINSIDE") || permittedPasteArea.isActive()==false){
+			//System.out.println("here 1");
 			pasteImage(sprite.image, r.getTopLeft(),  alpha);
 			return;
 		}
 		
-		
+		//System.out.println("here 2");
 		// otherwise do some sort of crop
 		// decide what to do
 		// the options are
@@ -346,11 +350,14 @@ class RenderTarget {
 		
 		
 		String cropDecision = permittedPasteArea.cropEdgeDecision(overlapReport);
+		//System.out.println("cropDecision " + cropDecision);
 		if( cropDecision.contentEquals("EXCLUDE") ) return;
+		//System.out.println("here 3");
 		//if( permittedPasteAreaClass.leftEdgeAction.contentEquals("EXCLUDE") ) return;
 		// if you get this far, 
 		boolean cropOK = sprite.cropToPermittedPasteArea(this);
 		if(cropOK==false) return;
+		//System.out.println("here 4");
 			
 		
 		//System.out.println(" pasted ");

@@ -19,7 +19,7 @@ import javax.swing.Timer;
 //////////////////////////////////////////////////////////////////
 //
 @SuppressWarnings("serial")
-class Surface extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
+abstract class Surface extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
 
 	JFrame parentApp = null;
 
@@ -313,6 +313,7 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 	// overridden functions in the user's project
 	// - i.e. YOUR CODE
 
+	/*
 	public void initialiseUserSession() {
 		// overridden in UserSession sub class
 
@@ -327,7 +328,6 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 
 	}
 	
-	
 
 	void handleCanvasMouseEvent(UIEventData uied) {
 		// System.out.println("canvas mouse event " + mouseEventType + " detected at " +
@@ -339,6 +339,17 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 		// System.out.println("user session event ");
 
 	}
+	*/
+	
+	abstract void initialiseUserSession();
+
+	abstract void loadContentUserSession();
+
+	abstract void updateUserSession();
+	
+	abstract void handleCanvasMouseEvent(UIEventData uied);
+
+	abstract void handleUserSessionUIEvent(UIEventData uied);
 
 	/////////////////////////////////////////////////////////////////////
 	// private event methods
@@ -418,12 +429,21 @@ class Surface extends JPanel implements ActionListener, MouseListener, MouseMoti
 
 class UserSessionSettings{
 	boolean isDraft = true;
+	int fullScaleRenderWidth, fullScaleRenderHeight;
 	float draftRenderScale = 0.2f;
 	String currentSchemea = "";
 	String userSessionPath = "";
 	
 	UserSessionSettings(boolean isFinalCopy, float draftRendScale, String currentSchm){
 		
+		isDraft = !isFinalCopy;
+		draftRenderScale = draftRendScale;
+		currentSchemea = currentSchm;
+	}
+	
+	UserSessionSettings(int fullRenderW, int fullRenderH, boolean isFinalCopy, float draftRendScale, String currentSchm){
+		fullScaleRenderWidth = fullRenderW;
+		fullScaleRenderHeight = fullRenderH;
 		isDraft = !isFinalCopy;
 		draftRenderScale = draftRendScale;
 		currentSchemea = currentSchm;
