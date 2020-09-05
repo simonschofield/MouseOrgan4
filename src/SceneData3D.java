@@ -25,7 +25,7 @@ public class SceneData3D {
 	// view data from the original 3D scene
 	PVector cameraPosition;
 	PVector cameraLookat;
-	Rect theROI;
+	
 	
 	CoordinateSpaceConverter coordinateSpaceConverter;
 	
@@ -36,6 +36,15 @@ public class SceneData3D {
 	// the with and height of the renders and depth images (should all be the same)
 	int renderWidth;
 	int renderHeight;
+	
+	// The renders in the scenedata are (probably) a crop of a larger view (the "original view"). This data is used to add offsets back into the geometry calculation.
+	// Specifically, the FOV is for the whole original view before it was cropped. We need to recover the correct vector into the scene
+	// for 3D and depth calculations. The viewROICrop is used to add offsets to the X and Y of pixels to enable this.
+	// 
+	int originalViewWidth;
+	int originalViewHeight;
+	Rect originalViewCropRect;
+	
 	
 	// this reads in and contains all the png files within the input folder
 	DirectoryImageGroup renderImages;
@@ -75,12 +84,24 @@ public class SceneData3D {
 		// in the DepthBuffer object
 		distanceImage = new FloatImage(directoryPath + "\\distance.data");
 
+		// the render width of the images in the scenedata folder should be all the same
 		renderWidth = distanceImage.getWidth();
 		renderHeight = distanceImage.getHeight();
 
+		// from the view.txt file....
+		// read the FOV
 		ArrayList<String> strList = MOUtils.readTextFile(directoryPath + "\\view.txt");
 		String fovString = strList.get(2);
 		fov = Float.parseFloat(fovString);
+		
+		// read the original view width and height
+		String originalViewWidthString = strList.get(3);
+		originalViewWidth = Integer.parseInt(originalViewWidthString);
+		
+		String originalViewHeightString = strList.get(4);
+		originalViewHeight = Integer.parseInt(originalViewHeightString);
+		
+		// read the crop of the original view
 		String topleftSt = strList.get(5);
 		String botRighSt = strList.get(6);
 		
@@ -90,14 +111,16 @@ public class SceneData3D {
 		PVector botRighV = new PVector();
 		botRighV.fromString(botRighSt);
 		
-		theROI = new Rect(topLeftV,botRighV);
+		
+		originalViewCropRect = new Rect(topLeftV,botRighV);
+		
+		int originalViewOffsetX = originalViewWidth - (int)originalViewCropRect.left;
+		int originalViewOffsetY = originalViewHeight - (int)originalViewCropRect.top;
+		
+		coordinateSpaceConverter = new CoordinateSpaceConverter(renderWidth,renderHeight, mouseOrganDocAspect);
 		
 		
-		System.out.println("roil loaded is " + theROI.toStr() + " FOV is " + fov);
-		coordinateSpaceConverter = new CoordinateSpaceConverter(renderWidth,renderHeight, theROI, mouseOrganDocAspect);
-		
-		
-		geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter);
+		geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter, originalViewWidth, originalViewHeight, originalViewOffsetX, originalViewOffsetY);
 		
 		setCurrentRenderImage(0);
 	}
@@ -106,15 +129,14 @@ public class SceneData3D {
     void setDistanceBufferGamma(float g) {
     	distanceFilter.setDistanceGamma(g);
     	//load();
-    	geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter);
+    	int originalViewOffsetX = originalViewWidth - (int)originalViewCropRect.left;
+		int originalViewOffsetY = originalViewHeight - (int)originalViewCropRect.top;
+    	geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter, originalViewWidth, originalViewHeight, originalViewOffsetX, originalViewOffsetY);
     }
     
 	
 	
-    void useFilteredDistance(boolean use) {
-    	geometryBuffer3d.useFilteredDistance(use);
-	}
-	
+    
 	/////////////////////////////////////////////////////////////////////////////////////
 	// The mask image is an image reflecting the sky/land pixels
 	// land pixels are set to white, sky to black
@@ -148,19 +170,9 @@ public class SceneData3D {
 		return currentRenderKeyImage;
 	}
 	
-	BufferedImage getRenderImageROI(String shortName) {
+	BufferedImage getRenderImage(String shortName) {
 		BufferedImage renderImage = renderImages.getImage(shortName);
-		int x1 = (int)theROI.left;
-		int y1 = (int)theROI.top;
-		int w = (int)theROI.getWidth();
-		int h = (int)theROI.getHeight();
-		//System.out.println("getRenderImageROI total render size is  " + renderImage.getWidth() + " " + renderImage.getHeight());
-		//System.out.println("getRenderImageROI ROI is " + theROI.toStr() + " w/h " + theROI.getWidth() + " " + theROI.getHeight());
-		//System.out.println("getRenderImageROI coords " + shortName);
-		
-		BufferedImage roiImage = renderImage.getSubimage(x1, y1, w, h);
-		
-		return roiImage;
+		return renderImage;
 	}
 	
 	
@@ -194,9 +206,7 @@ public class SceneData3D {
 		return ImageProcessing.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
 	}
 	
-	Rect getROI() {
-		return theROI;
-	}
+	
 	
 	boolean isSubstance(PVector docSpace) {
 		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
@@ -224,9 +234,7 @@ public class SceneData3D {
 		return geometryBuffer3d.getDepthNormalised(docSpace);
 	}
 	
-	float getROIDepthNormalised(PVector docSpace) {
-		return geometryBuffer3d.getROIDepthNormalised(docSpace);
-	}
+	
 	
 	float getDistance(PVector docSpace) {
 		return geometryBuffer3d.getDistance(docSpace);
@@ -238,11 +246,11 @@ public class SceneData3D {
 
 ///////////////////////////////////////////////////////////////////////////////////
 //Given a document of aspect mouseOrganAspect
-//and a TargetBuffer buffer of width, height, which may be using a ROI to map to
+//and a TargetBuffer buffer of width, height
 //produce the following coordinate transforms
 // 
 class CoordinateSpaceConverter{
-	Rect targetROI;
+	
 	int targetWidth;
 	int targetHeight;
 	float mouseOrganDocAspect;
@@ -250,16 +258,11 @@ class CoordinateSpaceConverter{
 	public CoordinateSpaceConverter(int renderWidth, int renderHeight,float mouseOrganDocAsp) {
 		targetWidth = renderWidth;
 		targetHeight = renderHeight;
-		targetROI = new Rect(0,0,renderWidth,renderHeight);
+		
 		mouseOrganDocAspect = mouseOrganDocAsp;
 	}
 	
-	public CoordinateSpaceConverter(int renderWidth, int renderHeight, Rect theROI, float mouseOrganDocAsp) {
-		targetWidth = renderWidth;
-		targetHeight = renderHeight;
-		targetROI = theROI.copy();
-		mouseOrganDocAspect = mouseOrganDocAsp;
-	}
+	
 
 	// for any point in the mouse organ doc space
 	// return the image coordinate of the render buffer
@@ -274,8 +277,8 @@ class CoordinateSpaceConverter{
 	
 	public PVector renderImageCoordToDocSpace(float x, float y) {
 
-		float dx = MOMaths.norm(x, targetROI.left, targetROI.right);
-		float dy = MOMaths.norm(y, targetROI.top,targetROI.bottom);
+		float dx = MOMaths.norm(x, 0, targetWidth);
+		float dy = MOMaths.norm(y, 0, targetHeight);
 		if(mouseOrganDocAspect > 1f ) {
 			dy /= mouseOrganDocAspect;
 		}else {
@@ -315,17 +318,14 @@ class CoordinateSpaceConverter{
 
 
 	private PVector normalizedSpaceToImageCoord(PVector normSpace) {
-		float x = MOMaths.lerp(normSpace.x, targetROI.left,targetROI.right);
-		float y = MOMaths.lerp(normSpace.y, targetROI.top,targetROI.bottom);
+		float x = normSpace.x * targetWidth;
+		float y = normSpace.y * targetHeight;
 		x = MOMaths.constrain(x, 0, targetWidth-1);
 		y = MOMaths.constrain(y, 0, targetHeight-1);
 		return new PVector(x,y);
 	}
 
-	boolean isInROI(int x, int y) {
-		if( targetROI.isPointInside(x, y)) return true;
-		return false;
-	}
+	
 
 }
 
@@ -352,8 +352,10 @@ class DistanceBufferFilter{
 	}
 	
 	float applyFilter(float unfilteredDistance) {
-		float normalised = original_extrema.norm(unfilteredDistance);
+		if(zGamma == 1.0f) return unfilteredDistance;
 		
+		float normalised = original_extrema.norm(unfilteredDistance);
+
 		// apply your filter here
 		//normalised = (float) Math.pow((double)normalised, 0.99999999);
 		
@@ -370,6 +372,12 @@ class DistanceBufferFilter{
 // so you have a distanceBuffer and a depthBuffer, which are slightly different
 // The buffers contains -Float.MAX_VAL values which are ignored by normalisation
 // which contain the "sky" parts.
+//
+// 
+// For pictorial purposes, you can gamma-bend the distance buffer. The results are stored in the filteredDistanceBuffer.
+// If no filter is applied then the filteredDistanceBuffer is the same as the distanceBuffer.
+// All depth and other geometric calculations are based on the results of the filteredDistance.
+//
 
 class GeometryBuffer3D{
 	// substance image is the black/white mask image for substance/sky
@@ -384,12 +392,17 @@ class GeometryBuffer3D{
 	FloatImage depthBuffer;
 	
 	int width, height;
-	float widthOver2, heightOver2;
+	
 	double verticalFOVover2; // vertical fov
 	float distanceCameraToViewingPlane;
 	
-	Range wholeDepthImageExtrema;
-	Range roiExtrema;
+	int originalViewOffsetX;
+	int originalViewOffsetY;
+	float originalViewWidthOver2, originalViewHeightOver2;
+	
+	Range depthBufferExtrema;
+	Range distanceBufferExtrema;
+	
 	
 	// document aspect is the aspect of the
 	// output compositer render, not the input roi
@@ -397,9 +410,9 @@ class GeometryBuffer3D{
 	CoordinateSpaceConverter coordinateSpaceConverter;
 	
 	DistanceBufferFilter distanceBufferFilter = new DistanceBufferFilter();
-	boolean useFilteredDistance = true;
 	
-	public GeometryBuffer3D(FloatImage distanceBuff, float vfov, CoordinateSpaceConverter csc, DistanceBufferFilter dbf) {
+	
+	public GeometryBuffer3D(FloatImage distanceBuff, float vfov, CoordinateSpaceConverter csc, DistanceBufferFilter dbf, int origViewWidth, int origViewHeight, int origViewOffsetX, int origViewOffsetY) {
 		distanceBufferFilter = dbf;
 		distanceBuffer = distanceBuff;
 		verticalFOVover2 = (vfov/2.0)*(Math.PI/180.0);
@@ -409,32 +422,36 @@ class GeometryBuffer3D{
 		
 		width = distanceBuffer.getWidth();
 		height = distanceBuffer.getHeight();
-		widthOver2 = width/2f;
-		heightOver2 = height/2f;
-		distanceCameraToViewingPlane = (float) ((height/2f) / Math.tan(verticalFOVover2));
+		originalViewWidthOver2 = origViewWidth/2f;
+		originalViewHeightOver2 = origViewHeight/2f;
+		distanceCameraToViewingPlane = (float) ((origViewHeight/2f) / Math.tan(verticalFOVover2));
+		
+		originalViewOffsetX = origViewOffsetX;
+		originalViewOffsetY = origViewOffsetY;
+		
 		System.out.println(" width heigh of scene data   " + width + " " + height);
 		System.out.println(" pixel 3d distanceCameraToViewingPlane   " + distanceCameraToViewingPlane);
 		
 		
 		makeFilteredDistanceBuffer();
-		makeDepthBuffer();
+		makeDepthAndSubstanceBuffers();
 		
 	}
+	
+	
+	
 
-	void useFilteredDistance(boolean use) {
-		useFilteredDistance = use;
-	}
 	
 	void makeFilteredDistanceBuffer() {
 		filteredDistanceBuffer = new FloatImage(width,height);
-		
-		distanceBufferFilter.setOriginalExtrema(distanceBuffer.getExtrema());
+		distanceBufferExtrema = distanceBuffer.getExtrema();
+		distanceBufferFilter.setOriginalExtrema(distanceBufferExtrema);
 		for(int y = 0; y < height; y++) {
 			for(int x = 0; x < width; x++) {
-				float rawDistance = distanceBuffer.getPixelBilin(x, y); 
+				float rawDistance = distanceBuffer.get(x, y); 
 				
 				if(rawDistance == -Float.MAX_VALUE) {
-					filteredDistanceBuffer.set(x,y, rawDistance);
+					filteredDistanceBuffer.set(x,y, -Float.MAX_VALUE);
 					
 				}else {
 					float filteredDistance = distanceBufferFilter.applyFilter(rawDistance);
@@ -444,11 +461,11 @@ class GeometryBuffer3D{
 		}
 	}
 	
-	private void makeDepthBuffer() {
+	private void makeDepthAndSubstanceBuffers() {
 		// this makes the depthBuffer - a floatimage containing the perpendicular distances
 		// it also contains -1 values for "sky" (infinitely distant)
-		wholeDepthImageExtrema = new Range(Float.MAX_VALUE,-Float.MAX_VALUE);
-		roiExtrema = new Range(Float.MAX_VALUE,-Float.MAX_VALUE);
+		depthBufferExtrema = new Range(Float.MAX_VALUE,-Float.MAX_VALUE);
+		
 		int BLACK = ImageProcessing.packARGB(255, 0, 0, 0);
 		int WHITE = ImageProcessing.packARGB(255, 255, 255, 255);
 		substanceImage = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
@@ -459,34 +476,24 @@ class GeometryBuffer3D{
 			for(int x = 0; x < width; x++) {
 				
 				// this gets dz from the filteredDistanceBuffer
-				float dz = getDistance(x,y);
+				float dz = filteredDistanceBuffer.get(x, y);
 				
 				if(dz== -Float.MAX_VALUE) 
 					{
 					substanceImage.setRGB(x, y, BLACK);
-					filteredDistanceBuffer.set(x, y, -Float.MAX_VALUE);
-					
 					depthBuffer.set(x, y, -Float.MAX_VALUE);
-					
 					}
 				else {
 					substanceImage.setRGB(x, y, WHITE);
 					float depth = distanceBufferToDepthBufferValue( x,  y);
-					
-		
-					if( coordinateSpaceConverter.isInROI(x,y) ) roiExtrema.addExtremaCandidate(depth);
-					wholeDepthImageExtrema.addExtremaCandidate(depth);
+					depthBufferExtrema.addExtremaCandidate(depth);
 					depthBuffer.set(x, y, depth);
 					}
 			}
 		}
 		
-		//depthBuffer.setMaskValue(-Float.MAX_VALUE, true);
-		//distanceBuffer.setMaskValue(-Float.MAX_VALUE, true);
-		//filteredDistanceBuffer.setMaskValue(-Float.MAX_VALUE, true);
+		System.out.println("depth buffer extrema are " + depthBufferExtrema.limit1 + " " + depthBufferExtrema.limit2);
 		
-		System.out.println("depth buffer extrema are" + wholeDepthImageExtrema.limit1 + " " + wholeDepthImageExtrema.limit2);
-		System.out.println("ROI extrema are" + roiExtrema.limit1 + " " + roiExtrema.limit2);
 	}
 	
 	
@@ -525,19 +532,22 @@ class GeometryBuffer3D{
 	}
 	
 	float getDistance(PVector docSpace) {
+		// returns the filtered distance
 		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
-		float d =  getDistance(coord.x, coord.y);
-		if(d < 0) return -1f;
-		return d;
+		return filteredDistanceBuffer.getPixelBilin(coord.x, coord.y); 
 	}
 	
 	
 	float getDistance(float x, float y) {
+		// returns the filtered distance
 		// using actual buffer pixel coords
-		if(useFilteredDistance) return filteredDistanceBuffer.getPixelBilin(x, y); 
-		return distanceBuffer.getPixelBilin(x, y); 
+		return filteredDistanceBuffer.getPixelBilin(x, y); 
 	}
 	
+	float getUnfilteredDistance(PVector docSpace) {
+		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		return distanceBuffer.getPixelBilin(coord.x, coord.y); 
+	}
 
 	float getDepth(PVector docSpace) {
 		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
@@ -547,16 +557,10 @@ class GeometryBuffer3D{
 	
 	float getDepthNormalised(PVector docSpace) {
 		float d = getDepth( docSpace);
-		if(d == -1f) return -1f;
-		return wholeDepthImageExtrema.norm(d);
+		return depthBufferExtrema.norm(d);
 	}
 	
-	float getROIDepthNormalised(PVector docSpace){
-		// not sure how useful this is, as we are probably still going to needs depths outside of the roi
-		float d = getDepth( docSpace);
-		if(d == -1f) return -1f;
-		return roiExtrema.norm(d);
-	}
+	
 	
 	///////////////////////////////////////////////////////////////////
 	// private methods
@@ -567,18 +571,27 @@ class GeometryBuffer3D{
 	
 	PVector docSpaceToEyeSpaceWindowCoord(PVector docSpace) {
 		PVector imgeCoord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
-		float wx = (imgeCoord.x-widthOver2);
-		float wy = (imgeCoord.y-heightOver2);
+		
+		float originalViewImageCoordX = imgeCoord.x + originalViewOffsetX;
+		float originalViewImageCoordY = imgeCoord.y + originalViewOffsetY;
+		
+		float wx = (originalViewImageCoordX-originalViewWidthOver2);
+		float wy = (originalViewImageCoordY-originalViewHeightOver2);
 		return new PVector(wx,wy);
 	}
 	
 	PVector eyeSpaceWindowCoordToDocSpace(PVector eyeSpaceWinCoord) {
-		float wx = (eyeSpaceWinCoord.x+widthOver2);
-		float wy = (eyeSpaceWinCoord.y+heightOver2);
+		
+		float eyeSpaceWinCoordXOffset = eyeSpaceWinCoord.x - originalViewOffsetX;
+		float eyeSpaceWinCoordYOffset = eyeSpaceWinCoord.y - originalViewOffsetY;
+		
+		float wx = (eyeSpaceWinCoordXOffset+originalViewWidthOver2);
+		float wy = (eyeSpaceWinCoordYOffset+originalViewHeightOver2);
 		return coordinateSpaceConverter.renderImageCoordToDocSpace(wx,wy);
 	}
 	
 	PVector getVectorIntoScene(PVector docSpace) {
+		//returns the vector into the scene from the position (0,0,0)
 		PVector eyeCoord =  docSpaceToEyeSpaceWindowCoord(docSpace);
 		eyeCoord.z = distanceCameraToViewingPlane;
 		return eyeCoord;
@@ -592,7 +605,7 @@ class GeometryBuffer3D{
 	}
 	
 
-	// used for straight conversion between the two
+	// calculates the orthogonal depth at the x,y of the filtered distance buffer
 	private float distanceBufferToDepthBufferValue(int x, int y) {
 		PVector docSpace = coordinateSpaceConverter.renderImageCoordToDocSpace(x,y);
 		float cos = getCosineVectorIntoScene( docSpace);
@@ -600,7 +613,7 @@ class GeometryBuffer3D{
 		return d*cos;
 	}
 
-	float sqr(float a) { return a*a;}
+	//float sqr(float a) { return a*a;}
 	
 	
 	

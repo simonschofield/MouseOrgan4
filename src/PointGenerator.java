@@ -199,11 +199,8 @@ class PointGenerator_RadialPack extends PointGenerator {
 	
 	void setMaskImage(BufferedImage mask) {
 		maskImage = mask;
-		if(sceneData!=null) {
-			maskImageCoordinateSpaceConverter =  new CoordinateSpaceConverter(maskImage.getWidth(), maskImage.getHeight(), sceneData.getROI(), aspect);
-		} else {
-			maskImageCoordinateSpaceConverter =  new CoordinateSpaceConverter(maskImage.getWidth(), maskImage.getHeight(),  aspect);
-		}
+		maskImageCoordinateSpaceConverter =  new CoordinateSpaceConverter(maskImage.getWidth(), maskImage.getHeight(),  aspect);
+		
 		//System.out.println("setting mask image" + mask);
 	}
 
@@ -276,11 +273,9 @@ class PointGenerator_RadialPack extends PointGenerator {
 	ArrayList<PVector> generateBitmapDistributed(BufferedImage bitmap, float rLo, float rHi) {
 		int previousBiggestNumberOfAttempts = 0;
 		int lowDistributionThresholdAttempts = 0;
-		if(sceneData!=null) {
-			distributionImageCoordinateSpaceConverter = new CoordinateSpaceConverter(bitmap.getWidth(), bitmap.getHeight(), sceneData.getROI(), aspect);
-		}else {
-			distributionImageCoordinateSpaceConverter = new CoordinateSpaceConverter(bitmap.getWidth(), bitmap.getHeight(),  aspect);
-		}
+		
+		distributionImageCoordinateSpaceConverter = new CoordinateSpaceConverter(bitmap.getWidth(), bitmap.getHeight(),  aspect);
+		
 		SecondsTimer timer = new SecondsTimer();
 		timer.printTimeSinceStart("generateBitmapDistributed making  points... ");
 		int attempts = 0;

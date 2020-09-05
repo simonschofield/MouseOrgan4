@@ -140,11 +140,20 @@ public class Scene3DHelper {
 			if(uied.menuItem.contentEquals("none")) {
 				theSurface.setAlternateView(null);
 			} else {
-				BufferedImage viewIm = sceneData3D.getRenderImageROI(uied.menuItem);
+				BufferedImage viewIm = sceneData3D.getRenderImage(uied.menuItem);
 				theSurface.setAlternateView(viewIm);
 			}
 		}
 
+	}
+	
+	static void print3DSceneData(PVector docPt) {
+		float worldScale = sceneData3D.get3DScale(docPt);
+		float distance = sceneData3D.getDistance(docPt);
+		float unfilteredDistance = sceneData3D.geometryBuffer3d.getUnfilteredDistance(docPt);
+		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
+		
+		System.out.println("3DSceneData at:" + docPt.toStr() + " world scale:" + worldScale + " Distance:" + distance + " Unfiltered distance:" + unfilteredDistance + " Normalised depth:" + normalisedDepth);     
 	}
 	
 	static void draw3DMeasuringTool(PVector docPt, boolean visible) {
@@ -159,16 +168,14 @@ public class Scene3DHelper {
 		theSurface.theUI.deleteCanvasOverlayShapes("measuringTool");
 		PVector endPt = docPt.copy();
 		float worldScale = sceneData3D.get3DScale(docPt);
-		float depth = sceneData3D.getDepth(docPt);
-		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
-		float bothMult = worldScale * normalisedDepth;
+		
+		float distance = sceneData3D.getDistance(docPt);
+		
 		endPt.y -= (worldScale * measuringToolSize);
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", docPt, "  Normalized Depth = " + normalisedDepth,  Color.blue, 10);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 10);
-		// System.out.println("World 3d scaler " + worldScale + " depth " + depth + "
-		// both mult = " + bothMult);
-		// System.out.println("depth*normalisedDepth " + depth/normalisedDepth);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  distance = " + distance,  Color.blue, 20);
+		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);
+		
 	}
 	
 	
