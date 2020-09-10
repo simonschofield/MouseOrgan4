@@ -41,9 +41,10 @@ public class SceneData3D {
 	// Specifically, the FOV is for the whole original view before it was cropped. We need to recover the correct vector into the scene
 	// for 3D and depth calculations. The viewROICrop is used to add offsets to the X and Y of pixels to enable this.
 	// 
+	Rect originalViewCropRect;
 	int originalViewWidth;
 	int originalViewHeight;
-	Rect originalViewCropRect;
+	
 	
 	
 	// this reads in and contains all the png files within the input folder
@@ -114,13 +115,12 @@ public class SceneData3D {
 		
 		originalViewCropRect = new Rect(topLeftV,botRighV);
 		
-		int originalViewOffsetX = originalViewWidth - (int)originalViewCropRect.left;
-		int originalViewOffsetY = originalViewHeight - (int)originalViewCropRect.top;
+		
 		
 		coordinateSpaceConverter = new CoordinateSpaceConverter(renderWidth,renderHeight, mouseOrganDocAspect);
 		
 		
-		geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter, originalViewWidth, originalViewHeight, originalViewOffsetX, originalViewOffsetY);
+		geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter, originalViewWidth, originalViewHeight, originalViewCropRect);
 		
 		setCurrentRenderImage(0);
 	}
@@ -128,10 +128,7 @@ public class SceneData3D {
     
     void setDistanceBufferGamma(float g) {
     	distanceFilter.setDistanceGamma(g);
-    	//load();
-    	int originalViewOffsetX = originalViewWidth - (int)originalViewCropRect.left;
-		int originalViewOffsetY = originalViewHeight - (int)originalViewCropRect.top;
-    	geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter, originalViewWidth, originalViewHeight, originalViewOffsetX, originalViewOffsetY);
+    	geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter, originalViewWidth, originalViewHeight, originalViewCropRect);
     }
     
 	
@@ -175,22 +172,7 @@ public class SceneData3D {
 		return renderImage;
 	}
 	
-	
-	void makeRenderImageMenu(SimpleUI ui, int x, int y) {
-		ArrayList<String> names = getRenderImageNames();
-	    String nameArray[] = new String[names.size()+1];
-	    nameArray[0] = "none";
-	    int i = 1;
-	    for(String name: names) {
-	    	nameArray[i++] = name;
-	    }
-	    ui.addMenu("SceneData View", x, y, nameArray);
-	}
-	
-	
-	
-	
-	
+
 	float getCurrentRender01Value(PVector docSpace) {
 		Color rgb = getCurrentRenderColor(docSpace);
 		int r = rgb.getRed();
@@ -396,9 +378,12 @@ class GeometryBuffer3D{
 	double verticalFOVover2; // vertical fov
 	float distanceCameraToViewingPlane;
 	
-	int originalViewOffsetX;
-	int originalViewOffsetY;
+	int originalROICropLeft;
+	int originalROICropTop;
+	int originalROICropRight;
+	int originalROICropBottom;
 	float originalViewWidthOver2, originalViewHeightOver2;
+	
 	
 	Range depthBufferExtrema;
 	Range distanceBufferExtrema;
@@ -412,7 +397,7 @@ class GeometryBuffer3D{
 	DistanceBufferFilter distanceBufferFilter = new DistanceBufferFilter();
 	
 	
-	public GeometryBuffer3D(FloatImage distanceBuff, float vfov, CoordinateSpaceConverter csc, DistanceBufferFilter dbf, int origViewWidth, int origViewHeight, int origViewOffsetX, int origViewOffsetY) {
+	public GeometryBuffer3D(FloatImage distanceBuff, float vfov, CoordinateSpaceConverter csc, DistanceBufferFilter dbf, int origViewWidth, int origViewHeight, Rect ROIcrop) {
 		distanceBufferFilter = dbf;
 		distanceBuffer = distanceBuff;
 		verticalFOVover2 = (vfov/2.0)*(Math.PI/180.0);
@@ -424,10 +409,13 @@ class GeometryBuffer3D{
 		height = distanceBuffer.getHeight();
 		originalViewWidthOver2 = origViewWidth/2f;
 		originalViewHeightOver2 = origViewHeight/2f;
-		distanceCameraToViewingPlane = (float) ((origViewHeight/2f) / Math.tan(verticalFOVover2));
+		distanceCameraToViewingPlane = (float) (originalViewHeightOver2 / Math.tan(verticalFOVover2));
 		
-		originalViewOffsetX = origViewOffsetX;
-		originalViewOffsetY = origViewOffsetY;
+		originalROICropLeft = (int)ROIcrop.left;
+		originalROICropTop = (int)ROIcrop.top;
+		originalROICropRight = (int)ROIcrop.right;
+		originalROICropBottom = (int)ROIcrop.bottom;
+		
 		
 		System.out.println(" width heigh of scene data   " + width + " " + height);
 		System.out.println(" pixel 3d distanceCameraToViewingPlane   " + distanceCameraToViewingPlane);
@@ -506,12 +494,15 @@ class GeometryBuffer3D{
 		// Used for scaling things accurately against the scene
 		PVector this3DPoint = docSpaceToWorld3D(docPt);
 		PVector unitDistance = this3DPoint.copy();
-		unitDistance.y = unitDistance.y + 1;
+		
+		
+		unitDistance.y = unitDistance.y + 1;// move the point by a distance of 1 unit
 		PVector shiftedDocPt = world3DToDocSpace(unitDistance);
 		return docPt.dist(shiftedDocPt);
+		
 	}
 	
-	
+
 	PVector docSpaceToWorld3D(PVector docSpace) {
 		// returns the 3D point at a point in the scene using the original
 		// distance values
@@ -572,8 +563,8 @@ class GeometryBuffer3D{
 	PVector docSpaceToEyeSpaceWindowCoord(PVector docSpace) {
 		PVector imgeCoord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
 		
-		float originalViewImageCoordX = imgeCoord.x + originalViewOffsetX;
-		float originalViewImageCoordY = imgeCoord.y + originalViewOffsetY;
+		float originalViewImageCoordX = imgeCoord.x + originalROICropLeft;
+		float originalViewImageCoordY = imgeCoord.y + originalROICropTop;
 		
 		float wx = (originalViewImageCoordX-originalViewWidthOver2);
 		float wy = (originalViewImageCoordY-originalViewHeightOver2);
@@ -582,8 +573,8 @@ class GeometryBuffer3D{
 	
 	PVector eyeSpaceWindowCoordToDocSpace(PVector eyeSpaceWinCoord) {
 		
-		float eyeSpaceWinCoordXOffset = eyeSpaceWinCoord.x - originalViewOffsetX;
-		float eyeSpaceWinCoordYOffset = eyeSpaceWinCoord.y - originalViewOffsetY;
+		float eyeSpaceWinCoordXOffset = eyeSpaceWinCoord.x - originalROICropLeft;
+		float eyeSpaceWinCoordYOffset = eyeSpaceWinCoord.y - originalROICropTop;
 		
 		float wx = (eyeSpaceWinCoordXOffset+originalViewWidthOver2);
 		float wy = (eyeSpaceWinCoordYOffset+originalViewHeightOver2);

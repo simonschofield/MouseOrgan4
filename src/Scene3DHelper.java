@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class Scene3DHelper {
 	static Surface theSurface = null;
@@ -8,7 +9,8 @@ public class Scene3DHelper {
 	static void initialise(Surface s, SceneData3D sd3d) {
 		theSurface = s;
 		sceneData3D = sd3d;
-		sceneData3D.makeRenderImageMenu(theSurface.getSimpleUI(), 0, 100);
+		add3DMeasuringToolSlider();
+		makeRenderImageMenu();
 	}
 	
 	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount) {
@@ -132,8 +134,11 @@ public class Scene3DHelper {
 		return sprite;
 	}
 	
-	
-	static void handle3DRenderImageMenuCall(UIEventData uied) {
+	/////////////////////////////////////////////////////////////////////////////
+	// ui stuff based around 3D data
+	//
+	/////////////////////////////////////////////////////////////////////////////
+	static void handleMyUIEvents(UIEventData uied) {
 		
 		if (uied.eventIsFromWidget("SceneData View")) {
 			System.out.println("change scene view to " + uied.menuItem);
@@ -144,16 +149,40 @@ public class Scene3DHelper {
 				theSurface.setAlternateView(viewIm);
 			}
 		}
+		
+		
+		if (uied.eventIsFromWidget("ruler size slider")) {
+			update3DMeasuringToolSlider();
+		}
+		
 
 	}
 	
-	static void print3DSceneData(PVector docPt) {
-		float worldScale = sceneData3D.get3DScale(docPt);
-		float distance = sceneData3D.getDistance(docPt);
-		float unfilteredDistance = sceneData3D.geometryBuffer3d.getUnfilteredDistance(docPt);
-		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
-		
-		System.out.println("3DSceneData at:" + docPt.toStr() + " world scale:" + worldScale + " Distance:" + distance + " Unfiltered distance:" + unfilteredDistance + " Normalised depth:" + normalisedDepth);     
+	static void makeRenderImageMenu() {
+		ArrayList<String> names = sceneData3D.getRenderImageNames();
+	    String nameArray[] = new String[names.size()+1];
+	    nameArray[0] = "none";
+	    int i = 1;
+	    for(String name: names) {
+	    	nameArray[i++] = name;
+	    }
+	    theSurface.theUI.addMenu("SceneData View", 0, 100, nameArray);
+	}
+	
+	
+	static void add3DMeasuringToolSlider() {
+		Slider s = theSurface.theUI.addSlider("ruler size slider", 0, 260);
+		s.setSliderValue(0.5f);
+		TextInputBox tib = theSurface.theUI.addTextInputBox("ruler size", 0, 290, "0");
+		tib.setWidgetDims(40, 30);
+		update3DMeasuringToolSlider();
+	}
+	
+	
+	static void update3DMeasuringToolSlider() {
+		float s = theSurface.theUI.getSliderValue("ruler size slider")*10;
+		String ss = "" + s;
+		theSurface.theUI.setText("ruler size", ss);
 	}
 	
 	static void draw3DMeasuringTool(PVector docPt, boolean visible) {
@@ -170,15 +199,29 @@ public class Scene3DHelper {
 		float worldScale = sceneData3D.get3DScale(docPt);
 		
 		float distance = sceneData3D.getDistance(docPt);
+		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
 		
+		float textX = endPt.x;
 		endPt.y -= (worldScale * measuringToolSize);
+		float textY1 = endPt.y;
+		float textY2 = endPt.y + (0.1f);
+		
+		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  distance = " + distance,  Color.blue, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance,  Color.blue, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  depth = " + normalisedDepth,  Color.blue, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);
 		
 	}
 	
 	
-	
+	static void print3DSceneData(PVector docPt) {
+		float worldScale = sceneData3D.get3DScale(docPt);
+		float distance = sceneData3D.getDistance(docPt);
+		float unfilteredDistance = sceneData3D.geometryBuffer3d.getUnfilteredDistance(docPt);
+		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
+		
+		System.out.println("3DSceneData at:" + docPt.toStr() + " world scale:" + worldScale + " Distance:" + distance + " Unfiltered distance:" + unfilteredDistance + " Normalised depth:" + normalisedDepth);     
+	}
 	
 }

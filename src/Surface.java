@@ -134,12 +134,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		theUI.addMenu("File", 0, 2, itemList);
 		theUI.addToggleButton("Pause", 0, 200);
 
-		Slider s = theUI.addSlider("ruler size slider", 0, 260);
-		TextInputBox tib = theUI.addTextInputBox("ruler size", 0, 290, "0");
-		tib.setWidgetDims(40, 30);
-		//setMeasuringToolSize(0.5f);
-		theUI.addCanvas((int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(),
-				(int) canvasRect_ViewAll.getHeight());
+		theUI.addCanvas((int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(), (int) canvasRect_ViewAll.getHeight());
 
 	}
 
