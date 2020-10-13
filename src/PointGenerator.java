@@ -448,6 +448,13 @@ abstract class CollectionIterator {
 		return true;
 	}
 	
+	
+	void reset() {
+		itemIteratorCounter = 0;
+		justfinishedFlag = false;
+		isFinishedFlag = false;
+	}
+	
 	boolean isJustFinished() {
 		// returns true just once upon finishing the iteration
 		if(areItemsRemaining()) return false;

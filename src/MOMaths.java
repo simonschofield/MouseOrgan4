@@ -55,6 +55,13 @@ public class MOMaths {
 		return (float) ( Math.sin(theta));
 	}
 	
+	
+	
+	public static float getUnitSign(float in) {
+		if(in < 0) return -1;
+		return 1;
+	}
+	
 public static float cos(float theta) {
 		
 		return (float) ( Math.cos(theta));
@@ -114,6 +121,12 @@ class Range {
 	public Range(float l1, float l2) {
 		limit1 = l1;
 		limit2 = l2;
+	}
+	
+	void initialiseForExtremaSearch() {
+		limit1 = Float.MAX_VALUE;
+		limit2 = -Float.MAX_VALUE;
+		
 	}
 
 	float getLower() {

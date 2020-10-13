@@ -53,7 +53,7 @@ public class Scene3DHelper {
 		float rotationDegrees = MOMaths.lerp(v,-degreesLeft,degreesRight);
 		
 		//System.out.println("rotation " + v + " " + rotationDegrees);
-		if(rotationDegrees > 0) sprite.image = ImageProcessing.mirrorImage(sprite.image, false, true);
+		if(rotationDegrees > 0) sprite.image = ImageProcessing.mirrorImage(sprite.image, true, false);
 		sprite.rotate(rotationDegrees);
 		return rotationDegrees;
 	}

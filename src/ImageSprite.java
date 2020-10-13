@@ -39,6 +39,7 @@ public class ImageSprite{
 	
 	ImageSprite(BufferedImage im, PVector orig, float sizeInScn){
 		seed = new Seed(new PVector(0,0));
+		
 		init(im,orig,sizeInScn);
 	}
 	
@@ -65,7 +66,7 @@ public class ImageSprite{
 	    origin = orig.copy();
 	    sizeInScene = sizeInScn;
 	    //System.out.println("ImageSprite:init sizeInScene " + sizeInScene);
-	    qRandomStream = new QRandomStream();
+	    qRandomStream = new QRandomStream(seed.id);
 	}
 	
 	void initWithSeed(Seed s, BufferedImage im, PVector orig, float sizeInScn) {
@@ -230,7 +231,7 @@ public class ImageSprite{
 	// cropping the sprite image to the permittedPasteArea
 	//
 	// if the render target needs to crop to the permittedPasteArea before pasting
-	// The permittedPasteArea is in document space
+	// The permittedPasteArea is in document space (the class PermittedpastewrArea converts user's normalised space to document space)
 	boolean cropToPermittedPasteArea(RenderTarget rt) {
 		// assume that the sprite has been tested for being wholly-inside already, so that by here,
 		// we know a crop is due.
@@ -358,10 +359,10 @@ public class ImageSprite{
 		
 		
 		if( source.getWidth() < newW) {
-			source = ImageProcessing.scaleTo(source,newW, source.getHeight());
+			source = ImageProcessing.resizeTo(source,newW, source.getHeight());
 		}
 		if( source.getHeight() < newH) {
-			source = ImageProcessing.scaleTo(source,source.getWidth(), newH);
+			source = ImageProcessing.resizeTo(source,source.getWidth(), newH);
 		}
 		
 		//System.out.println("matchImageSize: postScaledSize " + outimg.getWidth() + " " + outimg.getHeight());

@@ -1,4 +1,5 @@
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Robot;
@@ -80,6 +81,25 @@ public class MOUtils {
 	      myReader.close();
 		}catch (IOException e) {}
 		return stListOut;
+	}
+	
+	
+	static Color[] getBasic12ColorPalette() {
+		Color[] cols = new Color[12];
+		int n = 0;
+		cols[n++] = Color.BLACK;
+		cols[n++] = Color.RED;
+		cols[n++] = Color.GREEN;
+		cols[n++] = Color.CYAN;
+		cols[n++] = Color.DARK_GRAY;
+		cols[n++] = Color.MAGENTA;
+		cols[n++] = Color.YELLOW;
+		cols[n++] = Color.BLUE;
+		cols[n++] = Color.LIGHT_GRAY;
+		cols[n++] = Color.ORANGE;
+		cols[n++] = Color.GRAY;
+		cols[n++] = Color.PINK;
+		return cols;
 	}
 }
 
@@ -164,6 +184,7 @@ class KeepAwake{
 	Robot hal;
 	SecondsTimer timer;
 	int mouseMoveDirection = 1;
+	boolean isActive = true;
     KeepAwake(){
         timer = new SecondsTimer();
     	try {
@@ -177,6 +198,7 @@ class KeepAwake{
         }
         
     void update() {
+    	if(!isActive) return;
     	if(timer.isInDuration()) return;
     	Point pi = MouseInfo.getPointerInfo().getLocation();
     	hal.mouseMove(pi.x+mouseMoveDirection,pi.y);
@@ -184,6 +206,10 @@ class KeepAwake{
     	timer.startDuration(60f);
     	pi = MouseInfo.getPointerInfo().getLocation();
     	//System.out.println("KeepAwake mouse move x = " + pi.x);
+    }
+    
+    void setActive(boolean a) {
+    	isActive = a;
     }
     
 }

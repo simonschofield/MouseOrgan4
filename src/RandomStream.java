@@ -140,7 +140,10 @@ class QRandomStream{
 		return (int)( (lo + r*(hi-lo) ) + 0.5f);
 	}
 	
-	
+	float randRangeGaussian(float lo, float hi) {
+		return ( randRangeF( lo,  hi) + randRangeF( lo,  hi ) + randRangeF( lo,  hi ))/3.0f;
+		
+	}
 	
 	float randRangeF(float lo, float hi){
 		float r = nextFloat();

@@ -195,7 +195,20 @@ class SeedBatchManager {
 		if (collatedSeeds.size() == 0) {
 			System.out.println("SeedLayerManager has collated NO seeds");
 		}
+		
+		updateSeedDepthsAgainstScene();
+		
 		depthSort();
+	}
+	
+	void updateSeedDepthsAgainstScene() {
+		// call this if you are changing to a different depth filter
+		// TBD: ideally checks to see if the filter has changed,
+		for(Seed s : collatedSeeds) {
+			
+			float d = sceneData3D.getDepthNormalised(s.docPoint);
+			s.depth = d;
+		}
 	}
 
 	void depthSort() {

@@ -280,6 +280,13 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		}
 
 	}
+	
+	
+	//////////////////////////////////////////////////////////////////
+	// call this to tidy up
+	void userSessionFinished() {
+		keepAwake.setActive(false);
+	}
 
 	//////////////////////////////////////////////////////////////////
 	// canvas overlay drawing, maybe should be moved to UI class

@@ -12,12 +12,18 @@ import java.util.Comparator;
 //and farms the seeds out for render in the updateUserSession loop.
 //
 class SeedRenderLayer extends CollectionIterator{
+	
+	
+	
+	
 	Range depthExtrema;
 	ArrayList<Seed> layerSeeds = new ArrayList<Seed>();
 	boolean isActive = true;
 	
 	
 	SeedRenderLayer(ArrayList<Seed> collatedSeeds, float nearDepth, float farDepth){
+		
+
 		// initialised by the collated seeds from the Seed Render Manager
 		depthExtrema = new Range(nearDepth, farDepth);
 		
@@ -26,6 +32,8 @@ class SeedRenderLayer extends CollectionIterator{
 		}
 		
 		System.out.println("created SeedRenderLayer : depth extrema " + nearDepth + " " + farDepth + " num seeds found " + layerSeeds.size());
+		Range extrFromPoints = getDepthExtremaFromPoints();
+		System.out.println("Extrema from points :  " + extrFromPoints.toStr());
 	}
 	
 	void setActive(boolean a) {
@@ -33,11 +41,41 @@ class SeedRenderLayer extends CollectionIterator{
 		
 	}
 	
+	
+	
+	
 	boolean isActive() {
 		return isActive;
 	}
 	
+	Range getDepthExtremaFromPoints() {
+		Range extr = new Range();
+		extr.initialiseForExtremaSearch();
+		for(Seed s : layerSeeds) {
+			float thisDepth = s.getDepth();
+			extr.addExtremaCandidate(thisDepth);
+			
+		}
+		return extr;
+	}
 	
+	Range getYExtremaFromPoints() {
+		Range extr = new Range();
+		extr.initialiseForExtremaSearch();
+		for(Seed s : layerSeeds) {
+			float thisY = s.docPoint.y;
+			extr.addExtremaCandidate(thisY);
+		}
+		return extr;
+	}
+	
+	ArrayList<PVector> getPoints(){
+		ArrayList<PVector> points = new ArrayList<PVector>();
+		for(Seed s : layerSeeds) {
+			points.add(s.docPoint);
+		}
+		return points;
+	}
 	
 	Seed getNextItem() {
 		return (Seed) super.getNextItem();
@@ -82,17 +120,36 @@ public class SeedRenderManager{
 	boolean isFinishedAllLayersFlag = false;
 	
 	String layerRenderDirectory = "";
+	String renderNameEnhancement = "";
 	
 	SeedRenderManager(SeedBatchManager seedBatchManager){
 		
 		theSurface = seedBatchManager.theSurface;
-		
-		// initialise it with one big layer. The default position
 		collatedSeeds = seedBatchManager.getCollatedSeeds();
+		// initialise it with one big layer. The default position
+		createDefaultSingleLayer();
+	}
+	
+	
+	void createDefaultSingleLayer() {
+		layers.clear();
+		
 		SeedRenderLayer layer0 = new SeedRenderLayer(collatedSeeds, 0, 1);
+		
 		layers.add(layer0);
 		currentLayer = layer0;
 	}
+	
+	
+	void reset() {
+		setCurrentLayer(0);
+		isFinishedAllLayersFlag = false;
+		for(SeedRenderLayer l: layers) {
+			l.reset();
+		}
+	}
+	
+	
 	
 	// these are in normalised depth, biggest depth to least depth
 	void setDepthLayers(float[] depthDemarkers) {
@@ -136,9 +193,11 @@ public class SeedRenderManager{
 		return true;
 	}
 
+	int getCurrentLayerNum() {
+		return currentLayerNum;
+	}
 	
-	
-	int getNumberOfLayers() {
+	int getNumLayers() {
 		return numLayers;
 	}
 	
@@ -151,6 +210,7 @@ public class SeedRenderManager{
 			boolean moreLayers = advanceCurrentLayer();
 			
 			if(moreLayers == false) {
+				System.out.println("SeedRenderManager: Finished rendering all layers");
 				isFinishedAllLayersFlag = true;
 			}
 		}
@@ -167,21 +227,30 @@ public class SeedRenderManager{
 	
 	}
 	
-	
+	void drawLayerPoints() {
+		Color[] palette = MOUtils.getBasic12ColorPalette();
+		for(int n = 0; n < layers.size(); n++) {
+			int colnum = n%12;
+			Color c = palette[colnum];
+			
+			ArrayList<PVector> points = layers.get(n).getPoints();
+			theSurface.theDocument.drawPoints(points, c);
+		}
+		
+	}
 
 	boolean advanceCurrentLayer() {
 		// save current render,
-		saveLayerRender();
+		if(currentLayer.isActive()) saveLayerRender();
 		
 		currentLayerNum++;
-		if(currentLayerNum >= getNumberOfLayers()) return false;
+		if(currentLayerNum >= getNumLayers()) return false;
 		
 		setCurrentLayer(currentLayerNum);
 		
 		// if more layers to do....
 		// clear current render,
-		Color emptyPixel = new Color(0,0,0,0);
-		theSurface.theDocument.fillBackground(emptyPixel);
+		theSurface.theDocument.clearImage();
 	
 		return true;
 	}
@@ -209,7 +278,12 @@ public class SeedRenderManager{
 		
 	}
 	
-	void setActiveLayers(boolean[] activeList) {
+	
+	void setLayerActive(int layerNum, boolean active) {
+		layers.get(layerNum).setActive(active);
+	}
+	
+	void setLayersActive(boolean[] activeList) {
 		// should be the same number as the number of layers
 		//
 		for(int n = 0; n < activeList.length; n++) {
@@ -219,30 +293,39 @@ public class SeedRenderManager{
 		
 	}
 	
+	void setRenderNameEnahancement(String name) {
+		renderNameEnhancement = name;
+
+	}
 	
 	void saveLayerRender() {
+		
 		String userSessionPath = theSurface.getUserSessionPath();
-		if(getNumberOfLayers()==1) {
-			String suggestedName = MOUtils.getDateStampedImageFileName("Render_");
+		if(getNumLayers()==1) {
+			String suggestedName = MOUtils.getDateStampedImageFileName("Render_" + renderNameEnhancement);
 			System.out.println("saveRenderLayer: saving " + suggestedName);
 			theSurface.theDocument.saveRenderToFile(userSessionPath + suggestedName);
 			
 		}else {
-		assertLayerDirectory();
-		
-		int fileLayerNum = getNumberOfLayers() - currentLayerNum;
-		String paddedFileLayerNum = MOUtils.getPaddedNumberString(fileLayerNum, 2);
-		String fullLayerRenderPathAndName = layerRenderDirectory + "\\layer_" + paddedFileLayerNum + ".png";
-		System.out.println("saveRenderLayer: saving " + fullLayerRenderPathAndName);
-		theSurface.theDocument.saveRenderToFile(fullLayerRenderPathAndName);
-		}
+			// the out string format is im01_seedLayer05, im02_seedLayer04 ... im06_seedLayer00
+			// where the im_number correctly layers the images into Photoshop's Scripts->load files into stack
+			// and the seedLayer_num is the layer num within MouseOrgan
+			assertLayerDirectory();
+			
+			int imNum = getNumLayers() - currentLayerNum;
+			String paddedSeedLayerNum = MOUtils.getPaddedNumberString(currentLayerNum, 2);
+			String paddedImNum = MOUtils.getPaddedNumberString(imNum, 2);
+			String fullLayerRenderPathAndName = layerRenderDirectory + "\\im" + paddedImNum + "_seedLayer" + paddedSeedLayerNum + ".png";
+			System.out.println("saveRenderLayer: saving " + fullLayerRenderPathAndName);
+			theSurface.theDocument.saveRenderToFile(fullLayerRenderPathAndName);
+			}
 		
 	}
 	
 	void assertLayerDirectory() {
 		if(layerRenderDirectory.contentEquals("")==false) return;
 		String userSessionPath = theSurface.getUserSessionPath();
-		layerRenderDirectory = userSessionPath + "layers_" + MOUtils.getDateStamp();
+		layerRenderDirectory = userSessionPath + "layers_" + renderNameEnhancement + MOUtils.getDateStamp();
 		
 		boolean result = MOUtils.createDirectory(layerRenderDirectory);
 		System.out.println("created directory " + layerRenderDirectory + "  " + result);
@@ -258,176 +341,4 @@ public class SeedRenderManager{
 
 	
 }
-
-
-//public class SeedRenderManager extends CollectionIterator{
-//	Surface theSurface;
-//	
-//	
-//	float[] depthLayerDemarkers;
-//	int numLayers = 1;
-//	
-//	ArrayList<Seed> collatedSeeds = new ArrayList<Seed>();
-//	ArrayList<Seed> currentLayerSeeds = new ArrayList<Seed>();
-//	int currentLayerNum = 0;
-//	int[] layerSwitches;
-//	boolean isFinishedAllLayersFlag = false;
-//	
-//	String layerRenderDirectory = "";
-//	
-//	SeedRenderManager(SeedBatchManager seedBatchManager){
-//		
-//		theSurface = seedBatchManager.theSurface;
-//		
-//		collatedSeeds = seedBatchManager.getCollatedSeeds();
-//		gatherSeedLayer(0);
-//	}
-//	
-//	void setDepthLayers(float[] depthDemarkers) {
-//		depthLayerDemarkers = depthDemarkers;
-//		numLayers = depthLayerDemarkers.length+1;
-//		
-//		for(Seed s : collatedSeeds) {
-//			
-//			s.layerNumber = getLayerFromDepth(s.getDepth());
-//			
-//		}
-//		
-//		gatherSeedLayer(0);
-//	
-//	}
-//
-//	int getLayerFromDepth(float depth) {
-//		if(depth > depthLayerDemarkers[0]) return 0;
-//		if(depthLayerDemarkers.length == 1) return 1;
-//		
-//		for(int layerNum = 1;  layerNum <depthLayerDemarkers.length; layerNum++) {
-//		    float thisDemarkation = depthLayerDemarkers[layerNum];
-//			if(depth>thisDemarkation) return layerNum;
-//		}
-//		// shouldn't get here
-//		return numLayers-1;
-//	}
-//	
-//	int getNumberOfLayers() {
-//		return numLayers;
-//	}
-//	
-//	
-//	
-//	void gatherSeedLayer(int layerNum) {
-//		currentLayerSeeds.clear();
-//		for(Seed s : collatedSeeds) {
-//			
-//			if(s.layerNumber == layerNum) currentLayerSeeds.add(s);
-//			
-//		}
-//		
-//		currentLayerSeeds.sort(Comparator.comparing(Seed::getDepth).reversed());
-//		currentLayerNum = layerNum;
-//		
-//		System.out.println("gatherSeedLayer layer num " + currentLayerNum + " num seeds " + currentLayerSeeds.size());
-//		System.out.println("from a total of " + collatedSeeds.size());
-//	}
-//	
-//	
-//	
-//	Seed getNextItem() {
-//		if(isFinishedAllLayersFlag) return null;
-//		
-//		Seed thisSeed = (Seed) super.getNextItem();
-//		
-//		if( finishedLayer() ) {
-//			System.out.println("finished layer " + currentLayerNum);
-//			boolean moreLayers = advanceCurrentLayer();
-//			System.out.println("more layers? " + moreLayers);
-//			System.out.println("next layer " + currentLayerNum);
-//			if(moreLayers) {
-//				resetItemIterator();
-//			} else {
-//				isFinishedAllLayersFlag = true;
-//			}
-//		}
-//		
-//		return thisSeed;
-//	}
-//	
-//	boolean finishedAllLayers(){
-//		return  isFinishedAllLayersFlag;
-//	
-//	}
-//	
-//	boolean finishedLayer() {
-//		return isFinished();
-//		
-//	}
-//
-//	boolean advanceCurrentLayer() {
-//		// save current render,
-//		saveLayerRender();
-//		
-//		currentLayerNum++;
-//		if(currentLayerNum >= getNumberOfLayers()) return false;
-//		
-//		// if more layers to do....
-//		// clear current render,
-//		Color emptyPixel = new Color(0,0,0,0);
-//		theSurface.theDocument.fillBackground(emptyPixel);
-//		
-//		gatherSeedLayer(currentLayerNum);
-//		return true;
-//	}
-//	
-//	
-//	void saveLayerRender() {
-//		String userSessionPath = theSurface.getUserSessionPath();
-//		if(getNumberOfLayers()==1) {
-//			String suggestedName = MOUtils.getDateStampedImageFileName("Render_");
-//			System.out.println("saveRenderLayer: saving " + suggestedName);
-//			theSurface.theDocument.saveRenderToFile(userSessionPath + suggestedName);
-//			
-//		}else {
-//		assertLayerDirectory();
-//		
-//		int fileLayerNum = getNumberOfLayers() - currentLayerNum;
-//		String paddedFileLayerNum = MOUtils.getPaddedNumberString(fileLayerNum, 2);
-//		String fullLayerRenderPathAndName = layerRenderDirectory + "\\layer_" + paddedFileLayerNum + ".png";
-//		System.out.println("saveRenderLayer: saving " + fullLayerRenderPathAndName);
-//		theSurface.theDocument.saveRenderToFile(fullLayerRenderPathAndName);
-//		}
-//		
-//	}
-//	
-//	void assertLayerDirectory() {
-//		if(layerRenderDirectory.contentEquals("")==false) return;
-//		String userSessionPath = theSurface.getUserSessionPath();
-//		layerRenderDirectory = userSessionPath + "layers_" + MOUtils.getDateStamp();
-//		
-//		boolean result = MOUtils.createDirectory(layerRenderDirectory);
-//		System.out.println("created directory " + layerRenderDirectory + "  " + result);
-//	}
-//	
-//	
-//	
-//	
-//	
-//	@Override
-//	int getNumItems() {
-//		// TODO Auto-generated method stub
-//		return currentLayerSeeds.size();
-//	}
-//
-//
-//	@Override
-//	Seed getItem(int n) {
-//		// TODO Auto-generated method stub
-//		return currentLayerSeeds.get(n);
-//	}
-//	
-//	
-//	
-//
-//	
-//}
-
 

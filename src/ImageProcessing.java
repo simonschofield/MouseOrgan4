@@ -292,7 +292,7 @@ public class ImageProcessing {
 	}
 	
 	
-	public static BufferedImage scaleTo(BufferedImage originalImage, int newW, int newH) {
+	public static BufferedImage resizeTo(BufferedImage originalImage, int newW, int newH) {
 		// scales the originalImage to be newW, newH
 		int w = originalImage.getWidth();
 		int h = originalImage.getHeight();
@@ -302,7 +302,7 @@ public class ImageProcessing {
 	}
 	
 	public static BufferedImage scaleToTarget(BufferedImage originalImage, BufferedImage target) {
-		return scaleTo(originalImage, target.getWidth(),  target.getHeight());
+		return resizeTo(originalImage, target.getWidth(),  target.getHeight());
 	}
 
 	public static BufferedImage scaleRotateImage(BufferedImage originalImage, float scalex, float scaley,

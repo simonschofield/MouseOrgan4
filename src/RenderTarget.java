@@ -83,6 +83,10 @@ class PermittedPasteArea {
 		return permittedPasteAreaRect.copy();
 	}
 	
+	boolean isPointInside(PVector docSpacePt) {
+		
+		return permittedPasteAreaRect.isPointInside(docSpacePt);
+	}
 	
 	boolean isFullyPermitted(Rect r) {
 		// simple interface for drawn shapes based on their rectangle, either in or out!
@@ -506,9 +510,18 @@ class RenderTarget {
 
 		for (PVector p : docSpacePoints) {
 			PVector bufpt = docSpaceToBufferSpace(p);
-			shapeDrawer.drawEllipse(bufpt.x, bufpt.y, 4, 4);
+			shapeDrawer.drawEllipse(bufpt.x, bufpt.y, 6, 6);
 		}
 
+	}
+	
+	
+	void drawPoint(PVector docSpacePoint, Color c, int size) {
+		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 127);
+		shapeDrawer.setDrawingStyle(ca, ca, 2);
+		PVector bufpt = docSpaceToBufferSpace(docSpacePoint);
+		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, size, size);
+		
 	}
 	
 	

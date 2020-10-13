@@ -12,7 +12,7 @@ public class BendImage {
     
     
     
-    // bend the image left or right: negative displacementInX, bends Left, while positive displacementInX bends right.
+    // bend the image left or right: negative displacementInX bends Left, while positive displacementInX bends right.
     BufferedImage bendImage(BufferedImage source, float bendStart, float displacementInX, float bendHarshness) {
     	if(displacementInX<0) {
     		return bendImageLeft( source,  bendStart,  -displacementInX,  bendHarshness);
@@ -33,7 +33,7 @@ public class BendImage {
     	// displacementInX, 0 == no displacement, 1 == the displacement is equivalent to the image height
     	// which would be huge, but by yoking the displacement to the height, we get a consistent result across
     	// images from the same ContentGroup (same height, but different widths). It cannot be less than the current width
-    	//
+    	// The bend harshness is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image
     	
     	// the LUT will contain the actual pixel displacement amounts
     	int sourceImageHeight = source.getHeight();

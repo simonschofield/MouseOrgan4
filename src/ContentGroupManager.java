@@ -212,7 +212,7 @@ void loadImageContentGroup(String contentGroupName, String targetDirectory, Stri
 				float imgAspect = imgW/(float)imgH;
 				int scaledHeight = (int)(boxHeight * 0.75f);
 				int scaledWidth = (int)(boxHeight*imgAspect * 0.75f);
-					img = ImageProcessing.scaleTo(img, scaledWidth, scaledHeight);
+					img = ImageProcessing.resizeTo(img, scaledWidth, scaledHeight);
 					parentSurface.theDocument.pasteImage_BufferCoordinates( img, thisItemX, thisItemY, 1.0f);
 	
 					parentSurface.theDocument.drawText(itemName, thisItemX, thisItemY+scaledHeight+50, 50, Color.DARK_GRAY);
@@ -415,6 +415,16 @@ class ImageContentGroup extends DirectoryImageGroup {
 		for (int n = 0; n < numImage; n++) {
 			BufferedImage img = imageList.get(n);
 			BufferedImage scaled = ImageProcessing.scaleImage(img, x, y);
+			imageList.set(n, scaled);
+		}
+	}
+	
+	
+	void resizeToAll(int x, int y) {
+		int numImage = imageList.size();
+		for (int n = 0; n < numImage; n++) {
+			BufferedImage img = imageList.get(n);
+			BufferedImage scaled = ImageProcessing.resizeTo(img, x, y);
 			imageList.set(n, scaled);
 		}
 	}
