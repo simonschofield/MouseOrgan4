@@ -730,9 +730,9 @@ public class PVector implements Serializable{
 	 * @see PApplet#lerp(float, float, float)
 	 */
 	public PVector lerp(PVector v, float amt) {
-		x = MOMaths.lerp(x, v.x, amt);
-		y = MOMaths.lerp(y, v.y, amt);
-		z = MOMaths.lerp(z, v.z, amt);
+		x = MOMaths.lerp(amt, x, v.x);
+		y = MOMaths.lerp(amt, y, v.y);
+		z = MOMaths.lerp(amt, z, v.z);
 		return this;
 	}
 
@@ -756,9 +756,9 @@ public class PVector implements Serializable{
 	 * @param z the z component to lerp to
 	 */
 	public PVector lerp(float x, float y, float z, float amt) {
-		this.x = MOMaths.lerp(this.x, x, amt);
-		this.y = MOMaths.lerp(this.y, y, amt);
-		this.z = MOMaths.lerp(this.z, z, amt);
+		this.x = MOMaths.lerp(amt, this.x, x);
+		this.y = MOMaths.lerp(amt, this.y, y);
+		this.z = MOMaths.lerp(amt, this.z, z);
 		return this;
 	}
 
@@ -860,4 +860,23 @@ public class PVector implements Serializable{
 		result = 31 * result + Float.floatToIntBits(z);
 		return result;
 	}
+	
+	
+	public static PVector ZERO() {
+		return new PVector(0,0,0);
+	}
+	
+	public static PVector UP() {
+		return new PVector(0,1,0);
+	}
+	
+	public PVector scale(float sx, float sy) {
+		return scale(sx,sy,1);
+	}
+	
+	public PVector scale(float sx, float sy, float sz) {
+		return new PVector(x*sx,y*sy,z*sz);
+	}
+	
+	
 }

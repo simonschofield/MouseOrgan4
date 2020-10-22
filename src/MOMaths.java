@@ -94,10 +94,24 @@ public static float gaussianCurve(float xVal, float curveHeight, float centreVal
 	  
 	}
 
+public static PVector rotatePoint(PVector p, PVector around, float degrees) {
+	// rotates a point clockwise round another point by degrees
+	
+	double toRad = Math.toRadians((double)degrees);
+	float rx = p.x - around.x;
+	float ry = p.y - around.y;
+	
+	float newX = (float) (rx * Math.cos(toRad) - ry * Math.sin(toRad));
+	float newY = (float) (ry * Math.cos(toRad) + rx * Math.sin(toRad));
+	
+	newX += around.x;
+	newY += around.y;
+	
+	return new PVector(newX,newY);
+}
 
 
-
-	//interpolates the input value between the low and hi values
+//interpolates the input value between the low and hi values
 	public static  float ramp(float v, float low, float hi){
 		float rampedV = lerp(low, hi, v);
 		return constrain(rampedV,0,1);

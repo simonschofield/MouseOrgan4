@@ -23,7 +23,7 @@ public class Scene3DHelper {
 		
 		float rrot = ranStream.randRangeF(-rotAmount,rotAmount);
 		
-		if(flipInRotationDirection && rrot > 0) sprite.mirrorSprite(true);
+		if(flipInRotationDirection && rrot > 0) sprite.mirror(true);
 		sprite.rotate(rrot);
 		sprite.scale(rscale,rscale);
 	}
@@ -33,10 +33,10 @@ public class Scene3DHelper {
 		boolean coinTossX = ranStream.randomEvent(0.5f);
 		boolean coinTossY = ranStream.randomEvent(0.5f);
 		if(coinTossX && inX) {
-			sprite.mirrorSprite(true);
+			sprite.mirror(true);
 		}
 		if(coinTossY && inY) {
-			sprite.mirrorSprite(false);
+			sprite.mirror(false);
 		}
 		
 		

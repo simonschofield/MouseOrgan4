@@ -17,6 +17,16 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 //////////////////////////////////////////////////////////////////
+// static global access to important long-lived classes
+//
+//
+class GlobalObjects{
+	static Surface theSurface;
+	static RenderTarget theDocument;
+	
+}
+
+//////////////////////////////////////////////////////////////////
 //
 @SuppressWarnings("serial")
 abstract class Surface extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
@@ -89,6 +99,10 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 		theViewControl.setDocumentAspect(theDocument.getDocumentAspect());
 		secondsTimer = new SecondsTimer();
+		
+		GlobalObjects.theDocument = theDocument;
+		GlobalObjects.theSurface = this;
+		
 	}
 
 	void setWindowSize() {

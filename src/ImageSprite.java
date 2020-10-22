@@ -1,13 +1,211 @@
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.awt.image.PixelGrabber;
+import java.util.ArrayList;
+
+
+//////////////////////////////////////////////////////////////////////
+// Enables the tracking of arbitrary points within a sprite after multiple transforms to the sprite
+// The point is accessed using normalised coordinates within the sprite's image-space, as if the shape has not been transformed
+// ( (0,0) is top left (1,1) is bottom right), in the same way the sprite's origin is defined.
+// So, after scaling, rotating, mirroring and bending a sprite, you can find where point (0.75,0.666) (using normalised coords) 
+// is positioned within documentSpace
+// This then enables you to 
+// 	- sample a key image at transformedImagePoint to determine what the value is under that image at that point
+// 	- link sprites together at known points to create linked and hinged items
+
+// All internal units are in the pixel coordinate space (although with float accuracy).
+
+// The transforms should be applied AFTER the BufferedImage has been transformed, as the calculation for ROT and SHEAR
+// depend on the new BufferedImage Size
+//
+
+class ImageQuad{
+	ImageSprite theSprite;
+	
+	
+	// these are the points which are transformed
+	PVector topLeft, topRight, bottomLeft, bottomRight;
+	
+	ImageQuad(ImageSprite sprite){
+		theSprite = sprite;
+		
+
+		topLeft = PVector.ZERO();
+		topRight = new PVector(theSprite.image.getWidth(),0);
+		bottomLeft = new PVector(0,theSprite.image.getHeight());
+		bottomRight = new PVector(theSprite.image.getWidth(),theSprite.image.getHeight());
+	}
+	
+	
+	
+	
+	PVector getDocumentPointUsingNormalisedCoordinates(PVector pastePoint, float normX, float normY) {
+		// this is the key function. It enables the user to track any point in the original image
+		// after multiple transformations. 
+		// so given a pastePoint in document space, you may wish to know where the top centre point of the image has got to
+		// in documentSpace coordinates
+		// PVector transformedImagePoint = getDocumentPointUsingNormalisedCoordinates( pastePoint, 0.5 , 0.0) would return that point
+		
+		PVector pixelLocOfEnquiryPtInQuad = getPixelCoordinateInQuad( normX,  normY);
+		System.out.println(debugQuadPointsToStr());
+		System.out.println("Pixel Loc in sprite of Enquiry Nom Point " + normX + " " + normY + " is " + pixelLocOfEnquiryPtInQuad.toStr());
+		PVector spriteOriginPixelLoc = new PVector(theSprite.origin.x * getImageWidth(), theSprite.origin.y * getImageHeight());
+		PVector pixCoordOfDocumentPastePoint = GlobalObjects.theDocument.docSpaceToBufferSpace(pastePoint);
+		
+		PVector pixelOffsetEnquryPointFomSpriteOrigin = new PVector(pixelLocOfEnquiryPtInQuad.x - spriteOriginPixelLoc.x, pixelLocOfEnquiryPtInQuad.y - spriteOriginPixelLoc.y);
+		PVector pixelCoordinateInDocument = pixCoordOfDocumentPastePoint.add(pixelOffsetEnquryPointFomSpriteOrigin);
+		return GlobalObjects.theDocument.bufferSpaceToDocSpace(pixelCoordinateInDocument);
+	}
+	
+	
+	
+	PVector getPixelCoordinateInQuad(float normX, float normY) {
+		PVector topLinePoint = PVector.lerp(topLeft, topRight, normX);
+		PVector bottomLinePoint = PVector.lerp(bottomLeft, bottomRight, normX);
+		return PVector.lerp(topLinePoint, bottomLinePoint, normY);
+		
+	}
+	
+	void applyTranslation(PVector t) {
+		topLeft = topLeft.add(t);
+		topRight = topRight.add(t);
+		bottomLeft = bottomLeft.add(t);
+		bottomRight = bottomRight.add(t);
+		
+	}
+	
+	
+	void applyScale(float sx, float sy) {
+		// should always work even if the image had been previously rotated
+		topLeft = topLeft.scale(sx, sy);
+		topRight = topRight.scale(sx, sy);
+		bottomLeft = bottomLeft.scale(sx, sy);
+		bottomRight = bottomRight.scale(sx, sy);
+		
+	}
+	
+	void applyRotation(float degrees, PVector oldCentre) {
+		// rotates round the centre of the image
+		topLeft = MOMaths.rotatePoint(topLeft, oldCentre, degrees);
+		topRight = MOMaths.rotatePoint(topRight, oldCentre, degrees);
+		bottomLeft = MOMaths.rotatePoint(bottomLeft, oldCentre, degrees);
+		bottomRight = MOMaths.rotatePoint(bottomRight, oldCentre, degrees);
+		
+		// then shift all the points to be round the new centre
+		// i.e. shift all by newCentre-oldCentre
+		PVector newCentre = getCentre();
+		PVector centreOffset = newCentre.sub(oldCentre);
+		applyTranslation(centreOffset);
+	}
+	
+	/*
+	// old version works with axis aligned quad only
+	void applyHorizontalShear(float dxTop, float dxBottom) {
+		// dx is in pixel units, usually one argument is set to 0
+		topLeft.x += dxTop;
+		topRight.x += dxTop;
+		bottomLeft.x += dxBottom;
+		bottomRight.x += dxBottom;
+		
+	}*/
+	
+	void applyHorizontalTopShear(float dxTop) {
+		// applies the shear to the image
+		// so quad points are sheared according to their relative Y position within the image rectangle
+		
+		
+		float tlYNorm = MOMaths.norm(topLeft.y, getImageHeight(), 0);
+		float trYNorm = MOMaths.norm(topRight.y,  getImageHeight(), 0);
+		float blYNorm = MOMaths.norm(bottomLeft.y, getImageHeight(), 0);
+		float brYNorm = MOMaths.norm(bottomRight.y,  getImageHeight(), 0);
+		
+		topLeft.x += (dxTop * tlYNorm);
+		topRight.x += (dxTop * trYNorm);
+		bottomLeft.x += (dxTop * blYNorm);
+		bottomRight.x += (dxTop * brYNorm);
+		
+	}
+	
+	void applyMirror(boolean inX) {
+		
+		if(inX) {
+			// flip the x coords around the x axis
+			float w = getImageWidth();
+			topLeft.x = w - topLeft.x;
+			topRight.x = w - topRight.x;
+			bottomLeft.x = w - bottomLeft.x;
+			bottomRight.x = w - bottomRight.x;
+		} else {
+			// flip the y coords around the Y axis
+			float h = getImageHeight();
+			topLeft.y = h - topLeft.y;
+			topRight.y = h - topRight.y;
+			bottomLeft.y = h - bottomLeft.y;
+			bottomRight.y = h - bottomRight.y;
+		}
+		
+		
+	}
+	
+	float getImageWidth() {
+		return theSprite.image.getWidth();
+	}
+	
+	float getImageHeight() {
+		return theSprite.image.getHeight();
+	}
+	
+	PVector getCentre() {
+		return new PVector(getImageWidth()/2f, getImageHeight()/2f);
+	}
+	
+	
+	////////////////////////////////////
+	// debugging fauntions
+	void debugDrawPoints(PVector pastePoint) {
+		ArrayList<PVector> points = new ArrayList<PVector>();
+		PVector tlPt = getDocumentPointUsingNormalisedCoordinates( pastePoint, 0, 0);
+		PVector trPt = getDocumentPointUsingNormalisedCoordinates( pastePoint, 1, 0);
+		PVector blPt = getDocumentPointUsingNormalisedCoordinates( pastePoint, 0, 1);
+		PVector brPt = getDocumentPointUsingNormalisedCoordinates( pastePoint, 1, 1);
+		
+		points.add(tlPt);
+		points.add(trPt);
+		points.add(blPt);
+		points.add(brPt);
+		System.out.println("quad points at " + tlPt.toStr() + " " + trPt.toStr() + " " + blPt.toStr() + " " + brPt.toStr() + " ");
+		GlobalObjects.theDocument.drawPoints(points, Color.BLACK);
+		}
+		
+		
+	String debugQuadPointsToStr() {
+		
+		return "topLeft " + topLeft.toStr() + ", topRight " + topRight.toStr() + "bottomLeft " + bottomLeft.toStr() + ", bottomRight " + bottomRight.toStr();
+	}
+	
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////////////
 // 
 
 // Sprite
-// A sprite is a class which wraps up a Seed, and combines with 
-//
-//
+// A sprite is a class which wraps up a Seed, and combines with a BufferedImage
+// and other data (origin (pivot point), docPoint (also in seed), sizeInScene
+// ImageQuad, it's own random stream
 //
 
 
@@ -17,6 +215,7 @@ public class ImageSprite{
 	Seed seed;
 	
 	BufferedImage image;
+	ImageQuad imageQuad;
 	
 	PVector origin = new PVector(0.5f,0.5f);
 	
@@ -37,6 +236,7 @@ public class ImageSprite{
 		
 	}
 	
+	
 	ImageSprite(BufferedImage im, PVector orig, float sizeInScn){
 		seed = new Seed(new PVector(0,0));
 		
@@ -48,6 +248,8 @@ public class ImageSprite{
 		//System.out.println("ImageSprite constructor sizeInScn " + sizeInScn);
 		initWithSeed( s,  im,  orig, sizeInScn);
 	}
+	
+    
 	
 
 	String toStr() {
@@ -67,6 +269,8 @@ public class ImageSprite{
 	    sizeInScene = sizeInScn;
 	    //System.out.println("ImageSprite:init sizeInScene " + sizeInScene);
 	    qRandomStream = new QRandomStream(seed.id);
+	    
+	    imageQuad = new ImageQuad(this);
 	}
 	
 	void initWithSeed(Seed s, BufferedImage im, PVector orig, float sizeInScn) {
@@ -94,6 +298,8 @@ public class ImageSprite{
 		image = ImageProcessing.scaleImage(image, scaleW, scaleH);
 		bufferWidth = image.getWidth();
 		bufferHeight = image.getHeight();
+		//imageQuad.theImage = image;
+		imageQuad.applyScale(scaleW, scaleH);
 	}
 	
 	void rotate(float degrees) {
@@ -102,8 +308,9 @@ public class ImageSprite{
 		// the origin, which could result in a much larger resultant image.
 		// When the shape is pastes using its new origin point, it is as if it has been rotated around the origin
 		// Much more efficient than otherwise
-	
+		PVector oldCentre = imageQuad.getCentre();
 		double toRad = Math.toRadians(degrees);
+		
 		image = ImageProcessing.rotateImage(image, degrees);
 	
 		// the rest is about rotating the origin point.
@@ -120,35 +327,14 @@ public class ImageSprite{
 
 		origin.x = (newX / bufferWidth) + 0.5f;
 		origin.y = (newY / bufferHeight) + 0.5f;
-	
+		PVector newCentre = imageQuad.getCentre();
+		imageQuad.applyRotation(degrees, oldCentre);
+		
 	}
 	
-	void scaleRotateSprite(float scaleX, float scaleY, float degrees) {
-		// this function has the visual effect of rotating the image of the sprite around the sprite origin
-		// It does so by rotating the image and the origin point  around it's centre (as normal) 
-		// so that, when the shape is pasted it is as if it has been rotated around the origin
-		// Much more efficient than otherwise
 	
-		double toRad = Math.toRadians(degrees);
-
-		// rotate rotation point around (0,0) in image-pixel space
-		float rx = bufferWidth * (origin.x - 0.5f) * scaleX;
-		float ry = bufferHeight * (origin.y - 0.5f) * scaleY;
-
-		image = ImageProcessing.scaleRotateImage(image, scaleX, scaleY, degrees);
-
-		float newX = (float) (rx * Math.cos(toRad) - ry * Math.sin(toRad));
-		float newY = (float) (ry * Math.cos(toRad) + rx * Math.sin(toRad));
-
-		//shift rotation point back into parametric space of new image size
-		bufferWidth = image.getWidth();
-		bufferHeight = image.getHeight();
-
-		origin.x = (newX / bufferWidth) + 0.5f;
-		origin.y = (newY / bufferHeight) + 0.5f;
-	}
 	
-	void mirrorSprite(boolean inX) {
+	void mirror(boolean inX) {
 		if (inX) {
 			image = ImageProcessing.mirrorImage(image, true, false);
 			origin.x = 1.0f - origin.x;
@@ -157,8 +343,40 @@ public class ImageSprite{
 			image = ImageProcessing.mirrorImage(image, false, true);
 			origin.y = 1.0f - origin.y;
 		}
-	
+		imageQuad.applyMirror(inX);
 	}
+	
+	
+	void bend(float startBend, float bendAmt, float severity) {
+		BendImage bendImage = new BendImage();
+		float oldWidth = imageQuad.getImageWidth();
+		this.image = bendImage.bendImage(this.image, startBend, bendAmt, severity);
+		bufferWidth = image.getWidth();
+		bufferHeight = image.getHeight();
+		
+		
+		
+		
+		// A -ve    bend means a shift of the top to the left
+		// It applied only to the top of the image
+		float shift = ((bufferWidth - oldWidth) * MOMaths.getUnitSign(bendAmt));
+		imageQuad.applyHorizontalTopShear(Math.abs(shift));
+		
+		// have to recalculate the origin.x to compensate for the image width getting larger
+		origin.x = origin.x * (oldWidth/bufferWidth);
+		if(bendAmt < 0) {
+			// flip the origin
+			origin.x = 1 - origin.x;
+			imageQuad.applyMirror(true);
+		}
+		
+	}
+	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	/// end of geometric transforms
+	///////////////////////////////////////////////////////////////////////////////////////////
+	
+	
 	
 	boolean seedLayerEquals(String s) {
 		return s.contentEquals(seed.batchName);

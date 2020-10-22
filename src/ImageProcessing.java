@@ -159,6 +159,12 @@ public class ImageProcessing {
 		return target_copy;
 	}
 	
+	
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////////
+	// mask compositing operations
+	//
 	public static BufferedImage getCompositeMasked(BufferedImage source, BufferedImage mask, BufferedImage target,  float alpha) {
 		// Simplified version of below that assumes all images are in register
 		return getCompositeMasked( source,  mask, 0, 0,  target,  0,0,  alpha);
@@ -179,7 +185,9 @@ public class ImageProcessing {
 	public static BufferedImage getMaskedImage(BufferedImage source,  BufferedImage mask, int x, int y) {
 		BufferedImage source_copy = copyImage(source);
 		Graphics2D g2d= source_copy.createGraphics();
-		AlphaComposite src_in = AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f);
+		// dst_out preserves the parts of source which are overlayed by transparent alpah values
+		// dst_in preserves the solid parts of the mask
+		AlphaComposite src_in = AlphaComposite.getInstance(AlphaComposite.DST_OUT, 1.0f);
 		g2d.setComposite(src_in);
 		g2d.drawImage(mask, x, y, null);
 		
