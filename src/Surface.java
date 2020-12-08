@@ -24,6 +24,8 @@ class GlobalObjects{
 	static Surface theSurface;
 	static RenderTarget theDocument;
 	
+	static String sampleLibPath = "C:\\simon\\sample lib\\";
+	
 }
 
 //////////////////////////////////////////////////////////////////

@@ -10,7 +10,7 @@ public class BendImage {
     float bendLUT[];
     
     
-    
+    int unnecessary = 4;
     
     // bend the image left or right: negative displacementInX bends Left, while positive displacementInX bends right.
     BufferedImage bendImage(BufferedImage source, float bendStart, float displacementInX, float bendHarshness) {

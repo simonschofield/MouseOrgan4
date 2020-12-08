@@ -387,7 +387,7 @@ class ImageContentGroup extends DirectoryImageGroup {
 		int scalePercentile = (int) (scale * 100);
 		String cachFolderRoot = "C:\\mouseOrganImageCache\\";
 
-		String strippedDirectoryPath = directoryPath.replace("C:\\sample lib\\", "");
+		String strippedDirectoryPath = directoryPath.replace(GlobalObjects.sampleLibPath, "");
 		//System.out.println("directoryPath ..." + directoryPath);
 		//System.out.println("strippedDirectoryPath ..." + strippedDirectoryPath);
 		String cachedFolderName = cachFolderRoot + strippedDirectoryPath + "\\cached_scaled_" + scalePercentile;
