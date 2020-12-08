@@ -1,3 +1,4 @@
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 // So, after scaling, rotating, mirroring and bending a sprite, you can find where point (0.75,0.666) (using normalised coords) 
 // is positioned within documentSpace
 // This then enables you to 
-// 	- sample a key image at transformedImagePoint to determine what the value is under that image at that point
+// 	- sample a key image at transformedImagePoint to determine what the value is under that sprite at that point
 // 	- link sprites together at known points to create linked and hinged items
 
 // All internal units are in the pixel coordinate space (although with float accuracy).
@@ -41,17 +42,21 @@ class ImageQuad{
 	
 	
 	
-	PVector getDocumentPointUsingNormalisedCoordinates(PVector pastePoint, float normX, float normY) {
+	PVector getQuadDocumentPoint(PVector pastePoint, float normX, float normY) {
+		// pastePoint is in document space
+		// normx and normy are in normalised space within the original sprite image-space - so before any transforms are applied
+		
 		// this is the key function. It enables the user to track any point in the original image
 		// after multiple transformations. 
 		// so given a pastePoint in document space, you may wish to know where the top centre point of the image has got to
 		// in documentSpace coordinates
 		// PVector transformedImagePoint = getDocumentPointUsingNormalisedCoordinates( pastePoint, 0.5 , 0.0) would return that point
 		
-		PVector pixelLocOfEnquiryPtInQuad = getPixelCoordinateInQuad( normX,  normY);
-		System.out.println(debugQuadPointsToStr());
-		System.out.println("Pixel Loc in sprite of Enquiry Nom Point " + normX + " " + normY + " is " + pixelLocOfEnquiryPtInQuad.toStr());
-		PVector spriteOriginPixelLoc = new PVector(theSprite.origin.x * getImageWidth(), theSprite.origin.y * getImageHeight());
+		PVector pixelLocOfEnquiryPtInQuad = getQuadPointBufferCoords( normX,  normY);
+		//System.out.println(debugQuadPointsToStr());
+		//System.out.println("Pixel Loc in sprite of Enquiry Nom Point " + normX + " " + normY + " is " + pixelLocOfEnquiryPtInQuad.toStr());
+		//PVector spriteOriginPixelLoc = new PVector(theSprite.origin.x * getImageWidth(), theSprite.origin.y * getImageHeight());
+		PVector spriteOriginPixelLoc = theSprite.getOriginBufferCoords();
 		PVector pixCoordOfDocumentPastePoint = GlobalObjects.theDocument.docSpaceToBufferSpace(pastePoint);
 		
 		PVector pixelOffsetEnquryPointFomSpriteOrigin = new PVector(pixelLocOfEnquiryPtInQuad.x - spriteOriginPixelLoc.x, pixelLocOfEnquiryPtInQuad.y - spriteOriginPixelLoc.y);
@@ -61,7 +66,9 @@ class ImageQuad{
 	
 	
 	
-	PVector getPixelCoordinateInQuad(float normX, float normY) {
+	PVector getQuadPointBufferCoords(float normX, float normY) {
+		// returns the pixel location of a quad point within the 
+		// sprite's image
 		PVector topLinePoint = PVector.lerp(topLeft, topRight, normX);
 		PVector bottomLinePoint = PVector.lerp(bottomLeft, bottomRight, normX);
 		return PVector.lerp(topLinePoint, bottomLinePoint, normY);
@@ -100,16 +107,6 @@ class ImageQuad{
 		applyTranslation(centreOffset);
 	}
 	
-	/*
-	// old version works with axis aligned quad only
-	void applyHorizontalShear(float dxTop, float dxBottom) {
-		// dx is in pixel units, usually one argument is set to 0
-		topLeft.x += dxTop;
-		topRight.x += dxTop;
-		bottomLeft.x += dxBottom;
-		bottomRight.x += dxBottom;
-		
-	}*/
 	
 	void applyHorizontalTopShear(float dxTop) {
 		// applies the shear to the image
@@ -163,20 +160,18 @@ class ImageQuad{
 	
 	
 	////////////////////////////////////
-	// debugging fauntions
-	void debugDrawPoints(PVector pastePoint) {
-		ArrayList<PVector> points = new ArrayList<PVector>();
-		PVector tlPt = getDocumentPointUsingNormalisedCoordinates( pastePoint, 0, 0);
-		PVector trPt = getDocumentPointUsingNormalisedCoordinates( pastePoint, 1, 0);
-		PVector blPt = getDocumentPointUsingNormalisedCoordinates( pastePoint, 0, 1);
-		PVector brPt = getDocumentPointUsingNormalisedCoordinates( pastePoint, 1, 1);
+	// debugging functions
+	void debugDrawQuadCorners(PVector pastePoint) {
+		debugDrawQuadPoint( pastePoint, 0, 0, Color.BLACK);
+		debugDrawQuadPoint( pastePoint, 1, 0, Color.BLACK);
+		debugDrawQuadPoint( pastePoint, 0, 1, Color.BLACK);
+		debugDrawQuadPoint( pastePoint, 1, 1, Color.BLACK);
+		}
 		
-		points.add(tlPt);
-		points.add(trPt);
-		points.add(blPt);
-		points.add(brPt);
-		System.out.println("quad points at " + tlPt.toStr() + " " + trPt.toStr() + " " + blPt.toStr() + " " + brPt.toStr() + " ");
-		GlobalObjects.theDocument.drawPoints(points, Color.BLACK);
+	
+	void debugDrawQuadPoint(PVector pastePoint, float nx, float ny, Color c) {
+		PVector docSpacePoint = getQuadDocumentPoint( pastePoint, nx, ny);
+		GlobalObjects.theDocument.drawPoint(docSpacePoint, c, 5);
 		}
 		
 		
@@ -289,7 +284,9 @@ public class ImageSprite{
 	}
 	
 	
-	
+	PVector getQuadPoint(PVector docPt, float  nx, float ny) {
+		return imageQuad.getQuadDocumentPoint(docPt, nx, ny);
+	}
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// geometric transforms change the sprite image in-place
@@ -433,17 +430,32 @@ public class ImageSprite{
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// experimental: towards applying masked effects
-	// Applies the mask image, which in an ARGB INT image, to the sprites image.Only the alpha of the mask image is considered, and is
-	// overlayed with the sprite image's alpha using the Porter-Duff SRC_IN blend mode -  i.e. the source image is cropped to the mask image.
+	// 
 	
-	void maskImage(BufferedImage mask) {
-		BufferedImage mask_copy = ImageProcessing.copyImage(mask);
-		if(ImageProcessing.isSameDimensions(image, mask_copy) == false) {
-			mask_copy = ImageProcessing.scaleToTarget(mask, image);
-		}
-		image = ImageProcessing.getMaskedImage(image, mask_copy, 0, 0);
+	
+	BufferedImage getMaskedImage(BufferedImage mask, PVector maskCentre, PVector maskBottomRight) {
+		// maskRect is in normalised Quad Space
+		// preserves the scale of the mask despite any rotation, but does not rotate the mask ever, soreally only
+		// works with radial and symmetrical masks
+		PVector maskCentre_BufferSpace = imageQuad.getQuadPointBufferCoords(maskCentre.x, maskCentre.y);
+		PVector maskBottomRight_BufferSpace = imageQuad.getQuadPointBufferCoords(maskBottomRight.x, maskBottomRight.y);
+		float distToBottomRight = maskCentre_BufferSpace.dist(maskBottomRight_BufferSpace);
+		
+		PVector brNorm = maskBottomRight.normalize(null);
+		PVector bottomRightScaled = PVector.mult(brNorm, distToBottomRight);
+		Rect maskRect_BufferSpace = new Rect(PVector.sub(maskCentre_BufferSpace,bottomRightScaled), PVector.add(maskCentre_BufferSpace,bottomRightScaled));
+		
+		//System.out.println("dist cen-br " + distToBottomRight + " brNorm " + brNorm.toStr() + " BottomRightScaled " + bottomRightScaled + " rect " + maskRect_BufferSpace.toStr());
+		
+		return ImageProcessing.getMaskedImage(image,  mask,  maskRect_BufferSpace);
 	}
 	
+	//... once you have done the treatment to the masked part, remerge it
+	void mergeMaskedImage(BufferedImage maskedImage){
+		
+		ImageProcessing.compositeImage_ChangeTarget(maskedImage, image, 0, 0, 1);
+		
+	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// cropping the sprite image to the permittedPasteArea

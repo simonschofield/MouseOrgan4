@@ -232,6 +232,39 @@ public class CMY_HalftoneImage{
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+//
+//
+//
+
+
+//class SolidImageInterpolationTexture:
+//	   ## places a key images on a set plane within
+//	   # the texture volume
+//	   # and defines dropOff in value away from that plane in Z
+//	   
+//	   def __init__(self, imagePathandName, pos, drpOff):
+//	      self.keyImage = MOKeyImages.MOKeyImage()
+//	      self.keyImage.loadImage(imagePathandName)
+//	      # dropOff
+//	      self.dropOff = drpOff
+//	      # position is defined as a number 0...1, where 0 is the front plane of the
+//	      # volume, and 1 is the rear plane
+//	      self.position = pos
+//
+//	   def getValue(self, p):
+//	      # first value is in x,z space (image projects down from
+//	      # top of volume )
+//	      px = p[0]
+//	      py = p[1]
+//	      pz = p[2]
+//	      val = self.keyImage.getTone( (px,py))
+//	      distance = abs( pz-self.position)
+//	      multiplyer = MOUtils.mapRange(distance,0,self.dropOff, 1, 0)
+//	      multiplyer = MOUtils.clamp(multiplyer,0,1)
+//	      return multiplyer*val
+//
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -265,6 +298,14 @@ class KeyImageSampler{
 		// where the space is 0..1 on longest edge, 0..1/aspect on shortest edge of THIS image
 		int pixelX = (int) MOMaths.constrain(p.x *  sourceImageWidth/maxParametricX() , 0, sourceImageWidth-1);
 		int pixelY = (int) MOMaths.constrain(p.y *  sourceImageHeight/maxParametricY() , 0, sourceImageHeight-1);
+		int packedColor =  sourceImage.getRGB(pixelX, pixelY);
+		return ImageProcessing.packedIntToColor(packedColor, sourceHasAlpha);
+	}
+	
+	Color getPixelColorDocSpace(PVector p) {
+		
+		int pixelX = (int) MOMaths.constrain(p.x *  sourceImageWidth , 0, sourceImageWidth-1);
+		int pixelY = (int) MOMaths.constrain(p.y *  sourceImageHeight , 0, sourceImageHeight-1);
 		int packedColor =  sourceImage.getRGB(pixelX, pixelY);
 		return ImageProcessing.packedIntToColor(packedColor, sourceHasAlpha);
 	}

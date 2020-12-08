@@ -81,6 +81,11 @@ public class ImageProcessing {
 		g.dispose();
 		return b;
 	}
+	
+	public static BufferedImage createEmptyCopy(BufferedImage source) {
+		return new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+	}
+	
 
 	public static boolean hasAlpha(BufferedImage image) {
 		/* These are the Java Image Types
@@ -165,6 +170,7 @@ public class ImageProcessing {
 	///////////////////////////////////////////////////////////////////////////////////////
 	// mask compositing operations
 	//
+	/*
 	public static BufferedImage getCompositeMasked(BufferedImage source, BufferedImage mask, BufferedImage target,  float alpha) {
 		// Simplified version of below that assumes all images are in register
 		return getCompositeMasked( source,  mask, 0, 0,  target,  0,0,  alpha);
@@ -180,20 +186,47 @@ public class ImageProcessing {
 		// then paste the maskedImage onto the target Image
 		return getCompositeImage(maskedImage,  target, x, y, alpha);
 		
-	}
+	}*/
 	
-	public static BufferedImage getMaskedImage(BufferedImage source,  BufferedImage mask, int x, int y) {
+	public static BufferedImage getMaskedImage(BufferedImage source,  BufferedImage mask, int x, int y, int compositeMode) {
+		// AlphaComposite.DST_OUT preserves the parts of source which are overlaid by transparent alpha values
+		// AlphaComposite.DST_IN preserves those parts under the solid parts of the mask
 		BufferedImage source_copy = copyImage(source);
 		Graphics2D g2d= source_copy.createGraphics();
-		// dst_out preserves the parts of source which are overlayed by transparent alpah values
-		// dst_in preserves the solid parts of the mask
-		AlphaComposite src_in = AlphaComposite.getInstance(AlphaComposite.DST_OUT, 1.0f);
+		
+		AlphaComposite src_in = AlphaComposite.getInstance(compositeMode, 1.0f);
 		g2d.setComposite(src_in);
 		g2d.drawImage(mask, x, y, null);
 		
 		g2d.dispose();
 		return source_copy;
 	}
+	
+	
+	public static BufferedImage getMaskedImage(BufferedImage source,  BufferedImage mask, Rect maskRect) {
+		// Mask rect is in pixel coordinates of the source, and can be outside the source
+		// The mask is scaled to the rect, and applied.
+		// Areas outside the mask image rect are wholly masked-out.
+		// the type of mask used is one that preserves the SOLID parts of the underlying image (DST_OUT)
+		
+		int newMaskWidth = (int)maskRect.getWidth();
+		int newMaskHeight = (int)maskRect.getHeight();
+		BufferedImage resizedMask = resizeTo(mask, newMaskWidth, newMaskHeight);
+		
+		// create an empty image the same size as source
+		BufferedImage maskFullSize = createEmptyCopy(source);
+		
+		// paste the mask into it
+		int x = (int)maskRect.left;
+		int y = (int)maskRect.top;
+		compositeImage_ChangeTarget(resizedMask, maskFullSize,  x,  y, 1f);
+		
+		
+		return getMaskedImage( source,  maskFullSize,  0,  0, AlphaComposite.DST_IN);
+	}
+	
+	
+	
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
