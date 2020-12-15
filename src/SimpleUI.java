@@ -138,38 +138,22 @@ public class SimpleUI {
 	
 	
 	PVector canvasCoordToDocSpace(int x, int y) {
-		// the canvas is always set to be the same aspect as the document, so it can therefore calculate the
-		// doc space point 
-		
-		// get the point as normized canvas space ...
-		float nx = x / canvasRect.getWidth();
-		float ny = y / canvasRect.getHeight();
-		
-		PVector normalizedCanvasPoint = new PVector(nx,ny);
 
-		// ... then find where this is within the current view rect
-	    Rect zoomRectDocSpace = parentSurface.theViewControl.getZoomRectDocSpace();	
-	    PVector docSpace = zoomRectDocSpace.interpolate(normalizedCanvasPoint);
-	    return docSpace;
+	    return parentSurface.theViewControl.appWindowCoordinateToDocSpace(x,y);
+	   
 	}
 	
 	PVector docSpaceToCanvasCoord(PVector docSpace) {
 		
-		Rect zoomRectDocSpace = parentSurface.theViewControl.getZoomRectDocSpace();	
-		// this calculates how much you are "through" the rect in x and y
-		PVector normalised = zoomRectDocSpace.norm(docSpace);
 		
-		float nx = (normalised.x * canvasRect.getWidth()) + canvasRect.left;
-		float ny = (normalised.y * canvasRect.getHeight()) + + canvasRect.top;
-		
+		PVector canvasPt = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(docSpace);
+
 		// now clamp them to legal values
-		nx = MOMaths.constrain(nx,  canvasRect.left,  canvasRect.right);
-		ny = MOMaths.constrain(ny,  canvasRect.top,  canvasRect.bottom);
-		
-		
-		
-		return new PVector(nx,ny);
-		
+		//float nx = MOMaths.constrain(canvasPt.x,  canvasRect.left,  canvasRect.right);
+		//float ny = MOMaths.constrain(canvasPt.y,  canvasRect.top,  canvasRect.bottom);
+
+		//return new PVector(nx,ny);
+		return canvasPt;
 	}
 	
 
@@ -178,16 +162,27 @@ public class SimpleUI {
 	public void drawCanvas() {
 		if (canvasRect == null)
 			return;
+		
+		// probably draw the canvas fill colour here
+		
 		drawer.setDrawingStyle(new Color(0, 0, 0, 0), new Color(0, 0, 0, 255), 1);
 		drawer.drawRect(canvasRect.left, canvasRect.top, canvasRect.getWidth(), canvasRect.getHeight());
 		
 		for(DrawnShape ds: canvasOverlayShapes) {
-			drawer.drawDrawnShape(ds);
+			drawShapeToCanvas(ds);
+			//drawer.drawDrawnShape(ds);
 		}
 		
 	}
 	
-	
+	void drawShapeToCanvas(DrawnShape ds) {
+		// converts a doc space shape to a canvas space shape via the view controller then draws it
+		PVector canvasPt1 = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(ds.p1);
+		PVector canvasPt2 = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(ds.p2);
+		DrawnShape viewScaledShape = new DrawnShape();
+		viewScaledShape.setShape(canvasPt1.x, canvasPt1.y, canvasPt2.x, canvasPt2.y, ds.shapeType, ds.style.fillColor, ds.style.strokeColor, ds.style.strokeWeight);
+		drawer.drawDrawnShape(viewScaledShape);
+	}
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// canvas overlay shape methods
 	//
@@ -208,18 +203,17 @@ public class SimpleUI {
 	}
 	
 	void addCanvasOverlayShape(String idName, PVector docPt1, PVector docPt2, String shapeType, Color fillC, Color lineC, int lineWt) {
-		PVector canvasPt1 = docSpaceToCanvasCoord(docPt1);
-		PVector canvasPt2 = docSpaceToCanvasCoord(docPt2);
+		
 		DrawnShape ds = new DrawnShape();
-		ds.setShape(canvasPt1.x, canvasPt1.y, canvasPt2.x, canvasPt2.y, shapeType, fillC, lineC, lineWt);
+		ds.setShape(docPt1.x, docPt1.y, docPt2.x, docPt2.y, shapeType, fillC, lineC, lineWt);
 		
 		addCanvasOverlayShape(ds,idName);
 	}
 	
 	void addCanvasOverlayText(String idName, PVector docPt1, String content,  Color textColor, int txtSz) {
-		PVector canvasPt1 = docSpaceToCanvasCoord(docPt1);
+		
 		DrawnShape ds = new DrawnShape();
-		ds.setTextShape(canvasPt1.x, canvasPt1.y, content, textColor, txtSz);
+		ds.setTextShape(docPt1.x, docPt1.y, content, textColor, txtSz);
 
 		addCanvasOverlayShape(ds,idName);
 	}

@@ -1,9 +1,6 @@
-import java.awt.AlphaComposite;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.awt.image.PixelGrabber;
-import java.util.ArrayList;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -196,32 +193,36 @@ class ImageQuad{
 
 //////////////////////////////////////////////////////////////////////
 // 
-
-// Sprite
-// A sprite is a class which wraps up a Seed, and combines with a BufferedImage
+// ImageSprite combines with a BufferedImage
 // and other data (origin (pivot point), docPoint (also in seed), sizeInScene
 // ImageQuad, it's own random stream
 //
-
+// Mouse organ only really considers one imageSprite at a time, after most decisions
+// have been made about what goes where (e.g. using seeds)
 
 
 public class ImageSprite{
 	
-	Seed seed;
+	
+	// critical (always needed) information
+	PVector docPoint = PVector.ZERO();
 	
 	BufferedImage image;
-	ImageQuad imageQuad;
 	
 	PVector origin = new PVector(0.5f,0.5f);
-	
-	PVector docPoint;
-	
+
 	float sizeInScene = 1; // 
 	
+	// secondary (sometimes needed) information
+	String contentGroupName = "";
+	
+	// for internal workings
+	ImageQuad imageQuad;
 	
 	int bufferWidth; 
 	int bufferHeight;
 	float aspect;
+	
 	QRandomStream qRandomStream;
 	
 	SceneData3D sceneData;
@@ -233,28 +234,6 @@ public class ImageSprite{
 	
 	
 	ImageSprite(BufferedImage im, PVector orig, float sizeInScn){
-		seed = new Seed(new PVector(0,0));
-		
-		init(im,orig,sizeInScn);
-	}
-	
-	
-	ImageSprite(Seed s, BufferedImage im, PVector orig, float sizeInScn) {
-		//System.out.println("ImageSprite constructor sizeInScn " + sizeInScn);
-		initWithSeed( s,  im,  orig, sizeInScn);
-	}
-	
-    
-	
-
-	String toStr() {
-		return "ImageSprite seed:" + seed.toStr() + " own doc pt:" + docPoint + " Image:" + image;
-		
-	}
-	
-	
-	
-	void init(BufferedImage im, PVector orig, float sizeInScn) {
 		
 		image = im;
 		bufferWidth = image.getWidth();
@@ -263,24 +242,25 @@ public class ImageSprite{
 	    origin = orig.copy();
 	    sizeInScene = sizeInScn;
 	    //System.out.println("ImageSprite:init sizeInScene " + sizeInScene);
-	    qRandomStream = new QRandomStream(seed.id);
-	    
+	    //qRandomStream = new QRandomStream(seed.id);
+	    qRandomStream = new QRandomStream();
 	    imageQuad = new ImageQuad(this);
 	}
 	
-	void initWithSeed(Seed s, BufferedImage im, PVector orig, float sizeInScn) {
-		seed = s;
-		docPoint = seed.docPoint.copy();
-		init(im,orig,sizeInScn);
+	
+	String toStr() {
+		//return "ImageSprite seed:" + seed.toStr() + " own doc pt:" + docPoint + " Image:" + image;
+		return "ImageSprite doc pt:" + docPoint + " Image:" + image;
 	}
+	
+	
 	
 	PVector getDocPoint() {
 		return docPoint.copy();
 	}
 	
 	void setDocPoint(PVector p) {
-		seed.docPoint = p.copy();
-		docPoint = seed.docPoint;
+		docPoint = p.copy();
 	}
 	
 	
@@ -324,7 +304,7 @@ public class ImageSprite{
 
 		origin.x = (newX / bufferWidth) + 0.5f;
 		origin.y = (newY / bufferHeight) + 0.5f;
-		PVector newCentre = imageQuad.getCentre();
+		//PVector newCentre = imageQuad.getCentre();
 		imageQuad.applyRotation(degrees, oldCentre);
 		
 	}
@@ -374,18 +354,10 @@ public class ImageSprite{
 	///////////////////////////////////////////////////////////////////////////////////////////
 	
 	
-	
-	boolean seedLayerEquals(String s) {
-		return s.contentEquals(seed.batchName);
-	}
-	
 	boolean contentGroupEquals(String s) {
-		return seed.contentItemDescriptor.contentGroupName.contentEquals(s);
+		return contentGroupName.contentEquals(s);
 	}
 	
-	boolean seedBatchEquals(String s) {
-		return seed.batchName.contentEquals(s);
-	}
 	
 	// needed by the RenderTarget to paste
 	PVector getOriginBufferCoords() {
@@ -403,7 +375,7 @@ public class ImageSprite{
 		
 		// tbd -= a 2d version of this
 		
-		PVector docPt = seed.docPoint;
+		PVector docPt = docPoint.copy();
 		
 		float unit3DatDocPt = sceneData.get3DScale(docPt);
 		float heightDocSpace = sizeInScene*unit3DatDocPt;
@@ -650,7 +622,7 @@ public class ImageSprite{
 		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
 		float scale = (heightInPixels/bufferHeight) * scaleModifier;
 		if(scale > 1) {
-		 System.out.println(seed.contentItemDescriptor.contentGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
+		 System.out.println(contentGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
 		}
 
 		scale(scale,scale);
@@ -659,7 +631,7 @@ public class ImageSprite{
 	
 	float getHeightInRenderTargetPixels(SceneData3D sceneData, RenderTarget renderTarget) {
 		
-		float heightDocSpace = sizeInScene * sceneData.get3DScale(seed.docPoint);
+		float heightDocSpace = sizeInScene * sceneData.get3DScale(docPoint);
 		
 		PVector heightDocSpaceVector = new PVector(0, heightDocSpace);
 

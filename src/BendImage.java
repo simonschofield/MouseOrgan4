@@ -10,7 +10,7 @@ public class BendImage {
     float bendLUT[];
     
     
-    int unnecessary = 4;
+
     
     // bend the image left or right: negative displacementInX bends Left, while positive displacementInX bends right.
     BufferedImage bendImage(BufferedImage source, float bendStart, float displacementInX, float bendHarshness) {
@@ -108,34 +108,28 @@ public class BendImage {
 	    	lutSize = numEntries;
 	    	for(int i = 0; i < lutSize; i++) {
 	    		float p = i/(float)lutSize;
-	    		
-	    		
-	    		
 	    		bendLUT[i]  = bendLine(p,  bendStart,  displacementInX,  bendHarshness);
-	    		
-	    		
-	    		
-	    		
 	    	}
 	    }
-	    
-	    private float  bendLine(float y, float bendStart, float displacementInX, float bendHarshness){
-	    	// given a point on a line v (0..1), create a bend
-	    	// starting at bendStart (0..1), and ending at 1
-	    	// The total displacement in x is displacementInX. Otherwise the result is always in range 0..1, with the final value being 1
-	    	// The bend harshness is the gamma applied to the curve. 1.2 == very gentle curve, 10.0 == very harsh curve
-	    	
-	    	// first, invert the y, so that it bends the top of the image, not the bottom
-	    	y = 1-y;
-	    	if( y < bendStart) return 0;
-	    	  
-	    	float p = MOMaths.norm(y, bendStart, 1.0f);
-	    	  
-	    	float benddist = (float) Math.pow(p, bendHarshness);
 	
-	    	return (benddist*displacementInX);
-	    	}
 	    
+	private float  bendLine(float y, float bendStart, float displacementInX, float bendHarshness){
+    	// given a point on a line v (0..1), create a bend
+    	// starting at bendStart (0..1), and ending at 1
+    	// The total displacement in x is displacementInX. Otherwise the result is always in range 0..1, with the final value being 1
+    	// The bend harshness is the gamma applied to the curve. 1.2 == very gentle curve, 10.0 == very harsh curve
+    	
+    	// first, invert the y, so that it bends the top of the image, not the bottom
+    	y = 1-y;
+    	if( y < bendStart) return 0;
+    	  
+    	float p = MOMaths.norm(y, bendStart, 1.0f);
+    	  
+    	float benddist = (float) Math.pow(p, bendHarshness);
+
+    	return (benddist*displacementInX);
+    	}
+    
 
    
 }

@@ -83,7 +83,12 @@ class DrawnShape{
 	String textContent;
 	int textSize;
 	
+	// so you can store and recover the size of shape
+	PVector p1, p2;
+	
 	void setShape(float x1, float y1, float x2, float y2, String shpType, Color fillC, Color lineC, int lineWt) {
+		p1 = new PVector(x1,y1);
+		p2 = new PVector(x2,y2);
 		float w = x2-x1;
 		float h = y2-y1;
 		switch(shpType) {
@@ -95,6 +100,7 @@ class DrawnShape{
 			}
 			case("ellipse"):{
 				shapeType = shpType;
+				
 				shape = new Ellipse2D.Float(x1,y1, w,h);		
 				break;
 			}

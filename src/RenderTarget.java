@@ -176,8 +176,9 @@ class RenderTarget {
 
 	// these are the pixel dimensions of the output image
 	int bufferWidth, bufferHeight;
-
-	// these are the normalised width and height
+	float longestBufferEdge;
+	
+	// these are the parametrised (0..1) width and height
 	// of the document. The longest edge is set to 1.0
 	float documentWidth, documentHeight;
 
@@ -197,22 +198,17 @@ class RenderTarget {
 
 		bufferedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		
-		
-		
 		bufferWidth = w;
 		bufferHeight = h;
 		graphics2D = bufferedImage.createGraphics();
 		graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		if (bufferWidth > bufferHeight) {
-			documentWidth = 1.0f;
-			documentHeight = (float) bufferHeight / (float) bufferWidth;
-		} else {
-			documentHeight = 1.0f;
-			documentWidth = (float) bufferWidth / (float) bufferHeight;
-		}
-
-
+		longestBufferEdge = Math.max(bufferWidth, bufferHeight);
+		
+		documentWidth = bufferWidth / longestBufferEdge;
+		documentHeight = bufferHeight / longestBufferEdge;
+		
+		
 		shapeDrawer = new ShapeDrawer(graphics2D);
 		
 		coordinateSpaceCoverter = new CoordinateSpaceConverter(w, h, getDocumentAspect());
@@ -404,6 +400,19 @@ class RenderTarget {
 	BufferedImage getCropDocSpace(Rect docSpaceRect) {
 		PVector topLeft = docSpaceToBufferSpace(docSpaceRect.getTopLeft());
 		PVector bottomRight = docSpaceToBufferSpace(docSpaceRect.getBottomRight());
+		Rect bufferSpaceRect = new Rect(topLeft, bottomRight);
+		return getCropBufferSpace( bufferSpaceRect);
+		//int cropX = (int) (topLeft.x);
+		//int cropY = (int) (topLeft.y);
+		//int cropWidth = (int) (bottomRight.x - topLeft.x);
+		//int cropHeight = (int) (bottomRight.y - topLeft.y);
+		//return bufferedImage.getSubimage(cropX, cropY, cropWidth, cropHeight);
+
+	}
+	
+	BufferedImage getCropBufferSpace(Rect bufferSpaceRect) {
+		PVector topLeft = bufferSpaceRect.getTopLeft();
+		PVector bottomRight = bufferSpaceRect.getBottomRight();
 		int cropX = (int) (topLeft.x);
 		int cropY = (int) (topLeft.y);
 		int cropWidth = (int) (bottomRight.x - topLeft.x);
@@ -428,15 +437,9 @@ class RenderTarget {
 	//
 	//
 	PVector docSpaceToBufferSpace(PVector docPt) {
-		float bx = 0;
-		float by = 0;
-		if (getDocumentAspect() > 1) {
-			bx = docPt.x * bufferWidth;
-			by = docPt.y * bufferWidth;
-		} else {
-			bx = docPt.x * bufferHeight;
-			by = docPt.y * bufferHeight;
-		}
+	
+		float bx = docPt.x * longestBufferEdge;
+		float by = docPt.y * longestBufferEdge;
 		return new PVector(bx, by);
 	}
 
@@ -446,19 +449,9 @@ class RenderTarget {
 	}
 
 	PVector bufferSpaceToDocSpace(int bx, int by) {
-		// calculate the document space position of the pixel within the buffer
-		float docX = 0;
-		float docY = 0;
-		if (getDocumentAspect() > 1) {
-			// landscape
-			docX = (float) bx / (float) bufferWidth;
-			docY = (float) by / (float) bufferWidth;
-		} else {
-			// portrait or square
-			docY = (float) by / (float) bufferHeight;
-			docX = (float) bx / (float) bufferHeight;
-		}
-
+		
+		float docX = bx/longestBufferEdge;
+		float docY = by/longestBufferEdge;
 		return new PVector(docX, docY);
 	}
 	
@@ -522,6 +515,14 @@ class RenderTarget {
 		PVector bufpt = docSpaceToBufferSpace(docSpacePoint);
 		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, size, size);
 		
+	}
+	
+	void drawLine(PVector start, PVector end, Color c, int thickness) {
+		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
+		shapeDrawer.setDrawingStyle(ca, ca, thickness);
+		PVector bufStart = docSpaceToBufferSpace(start);
+		PVector bufEnd = docSpaceToBufferSpace(end);
+		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
 	
 	

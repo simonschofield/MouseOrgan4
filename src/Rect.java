@@ -24,7 +24,13 @@ class Rect{
     setRect(other.left, other.top, other.right, other.bottom);
   }
   
-  
+  void setWithDimensions(float x, float y, float w, float h) {
+	  left = x;
+	  top = y;
+	  right = left + w;
+	  bottom = top + h;
+	  
+  }
   
   Rect copy(){
     return new Rect(left, top, right, bottom);
@@ -66,6 +72,15 @@ class Rect{
 	  bottom = top+h; 
   }
   
+  void setCentreTo(float x, float y) {
+	  float w = getWidth();
+	  float h = getHeight();
+	  left = x - w/2;;
+	  top = y - h/2;
+	  right = left+w;
+	  bottom = top+h; 
+  }
+  
   Rect getNormalised(){
     // this function makes the rect a square, by lengthening the shortest edge
     // this is useful for certain image-related operations, where the x and y
@@ -89,6 +104,8 @@ class Rect{
     float cy = this.top + (this.bottom - this.top)/2.0f;
     return new PVector(cx,cy);
   }
+  
+  
   
   boolean isPointInside(PVector p){
     // inclusive of the boundries
@@ -210,6 +227,13 @@ class Rect{
 	  if (ty2 > ry2) ty2 = ry2;
  
 	  return new Rect(tx1, ty1, tx2, ty2);
+  }
+  
+  static PVector map(PVector p, Rect inThis, Rect toThis) {
+	  float px = MOMaths.map(p.x, inThis.left, inThis.right, toThis.left, toThis.right);
+	  float py = MOMaths.map(p.y, inThis.top, inThis.bottom, toThis.top, toThis.bottom);
+	  
+	  return new PVector(px,py);
   }
   
   

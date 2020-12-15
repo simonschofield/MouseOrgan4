@@ -38,16 +38,16 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	private float globalSessionScale = 1.0f;
 
 	RenderTarget theDocument;
-	ViewControl theViewControl = new ViewControl();
+	ViewController theViewControl = new ViewController();
 	SimpleUI theUI;
 
 	// size of the window for the application
 	int windowWidth;
 	int windowHeight;
 
-	// the rectangles for the view onto the document image
-	Rect canvasRect_ViewAll;
-	Rect canvasRect_Zoomed;
+	// the fixed UI rectangle for the view onto the document image
+	private Rect viewDisplayRect;
+	
 	
 	private Timer updateTimer;
 
@@ -58,7 +58,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	boolean userSessionContentLoaded = false;
 	int userSessionUpdateCount = 0;
 	// this is the path to the user's session folder
-	private String userSessionPath = "C:\\simon\\Artwork\\MouseOrgan4\\field 01\\";
+	private String userSessionPath = "";
 
 	// this is the frequency with which the canvas is updated
 	// in respect to userSessionUpdates. 50 has been arrived at through trial and
@@ -94,17 +94,19 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		theDocument.setRenderBufferSize((int) (dw * globalSessionScale), (int) (dh * globalSessionScale));
 		
 		setWindowSize();
-		setCanvasSize();
+		setViewDisplayRegionSize();
 		updateTimer = new Timer(DELAY, this);
 		updateTimer.start();
 		buildUI();
 
-		theViewControl.setDocumentAspect(theDocument.getDocumentAspect());
-		secondsTimer = new SecondsTimer();
+		
 		
 		GlobalObjects.theDocument = theDocument;
 		GlobalObjects.theSurface = this;
 		
+		
+		theViewControl.init();
+		secondsTimer = new SecondsTimer();
 	}
 
 	void setWindowSize() {
@@ -112,8 +114,8 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		int w = (int) screenSize.getWidth();
 		int h = (int) screenSize.getHeight();
 
-		windowWidth = w - 100;
-		windowHeight = h - 50;
+		windowWidth = w - 300;
+		windowHeight = h - 100;
 
 		parentApp.setTitle("Mouse Organ 4");
 		parentApp.setSize(windowWidth, windowHeight);
@@ -124,19 +126,14 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		this.setFocusable(true);
 	}
 
-	void setCanvasSize() {
-		int canvasMaxWidth = windowWidth - 50;
-		int canvasMaxHeight = windowHeight - 50;
-
-		float possibleScaleW = canvasMaxWidth / (float) theDocument.getBufferWidth();
-		float possibleScaleH = canvasMaxHeight / (float) theDocument.getBufferHeight();
-		float scaledDisplayImageScale = Math.min(possibleScaleW, possibleScaleH);
-
-		int canvasWidth = (int) (theDocument.getBufferWidth() * scaledDisplayImageScale);
-		int canvasHeight = (int) (theDocument.getBufferHeight() * scaledDisplayImageScale);
-		System.out.println("creating canvas " + canvasWidth + canvasHeight);
-		canvasRect_ViewAll = new Rect(100, 0, 100 + canvasWidth, canvasHeight);
-		canvasRect_Zoomed = new Rect(100,0,100+canvasMaxWidth, canvasMaxHeight);
+	void setViewDisplayRegionSize() {
+		
+		 
+		viewDisplayRect = new Rect(100, 5, windowWidth - 20,  windowHeight - 45);
+	}
+	
+	Rect getViewDisplayRegion() {
+		return viewDisplayRect.copy();
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -150,7 +147,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		theUI.addMenu("File", 0, 2, itemList);
 		theUI.addToggleButton("Pause", 0, 200);
 
-		theUI.addCanvas((int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(), (int) canvasRect_ViewAll.getHeight());
+		theUI.addCanvas((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(), (int) viewDisplayRect.getHeight());
 
 	}
 
@@ -191,7 +188,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	// other general purpose methods
 	//
 	void setCanvasBackgroundColor(Color c) {
-		theViewControl.setViewBackgroundColor(c);
+		//theViewControl.setViewBackgroundColor(c);
 	}
 
 	public int windowWidth() {
@@ -233,25 +230,27 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		Graphics2D g2d = (Graphics2D) g.create();
 
 		// this where we need to get the portion of the image defined by theViewControl
-		Rect zoomRect = theViewControl.getZoomRectDocSpace();
-		g2d.setColor(theViewControl.getViewBackgroundColor());
-		g2d.fillRect((int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(),
-				(int) canvasRect_ViewAll.getHeight());
+		Rect zoomRect = theViewControl.getCurrentViewCropRect();
+		//g2d.setColor(theViewControl.getViewBackgroundColor());
+		g2d.setColor(Color.WHITE);
+		g2d.fillRect((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(),
+				(int) viewDisplayRect.getHeight());
 
 		if (alternateView != null) {
-			g2d.drawImage(alternateView, (int) canvasRect_ViewAll.left, (int) canvasRect_ViewAll.top, (int) canvasRect_ViewAll.getWidth(),
-					(int) canvasRect_ViewAll.getHeight(), null);
+			g2d.drawImage(alternateView, (int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(),
+					(int) viewDisplayRect.getHeight(), null);
 		} else {
-			Rect currentCanvasRect = getCurrentCanvasRect();
-			g2d.drawImage(theDocument.getCropDocSpace(zoomRect), (int) currentCanvasRect.left, (int) currentCanvasRect.top,
-					(int) currentCanvasRect.getWidth(), (int) currentCanvasRect.getHeight(), null);
+			theViewControl.updateDisplay(g2d);
+			//Rect currentCanvasRect = getCurrentCanvasRect();
+			//g2d.drawImage(theDocument.getCropDocSpace(zoomRect), (int) currentCanvasRect.left, (int) currentCanvasRect.top,
+			//		(int) currentCanvasRect.getWidth(), (int) currentCanvasRect.getHeight(), null);
 		}
 		g2d.dispose();
 
 	}
 	
 	Rect getCurrentCanvasRect() {
-		 return canvasRect_ViewAll;
+		 return viewDisplayRect;
 		//if(theViewControl.getScale()==1.0f) return canvasRect_ViewAll;
 		//return canvasRect_Zoomed;
 	}
@@ -429,8 +428,8 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	public void keyPressed(KeyEvent e) {
 
 		//System.out.println("keyPressed");
-		theViewControl.keyboardZoom(e);
-		System.out.println("zoom scale = " + theViewControl.getScale());
+		theViewControl.keyboardViewInput(e);
+		System.out.println("zoom scale = " + theViewControl.getCurrentScale());
 		canvasUpdateFrequency = 1;
 	}
 

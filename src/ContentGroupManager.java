@@ -503,8 +503,10 @@ class ImageContentGroup extends DirectoryImageGroup {
 
 		float world3Dheight = getSizeInScene();
 		//System.out.println("gImageSprite getSprite() world3Dheight " + world3Dheight);
-		ImageSprite sprite = new ImageSprite(seed, getImage(n), spriteOrigin.copy(), world3Dheight);
-
+		ImageSprite sprite = new ImageSprite(getImage(n), spriteOrigin.copy(), world3Dheight);
+		sprite.setDocPoint(seed.docPoint);
+		sprite.qRandomStream.seed = seed.id;
+		sprite.contentGroupName = seed.contentItemDescriptor.contentGroupName;
 		return sprite;
 	}
 	
@@ -520,7 +522,7 @@ class ImageContentGroup extends DirectoryImageGroup {
 
 		float world3Dheight = getSizeInScene();
 		ImageSprite sprite = new ImageSprite(getImage(num), spriteOrigin.copy(), world3Dheight);
-
+		sprite.contentGroupName = this.groupName;
 		return sprite;
 	}
 
