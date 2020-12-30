@@ -6,12 +6,12 @@ import java.util.ArrayList;
 // DirectoryItemScanner 
 // abstract DirectoryItemGroup class. 
 // deals with collecting the names of a type of item (.png, .svg etc.) within the specified directory
-abstract class DirectoryItemScanner {
+class DirectoryItemScanner {
 
 	String directoryPath;
 
-	ArrayList<String> contentGroupNameList = new ArrayList<String>();
-	ArrayList<String> contentGroupShortNameList = new ArrayList<String>();
+	ArrayList<String> directoryContentPathAndNamesList = new ArrayList<String>();
+	ArrayList<String> directoryContentShortNameList = new ArrayList<String>();
 
 	public DirectoryItemScanner(String targetDirectory) {
 		init(targetDirectory);
@@ -23,11 +23,11 @@ abstract class DirectoryItemScanner {
 	}
 
 	ArrayList<String> getShortNameList() {
-		return contentGroupShortNameList;
+		return directoryContentShortNameList;
 	}
 
 	String getShortNameOfItem(int n) {
-		return contentGroupShortNameList.get(n);
+		return directoryContentShortNameList.get(n);
 	}
 	
     int getNumFileTypeInTargetDirectory(String fileStrEndsWith,  String fileStrContains) {
@@ -107,29 +107,7 @@ abstract class DirectoryItemScanner {
 		return false;
 	}
 	
-	/*
-	boolean checkDirectoryExist(String foldername) {
-
-		File targetFolder = new File(foldername);
-		if (targetFolder.exists())
-			return true;
-		return false;
-
-	}
 	
-	boolean createDirectory(String foldername) {
-		File targetFolder = new File(foldername);
-		if (targetFolder.exists()) return true;
-		return targetFolder.mkdirs();
-	}*/
-	
-	
-	
-
-	// abstract methods
-	abstract void loadContent();
-
-	abstract int getNumItems();
 
 }
 
@@ -155,24 +133,25 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 		// TODO Auto-generated constructor stub
 	}
 	
-	void loadContent() {
-		loadContent(directoryPath, fileStringEndsWith, fileStringContains);
+	
+	void loadImages() {
+		loadImages(directoryPath, fileStringEndsWith, fileStringContains);
 	}
 
-	void loadContent(String dir, String fileStrEndsWith, String fileStrContains) {
+	void loadImages(String dir, String fileStrEndsWith, String fileStrContains) {
 		ArrayList<String> allNames = getFilesInDirectory(dir, fileStrEndsWith, fileStrContains);
 		int numImage = allNames.size();
-		loadContent(dir, fileStrEndsWith, fileStrContains, 0, numImage - 1, 1 , new Rect());
+		loadImages(dir, fileStrEndsWith, fileStrContains, 0, numImage - 1, 1 , new Rect());
 	}
 	
 	
 	
 	
-	void loadContent(int fromIndex, int toIndex, float preScale, Rect cropRect) {
-		loadContent(directoryPath, fileStringEndsWith, fileStringContains, fromIndex, toIndex, preScale, cropRect);
+	void loadImages(int fromIndex, int toIndex, float preScale, Rect cropRect) {
+		loadImages(directoryPath, fileStringEndsWith, fileStringContains, fromIndex, toIndex, preScale, cropRect);
 	}
 
-	void loadContent(String dir, String fileStrEndsWith, String fileStrContains, int fromIndex, int toIndex, float preScale, Rect cropRect) {
+	void loadImages(String dir, String fileStrEndsWith, String fileStrContains, int fromIndex, int toIndex, float preScale, Rect cropRect) {
 
 		ArrayList<String> allNames = getFilesInDirectory(dir, fileStrEndsWith, fileStrContains);
 		ArrayList<String> allSortNames = getShortFileNamesInDirectory(dir, fileStrEndsWith, fileStrContains);
@@ -195,10 +174,10 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 			widthExtrema.addExtremaCandidate(img.getWidth());
 			heightExtrema.addExtremaCandidate(img.getHeight());
 			
-			contentGroupNameList.add(pathAndName);
+			directoryContentPathAndNamesList.add(pathAndName);
 			String shortName = allSortNames.get(i);
-			contentGroupShortNameList.add(shortName);
-			System.out.println("added image " + pathAndName + " shortname " + shortName);
+			directoryContentShortNameList.add(shortName);
+			//System.out.println("added image " + pathAndName + " shortname " + shortName);
 			imageList.add(img);
 		}
 		System.out.println("loaded " + directoryPath + " width etrema " + widthExtrema.toStr() + " height etrema " + heightExtrema.toStr());
@@ -217,7 +196,7 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 
 	BufferedImage getImage(String shortName) {
 		int n = 0;
-		for (String thisName : contentGroupShortNameList) {
+		for (String thisName : directoryContentShortNameList) {
 			if (thisName.contentEquals(shortName))
 				return imageList.get(n);
 			n++;

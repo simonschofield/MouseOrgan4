@@ -23,9 +23,9 @@ class Seed implements Serializable{
 	int id;
 	int layerNumber = 0;
 	
-	ContentItemDescription contentItemDescriptor;
+	ImageSampleDescription contentItemDescriptor;
 	
-	public Seed(PVector p, ContentItemDescription cis) {
+	public Seed(PVector p, ImageSampleDescription cis) {
 		docPoint = p;
 		contentItemDescriptor = cis;
 	}
@@ -57,7 +57,7 @@ class Seed implements Serializable{
 // Normally, the use does not have to explicitly create SeedBatches, but interfaces directly wit the SeedBatchManager
 public class SeedBatch{
 	String batchName = "";
-	ContentItemSelector contentItemSelector;
+	ImageSampleSelector contentItemSelector;
 	PointGenerator pointGenerator;
 	boolean isVisible = true;
 	ArrayList<Seed> seeds = new ArrayList<Seed>();
@@ -80,7 +80,7 @@ public class SeedBatch{
 		}
 	}
 	
-	ArrayList<Seed> generateSeeds(ContentItemSelector cc, PointGenerator pg){
+	ArrayList<Seed> generateSeeds(ImageSampleSelector cc, PointGenerator pg){
 		contentItemSelector = cc;
 		pointGenerator = pg;
 		if(pointGenerator.getNumItems()==0) {
@@ -89,7 +89,7 @@ public class SeedBatch{
 		while(pointGenerator.areItemsRemaining()) {
 			Seed seed = pointGenerator.getNextSeed();
 			seed.batchName = this.batchName;
-			seed.contentItemDescriptor = contentItemSelector.selectContentItemDescription(seed.docPoint);
+			seed.contentItemDescriptor = contentItemSelector.selectImageSampleDescription(seed.docPoint);
 			seed.id = uniqueSeedIDCounter++;
 			seeds.add(seed);
 		}
@@ -142,7 +142,7 @@ public class SeedBatch{
 class SeedBatchManager {
 	// important classes necessary for independently generating new seed layers
 	Surface theSurface;
-	ContentGroupManager contentManager;
+	ImageSampleGroupManager contentManager;
 	SceneData3D sceneData3D;
 
 	//
@@ -153,7 +153,7 @@ class SeedBatchManager {
 	ArrayList<Seed> collatedSeeds = new ArrayList<Seed>();
 	
 
-	SeedBatchManager(Surface srf, ContentGroupManager cgm, SceneData3D sd3d) {
+	SeedBatchManager(Surface srf, ImageSampleGroupManager cgm, SceneData3D sd3d) {
 		theSurface = srf;
 		contentManager = cgm;
 		sceneData3D = sd3d;
@@ -233,7 +233,7 @@ class SeedBatchManager {
 	// SeedBatch generation methods. The do rely on the globals
 	// contentManager, seedBatchManager, and scenedat3d 
 	//
-	void createSeedBatch(Boolean makeNewSeeds, String batchName, ContentItemSelector cis,
+	void createSeedBatch(Boolean makeNewSeeds, String batchName, ImageSampleSelector cis,
 			String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
 			int pointDistRSeed) {
 		
@@ -261,7 +261,7 @@ class SeedBatchManager {
 			int cisRSeed, String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
 			int pointDistRSeed) {
 		
-		ContentItemSelector cis = new ContentItemSelector(contentManager, cisRSeed);
+		ImageSampleSelector cis = new ImageSampleSelector(contentManager, cisRSeed);
 		int numContentGroups = contentGroupNames.length;
 		for (int n = 0; n < numContentGroups; n++) {
 			cis.addContentItemProbability(contentGroupNames[n], contentGroupProbs[n]);
@@ -286,7 +286,7 @@ class SeedBatchManager {
 			String namePointDisImage, float pointDisRLo, float pointDisRHi, float pointDisThreshold,
 			int pointDistRSeed) {
 		
-		ContentItemSelector cis = new ContentItemSelector(contentManager, cisRSeed);
+		ImageSampleSelector cis = new ImageSampleSelector(contentManager, cisRSeed);
 		cis.addContentItemProbability(contentGroupName, 1);
 		createSeedBatch( makeNewSeeds,  batchName,  cis, namePointDisImage,  pointDisRLo,  pointDisRHi,  pointDisThreshold, pointDistRSeed);
 	}

@@ -2,16 +2,9 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class Scene3DHelper {
-	static Surface theSurface = null;
-	static SceneData3D sceneData3D = null;
+class SceneHelper {
+	static Surface theSurface = GlobalObjects.theSurface;
 	
-	static void initialise(Surface s, SceneData3D sd3d) {
-		theSurface = s;
-		sceneData3D = sd3d;
-		add3DMeasuringToolSlider();
-		makeRenderImageMenu();
-	}
 	
 	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount) {
 		randomRotateScaleSprite( sprite,  scaleAmt,  rotAmount, true);
@@ -42,37 +35,6 @@ public class Scene3DHelper {
 		
 	}
 	
-	static float addWave(ImageSprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise) {
-		sceneData3D.setCurrentRenderImage(waveImageName);
-		float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
-		
-		QRandomStream ranStream = sprite.qRandomStream;
-		degreesLeft = ranStream.perturb(degreesLeft, noise);
-		degreesRight = ranStream.perturb(degreesRight, noise);
-		
-		float rotationDegrees = MOMaths.lerp(v,-degreesLeft,degreesRight);
-		
-		//System.out.println("rotation " + v + " " + rotationDegrees);
-		if(rotationDegrees > 0) sprite.image = ImageProcessing.mirrorImage(sprite.image, true, false);
-		sprite.rotate(rotationDegrees);
-		return rotationDegrees;
-	}
-	
-	////
-	static float addLighting(ImageSprite sprite, String lightingImage, float dark, float bright, float noise) {
-		sceneData3D.setCurrentRenderImage(lightingImage);
-		float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
-		
-		if(noise > 0.001) {
-			
-		QRandomStream ranStream = sprite.qRandomStream;
-		v = ranStream.perturb(v, noise);
-		}
-		
-		float brightness = MOMaths.lerp(v, dark, bright);
-		addLighting( sprite,  brightness );
-		return brightness;
-	}
 	
 	static void addLighting(ImageSprite sprite, float brightness) {
 		// when the brightness is low, so is the contrast
@@ -105,26 +67,10 @@ public class Scene3DHelper {
 		
 	}
 	
-	
-	static float getLerpDistanceEffect(ImageSprite sprite, float distMinEffect, float distMaxEffect) {
-		float dist = sceneData3D.getDistance(sprite.getDocPoint());
-		float val = MOMaths.norm(dist, distMinEffect, distMaxEffect);
-		return MOMaths.constrain(val, 0, 1);
-	}
-	
-	static float getRampedDistanceEffect(ImageSprite sprite, float distMinEffectNear, float distMaxEffect, float distMinEffectFar) {
-		float dist = sceneData3D.getDistance(sprite.getDocPoint());
-		if(dist < distMaxEffect) {
-			return getLerpDistanceEffect( sprite,  distMinEffectNear,  distMaxEffect);
-		}
+
+	ImageSprite createImageSprite(PVector docPos, String imageContentGroupName, ImageSampleGroupManager contentManager) {
 		
-		return getLerpDistanceEffect( sprite,  distMinEffectFar,  distMaxEffect);
-		
-	}
-	
-	
-	ImageSprite createImageSprite(PVector docPos, String imageContentGroupName, ContentGroupManager contentManager) {
-		ContentItemDescription cis = new ContentItemDescription(imageContentGroupName,1);
+		ImageSampleDescription cis = new ImageSampleDescription(imageContentGroupName,1);
 		
 		Seed s = new  Seed(docPos,cis);
 		s.batchName = "";
@@ -134,10 +80,73 @@ public class Scene3DHelper {
 		return sprite;
 	}
 	
+}
+	
 	/////////////////////////////////////////////////////////////////////////////
 	// ui stuff based around 3D data
 	//
 	/////////////////////////////////////////////////////////////////////////////
+	
+public class Scene3DHelper {
+		static Surface theSurface = GlobalObjects.theSurface;
+		static SceneData3D sceneData3D = null;
+		
+		static void initialise(SceneData3D sd3d) {
+			sceneData3D = sd3d;
+			add3DMeasuringToolSlider();
+			makeRenderImageMenu();
+		}
+		
+		static float getLerpDistanceEffect(ImageSprite sprite, float distMinEffect, float distMaxEffect) {
+			float dist = sceneData3D.getDistance(sprite.getDocPoint());
+			float val = MOMaths.norm(dist, distMinEffect, distMaxEffect);
+			return MOMaths.constrain(val, 0, 1);
+		}
+		
+		static float getRampedDistanceEffect(ImageSprite sprite, float distMinEffectNear, float distMaxEffect, float distMinEffectFar) {
+			float dist = sceneData3D.getDistance(sprite.getDocPoint());
+			if(dist < distMaxEffect) {
+				return getLerpDistanceEffect( sprite,  distMinEffectNear,  distMaxEffect);
+			}
+			
+			return getLerpDistanceEffect( sprite,  distMinEffectFar,  distMaxEffect);
+			
+		}
+		
+		static float addWave(ImageSprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise) {
+			sceneData3D.setCurrentRenderImage(waveImageName);
+			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
+			
+			QRandomStream ranStream = sprite.qRandomStream;
+			degreesLeft = ranStream.perturb(degreesLeft, noise);
+			degreesRight = ranStream.perturb(degreesRight, noise);
+			
+			float rotationDegrees = MOMaths.lerp(v,-degreesLeft,degreesRight);
+			
+			//System.out.println("rotation " + v + " " + rotationDegrees);
+			if(rotationDegrees > 0) sprite.image = ImageProcessing.mirrorImage(sprite.image, true, false);
+			sprite.rotate(rotationDegrees);
+			return rotationDegrees;
+		}
+		
+		////
+		static float addLighting(ImageSprite sprite, String lightingImage, float dark, float bright, float noise) {
+			sceneData3D.setCurrentRenderImage(lightingImage);
+			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
+			
+			if(noise > 0.001) {
+				
+			QRandomStream ranStream = sprite.qRandomStream;
+			v = ranStream.perturb(v, noise);
+			}
+			
+			float brightness = MOMaths.lerp(v, dark, bright);
+			SceneHelper.addLighting( sprite,  brightness );
+			return brightness;
+		}
+		
+	
+	
 	static void handleMyUIEvents(UIEventData uied) {
 		
 		if (uied.eventIsFromWidget("SceneData View")) {

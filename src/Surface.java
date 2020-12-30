@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -32,7 +33,17 @@ class GlobalObjects{
 //
 @SuppressWarnings("serial")
 abstract class Surface extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
-
+	
+	enum UserSessionState {
+		  INITIALISE,
+		  LOAD,
+		  UPDATE,
+		  FINALISE,
+		  FINISHED
+		}
+	
+	UserSessionState theUserSessionState = UserSessionState.INITIALISE;
+	
 	JFrame parentApp = null;
 
 	private float globalSessionScale = 1.0f;
@@ -50,12 +61,10 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	
 	
 	private Timer updateTimer;
-
 	private final int DELAY = 1;
 	SecondsTimer secondsTimer;
 
 	boolean userSessionPaused = false;
-	boolean userSessionContentLoaded = false;
 	int userSessionUpdateCount = 0;
 	// this is the path to the user's session folder
 	private String userSessionPath = "";
@@ -76,39 +85,17 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		parentApp = papp;
 		parentApp.add(this);
 
-		// needs to be called here as it sets the window size
-		initialiseUserSession();
-
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addKeyListener(this);
-	}
-
-	/////////////////////////////////////////////////////////////////////
-	// Initialisation methods
-	//
-
-	public void initialiseDocument(int dw, int dh, float sessionScale) {
-		globalSessionScale = sessionScale;
-		theDocument = new RenderTarget();
-		theDocument.setRenderBufferSize((int) (dw * globalSessionScale), (int) (dh * globalSessionScale));
-		
-		setWindowSize();
-		setViewDisplayRegionSize();
-		updateTimer = new Timer(DELAY, this);
-		updateTimer.start();
-		buildUI();
-
-		
-		
-		GlobalObjects.theDocument = theDocument;
 		GlobalObjects.theSurface = this;
 		
-		
-		theViewControl.init();
-		secondsTimer = new SecondsTimer();
-	}
+		setWindowSize();
 
+		initialiseUserSession();
+		theUserSessionState = UserSessionState.LOAD;
+	}
+	
 	void setWindowSize() {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int w = (int) screenSize.getWidth();
@@ -124,14 +111,74 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		parentApp.pack();
 		parentApp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setFocusable(true);
-	}
-
-	void setViewDisplayRegionSize() {
 		
-		 
 		viewDisplayRect = new Rect(100, 5, windowWidth - 20,  windowHeight - 45);
 	}
+
+
+	/////////////////////////////////////////////////////////////////////
+	// Initialisation methods
+	//
+
+	public void initialiseDocument(int dw, int dh, float sessionScale) {
+		globalSessionScale = sessionScale;
+		theDocument = new RenderTarget();
+		GlobalObjects.theDocument = theDocument;
+		theDocument.setRenderBufferSize((int) (dw * globalSessionScale), (int) (dh * globalSessionScale));
+		
+		//setWindowSize();
+		
+		updateTimer = new Timer(DELAY, this);
+		updateTimer.start();
+		
+		theViewControl.init();
+		buildUI();
+		secondsTimer = new SecondsTimer();
+	}
 	
+	private void updateUserSession_All() {
+		// this is called by the Action Thread of the app via
+		// the automatically called actionPerformed method below
+		
+		//if(theUserSessionState == UserSessionState.INITIALISE) {
+		//	initialiseUserSession();
+		//	theUserSessionState = UserSessionState.LOAD;
+		//	return;
+		//}
+		
+		if(theUserSessionState == UserSessionState.LOAD) {
+			loadContentUserSession();
+			theUserSessionState = UserSessionState.UPDATE;
+		}
+		
+		if(theUserSessionState == UserSessionState.UPDATE) {
+			if (!userSessionPaused) {
+				updateUserSession();
+				userSessionUpdateCount++;
+			}
+		}
+		
+		if(theUserSessionState == UserSessionState.FINALISE) {
+				finishUserSession();
+				canvasUpdateFrequency = 1;
+				theUserSessionState = UserSessionState.FINISHED;
+		}
+		
+		if (theUserSessionState == UserSessionState.FINISHED) {
+			// do nothing
+		}
+
+	}
+	
+	void endUserSession() {
+		// call this if you need to end the user session
+		// It automatically called userSessionFinishe() method once, then
+		// goes into idle state
+		theUserSessionState = UserSessionState.FINALISE;
+		keepAwake.setActive(false);
+	}
+	
+
 	Rect getViewDisplayRegion() {
 		return viewDisplayRect.copy();
 	}
@@ -143,10 +190,10 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 		theUI = new SimpleUI(this);
 
-		String[] itemList = { "file open", "file save", "quit" };
-		theUI.addMenu("File", 0, 2, itemList);
+		String[] itemList = { "save render", "quit" };
+		
 		theUI.addToggleButton("Pause", 0, 200);
-
+		theUI.addMenu("File", 0, 2, itemList);
 		theUI.addCanvas((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(), (int) viewDisplayRect.getHeight());
 
 	}
@@ -160,12 +207,16 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		}
 		
 		
-		if (uied.menuItem.contentEquals("file save")) {
+		if (uied.menuItem.contentEquals("save render")) {
 			theUI.openFileSaveDialog("");
 		}
 
 		if (uied.eventIsFromWidget("fileSaveDialog")) {
 			theDocument.saveRenderToFile(uied.fileSelection);
+		}
+		
+		if (uied.menuItem.contentEquals("quit")) {
+			System.exit(0);
 		}
 
 		if (uied.eventIsFromWidget("Pause")) {
@@ -188,7 +239,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	// other general purpose methods
 	//
 	void setCanvasBackgroundColor(Color c) {
-		//theViewControl.setViewBackgroundColor(c);
+		theViewControl.setViewDisplayRectBackgroundColor(c);
 	}
 
 	public int windowWidth() {
@@ -229,31 +280,16 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 		Graphics2D g2d = (Graphics2D) g.create();
 
-		// this where we need to get the portion of the image defined by theViewControl
-		Rect zoomRect = theViewControl.getCurrentViewCropRect();
-		//g2d.setColor(theViewControl.getViewBackgroundColor());
-		g2d.setColor(Color.WHITE);
-		g2d.fillRect((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(),
-				(int) viewDisplayRect.getHeight());
-
 		if (alternateView != null) {
 			g2d.drawImage(alternateView, (int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(),
 					(int) viewDisplayRect.getHeight(), null);
 		} else {
-			theViewControl.updateDisplay(g2d);
-			//Rect currentCanvasRect = getCurrentCanvasRect();
-			//g2d.drawImage(theDocument.getCropDocSpace(zoomRect), (int) currentCanvasRect.left, (int) currentCanvasRect.top,
-			//		(int) currentCanvasRect.getWidth(), (int) currentCanvasRect.getHeight(), null);
+			if(theViewControl!=null) theViewControl.updateDisplay(g2d);
 		}
 		g2d.dispose();
 
 	}
 	
-	Rect getCurrentCanvasRect() {
-		 return viewDisplayRect;
-		//if(theViewControl.getScale()==1.0f) return canvasRect_ViewAll;
-		//return canvasRect_Zoomed;
-	}
 
 	@Override
 	public void paintComponent(Graphics g) {
@@ -261,14 +297,17 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		// only update the canvas every canvasUpdateFrequency updates
 		if (userSessionUpdateCount % canvasUpdateFrequency == 0) {
 			super.paintComponent(g);
-			updateCanvasDisplay(g);
+			if(theUI!=null) updateCanvasDisplay(g);
 		}
 
 		// update the ui
 		Graphics2D g2d = (Graphics2D) g.create();
-		theUI.setGraphicsContext(g2d);
-
-		theUI.update();
+		
+		if(theUI!=null) {
+			theUI.setGraphicsContext(g2d);
+			theUI.update();
+		}
+		
 		keepAwake.update();
 		g2d.dispose();
 		this.setFocusable(true);
@@ -276,43 +315,12 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-
 		// this calls your session code
+		// and then updates the graphics
 		updateUserSession_All();
 		repaint();
 	}
 
-	private void updateUserSession_All() {
-
-		if (userSessionContentLoaded == false) {
-			loadContentUserSession();
-			userSessionContentLoaded = true;
-		}
-
-		if (!userSessionPaused) {
-			updateUserSession();
-			userSessionUpdateCount++;
-		}
-
-	}
-	
-	
-	//////////////////////////////////////////////////////////////////
-	// call this to tidy up
-	void userSessionFinished() {
-		keepAwake.setActive(false);
-	}
-
-	//////////////////////////////////////////////////////////////////
-	// canvas overlay drawing, maybe should be moved to UI class
-	//
-
-	
-	void drawOverlayRect(Rect r) {
-		//theUI.clearCanvasOverlayShapes();
-		//theUI.addCanvasOverlayShape(r.getTopLeft(), r.getBottomRight(), "rect", new Color(0, 0, 0, 0), Color.gray, 2);
-
-	}
 
 	////////////////////////////////////////////////////////////////////////
 	// user-session related methods
@@ -325,44 +333,35 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	String getUserSessionPath() {
 		return userSessionPath;
 	}
+	
+	String getUserSessionDirectoryName() {
+		// returns the final part of the path, so if
+		// C://aaa///bbb//ccc is the user session path,
+		// it returns "ccc"
+		File file = new File(userSessionPath);
+		return file.getName().toString();
+		
+	}
+	
+	String getSessionTimeStampedFileName(String enhancement) {
+		String sessionName = getUserSessionDirectoryName();
+		String fullPathAndFileName = userSessionPath + sessionName;
+		return MOUtils.getDateStampedImageFileName(fullPathAndFileName + enhancement);
+	}
 
 	////////////////////////////////////////////////////////////////////////
 	// overridden functions in the user's project
 	// - i.e. YOUR CODE
 
-	/*
-	public void initialiseUserSession() {
-		// overridden in UserSession sub class
-
-	}
-
-	public void loadContentUserSession() {
-		// overridden in UserSession sub class
-	}
-
-	public void updateUserSession() {
-		// overridden in UserSession sub class
-
-	}
-	
-
-	void handleCanvasMouseEvent(UIEventData uied) {
-		// System.out.println("canvas mouse event " + mouseEventType + " detected at " +
-		// canvasX + " " + canvasY);
-
-	}
-
-	void handleUserSessionUIEvent(UIEventData uied) {
-		// System.out.println("user session event ");
-
-	}
-	*/
 	
 	abstract void initialiseUserSession();
 
 	abstract void loadContentUserSession();
 
 	abstract void updateUserSession();
+	
+	// optional
+	void finishUserSession() {}
 	
 	abstract void handleCanvasMouseEvent(UIEventData uied);
 
@@ -374,14 +373,14 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		// TODO Auto-generated method stub
-		theUI.handleMouseEvent(e, "mouseDragged");
+		if(theUI!=null) theUI.handleMouseEvent(e, "mouseDragged");
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
 		//System.out.println(e.toString());
-		theUI.handleMouseEvent(e, "mouseMoved");
+		if(theUI!=null) theUI.handleMouseEvent(e, "mouseMoved");
 	}
 
 	@Override
@@ -389,20 +388,20 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		// TODO Auto-generated method stub
 		//System.out.println(e.toString());
 		this.setFocusable(true);
-		theUI.handleMouseEvent(e, "mouseClicked");
+		if(theUI!=null) theUI.handleMouseEvent(e, "mouseClicked");
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
 		// TODO Auto-generated method stub
-		theUI.handleMouseEvent(e, "mousePressed");
+		if(theUI!=null) theUI.handleMouseEvent(e, "mousePressed");
 		canvasUpdateFrequency = 1;
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
-		theUI.handleMouseEvent(e, "mouseReleased");
+		if(theUI!=null) theUI.handleMouseEvent(e, "mouseReleased");
 		canvasUpdateFrequency = 50;
 	}
 
@@ -429,7 +428,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 		//System.out.println("keyPressed");
 		theViewControl.keyboardViewInput(e);
-		System.out.println("zoom scale = " + theViewControl.getCurrentScale());
+		//System.out.println("zoom scale = " + theViewControl.getCurrentScale());
 		canvasUpdateFrequency = 1;
 	}
 

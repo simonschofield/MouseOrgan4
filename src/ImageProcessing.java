@@ -450,6 +450,40 @@ public class ImageProcessing {
 	// color transforms
 	//
 	
+	public static BufferedImage colorTransform(BufferedImage img, String function, float p1, float p2, float p3) {
+		
+			System.out.println("in colorAdjustAll . Function = " + function);
+			
+			switch (function) {
+			case "hsv": {
+				return ImageProcessing.adjustHSV(img, p1, p2, p3);
+			}
+			case "brightnessNoClip": {
+				return ImageProcessing.adjustBrightnessNoClip(img, p1);
+			
+			}
+			case "brightness": {
+				return ImageProcessing.adjustBrightness(img, p1);
+			
+			}
+			case "contrast": {
+				return ImageProcessing.adjustContrast(img, p1);
+			
+			}
+			case "levels": {
+				return ImageProcessing.adjustLevels(img, p1, p2, p3);
+			
+			}
+			case "setDominantHue":{
+				return ImageProcessing.setDominantHue(img, p1);
+			}
+			default:
+				return img;
+			}
+			
+
+	}
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// LUT-based point functions
 	//

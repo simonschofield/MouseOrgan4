@@ -27,6 +27,17 @@ public class MOUtils {
 		return wholeFileName;
 	}
 	
+	static String getFileExtension(String filename) {
+		// filename can be with or without path
+		File file = new File(filename);
+	    String name = file.getName();
+	    int lastIndexOf = name.lastIndexOf(".");
+	    if (lastIndexOf == -1) {
+	        return ""; // empty extension
+	    }
+	    return name.substring(lastIndexOf);
+	}
+	
 	static boolean checkDirectoryExist(String foldername) {
 		File targetFolder = new File(foldername);
 		if (targetFolder.exists())

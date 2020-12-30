@@ -11,6 +11,7 @@ public class PointGenerator extends CollectionIterator{
 	// the mask image is set to black/white specifiying where points may be
 	// generated
 	BufferedImage maskImage;
+	float maskThreshold = 0.5f;
 	CoordinateSpaceConverter maskImageCoordinateSpaceConverter;
 
 	// the list of points eventiallu calculated
@@ -91,7 +92,12 @@ public class PointGenerator extends CollectionIterator{
 	
 	
 
-	
+	void perturbPoints(float a) {
+		for(PVector p : points) {
+		p.x += randomStream.randRangeF(-a, a);
+		p.y += randomStream.randRangeF(-a, a);
+		}
+	}
 	
 	
 	PVector getRandomDocSpacePoint() {
@@ -111,6 +117,10 @@ public class PointGenerator extends CollectionIterator{
 		}
 
 	}
+	
+	void setMaskThreshold(float v) {
+		maskThreshold = v;
+	}
 
 	boolean permittedByMaskImage(PVector p) {
 		if(maskImage==null) return true;
@@ -120,9 +130,13 @@ public class PointGenerator extends CollectionIterator{
 		boolean hasAlpha = ImageProcessing.hasAlpha(maskImage);
 		float t = ImageProcessing.packedIntToVal01(c, hasAlpha);
 
-		if (t < 0.5f) return false;
+		if (t < maskThreshold) return false;
 		
 		return true;
+	}
+	
+	void appendPoints(ArrayList<PVector> otherPoints) {
+		points.addAll(otherPoints);
 	}
 
 	@Override
@@ -172,13 +186,9 @@ class PointGenerator_RadialPack extends PointGenerator {
 	ArrayList<PVector> points3d = new ArrayList<PVector>();
 	SceneData3D sceneData;
 
-	
-	
 	// this is the number of attempts a point can try to make before the packing
 	// gives up
 	int attemptsCounter = 300;
-
-	
 
 	public PointGenerator_RadialPack(float documentAspect) {
 		super(documentAspect);
@@ -415,7 +425,7 @@ class PointGenerator_RadialPack extends PointGenerator {
 		
 		float t = getBitmapValue01( docPt,  bitmap);
 		
-		// so what you want is the densist distribution at white, the thinnest distribution at the cuttoff
+		// so what you want is the densest distribution at white, the thinnest distribution at the cuttoff
 		t = MOMaths.lerp(t,lowDistributionThreshold,1.0f);
 		float thisSurfaceArea = MOMaths.lerp(t, surfaceAreaBlack, surfaceAreaWhite);
 		// System.out.println("tone = " + t + " radius "+ r);
@@ -433,85 +443,3 @@ class PointGenerator_RadialPack extends PointGenerator {
 	
 }// end of PointGenerator_RadialPack class
 
-/////////////////////////////////////////////////////////////////////////////////
-//for session iteration - getting points generated one after another
-//
-abstract class CollectionIterator {
-	int itemIteratorCounter = 0;
-	
-	boolean justfinishedFlag = false;
-	boolean isFinishedFlag = false;
-	
-	boolean areItemsRemaining() {
-		if (getNumItemsRemaining() <= 0)
-			return false;
-		return true;
-	}
-	
-	
-	void reset() {
-		itemIteratorCounter = 0;
-		justfinishedFlag = false;
-		isFinishedFlag = false;
-	}
-	
-	boolean isJustFinished() {
-		// returns true just once upon finishing the iteration
-		if(areItemsRemaining()) return false;
-		if(justfinishedFlag == false) {
-			justfinishedFlag = true;
-			isFinishedFlag = true;
-			return true;
-		}
-		return false;
-	}
-	
-	boolean isFinished() {
-		return isFinishedFlag;
-	}
-
-	int getNumItemsRemaining() {
-		return getNumItems() - itemIteratorCounter;
-	}
-
-	Object getNextItem() {
-		if (itemIteratorCounter >= getNumItems()) {
-			isFinishedFlag = true;
-			return null;
-		}
-		return getItem(itemIteratorCounter++);
-	}
-	
-	void advanceIterator(int n) {
-		setIterator(itemIteratorCounter +  n);
-	}
-	
-	void setIterator(int n) {
-		if(n < 0) { 
-				itemIteratorCounter = 0;
-				return;
-		}
-		if(n >= getNumItems() ) {
-			itemIteratorCounter = getNumItems();
-			return;
-		}
-		itemIteratorCounter = n;
-		if(areItemsRemaining()) justfinishedFlag = false;
-	}
-	
-	
-	int getIteratorCounter() {
-		return itemIteratorCounter;
-	}
-
-	void resetItemIterator() {
-		itemIteratorCounter = 0;
-		justfinishedFlag = false;
-		isFinishedFlag = false;
-	}
-	
-	abstract int getNumItems();
-	
-	abstract Object getItem(int n);
-
-}

@@ -1,8 +1,12 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Map;
+
 import javax.swing.JFileChooser;
 
 
@@ -58,6 +62,13 @@ public class SimpleUI {
 	}
 
 	void setGraphicsContext(Graphics2D g2d) {
+		
+		// this bit of weird code anti-aliases the text
+		Map<?, ?> desktopHints =  (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
+		if (desktopHints != null) {
+			g2d.setRenderingHints(desktopHints);
+		}
+		
 		drawer = new ShapeDrawer(g2d);
 		Widget.setParent(this);
 	}
@@ -70,10 +81,22 @@ public class SimpleUI {
 	}
 
 	void handleMouseEvent(String mouseEventType, int x, int y) {
-		checkForCanvasEvent(mouseEventType, x, y);
+		
+		// this avoids any concurrency issues if a button press results in a removal of a widget
+		// also, widgets get priority over canvas events (open menus over the canvas region)
+		Widget receivingWidget = null;
 		for (Widget w : widgetList) {
-			w.handleMouseEvent(mouseEventType, x, y);
+			if(w.isInMe(x, y)) {
+				receivingWidget = w;
+			}	
+	    }
+		if(receivingWidget != null) {
+			receivingWidget.handleMouseEvent(mouseEventType, x, y);
+			return;
 		}
+		
+		checkForCanvasEvent(mouseEventType, x, y);
+		
 
 	}
 
@@ -122,8 +145,8 @@ public class SimpleUI {
 		canvasRect = new Rect(x, y, x + w, y + h);
 	}
 
-	public void checkForCanvasEvent(String mouseEventType, int x, int y){
-       if(canvasRect==null) return;
+	public boolean checkForCanvasEvent(String mouseEventType, int x, int y){
+       if(canvasRect==null) return false;
        if(   canvasRect.isPointInside(x,y)) {
          UIEventData uied = new UIEventData(UIManagerName, "canvas" , "canvas", mouseEventType,x,y);
          uied.canvasX = (int) (x - canvasRect.left);
@@ -132,8 +155,9 @@ public class SimpleUI {
 	     //the document space location of the canvas event
 	     uied.docSpacePt = canvasCoordToDocSpace(uied.canvasX, uied.canvasY);
          handleUIEvent(uied);
+         return true;
        }
-
+       return false;
     }
 	
 	
@@ -164,15 +188,37 @@ public class SimpleUI {
 			return;
 		
 		// probably draw the canvas fill colour here
-		
+		// draw over stuff surrounding the canvas
 		drawer.setDrawingStyle(new Color(0, 0, 0, 0), new Color(0, 0, 0, 255), 1);
 		drawer.drawRect(canvasRect.left, canvasRect.top, canvasRect.getWidth(), canvasRect.getHeight());
+		
 		
 		for(DrawnShape ds: canvasOverlayShapes) {
 			drawShapeToCanvas(ds);
 			//drawer.drawDrawnShape(ds);
 		}
 		
+		
+		
+	}
+	
+	
+	void drawUISurrounds() {
+		// now draw "surrounds"
+		int appWidth = parentSurface.windowWidth();
+		int appHeight = parentSurface.windowHeight();
+
+	    
+	    // left, top, right, bottom 
+		drawer.setDrawingStyle(new Color(200, 200, 200, 255), new Color(0, 0, 0, 0), 0);
+		drawer.drawRect(0,0, canvasRect.left, appHeight);
+		drawer.drawRect(canvasRect.left,0, canvasRect.getWidth(), canvasRect.top);
+		drawer.drawRect(canvasRect.right,0, appWidth-canvasRect.left, appHeight);
+		drawer.drawRect(canvasRect.left, canvasRect.bottom,  canvasRect.getWidth(), appHeight-canvasRect.getHeight());
+	   
+		// fine line round the outside of canvas rect
+		drawer.setDrawingStyle(new Color(0, 0, 0, 0), new Color(0, 0, 0, 255), 1);
+		drawer.drawRect(canvasRect.left, canvasRect.top, canvasRect.getWidth(), canvasRect.getHeight());
 	}
 	
 	void drawShapeToCanvas(DrawnShape ds) {
@@ -400,6 +446,7 @@ public class SimpleUI {
 		}
 
 		drawCanvas();
+		drawUISurrounds();
 		for (Widget w : widgetList) {
 			w.drawMe(drawer);
 		}
@@ -876,7 +923,7 @@ class Menu extends Widget {
 
 		drawer.drawRect(locX, locY, widgetWidth, widgetHeight);
 		drawer.setFillColor(SimpleUITextColor);
-		drawer.setTextStyle(textSize);
+		drawer.setTextStyle(6);
 
 		drawer.drawText(this.UILabel, locX + textPad, locY + textPad + textSize, widgetWidth, widgetHeight);
 
@@ -939,9 +986,9 @@ class Menu extends Widget {
 			rollover = true;
 		}
 
-		// println("here2 " + mouseEventType);
+		
 		if (mouseEventType.equals("mousePressed") && visible == false) {
-			// println("mouseclick in title of " + title);
+			
 			parentManager.setMenusOff();
 			visible = true;
 			rollover = true;
@@ -971,11 +1018,14 @@ class Menu extends Widget {
 	public boolean isInMe(int x, int y) {
 		if (isInTitle(x, y)) {
 			// println("mouse in title of " + title);
+			
 			return true;
 		}
 		if (isInItems(x, y)) {
+			
 			return true;
 		}
+		visible = false;
 		return false;
 	}
 

@@ -1,4 +1,7 @@
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 
 // This is an improved view controller that uses the whole window and is not limited to the aspect of the document
@@ -45,7 +48,7 @@ public class ViewController {
 	private PVector theDocumentCentre;
 	Rect theDocumentRect;
 	
-	
+	Color viewDisplayRectBackgroundColor = Color.WHITE;
 	
 	public ViewController() {
 
@@ -68,6 +71,11 @@ public class ViewController {
 
 	Rect getCurrentViewCropRect() {
 		return currentViewCropRect.copy();
+	}
+	
+	void setViewDisplayRectBackgroundColor(Color c) {
+		viewDisplayRectBackgroundColor = c;
+		
 	}
 
 	// this is called frequently by the surface to update the display to the new zoom/pan
@@ -99,7 +107,7 @@ public class ViewController {
 			// do the correct mapping for the fitToWindow set up
 			PVector pixelInImageBuffer = Rect.map(viewDisplayRectPoint,  fitToWindowCentreRect, theDocumentRect);
 			PVector docSpace = GlobalObjects.theDocument.bufferSpaceToDocSpace(pixelInImageBuffer);
-			System.out.println("window click x " + x + " y " + y + "doc space point is " + docSpace.toStr());
+			//System.out.println("window click x " + x + " y " + y + "doc space point is " + docSpace.toStr());
 			return docSpace;
 		}
 		
@@ -150,6 +158,14 @@ public class ViewController {
 			
 			fitToWindowCentreRect.setWithDimensions( viewDisplayRect.left + halfDifferenceInWidth, viewDisplayRect.top, scaledImageWidth, viewDisplayRect.getHeight());
 		}
+		
+		g2d.setColor(new Color(230,230,230));
+		g2d.fillRect((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(),
+				(int) viewDisplayRect.getHeight());
+		
+		g2d.setColor(viewDisplayRectBackgroundColor);
+		g2d.fillRect((int) fitToWindowCentreRect.left, (int) fitToWindowCentreRect.top,
+				(int) fitToWindowCentreRect.getWidth(), (int) fitToWindowCentreRect.getHeight());
 
 		g2d.drawImage(GlobalObjects.theDocument.getCropBufferSpace(currentViewCropRect),
 				(int) fitToWindowCentreRect.left, (int) fitToWindowCentreRect.top,
@@ -158,8 +174,55 @@ public class ViewController {
 
 
 	void showZoom(Graphics2D g2d) {
+		
+		g2d.setColor(viewDisplayRectBackgroundColor);
+		g2d.fillRect((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(), (int) viewDisplayRect.getHeight());
+		
 		g2d.drawImage(GlobalObjects.theDocument.getCropBufferSpace(currentViewCropRect), (int) viewDisplayRect.left,
 				(int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(), (int) viewDisplayRect.getHeight(), null);
+	}
+	
+	void showActualSize() {
+		// width of screen
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		float screenWidth =  (float)screenSize.getWidth();
+		
+
+		// physical width of viewDisplayRect window in inches
+		float physicalWidthOfScreen = 23.5f;
+		float physicalWidthOfViewDisplayRect = physicalWidthOfScreen * (viewDisplayRect.getWidth()/screenWidth);
+		
+		// so a full-scale image would be shown at 300 dpi
+		// an image shown at SessionScale of 0.5 would show 300*0.5 pixels
+		float fullSizeDPI = 300 * GlobalObjects.theSurface.getSessionScale();
+		float pixelsShownAtThisWidthForFullSize = physicalWidthOfViewDisplayRect*fullSizeDPI;
+		
+		// now work out the scale required so that
+		// currentViewCropRect.width is set to equal pixelsShownAtThisWidthForFullSize
+		// Under "portrait" fit the total width of the image is shown in the viewDisplayRect at a  scale of 1
+		// under "landscape" fit the scale is set to 1 to show the whole height of the image, so the scale for the correct dpi needs to be increased by * aspect of image
+		// However, the result would be the same whatever aspect the image is
+		// so we don't need to take this into consideration
+		float scale = pixelsShownAtThisWidthForFullSize / theDocumentWidth;
+		if (theDocumentAspect > viewDisplayRectAspect) scale *= theDocumentAspect;
+		
+		// work out the zoomSetting that would be needed for this scale
+		int zoomSettingCounter = 1;
+		float testScale = 1f;
+		while(testScale > scale) {
+			zoomSettingCounter++;
+			testScale /= 1.25;
+			if(zoomSettingCounter > 1000) {
+				System.out.println("showActualSize something went wrong");
+				return;
+			}
+		}
+		
+		zoomSetting = zoomSettingCounter;
+		currentZoom = 1/scale;
+		currentViewCropRect = calculateViewCropRect(currentXPan,currentYPan);
+		
+		System.out.println("showActualSize set zoom to" + currentZoom + " zoomSettings to " + zoomSetting);
 	}
 
 	float getCurrentScale() {
@@ -252,6 +315,11 @@ public class ViewController {
 		// println("keyboard zoom", theKey, theKeyCode);
 		// - + zoom keys
 
+		if (e.getKeyChar() == 'a') {
+			// this is the - key (zoom out)
+			showActualSize();
+		}
+		
 		if (e.getKeyChar() == '-') {
 			// this is the - key (zoom out)
 			setZoomPlusMinus(-1);
@@ -264,22 +332,22 @@ public class ViewController {
 
 		if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 			// track left
-			shiftXY(-0.2f, 0f);
+			shiftXY(0.2f, 0f);
 		}
 
 		if (e.getKeyCode() == KeyEvent.VK_UP) {
 			// track up
-			shiftXY(0f, -0.2f);
+			shiftXY(0f, 0.2f);
 		}
 
 		if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
 			// track right
-			shiftXY(0.2f, 0);
+			shiftXY(-0.2f, 0);
 		}
 
 		if (e.getKeyCode() == KeyEvent.VK_DOWN) {
 			// track down
-			shiftXY(0f, 0.2f);
+			shiftXY(0f, -0.2f);
 		}
 
 		System.out.println(

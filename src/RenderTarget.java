@@ -38,7 +38,7 @@ class PermittedPasteArea {
 	String rightEdgeAction = "CROP";
 	String bottomEdgeAction = "CROP";
 	
-	ImageContentGroup permittedPasteAreaCropImages;
+	ImageSampleGroup permittedPasteAreaCropImages;
 	RenderTarget theRenderTarget;
 	
 	
@@ -47,7 +47,7 @@ class PermittedPasteArea {
 		setPermittedPasteRectWithNomalizedCoords( 0,  0,  1,  1);
 	}
 	
-	void set(float left, float top, float right, float bottom, String edgeAction,  ImageContentGroup bespokeCropImage) {
+	void set(float left, float top, float right, float bottom, String edgeAction,  ImageSampleGroup bespokeCropImage) {
 		set( left,  top,  right,  bottom, edgeAction,edgeAction,edgeAction,edgeAction,  bespokeCropImage);
 	}
 	
@@ -59,7 +59,7 @@ class PermittedPasteArea {
 		return isActive;
 	}
 	
-	void set(float left, float top, float right, float bottom, String leftAction, String topAction, String rightAction, String bottomAction, ImageContentGroup bespokeCropImage){
+	void set(float left, float top, float right, float bottom, String leftAction, String topAction, String rightAction, String bottomAction, ImageSampleGroup bespokeCropImage){
 		setPermittedPasteRectWithNomalizedCoords( left,  top,  right,  bottom);
 		leftEdgeAction = leftAction;
 		topEdgeAction = topAction;
@@ -290,7 +290,7 @@ class RenderTarget {
 	//
 	
 	// old legacy way of setting margins
-	void setPermittedPasteArea(float left, float top, float right, float bottom, boolean applyCrop, ImageContentGroup cropImages) {
+	void setPermittedPasteArea(float left, float top, float right, float bottom, boolean applyCrop, ImageSampleGroup cropImages) {
 		// NO_CROP : Don't do anything, just allow the image to be pasted, also default action
 		// EXCLUDE_OVERLAPPING : do not paste any sprite overlapping an edge with this setting
 		// CROP : Crop any sprite to the hard edge
@@ -306,7 +306,7 @@ class RenderTarget {
 	}
 	
 	
-	void setPermittedPasteArea(float left, float top, float right, float bottom, String leftAct, String topAct, String rightAct, String bottomAct, ImageContentGroup cropImages) {
+	void setPermittedPasteArea(float left, float top, float right, float bottom, String leftAct, String topAct, String rightAct, String bottomAct, ImageSampleGroup cropImages) {
 		// NO_CROP : Don't do anything, just allow the image to be pasted, also default action
 		// EXCLUDE_OVERLAPPING : do not paste any sprite overlapping an edge with this setting
 		// CROP : Crop any sprite to the hard edge
@@ -422,9 +422,26 @@ class RenderTarget {
 	}
 
 	void saveRenderToFile(String pathAndFilename) {
+		
+		// check to see if extension exists
+		String ext = MOUtils.getFileExtension(pathAndFilename);
+		String extensionChecked = pathAndFilename;
+		if(ext.contentEquals("")) {
+			extensionChecked = pathAndFilename + ".png";
+		}
+		
+		// check to see if extension is correct
+		ext = MOUtils.getFileExtension(extensionChecked);
+		if(ext.contentEquals(".png") || ext.contentEquals(".PNG")) {
+			// OK
+		} else {
+			System.out.println("RenderTarget:saveRenderToFile file extesion is wrong - " + ext);
+			return;
+		}
+		
 		try {
 			// retrieve image
-			File outputfile = new File(pathAndFilename);
+			File outputfile = new File(extensionChecked);
 			ImageIO.write(bufferedImage, "png", outputfile);
 		} catch (IOException e) {
 			// do nothing
