@@ -88,10 +88,11 @@ class SceneHelper {
 	/////////////////////////////////////////////////////////////////////////////
 	
 public class Scene3DHelper {
-		static Surface theSurface = GlobalObjects.theSurface;
+		static Surface theSurface = null;
 		static SceneData3D sceneData3D = null;
 		
 		static void initialise(SceneData3D sd3d) {
+			theSurface = GlobalObjects.theSurface;
 			sceneData3D = sd3d;
 			add3DMeasuringToolSlider();
 			makeRenderImageMenu();
@@ -215,6 +216,8 @@ public class Scene3DHelper {
 		float textY1 = endPt.y;
 		float textY2 = endPt.y + (0.1f);
 		
+		
+		// theUI.addCanvasOverlayShape("mouseDot", uied.docSpacePt, radiusOffset, "ellipse", new Color(127, 0, 0, 255), Color.gray, 1);
 		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
 		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance,  Color.blue, 20);

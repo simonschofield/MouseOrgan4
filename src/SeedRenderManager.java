@@ -90,7 +90,10 @@ class SeedRenderLayer extends CollectionIterator{
 	@Override
 	Object getItem(int n) {
 		// TODO Auto-generated method stub
-		return layerSeeds.get(n);
+		if(n < getNumItems()) {
+			return layerSeeds.get(n);
+		}
+		return null;
 	}
 	
 	boolean isFinished() {
@@ -212,6 +215,7 @@ public class SeedRenderManager{
 			if(moreLayers == false) {
 				System.out.println("SeedRenderManager: Finished rendering all layers");
 				isFinishedAllLayersFlag = true;
+				return null;
 			}
 		}
 		

@@ -119,6 +119,7 @@ public class ViewController {
 	
 	PVector docSpaceToAppWindowCoordinate(PVector docSpacePt) {
 		// used by the SimpleUI interface canvas to draw overlay items to the viewDisplayRect
+		
 		PVector pixelInImageBuffer = GlobalObjects.theDocument.docSpaceToBufferSpace(docSpacePt);
 		if (zoomSetting == 0) {
 			return Rect.map(pixelInImageBuffer, theDocumentRect, fitToWindowCentreRect);
@@ -330,22 +331,22 @@ public class ViewController {
 			setZoomPlusMinus(1);
 		}
 
-		if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+		if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
 			// track left
 			shiftXY(0.2f, 0f);
 		}
 
-		if (e.getKeyCode() == KeyEvent.VK_UP) {
+		if (e.getKeyCode() == KeyEvent.VK_DOWN) {
 			// track up
 			shiftXY(0f, 0.2f);
 		}
 
-		if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+		if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 			// track right
 			shiftXY(-0.2f, 0);
 		}
 
-		if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+		if (e.getKeyCode() == KeyEvent.VK_UP) {
 			// track down
 			shiftXY(0f, -0.2f);
 		}

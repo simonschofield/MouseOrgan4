@@ -58,7 +58,7 @@ class Seed implements Serializable{
 public class SeedBatch{
 	String batchName = "";
 	ImageSampleSelector contentItemSelector;
-	PointGenerator pointGenerator;
+	//PointGenerator pointGenerator;
 	boolean isVisible = true;
 	ArrayList<Seed> seeds = new ArrayList<Seed>();
 	int uniqueSeedIDCounter = 0;
@@ -82,7 +82,7 @@ public class SeedBatch{
 	
 	ArrayList<Seed> generateSeeds(ImageSampleSelector cc, PointGenerator pg){
 		contentItemSelector = cc;
-		pointGenerator = pg;
+		PointGenerator pointGenerator = pg;
 		if(pointGenerator.getNumItems()==0) {
 			pointGenerator.generatePoints();
 		}
@@ -240,7 +240,10 @@ class SeedBatchManager {
 		SeedBatch seedBatchBiome1 = new SeedBatch(batchName);
 
 		if (makeNewSeeds) {
-			PointGenerator_RadialPack pointField = getPointGenerator(namePointDisImage, pointDisRLo, pointDisRHi,
+			//PointGenerator_RadialPack pointField = getPointGenerator(namePointDisImage, pointDisRLo, pointDisRHi,
+			//		pointDisThreshold, pointDistRSeed);
+			
+			PointGenerator_RadialPack3D pointField = getPointGenerator3D(namePointDisImage, pointDisRLo, pointDisRHi,
 					pointDisThreshold, pointDistRSeed);
 
 			seedBatchBiome1.generateSeeds(cis, pointField);
@@ -291,12 +294,23 @@ class SeedBatchManager {
 		createSeedBatch( makeNewSeeds,  batchName,  cis, namePointDisImage,  pointDisRLo,  pointDisRHi,  pointDisThreshold, pointDistRSeed);
 	}
 
-	PointGenerator_RadialPack getPointGenerator(String namePointDisImage, float pointDisRLo, float pointDisRHi,
+	PointGenerator_RadialPack3D getPointGenerator(String namePointDisImage, float pointDisRLo, float pointDisRHi,
 			float pointDisThreshold, int pointDistRSeed) {
 		sceneData3D.setCurrentRenderImage(namePointDisImage);
 		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage();
-		PointGenerator_RadialPack pointField = new PointGenerator_RadialPack(pointDistRSeed,
-				theSurface.theDocument.getDocumentAspect(), sceneData3D); // rseed, doc aspect
+		PointGenerator_RadialPack3D pointField = new PointGenerator_RadialPack3D(pointDistRSeed, sceneData3D); 
+
+		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage());
+		pointField.setPackingRadius(pointDisRLo, pointDisRHi, pointDisThreshold, pointDistributionImage);
+		return pointField;
+	}
+	
+	
+	PointGenerator_RadialPack3D getPointGenerator3D(String namePointDisImage, float pointDisRLo, float pointDisRHi,
+			float pointDisThreshold, int pointDistRSeed) {
+		sceneData3D.setCurrentRenderImage(namePointDisImage);
+		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage();
+		PointGenerator_RadialPack3D pointField = new PointGenerator_RadialPack3D(pointDistRSeed, sceneData3D); // rseed, doc aspect
 
 		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage());
 		pointField.setPackingRadius(pointDisRLo, pointDisRHi, pointDisThreshold, pointDistributionImage);

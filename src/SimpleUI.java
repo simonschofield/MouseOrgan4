@@ -194,8 +194,7 @@ public class SimpleUI {
 		
 		
 		for(DrawnShape ds: canvasOverlayShapes) {
-			drawShapeToCanvas(ds);
-			//drawer.drawDrawnShape(ds);
+			drawCanvasOverlayShape(ds);
 		}
 		
 		
@@ -221,14 +220,7 @@ public class SimpleUI {
 		drawer.drawRect(canvasRect.left, canvasRect.top, canvasRect.getWidth(), canvasRect.getHeight());
 	}
 	
-	void drawShapeToCanvas(DrawnShape ds) {
-		// converts a doc space shape to a canvas space shape via the view controller then draws it
-		PVector canvasPt1 = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(ds.p1);
-		PVector canvasPt2 = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(ds.p2);
-		DrawnShape viewScaledShape = new DrawnShape();
-		viewScaledShape.setShape(canvasPt1.x, canvasPt1.y, canvasPt2.x, canvasPt2.y, ds.shapeType, ds.style.fillColor, ds.style.strokeColor, ds.style.strokeWeight);
-		drawer.drawDrawnShape(viewScaledShape);
-	}
+	
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// canvas overlay shape methods
 	//
@@ -249,11 +241,12 @@ public class SimpleUI {
 	}
 	
 	void addCanvasOverlayShape(String idName, PVector docPt1, PVector docPt2, String shapeType, Color fillC, Color lineC, int lineWt) {
-		
+		//System.out.println("addShape idName" + idName + " docPt1 " + docPt1 + " docPt2 " + docPt2 + " shapeType " + shapeType );
 		DrawnShape ds = new DrawnShape();
 		ds.setShape(docPt1.x, docPt1.y, docPt2.x, docPt2.y, shapeType, fillC, lineC, lineWt);
 		
 		addCanvasOverlayShape(ds,idName);
+		
 	}
 	
 	void addCanvasOverlayText(String idName, PVector docPt1, String content,  Color textColor, int txtSz) {
@@ -270,7 +263,18 @@ public class SimpleUI {
 	}
 	
 
-	
+	void drawCanvasOverlayShape(DrawnShape ds) {
+		// converts a doc space shape to a canvas space shape via the view controller then draws it
+		PVector canvasPt1 = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(ds.p1);
+		PVector canvasPt2 = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(ds.p2);
+		DrawnShape viewScaledShape = new DrawnShape();
+		if(ds.shapeType.contentEquals("text")) {
+			viewScaledShape.setTextShape(canvasPt1.x, canvasPt1.y, ds.textContent, ds.style.fillColor, ds.textSize);
+		} else {
+			viewScaledShape.setShape(canvasPt1.x, canvasPt1.y, canvasPt2.x, canvasPt2.y, ds.shapeType, ds.style.fillColor, ds.style.strokeColor, ds.style.strokeWeight);
+		}
+		drawer.drawDrawnShape(viewScaledShape);
+	}
 	
 	////////////////////////////////////////////////////////////////////////////
 	// widget creation

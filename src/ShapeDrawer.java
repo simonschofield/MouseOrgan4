@@ -80,7 +80,7 @@ class DrawnShape{
 	DrawingStyle style = new DrawingStyle();
 	
 	PVector textLocation;
-	String textContent;
+	String textContent = "";
 	int textSize;
 	
 	// so you can store and recover the size of shape
@@ -113,6 +113,17 @@ class DrawnShape{
 		style.setStyle(fillC, lineC, lineWt); 
 	}
 	
+	void setTextShape(float x1, float y1, String content, Color fillC, int txtSz) {
+		p1 = new PVector(x1,y1);
+		p2 = new PVector(x1,y1);
+		textLocation = new PVector(x1,y1);
+		shapeType = "text";
+		textContent = content;
+		textSize = txtSz;
+		style.setFillColor(fillC);
+	}
+	
+	
 	void setID(String id) {
 		idName = id;
 	}
@@ -121,13 +132,8 @@ class DrawnShape{
 		return idName.contentEquals(id);
 	}
 	
-	void setTextShape(float x1, float y1, String content, Color fillC, int txtSz) {
-		textLocation = new PVector(x1,y1);
-		shapeType = "text";
-		textContent = content;
-		textSize = txtSz;
-		style.setFillColor(fillC);
-	}
+	
+	
 }
 
 class ShapeDrawer{

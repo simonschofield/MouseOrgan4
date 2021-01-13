@@ -13,18 +13,16 @@ public class ApplicationFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-
-        EventQueue.invokeLater(new Runnable() {
+    	
+    	Runnable runnableApp = new Runnable() {
             @Override
             public void run() {
-
-            	// size of window and image
-            	//
-            	
             	ApplicationFrame ex = new ApplicationFrame();
                 ex.setVisible(true);
             }
-        });
+        };
+        
+        EventQueue.invokeLater(runnableApp);
     }
 
 	

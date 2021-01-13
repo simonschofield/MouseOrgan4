@@ -308,6 +308,7 @@ class RenderTarget {
 	
 	void setPermittedPasteArea(float left, float top, float right, float bottom, String leftAct, String topAct, String rightAct, String bottomAct, ImageSampleGroup cropImages) {
 		// NO_CROP : Don't do anything, just allow the image to be pasted, also default action
+		// TBD: a crop that allows the whole to be pasted, but only if th start point is inside the PPA
 		// EXCLUDE_OVERLAPPING : do not paste any sprite overlapping an edge with this setting
 		// CROP : Crop any sprite to the hard edge
 		// BESPOKE_CROP : Apply a bespoke crop to a sprite overlapping this edge
@@ -352,6 +353,12 @@ class RenderTarget {
 		String cropDecision = permittedPasteArea.cropEdgeDecision(overlapReport);
 		//System.out.println("cropDecision " + cropDecision);
 		if( cropDecision.contentEquals("EXCLUDE") ) return;
+		
+		if( cropDecision.contentEquals("NO_CROP") ) {
+			pasteImage(sprite.image, r.getTopLeft(),  alpha);
+			return;
+		}
+		
 		//System.out.println("here 3");
 		//if( permittedPasteAreaClass.leftEdgeAction.contentEquals("EXCLUDE") ) return;
 		// if you get this far, 
@@ -454,7 +461,7 @@ class RenderTarget {
 	//
 	//
 	PVector docSpaceToBufferSpace(PVector docPt) {
-	
+		
 		float bx = docPt.x * longestBufferEdge;
 		float by = docPt.y * longestBufferEdge;
 		return new PVector(bx, by);
