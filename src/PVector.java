@@ -688,10 +688,7 @@ public class PVector implements Serializable{
 		return angle;
 	}
 
-	@Deprecated
-	public float heading2D() {
-		return heading();
-	}
+	
 
 	/**
 	 * ( begin auto-generated from PVector_rotate.xml )
@@ -877,6 +874,8 @@ public class PVector implements Serializable{
 	public PVector scale(float sx, float sy, float sz) {
 		return new PVector(x*sx,y*sy,z*sz);
 	}
+	
+	public float getZ() { return z; }
 	
 	
 }

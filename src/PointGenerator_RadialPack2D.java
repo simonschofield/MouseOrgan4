@@ -1,5 +1,7 @@
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Comparator;
 ////////////////////////////////////////////////////////////////////////////
 //This class will return a list of random points packed to a specified radius
 //the algorithm keeps going until it fails to find a new packing point after a number of attempts.
@@ -184,6 +186,7 @@ class PointGenerator_RadialPack2D extends PointGenerator {
 
 ////////////////////////////////////////////////////////////////////////////
 //This class will return a list of random points packed to a specified radius in 3D
+//on the surface of the 3D in SceneData
 //the algorithm keeps going until it fails to find a new packing point after a number of attempts.
 //There is an option which packs according to the tone of an image
 //There is an option which uses a list of pixels to pack from
@@ -193,7 +196,8 @@ class PointGenerator_RadialPack2D extends PointGenerator {
 
 
 
-class PointGenerator_RadialPack3D extends PointGenerator_RadialPack2D {
+class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
+
 
 	
 	
@@ -201,28 +205,32 @@ class PointGenerator_RadialPack3D extends PointGenerator_RadialPack2D {
 	ArrayList<PVector> points3d = new ArrayList<PVector>();
 	SceneData3D sceneData;
 
-	public PointGenerator_RadialPack3D(int rseed, SceneData3D sd) {
+	
+	
+	public PointGenerator_RadialPackSurface3D(int rseed, SceneData3D sd) {
 		super(rseed);
 		sceneData = sd;
 	}
 
 	
-	Seed getNextSeed() {
-		Seed s = super.getNextSeed();
-		if(sceneData==null) return s;
-		s.depth = sceneData.getDepthNormalised(s.docPoint);
-		
-		return s;
-	}
-
-	
-	boolean tryAddDistributedPoint(PVector thisPt, float radius) {
+	boolean tryAddDistributedPoint(PVector docSpcPt, float radius) {
 		// just tries to add 1 point, returns true if added, false if not added
 		
-		if (pointExistsWithinRadius3d(thisPt, radius))
+		PVector thisPoint3d = sceneData.get3DSurfacePoint(docSpcPt);;
+		
+		// this is where you would invent a depth for volume distribution
+		// using sceneData.get3DVolumePoint(docSpcPt, invented depth);
+		float normDepth = sceneData.getDepthNormalised(docSpcPt);
+		
+		
+		if (pointExistsWithinRadius3d(thisPoint3d, radius))
 				return false;
-		points.add(thisPt);
-		PVector thisPoint3d = sceneData.get3DPoint(thisPt);
+		
+		// if suitably far from any other point, add both the 2d docspace point
+		// and the 3d point
+		PVector depthEnhancedDocSpacePt = docSpcPt.copy();
+		//depthEnhancedDocSpacePt.z = normDepth;
+		points.add(depthEnhancedDocSpacePt);
 		points3d.add(thisPoint3d);
 		
 		return true;
@@ -230,13 +238,10 @@ class PointGenerator_RadialPack3D extends PointGenerator_RadialPack2D {
 	}
 
 
-	private boolean pointExistsWithinRadius3d(PVector p, float radius) {
+	private boolean pointExistsWithinRadius3d(PVector p3d, float radius) {
 
 		
 		// If there are no points within the optimising rect, then returns true
-
-		PVector p3d = sceneData.get3DPoint(p);
-
 		float x1 = p3d.x - radius;
 		float y1 = p3d.y - radius;
 		float z1 = p3d.z - radius;
@@ -244,7 +249,7 @@ class PointGenerator_RadialPack3D extends PointGenerator_RadialPack2D {
 		float y2 = p3d.y + radius;
 		float z2 = p3d.z + radius;
 
-		AABox boxUnderConsideration = new AABox(x1, y1, z1, x2, y2, z2);
+		AABox3D boxUnderConsideration = new AABox3D(x1, y1, z1, x2, y2, z2);
 
 		for (int n = 0; n < points.size(); n++) {
 			PVector thisPoint3d = points3d.get(n);
@@ -260,7 +265,106 @@ class PointGenerator_RadialPack3D extends PointGenerator_RadialPack2D {
 		return false;
 
 	}
+	
+	
+	
+	
+}// end of PointGenerator_RadialPackSurface3D class
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//
+//
+class PointGenerator_Volume3D extends CollectionIterator {
+
+	RandomStream randomStream;
+		
+	// a list of 3d points for the 3d packing algorithm
+	EyeSpaceVolume3D eyeSpaceVolume;
+	AABox3D aaBox;
+	
+	ArrayList<PVector> points3d = new ArrayList<PVector>();
+	ArrayList<PVector> points2d = new ArrayList<PVector>();
+	float nearDepth = 0;
+	float farDepth = 1;
+
+	public PointGenerator_Volume3D(int rseed, float vfov) {
+		randomStream = new RandomStream(rseed);
+		eyeSpaceVolume = new EyeSpaceVolume3D(GlobalObjects.theDocument.getDocumentAspect(),vfov);
+	}
+
+	void generateRandomPoints(int numPoints3D, float nearZ, float farZ) {
+		nearDepth = nearZ;
+		farDepth = farZ;
+		aaBox = eyeSpaceVolume.getBoundingBox( nearDepth,  farDepth);
+		PVector minXYZ = aaBox.getMin();
+		PVector maxXYZ = aaBox.getMax();
+		for(int n = 0; n < numPoints3D; n++) {
+			float rx = randomStream.randRangeF(minXYZ.x, maxXYZ.x);
+			float ry = randomStream.randRangeF(minXYZ.y, maxXYZ.y);
+			float rz = randomStream.randRangeF(minXYZ.z, maxXYZ.z);
+			
+			
+			PVector thisCandidatePoint = new PVector(rx,ry,rz);
+			points3d.add(thisCandidatePoint);
+			if(eyeSpaceVolume.isPoint3DInView(thisCandidatePoint)) {
+				
+				PVector docSpcPt = eyeSpaceVolume.getDocSpacePoint(thisCandidatePoint);
+				points2d.add(docSpcPt);
+			}
+		}
+		System.out.println(" generateRandomPoints made " + points2d.size() + " out of a possible " + numPoints3D);
+		depthSort();
+	}
+	
+	// In case you need to sort the depth of the points on the z component of the point
+	// More used by subclasses
+	void depthSort() {
+		points2d.sort(Comparator.comparing(PVector::getZ).reversed());
+	}
+		
+	
+	
 
 	
-}// end of PointGenerator_RadialPack class
+	ArrayList<PVector> getDocSpacePoints(){
+		return points2d;
+	}
+
+	@Override
+	int getNumItems() {
+		// TODO Auto-generated method stub
+		return points2d.size();
+	}
+
+	@Override
+	Object getItem(int n) {
+		// TODO Auto-generated method stub
+		return points2d.get(n);
+	}
+	
+	
+	PVector getNextPoint() {
+		return (PVector) super.getNextItem();
+	}
+	
+	
+	void drawPoints(Color c) {
+		GlobalObjects.theDocument.drawPoints(points2d, c);
+	}
+	
+	void drawPoints(Color nearCol, Color farCol) {
+		for(PVector p : points2d) {
+			
+			float n = MOMaths.norm(p.z, nearDepth, farDepth);
+			
+			//System.out.println("in draw points near depth " + nearDepth + " far " + farDepth + " p "+ p + " n "+ n + " " );
+			Color thisCol = ImageProcessing.blendColor(nearCol, farCol, n);
+			GlobalObjects.theDocument.drawPoint(p, thisCol, 10);
+		}
+	}
+	
+
+}// end of PointGenerator_RadialPackVolume3D class
 

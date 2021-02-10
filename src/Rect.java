@@ -242,31 +242,3 @@ class Rect{
 
 
 
-class AABox{
-	
-	PVector corner;
-	PVector opposite;
-	
-	public AABox(PVector p1, PVector p2) {
-		corner = p1;
-		opposite = p2;
-		
-	}
-	
-	public AABox(float x1, float y1, float z1,float x2, float y2, float z2) {
-		corner = new PVector(x1,y1,z1);
-		opposite = new PVector(x2,y2,z2);
-		
-	}
-	
-	boolean isPointInside(PVector p) {
-		if( MOMaths.isBetweenInc(p.x, corner.x, opposite.x) &&
-			MOMaths.isBetweenInc(p.y, corner.y, opposite.y) &&
-			MOMaths.isBetweenInc(p.z, corner.z, opposite.z) ) return true;
-		return false;
-		
-		
-	}
-
-}
-

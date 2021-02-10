@@ -479,7 +479,12 @@ class RenderTarget {
 		return new PVector(docX, docY);
 	}
 	
-	
+	PVector docSpaceToNormalisedSpace(PVector docPt) {
+		
+		PVector buffPt = docSpaceToBufferSpace(docPt);
+		return new PVector( buffPt.x/bufferWidth,  buffPt.y/bufferHeight);
+		
+	}
 	
 	
 	//////////////////////////////////////////////////////////////////////
@@ -522,7 +527,7 @@ class RenderTarget {
 	// debug drawing operations other than paste
 	// these do not scale the drawing to the document
 	void drawPoints(ArrayList<PVector> docSpacePoints, Color c) {
-		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 127);
+		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
 
 		for (PVector p : docSpacePoints) {
@@ -534,7 +539,7 @@ class RenderTarget {
 	
 	
 	void drawPoint(PVector docSpacePoint, Color c, int size) {
-		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 127);
+		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
 		PVector bufpt = docSpaceToBufferSpace(docSpacePoint);
 		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, size, size);

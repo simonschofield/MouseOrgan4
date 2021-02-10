@@ -1,5 +1,6 @@
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class PointGenerator extends CollectionIterator{
 	RandomStream randomStream;
@@ -115,6 +116,12 @@ public class PointGenerator extends CollectionIterator{
 		return true;
 	}
 	
+	// In case you need to sort the depth of the points on the z component of the point
+	// More used by subclasses
+	void depthSort() {
+		points.sort(Comparator.comparing(PVector::getZ).reversed());
+	}
+	
 	
 
 	@Override
@@ -130,15 +137,10 @@ public class PointGenerator extends CollectionIterator{
 	}
 	
 	
-	PVector getNextItem() {
+	PVector getNextPoint() {
 		return (PVector)(super.getNextItem());
 	}
 	
 	
-	Seed getNextSeed() {
-		PVector p = getNextItem();
-		return new Seed(p);
-		
-	}
 
 }// end of PointGenerator class

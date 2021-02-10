@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
 // ContentGroupManager contains many ContentItemGroup, and provides the main user-interface to them
@@ -41,7 +43,7 @@ class ImageSampleGroupManager {
 	// the seed defines the ConentGroup and item within
 	ImageSprite getSprite(Seed seed) {
 		// got to get the correct contentItemGroup first
-		ImageSampleGroup dig = getImageSampleGroup(seed.contentItemDescriptor.imageSampleGroupName);
+		ImageSampleGroup dig = getImageSampleGroup(seed.imageSampleDescriptor.imageSampleGroupName);
 
 		if (dig == null)
 			return null;
@@ -172,7 +174,7 @@ class ImageSampleGroupManager {
 	 * @param p3        third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
-	void colorAdjustImageSampleGroup(String groupname, String function, float p1, float p2, float p3) {
+	void colorAdjustImageSampleGroup(String groupname, ImageProcessing.ColorTransformFunction function, float p1, float p2, float p3) {
 		ImageSampleGroup ic = getImageSampleGroup(groupname);
 		if (ic == null)
 			return;
@@ -186,7 +188,7 @@ class ImageSampleGroupManager {
 		ic.hsvAdjustAll(dh, ds, dv);
 	}
 
-	void paradeContent(String groupName, String effect, float p1, float p2, float p3 ) {
+	void paradeContent(String groupName, ImageProcessing.ColorTransformFunction effect, float p1, float p2, float p3 ) {
 		ImageSampleGroup sampleGroup = this.getImageSampleGroup(groupName);
 		sampleGroup.paradeContent(effect, p1, p2, p3);
 	}
@@ -203,7 +205,7 @@ class ImageSampleGroupManager {
 
 class ImageSampleGroup extends DirectoryImageGroup {
 	String groupName = "";
-
+	Counter uniqueID = new Counter();
 	// sprite based settings applied to the whole group
 	PVector spriteOrigin = new PVector(0.5f, 0.5f);
 	float spriteSizeInScene = 1.0f;
@@ -411,7 +413,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 
 	}
 
-	void colorAdjustAll(String function, float p1, float p2, float p3) {
+	void colorAdjustAll(ImageProcessing.ColorTransformFunction function, float p1, float p2, float p3) {
 		int numImage = imageList.size();
 
 		for (int n = 0; n < numImage; n++) {
@@ -448,7 +450,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	}
 
 	ImageSprite getSprite(Seed seed) {
-		int n = seed.contentItemDescriptor.itemNumber;
+		int n = seed.imageSampleDescriptor.itemNumber;
 		if (getNumItems() == 0) {
 			System.out.println("getSprite:: ImageGroup has no images ");
 			return null;
@@ -461,10 +463,10 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		float world3Dheight = getSpriteSizeInScene();
 		// System.out.println("gImageSprite getSprite() world3Dheight " +
 		// world3Dheight);
-		ImageSprite sprite = new ImageSprite(getImage(n), spriteOrigin.copy(), world3Dheight);
+		ImageSprite sprite = new ImageSprite(getImage(n), spriteOrigin.copy(), world3Dheight, seed.id);
 		sprite.setDocPoint(seed.docPoint);
-		sprite.qRandomStream.seed = seed.id;
-		sprite.contentGroupName = seed.contentItemDescriptor.imageSampleGroupName;
+		
+		sprite.contentGroupName = seed.imageSampleDescriptor.imageSampleGroupName;
 		return sprite;
 	}
 
@@ -479,7 +481,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		}
 
 		float world3Dheight = getSpriteSizeInScene();
-		ImageSprite sprite = new ImageSprite(getImage(num), spriteOrigin.copy(), world3Dheight);
+		ImageSprite sprite = new ImageSprite(getImage(num), spriteOrigin.copy(), world3Dheight, uniqueID.next());
 		sprite.contentGroupName = this.groupName;
 		return sprite;
 	}
@@ -488,10 +490,10 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	//
 	//
 	void paradeContent() {
-		paradeContent("none", 0,0,0);
+		paradeContent(ImageProcessing.ColorTransformFunction.NONE, 0,0,0);
 	}
 	
-	void paradeContent(String effect, float p1, float p2, float p3) {
+	void paradeContent(ImageProcessing.ColorTransformFunction effect, float p1, float p2, float p3) {
 		Surface parentSurface = GlobalObjects.theSurface;
 
 		int numItems = this.getNumItems();

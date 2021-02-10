@@ -49,6 +49,14 @@ public class MOMaths {
 			return upper;
 		return val;
 	}
+	
+	public static int constrain(int val, int lower, int upper) {
+		if (val < lower)
+			return lower;
+		if (val > upper)
+			return upper;
+		return val;
+	}
 
 	public static float wrap(float val, float lower, float upper) {
 		return ((val - lower) % (upper - lower)) + lower;

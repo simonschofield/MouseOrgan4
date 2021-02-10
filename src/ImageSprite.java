@@ -227,13 +227,15 @@ public class ImageSprite{
 	
 	SceneData3D sceneData;
 	
+	int id = 0;
+	
 	ImageSprite(){
 		
 		
 	}
 	
 	
-	ImageSprite(BufferedImage im, PVector orig, float sizeInScn){
+	ImageSprite(BufferedImage im, PVector orig, float sizeInScn, int rseed){
 		
 		image = im;
 		bufferWidth = image.getWidth();
@@ -241,9 +243,8 @@ public class ImageSprite{
 	    aspect = bufferWidth/(float)bufferHeight;
 	    origin = orig.copy();
 	    sizeInScene = sizeInScn;
-	    //System.out.println("ImageSprite:init sizeInScene " + sizeInScene);
-	    //qRandomStream = new QRandomStream(seed.id);
-	    qRandomStream = new QRandomStream();
+	    id = rseed;
+	    qRandomStream = new QRandomStream(id);
 	    imageQuad = new ImageQuad(this);
 	}
 	
@@ -267,6 +268,12 @@ public class ImageSprite{
 	PVector getQuadPoint(PVector docPt, float  nx, float ny) {
 		return imageQuad.getQuadDocumentPoint(docPt, nx, ny);
 	}
+	
+	
+	SNum getSNum(int seedOffset, Integer sequencePos) {
+		return qRandomStream.snum(seedOffset, sequencePos);
+	}
+	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// geometric transforms change the sprite image in-place

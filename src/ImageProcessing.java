@@ -144,14 +144,39 @@ public class ImageProcessing {
 	}
 	
 	
+	public static BufferedImage clearImage(BufferedImage img) {
+		Color blank = new Color(0,0,0,0);
+		return fill(img,blank); 
+	}
+
+	public static BufferedImage fill(BufferedImage img, Color c) {
+		BufferedImage imgCopy = createEmptyCopy(img);
+		Graphics2D g2d = imgCopy.createGraphics();
+		g2d.setBackground(c);
+		g2d.clearRect(0, 0, imgCopy.getWidth(), imgCopy.getHeight());
+		return imgCopy;
+	}
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// Blend image with color 
+	//
+	public static BufferedImage blendImage(BufferedImage img, Color c, float amt) {
+		BufferedImage colorFilledImage = fill(img,c);
+		return getCompositeImage(colorFilledImage, img, 0,0,amt, AlphaComposite.DST_IN);
+	
+	}
+
 	
 	///////////////////////////////////////////////////////////////////////////////////////
 	// compositing operations
 	//
 	public static void compositeImage_ChangeTarget(BufferedImage source, BufferedImage target, int x, int y, float alpha) {
+		compositeImage_ChangeTarget( source,  target,  x,  y,  alpha, AlphaComposite.SRC_OVER);
+	}
+	
+	public static void compositeImage_ChangeTarget(BufferedImage source, BufferedImage target, int x, int y, float alpha, int mode){
 		Graphics2D g2d= target.createGraphics();
-		AlphaComposite src_over = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+		AlphaComposite src_over = AlphaComposite.getInstance(mode, alpha);
 		g2d.setComposite(src_over);
 	    g2d.drawImage(source, x, y, null);
 	    g2d.dispose();
@@ -159,8 +184,12 @@ public class ImageProcessing {
 	
 	
 	public static BufferedImage getCompositeImage(BufferedImage source, BufferedImage target, int x, int y,float alpha) {
+		return  getCompositeImage( source,  target,  x,  y, alpha, AlphaComposite.SRC_OVER);
+	}
+	
+	public static BufferedImage getCompositeImage(BufferedImage source, BufferedImage target, int x, int y,float alpha, int mode) {
 		BufferedImage target_copy = copyImage(target);
-		compositeImage_ChangeTarget( source,  target_copy,  x,  y,  alpha);
+		compositeImage_ChangeTarget( source,  target_copy,  x,  y,  alpha, mode);
 		return target_copy;
 	}
 	
@@ -232,7 +261,11 @@ public class ImageProcessing {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// value get 
 	//	
-	
+	static float getValue01Clamped(BufferedImage src, int x, int y) {
+		x = MOMaths.constrain(x, 0, src.getWidth()-1);
+		y = MOMaths.constrain(y, 0, src.getHeight()-1);
+		return getValue01( src,  x,  y);
+	}
 	static float getValue01(BufferedImage src, int x, int y) {
 		int packedCol = src.getRGB(x, y);
 		boolean hasAlpha = hasAlpha(src);
@@ -284,6 +317,26 @@ public class ImageProcessing {
 
 		int argb = a | r | g | b;
 		return argb;
+	}
+	
+	static Color blendColor(Color c1, Color c2, float blendAmt) {
+		//System.out.println("blend amt " + blendAmt);
+		float c1r = c1.getRed();
+		float c1g = c1.getGreen();
+		float c1b = c1.getBlue();
+		float c1a = c1.getAlpha();
+		//System.out.println("color1 " + c1r + " " + c1g + " "+ c1b + " "+ c1a + " " );
+		float c2r = c2.getRed();
+		float c2g = c2.getGreen();
+		float c2b = c2.getBlue();
+		float c2a = c2.getAlpha();
+		//System.out.println("color2 " + c2r + " " + c2g + " "+ c2b + " "+ c2a + " " );
+		int r = (int) MOMaths.lerp(blendAmt, c1r, c2r);
+		int g = (int) MOMaths.lerp(blendAmt, c1g, c2g);
+		int b = (int) MOMaths.lerp(blendAmt, c1b, c2b);
+		int a = (int) MOMaths.lerp(blendAmt, c1a, c2a);
+		//System.out.println("blend color " + r + " " + g + " "+ b + " "+ a + " " );
+		return new Color(r,g,b,a);
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -449,32 +502,41 @@ public class ImageProcessing {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// color transforms
 	//
+	enum ColorTransformFunction{
+		NONE,
+		HSV,
+		BRIGHTNESS_NOCLIP,
+		BRIGHTNESS,
+		CONTRAST,
+		LEVELS,
+		SET_DOMINANT_HUE;
+	};
 	
-	public static BufferedImage colorTransform(BufferedImage img, String function, float p1, float p2, float p3) {
+	public static BufferedImage colorTransform(BufferedImage img, ColorTransformFunction function, float p1, float p2, float p3) {
 		
 			System.out.println("in colorAdjustAll . Function = " + function);
 			
 			switch (function) {
-			case "hsv": {
+			case HSV: {
 				return ImageProcessing.adjustHSV(img, p1, p2, p3);
 			}
-			case "brightnessNoClip": {
+			case BRIGHTNESS_NOCLIP: {
 				return ImageProcessing.adjustBrightnessNoClip(img, p1);
 			
 			}
-			case "brightness": {
+			case BRIGHTNESS: {
 				return ImageProcessing.adjustBrightness(img, p1);
 			
 			}
-			case "contrast": {
+			case CONTRAST: {
 				return ImageProcessing.adjustContrast(img, p1);
 			
 			}
-			case "levels": {
+			case LEVELS: {
 				return ImageProcessing.adjustLevels(img, p1, p2, p3);
 			
 			}
-			case "setDominantHue":{
+			case SET_DOMINANT_HUE:{
 				return ImageProcessing.setDominantHue(img, p1);
 			}
 			default:
@@ -483,6 +545,12 @@ public class ImageProcessing {
 			
 
 	}
+	
+	
+	public static BufferedImage colorTransformMasked(BufferedImage img, BufferedImage maskImage, ColorTransformFunction function, float p1, float p2, float p3) {
+		return null;
+	}
+	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// LUT-based point functions
@@ -493,6 +561,19 @@ public class ImageProcessing {
 		BufferedImageOp op = new LookupOp(lut, null);
 		BufferedImage outImg = op.filter(image, null);
 		return outImg;
+	}
+	
+	
+	public static BufferedImage blendWithColor(BufferedImage image, Color c, float amt) {
+		//System.out.println("in adjustBrightness image type = " + image.getType());
+		byte[][] data = new byte[3][256];
+		for (int n = 0; n < 256; n++) {
+			byte newVal = (byte) MOMaths.lerp(amt, n, c.getRed());
+			data[0][n] = newVal;
+			data[1][n] = newVal;
+			data[2][n] = newVal;
+		}
+		return pointFunction(image, data);
 	}
 	
 	public static BufferedImage adjustBrightness(BufferedImage image, float brightness) {
@@ -652,8 +733,6 @@ public class ImageProcessing {
 
 	}
 
-
-	
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////

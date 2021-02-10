@@ -198,8 +198,14 @@ public class SceneData3D {
 		return false;
 	}
 	
-	PVector get3DPoint(PVector docSpace) {
+	PVector get3DSurfacePoint(PVector docSpace) {
 		return geometryBuffer3d.docSpaceToWorld3D(docSpace);
+	}
+	
+	PVector get3DVolumePoint(PVector docSpace, float normDepth) {
+		// needs to take angle into consideration but OK for the moment
+		float realDistance = geometryBuffer3d.normalisedDepthToRealDepth(normDepth);
+		return geometryBuffer3d.docSpaceToWorld3D( docSpace, realDistance);
 	}
 	
 	float get3DScale(PVector docSpace) {
@@ -422,10 +428,14 @@ class GeometryBuffer3D{
 	PVector docSpaceToWorld3D(PVector docSpace) {
 		// returns the 3D point at a point in the scene using the original
 		// distance values
+		float distance = getDistance(docSpace);
+		return docSpaceToWorld3D( docSpace,  distance);
+	}
+	
+	PVector docSpaceToWorld3D(PVector docSpace, float distance) {
 		PVector vIntoScene = getVectorIntoScene(docSpace);
 		vIntoScene.normalize();
-		float d = getDistance(docSpace);
-		return  PVector.mult(vIntoScene, d);
+		return  PVector.mult(vIntoScene, distance);
 	}
 	
     
@@ -467,7 +477,9 @@ class GeometryBuffer3D{
 		return depthBufferExtrema.norm(d);
 	}
 	
-	
+	float normalisedDepthToRealDepth(float normDist) {
+		return  depthBufferExtrema.lerp(normDist);
+	}
 	
 	///////////////////////////////////////////////////////////////////
 	// private methods

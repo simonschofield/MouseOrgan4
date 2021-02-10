@@ -62,6 +62,9 @@ class SceneHelper {
 		sprite.image = ImageProcessing.adjustHSV(sprite.image, randH, randS, randV);
 	}
 	
+	
+	
+	
 	static void addClump(ImageSprite sprite, float scaleAmt, float rotAmount){
 		
 		
@@ -70,17 +73,100 @@ class SceneHelper {
 
 	ImageSprite createImageSprite(PVector docPos, String imageContentGroupName, ImageSampleGroupManager contentManager) {
 		
-		ImageSampleDescription cis = new ImageSampleDescription(imageContentGroupName,1);
+		ImageSprite sprite =  contentManager.getSprite(imageContentGroupName,1);
 		
-		Seed s = new  Seed(docPos,cis);
-		s.batchName = "";
-		
-		ImageSprite sprite =  contentManager.getSprite(s);
-		sprite.scale(0.5f, 0.5f);
+		sprite.docPoint = docPos;
 		return sprite;
 	}
 	
 }
+
+
+class StochasticMethods{
+	
+	static BufferedImage adjustHSV(BufferedImage img, SNum h, SNum s, SNum v) {
+		return ImageProcessing.adjustHSV(img, h.get(), s.get(), v.get());
+	}
+	
+	
+	
+	
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//naming protocol
+//Single Image, no sub directory
+//UserSessionPath/baseName_timeStamp.png
+//
+//Using sub directory
+//UserSessionPath/baseName/img_num.png
+//
+//
+
+class RenderSaver {
+
+	String baseName;
+	boolean useSubDirectory = false;
+	String subDirectory;
+	int imageNumCounter = 0;
+
+	boolean photoshopLayerOrderNumbering = false;
+	int photoshopLayerNumberMaxNum = 99;
+
+	RenderSaver(String baseName) {
+		this.baseName = baseName;
+
+		
+	}
+
+	void createSubDirectory() {
+		useSubDirectory = true;
+		subDirectory = MOUtils.createDirectory(GlobalObjects.theSurface.getUserSessionPath(), baseName, true);
+	}
+
+	void usePhotoshopLayerOrderNumbering(int maxNum) {
+	// when this is set to true the naming convention is altered to
+	// load the images as photoshop layers via the photoshop
+	// load image layers as stack script
+	//
+		photoshopLayerOrderNumbering = true;
+		photoshopLayerNumberMaxNum = maxNum;
+	}
+
+	void saveImageFile() {
+		if (useSubDirectory) {
+			String name = "img";
+
+			if (photoshopLayerOrderNumbering) {
+				int thisPhotoshopLayerNum = photoshopLayerNumberMaxNum - imageNumCounter;
+				name = name + "_PSLayer_" + thisPhotoshopLayerNum;
+			}
+
+			name = name + "_MOLayer_" + imageNumCounter;
+
+			String fullPathAndName = subDirectory + "\\" + name + ".png";
+			System.out.println("saveRenderLayer: saving " + fullPathAndName);
+			GlobalObjects.theDocument.saveRenderToFile(fullPathAndName);
+
+			imageNumCounter++;
+		} else {
+
+			String path = GlobalObjects.theSurface.getUserSessionPath();
+			String timeStamp = MOUtils.getDateStamp();
+			String fullPathAndName = path + baseName + "_" + timeStamp + ".png";
+			System.out.println("saveRender: saving " + fullPathAndName);
+			GlobalObjects.theDocument.saveRenderToFile(fullPathAndName);
+		}
+
+	}
+	
+	
+	
+
+}
+
 	
 	/////////////////////////////////////////////////////////////////////////////
 	// ui stuff based around 3D data

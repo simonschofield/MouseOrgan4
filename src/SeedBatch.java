@@ -11,7 +11,12 @@ import java.util.Comparator;
 //
 @SuppressWarnings("serial")
 class Seed implements Serializable{
+	
+	// the name of the Seedbatch this seed is made in
+	// this enables the user to identify seeds from different "biomes" and treat them differently
 	String batchName;
+	
+	// the doc point of the seed
 	PVector docPoint;
 	
 	// the depth is set to the normalised depth in the 3D scene, this is done by the 
@@ -19,29 +24,36 @@ class Seed implements Serializable{
 	// 
 	float depth;
 	
-	
+	// the id is a unique integer
+	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
+	// regardless of previous random events
 	int id;
-	int layerNumber = 0;
 	
-	ImageSampleDescription contentItemDescriptor;
+	
+	ImageSampleDescription imageSampleDescriptor;
 	
 	public Seed(PVector p, ImageSampleDescription cis) {
 		docPoint = p;
-		contentItemDescriptor = cis;
+		imageSampleDescriptor = cis;
 	}
 	
 	public Seed(PVector docpt) {
 		docPoint = docpt;
 		
+		depth = docpt.z;
+		docPoint.z = 0;
 	}
 	
 	float getDepth() {
 		return depth;
 	}
 	
+	void setDepth(float d) {
+		depth = d;
+	}
 	String toStr() {
 		
-		return "seed " + id + " batchname:" + batchName + " docPoint:" + docPoint.toStr() + " content Item: " + contentItemDescriptor.toStr();
+		return "seed " + id + " batchname:" + batchName + " docPoint:" + docPoint.toStr() + " content Item: " + imageSampleDescriptor.toStr();
 	}
 	
 }
@@ -57,7 +69,7 @@ class Seed implements Serializable{
 // Normally, the use does not have to explicitly create SeedBatches, but interfaces directly wit the SeedBatchManager
 public class SeedBatch{
 	String batchName = "";
-	ImageSampleSelector contentItemSelector;
+	ImageSampleSelector imageSampleSelector;
 	//PointGenerator pointGenerator;
 	boolean isVisible = true;
 	ArrayList<Seed> seeds = new ArrayList<Seed>();
@@ -81,15 +93,16 @@ public class SeedBatch{
 	}
 	
 	ArrayList<Seed> generateSeeds(ImageSampleSelector cc, PointGenerator pg){
-		contentItemSelector = cc;
+		imageSampleSelector = cc;
 		PointGenerator pointGenerator = pg;
 		if(pointGenerator.getNumItems()==0) {
 			pointGenerator.generatePoints();
 		}
 		while(pointGenerator.areItemsRemaining()) {
-			Seed seed = pointGenerator.getNextSeed();
+			PVector p = pointGenerator.getNextPoint();
+			Seed seed = new Seed(p);
 			seed.batchName = this.batchName;
-			seed.contentItemDescriptor = contentItemSelector.selectImageSampleDescription(seed.docPoint);
+			seed.imageSampleDescriptor = imageSampleSelector.selectImageSampleDescription(seed.docPoint);
 			seed.id = uniqueSeedIDCounter++;
 			seeds.add(seed);
 		}
@@ -201,13 +214,16 @@ class SeedBatchManager {
 		depthSort();
 	}
 	
+	
+
+	
 	void updateSeedDepthsAgainstScene() {
 		// call this if you are changing to a different depth filter
 		// TBD: ideally checks to see if the filter has changed,
 		for(Seed s : collatedSeeds) {
 			
 			float d = sceneData3D.getDepthNormalised(s.docPoint);
-			s.depth = d;
+			s.setDepth(d);
 		}
 	}
 
@@ -243,7 +259,7 @@ class SeedBatchManager {
 			//PointGenerator_RadialPack pointField = getPointGenerator(namePointDisImage, pointDisRLo, pointDisRHi,
 			//		pointDisThreshold, pointDistRSeed);
 			
-			PointGenerator_RadialPack3D pointField = getPointGenerator3D(namePointDisImage, pointDisRLo, pointDisRHi,
+			PointGenerator_RadialPackSurface3D pointField = getPointGenerator3D(namePointDisImage, pointDisRLo, pointDisRHi,
 					pointDisThreshold, pointDistRSeed);
 
 			seedBatchBiome1.generateSeeds(cis, pointField);
@@ -293,12 +309,13 @@ class SeedBatchManager {
 		cis.addContentItemProbability(contentGroupName, 1);
 		createSeedBatch( makeNewSeeds,  batchName,  cis, namePointDisImage,  pointDisRLo,  pointDisRHi,  pointDisThreshold, pointDistRSeed);
 	}
+	
 
-	PointGenerator_RadialPack3D getPointGenerator(String namePointDisImage, float pointDisRLo, float pointDisRHi,
+	PointGenerator_RadialPackSurface3D getPointGenerator(String namePointDisImage, float pointDisRLo, float pointDisRHi,
 			float pointDisThreshold, int pointDistRSeed) {
 		sceneData3D.setCurrentRenderImage(namePointDisImage);
 		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage();
-		PointGenerator_RadialPack3D pointField = new PointGenerator_RadialPack3D(pointDistRSeed, sceneData3D); 
+		PointGenerator_RadialPackSurface3D pointField = new PointGenerator_RadialPackSurface3D(pointDistRSeed, sceneData3D); 
 
 		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage());
 		pointField.setPackingRadius(pointDisRLo, pointDisRHi, pointDisThreshold, pointDistributionImage);
@@ -306,11 +323,11 @@ class SeedBatchManager {
 	}
 	
 	
-	PointGenerator_RadialPack3D getPointGenerator3D(String namePointDisImage, float pointDisRLo, float pointDisRHi,
+	PointGenerator_RadialPackSurface3D getPointGenerator3D(String namePointDisImage, float pointDisRLo, float pointDisRHi,
 			float pointDisThreshold, int pointDistRSeed) {
 		sceneData3D.setCurrentRenderImage(namePointDisImage);
 		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage();
-		PointGenerator_RadialPack3D pointField = new PointGenerator_RadialPack3D(pointDistRSeed, sceneData3D); // rseed, doc aspect
+		PointGenerator_RadialPackSurface3D pointField = new PointGenerator_RadialPackSurface3D(pointDistRSeed, sceneData3D); // rseed, doc aspect
 
 		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage());
 		pointField.setPackingRadius(pointDisRLo, pointDisRHi, pointDisThreshold, pointDistributionImage);

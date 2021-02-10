@@ -51,6 +51,16 @@ public class MOUtils {
 		return targetFolder.mkdirs();
 	}
 	
+	static String createDirectory(String path, String name, boolean timeStamped) {
+		String directory = path + name;
+		if(timeStamped) {
+			directory = directory + "_" + getDateStamp();
+		}
+		boolean result = createDirectory(directory);
+		System.out.println("created directory " + directory + "  " + result);
+		return directory;
+	}
+	
 	static String getPaddedNumberString(Integer num, int lengthOfString) {
 		String  inputString =  num.toString();
 	    if (inputString.length() >= lengthOfString) {
@@ -258,3 +268,100 @@ class PeriodicAction {
 		return false;
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//
+
+class Counter{
+	int num = 0;
+	int maxNum = Integer.MAX_VALUE;
+	
+	Counter(){
+		num = 0;
+	}
+	
+	void setLoop(int loopLength) {
+		maxNum = loopLength;
+	}
+	
+	int next(){
+		int thisNum = num;
+		num++;
+		if(num >= maxNum) num = 0;
+		return thisNum;
+	}
+	
+}
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//Used for debugging
+//
+class Histogram {
+	int[] data;
+	float numBands;
+	float anticipatedLoVal, anticipatedHiVal;
+	float actualLoVal = Float.MAX_VALUE;
+	float actualHiVal = -Float.MAX_VALUE;
+
+	public Histogram(int numBands, float lo, float hi) {
+		this.data = new int[numBands];
+		this.numBands = numBands;
+		this.anticipatedLoVal = lo;
+		this.anticipatedHiVal = hi;
+
+	}
+
+	void add(float val) {
+		updateActualHiLoVals(val);
+		int index = (int) (numBands * MOMaths.norm(val, this.anticipatedLoVal, this.anticipatedHiVal));
+		this.data[index] += 1;
+	}
+
+	void updateActualHiLoVals(float val) {
+		if (val < this.actualLoVal)
+			this.actualLoVal = val;
+		if (val > this.actualHiVal)
+			this.actualHiVal = val;
+
+	}
+
+	float getActualHiVal() {
+		return this.actualHiVal;
+	}
+
+	float getActualLoVal() {
+		return this.actualLoVal;
+	}
+
+	void printReport() {
+		System.out.println("Histogram: anticipated lo hi :" +  this.anticipatedLoVal + " " + this.anticipatedHiVal);
+		System.out.println("Histogram: actual lo hi      :" + this.actualLoVal + " " +  this.actualHiVal);
+		System.out.println("distribution of data as follows using anticipated range:");
+		for (int n = 0; n < this.numBands; n++) {
+			String rs = rangeString(n);
+			Integer population = this.data[n];
+			System.out.println(rs + ": population: " + population);
+		}
+	}
+
+	String rangeString(int n){
+		float plo = MOMaths.norm(n, 0, this.numBands);
+		float phi = MOMaths.norm(n+1, 0, this.numBands);
+		Float rangeLo = MOMaths.lerp( plo, this.anticipatedLoVal, this.anticipatedHiVal);
+		Float rangeHi = MOMaths.lerp( phi, this.anticipatedLoVal, this.anticipatedHiVal);
+		return "Range: " + rangeLo.toString() + "," + rangeHi.toString();
+		
+		
+	
+	}
+
+}// end Histogram class
+
+
+
+
+
+
+
