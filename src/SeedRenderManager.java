@@ -63,7 +63,7 @@ class SeedRenderLayer extends CollectionIterator{
 		Range extr = new Range();
 		extr.initialiseForExtremaSearch();
 		for(Seed s : layerSeeds) {
-			float thisY = s.docPoint.y;
+			float thisY = s.docPointY;
 			extr.addExtremaCandidate(thisY);
 		}
 		return extr;
@@ -72,7 +72,7 @@ class SeedRenderLayer extends CollectionIterator{
 	ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
 		for(Seed s : layerSeeds) {
-			points.add(s.docPoint);
+			points.add(s.getDocPoint());
 		}
 		return points;
 	}
@@ -127,7 +127,7 @@ public class SeedRenderManager{
 	
 	SeedRenderManager(SeedBatchManager seedBatchManager){
 		
-		theSurface = seedBatchManager.theSurface;
+		theSurface = GlobalObjects.theSurface;
 		collatedSeeds = seedBatchManager.getCollatedSeeds();
 		// initialise it with one big layer. The default position
 		createDefaultSingleLayer();

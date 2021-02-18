@@ -23,9 +23,27 @@ import javax.imageio.stream.ImageInputStream;
 
 public class ImageProcessing {
 
+	
 	// 0 == nearest neighbour
 	// 1 == bilinear
 	// 2 == bicubic
+	public static final int	INTERPOLATION_NEARESTNEIGHBOR = 0;
+	public static final int	INTERPOLATION_BILINEAR = 1;
+	public static final int	INTERPOLATION_BICUBIC = 2;
+	
+	public static final int	COLORTRANSFORM_NONE = 0;
+	public static final int	COLORTRANSFORM_HSV = 1;
+	public static final int	COLORTRANSFORM_BRIGHTNESS_NOCLIP = 2;
+	public static final int	COLORTRANSFORM_BRIGHTNESS = 3;
+	public static final int	COLORTRANSFORM_CONTRAST = 4;
+	public static final int	COLORTRANSFORM_LEVELS = 5;
+	public static final int	COLORTRANSFORM_BLENDWITHCOLOR = 6;
+	public static final int	COLORTRANSFORM_SET_DOMINANT_HUE = 7;
+	
+	
+	
+	
+	
 	static int interpolationQuality = 2;
 
 	public static void setInterpolationQuality(int q) {
@@ -502,41 +520,33 @@ public class ImageProcessing {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// color transforms
 	//
-	enum ColorTransformFunction{
-		NONE,
-		HSV,
-		BRIGHTNESS_NOCLIP,
-		BRIGHTNESS,
-		CONTRAST,
-		LEVELS,
-		SET_DOMINANT_HUE;
-	};
 	
-	public static BufferedImage colorTransform(BufferedImage img, ColorTransformFunction function, float p1, float p2, float p3) {
+	
+	public static BufferedImage colorTransform(BufferedImage img, int function, float p1, float p2, float p3) {
 		
 			System.out.println("in colorAdjustAll . Function = " + function);
 			
 			switch (function) {
-			case HSV: {
+			case COLORTRANSFORM_HSV: {
 				return ImageProcessing.adjustHSV(img, p1, p2, p3);
 			}
-			case BRIGHTNESS_NOCLIP: {
+			case COLORTRANSFORM_BRIGHTNESS_NOCLIP: {
 				return ImageProcessing.adjustBrightnessNoClip(img, p1);
 			
 			}
-			case BRIGHTNESS: {
+			case COLORTRANSFORM_BRIGHTNESS: {
 				return ImageProcessing.adjustBrightness(img, p1);
 			
 			}
-			case CONTRAST: {
+			case COLORTRANSFORM_CONTRAST: {
 				return ImageProcessing.adjustContrast(img, p1);
 			
 			}
-			case LEVELS: {
+			case COLORTRANSFORM_LEVELS: {
 				return ImageProcessing.adjustLevels(img, p1, p2, p3);
 			
 			}
-			case SET_DOMINANT_HUE:{
+			case COLORTRANSFORM_SET_DOMINANT_HUE:{
 				return ImageProcessing.setDominantHue(img, p1);
 			}
 			default:
@@ -547,7 +557,7 @@ public class ImageProcessing {
 	}
 	
 	
-	public static BufferedImage colorTransformMasked(BufferedImage img, BufferedImage maskImage, ColorTransformFunction function, float p1, float p2, float p3) {
+	public static BufferedImage colorTransformMasked(BufferedImage img, BufferedImage maskImage, int function, float p1, float p2, float p3) {
 		return null;
 	}
 	
@@ -565,13 +575,14 @@ public class ImageProcessing {
 	
 	
 	public static BufferedImage blendWithColor(BufferedImage image, Color c, float amt) {
-		//System.out.println("in adjustBrightness image type = " + image.getType());
+		//ignores any alpha, just blends the rgb values.
 		byte[][] data = new byte[3][256];
+		
+		
 		for (int n = 0; n < 256; n++) {
-			byte newVal = (byte) MOMaths.lerp(amt, n, c.getRed());
-			data[0][n] = newVal;
-			data[1][n] = newVal;
-			data[2][n] = newVal;
+			data[0][n] = (byte) MOMaths.lerp(amt, n, c.getRed());
+			data[1][n] = (byte) MOMaths.lerp(amt, n, c.getGreen());
+			data[2][n] = (byte) MOMaths.lerp(amt, n, c.getBlue());
 		}
 		return pointFunction(image, data);
 	}

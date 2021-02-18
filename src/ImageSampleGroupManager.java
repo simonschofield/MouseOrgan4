@@ -43,7 +43,7 @@ class ImageSampleGroupManager {
 	// the seed defines the ConentGroup and item within
 	ImageSprite getSprite(Seed seed) {
 		// got to get the correct contentItemGroup first
-		ImageSampleGroup dig = getImageSampleGroup(seed.imageSampleDescriptor.imageSampleGroupName);
+		ImageSampleGroup dig = getImageSampleGroup(seed.imageSampleGroupName);
 
 		if (dig == null)
 			return null;
@@ -174,7 +174,7 @@ class ImageSampleGroupManager {
 	 * @param p3        third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
-	void colorAdjustImageSampleGroup(String groupname, ImageProcessing.ColorTransformFunction function, float p1, float p2, float p3) {
+	void colorAdjustImageSampleGroup(String groupname, int function, float p1, float p2, float p3) {
 		ImageSampleGroup ic = getImageSampleGroup(groupname);
 		if (ic == null)
 			return;
@@ -188,7 +188,7 @@ class ImageSampleGroupManager {
 		ic.hsvAdjustAll(dh, ds, dv);
 	}
 
-	void paradeContent(String groupName, ImageProcessing.ColorTransformFunction effect, float p1, float p2, float p3 ) {
+	void paradeContent(String groupName, int effect, float p1, float p2, float p3 ) {
 		ImageSampleGroup sampleGroup = this.getImageSampleGroup(groupName);
 		sampleGroup.paradeContent(effect, p1, p2, p3);
 	}
@@ -413,7 +413,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 
 	}
 
-	void colorAdjustAll(ImageProcessing.ColorTransformFunction function, float p1, float p2, float p3) {
+	void colorAdjustAll(int function, float p1, float p2, float p3) {
 		int numImage = imageList.size();
 
 		for (int n = 0; n < numImage; n++) {
@@ -450,7 +450,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	}
 
 	ImageSprite getSprite(Seed seed) {
-		int n = seed.imageSampleDescriptor.itemNumber;
+		int n = seed.imageSampleGroupItemNumber;
 		if (getNumItems() == 0) {
 			System.out.println("getSprite:: ImageGroup has no images ");
 			return null;
@@ -464,9 +464,9 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		// System.out.println("gImageSprite getSprite() world3Dheight " +
 		// world3Dheight);
 		ImageSprite sprite = new ImageSprite(getImage(n), spriteOrigin.copy(), world3Dheight, seed.id);
-		sprite.setDocPoint(seed.docPoint);
+		sprite.setDocPoint(seed.getDocPoint());
 		
-		sprite.contentGroupName = seed.imageSampleDescriptor.imageSampleGroupName;
+		sprite.contentGroupName = seed.imageSampleGroupName;
 		return sprite;
 	}
 
@@ -490,10 +490,10 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	//
 	//
 	void paradeContent() {
-		paradeContent(ImageProcessing.ColorTransformFunction.NONE, 0,0,0);
+		paradeContent(ImageProcessing.COLORTRANSFORM_NONE, 0,0,0);
 	}
 	
-	void paradeContent(ImageProcessing.ColorTransformFunction effect, float p1, float p2, float p3) {
+	void paradeContent(int effect, float p1, float p2, float p3) {
 		Surface parentSurface = GlobalObjects.theSurface;
 
 		int numItems = this.getNumItems();

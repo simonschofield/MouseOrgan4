@@ -239,10 +239,10 @@ public class Scene3DHelper {
 		if (uied.eventIsFromWidget("SceneData View")) {
 			System.out.println("change scene view to " + uied.menuItem);
 			if(uied.menuItem.contentEquals("none")) {
-				theSurface.setAlternateView(null);
+				theSurface.setCanvasBackgroundImage(null);
 			} else {
 				BufferedImage viewIm = sceneData3D.getRenderImage(uied.menuItem);
-				theSurface.setAlternateView(viewIm);
+				theSurface.setCanvasBackgroundImage(viewIm);
 			}
 		}
 		

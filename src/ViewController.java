@@ -3,6 +3,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 
 // This is an improved view controller that uses the whole window and is not limited to the aspect of the document
 // Given the following unchanging parameters
@@ -15,7 +16,7 @@ public class ViewController {
 	// this is the document buffer pixel space rect which represents
 	// a region of the image to be cropped out and shown in the
 	// viewDisplayRegion. Hence, apart from the fitToWindow view, it
-	// always has the same aspect as the viewDisplayRect
+	// always has the same aspect as the viewDisplayRecT
 	Rect currentViewCropRect;
 
 	// This is a flag
@@ -50,6 +51,13 @@ public class ViewController {
 	
 	Color viewDisplayRectBackgroundColor = Color.WHITE;
 	
+	
+	///////////////////////////////////////////////////////////////////////////
+	// Background Image
+	// When set, is adjusted to have the same size as the main document image
+	// so all view-mapping operations are identical
+	BufferedImage backgroundImage = null;
+	
 	public ViewController() {
 
 	}
@@ -67,6 +75,14 @@ public class ViewController {
 		theDocumentRect = new Rect(0,0,theDocumentWidth,theDocumentHeight);
 		currentViewCropRect = new Rect(0, 0, theDocumentWidth, theDocumentHeight);
 
+	}
+	
+	public void setBackgroundImage(BufferedImage bi) {
+		if(bi==null) {
+			backgroundImage = null;
+			return;
+		}
+		backgroundImage = ImageProcessing.resizeTo(bi, theDocumentWidth, theDocumentHeight);
 	}
 
 	Rect getCurrentViewCropRect() {
@@ -142,6 +158,18 @@ public class ViewController {
 		
 		currentViewCropRect = new Rect(0, 0, theDocumentWidth, theDocumentHeight);
 		
+		fitToWindowCentreRect = getFitToViewDisplayRect();
+		
+		drawView(g2d, fitToWindowCentreRect);
+		
+		
+	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// returns the absolute application pixel coordinates of the region in the centre
+	// of the viewDisplayRect that can contain (a scaled version of) the whole image
+	Rect getFitToViewDisplayRect() {
+		Rect fitToWindowRect = new Rect();
 		if (theDocumentAspect > viewDisplayRectAspect) {
 			// do "landscape fit" where it needs padding top/bottom for "landscape fit"
 			// work out the scale to shrink the image into this rect
@@ -149,7 +177,7 @@ public class ViewController {
 			float scaledImageHeight = theDocumentWidth * scaleToFit;
 			int halfDifferenceInHeight = (int) ((viewDisplayRect.getHeight() - scaledImageHeight) / 2f);
 
-			fitToWindowCentreRect.setWithDimensions(viewDisplayRect.left, viewDisplayRect.top + halfDifferenceInHeight, viewDisplayRect.getWidth(), scaledImageHeight);
+			fitToWindowRect.setWithDimensions(viewDisplayRect.left, viewDisplayRect.top + halfDifferenceInHeight, viewDisplayRect.getWidth(), scaledImageHeight);
 		} else {
 			// do "portrait fit" where it needs padding left right
 			// work out the scale to shrink the image into this rect
@@ -157,31 +185,46 @@ public class ViewController {
 			float scaledImageWidth = (theDocumentWidth * scaleToFit);
 			int halfDifferenceInWidth = (int) ((viewDisplayRect.getWidth() - scaledImageWidth) / 2f);
 			
-			fitToWindowCentreRect.setWithDimensions( viewDisplayRect.left + halfDifferenceInWidth, viewDisplayRect.top, scaledImageWidth, viewDisplayRect.getHeight());
+			fitToWindowRect.setWithDimensions( viewDisplayRect.left + halfDifferenceInWidth, viewDisplayRect.top, scaledImageWidth, viewDisplayRect.getHeight());
 		}
-		
-		g2d.setColor(new Color(230,230,230));
-		g2d.fillRect((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(),
-				(int) viewDisplayRect.getHeight());
-		
-		g2d.setColor(viewDisplayRectBackgroundColor);
-		g2d.fillRect((int) fitToWindowCentreRect.left, (int) fitToWindowCentreRect.top,
-				(int) fitToWindowCentreRect.getWidth(), (int) fitToWindowCentreRect.getHeight());
-
-		g2d.drawImage(GlobalObjects.theDocument.getCropBufferSpace(currentViewCropRect),
-				(int) fitToWindowCentreRect.left, (int) fitToWindowCentreRect.top,
-				(int) fitToWindowCentreRect.getWidth(), (int) fitToWindowCentreRect.getHeight(), null);
+		return fitToWindowRect; 
 	}
+	
 
 
 	void showZoom(Graphics2D g2d) {
-		
-		g2d.setColor(viewDisplayRectBackgroundColor);
-		g2d.fillRect((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(), (int) viewDisplayRect.getHeight());
-		
-		g2d.drawImage(GlobalObjects.theDocument.getCropBufferSpace(currentViewCropRect), (int) viewDisplayRect.left,
-				(int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(), (int) viewDisplayRect.getHeight(), null);
+		drawView(g2d, viewDisplayRect);
 	}
+	
+	
+	
+	void drawView(Graphics2D g2d, Rect imageDisplayRegion) {
+		
+		Color inertFill = new Color(230,230,230);
+		g2d.setColor(inertFill);
+		g2d.fillRect((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(),
+				(int) viewDisplayRect.getHeight());
+		
+		g2d.setColor(viewDisplayRectBackgroundColor);	
+		g2d.fillRect((int) imageDisplayRegion.left, (int) imageDisplayRegion.top,
+				(int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight());
+		
+
+		if(backgroundImage != null) {
+			g2d.drawImage(ImageProcessing.cropImage(backgroundImage, currentViewCropRect), (int) imageDisplayRegion.left,
+					(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
+			
+		}
+		
+		
+		BufferedImage displayImage = GlobalObjects.theDocument.getCropBufferSpace(currentViewCropRect);
+		g2d.drawImage(displayImage, (int) imageDisplayRegion.left,
+				(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
+		
+		
+		
+	}
+	
 	
 	void showActualSize() {
 		// width of screen

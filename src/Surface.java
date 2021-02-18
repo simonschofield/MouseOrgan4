@@ -61,7 +61,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	
 	
 	private Timer updateTimer;
-	private final int DELAY = 1;
+	private final int DELAY = 0;
 	SecondsTimer secondsTimer;
 
 	boolean userSessionPaused = false;
@@ -79,7 +79,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 	KeepAwake keepAwake = new KeepAwake();
 
-	BufferedImage alternateView;
+	//BufferedImage alternateView;
 
 	public Surface(JFrame papp) {
 		parentApp = papp;
@@ -241,6 +241,10 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	void setCanvasBackgroundColor(Color c) {
 		theViewControl.setViewDisplayRectBackgroundColor(c);
 	}
+	
+	void setCanvasBackgroundImage(BufferedImage img) {
+		theViewControl.setBackgroundImage(img);
+	}
 
 	public int windowWidth() {
 		return windowWidth;
@@ -269,10 +273,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		return theUI;
 	}
 
-	void setAlternateView(BufferedImage img) {
-		alternateView = img;
-	}
-
+	
 	/////////////////////////////////////////////////////////////////////
 	// session graphics update methods
 	//
@@ -280,12 +281,8 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 		Graphics2D g2d = (Graphics2D) g.create();
 
-		if (alternateView != null) {
-			g2d.drawImage(alternateView, (int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(),
-					(int) viewDisplayRect.getHeight(), null);
-		} else {
-			if(theViewControl!=null) theViewControl.updateDisplay(g2d);
-		}
+		if(theViewControl!=null) theViewControl.updateDisplay(g2d);
+		
 		g2d.dispose();
 
 	}
@@ -298,9 +295,11 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		if (userSessionUpdateCount % canvasUpdateFrequency == 0) {
 			super.paintComponent(g);
 			if(theUI!=null) updateCanvasDisplay(g);
+			keepAwake.update();
 		}
 
 		// update the ui
+		
 		Graphics2D g2d = (Graphics2D) g.create();
 		
 		if(theUI!=null) {
@@ -308,8 +307,9 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 			theUI.update();
 		}
 		
-		keepAwake.update();
+		
 		g2d.dispose();
+		
 		this.setFocusable(true);
 	}
 

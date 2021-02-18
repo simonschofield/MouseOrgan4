@@ -409,23 +409,10 @@ class RenderTarget {
 		PVector bottomRight = docSpaceToBufferSpace(docSpaceRect.getBottomRight());
 		Rect bufferSpaceRect = new Rect(topLeft, bottomRight);
 		return getCropBufferSpace( bufferSpaceRect);
-		//int cropX = (int) (topLeft.x);
-		//int cropY = (int) (topLeft.y);
-		//int cropWidth = (int) (bottomRight.x - topLeft.x);
-		//int cropHeight = (int) (bottomRight.y - topLeft.y);
-		//return bufferedImage.getSubimage(cropX, cropY, cropWidth, cropHeight);
-
 	}
 	
 	BufferedImage getCropBufferSpace(Rect bufferSpaceRect) {
-		PVector topLeft = bufferSpaceRect.getTopLeft();
-		PVector bottomRight = bufferSpaceRect.getBottomRight();
-		int cropX = (int) (topLeft.x);
-		int cropY = (int) (topLeft.y);
-		int cropWidth = (int) (bottomRight.x - topLeft.x);
-		int cropHeight = (int) (bottomRight.y - topLeft.y);
-		return bufferedImage.getSubimage(cropX, cropY, cropWidth, cropHeight);
-
+		return ImageProcessing.cropImage(bufferedImage, bufferSpaceRect);
 	}
 
 	void saveRenderToFile(String pathAndFilename) {
@@ -483,6 +470,17 @@ class RenderTarget {
 		
 		PVector buffPt = docSpaceToBufferSpace(docPt);
 		return new PVector( buffPt.x/bufferWidth,  buffPt.y/bufferHeight);
+		
+	}
+	
+	PVector normalisedSpaceToDocSpace(PVector normPt) {
+		// Doesn't lose precision by avoiding bufferspace methods
+		float bx = normPt.x * bufferWidth;
+		float by = normPt.y * bufferHeight;
+		
+		float docX = bx/longestBufferEdge;
+		float docY = by/longestBufferEdge;
+		return new PVector(docX, docY);
 		
 	}
 	
