@@ -14,9 +14,9 @@ import java.util.Comparator;
 class PointGenerator_RadialPack2D extends PointGenerator {
 
 	// specific data to help point generation
-	float radiusLow = 0.001f;
-    float radiusHigh= 0.01f;
-    float lowDistributionThreshold = 0;
+	PackingInterpolationScheme imageRadiusInterpolationScheme = new PackingInterpolationScheme();
+	float fixedRadius = 1;
+	
 	BufferedImage distributionImage;
 	CoordinateSpaceConverter distributionImageCoordinateSpaceConverter;
 	
@@ -35,37 +35,32 @@ class PointGenerator_RadialPack2D extends PointGenerator {
 	// (as a proportion of 1, so 0.001 == 1/1000th of the long edge)
 	//
 	void setPackingRadius(float r) {
-		radiusLow = r;
+		fixedRadius = r;
 	}
 	
-	/////////////////////////////////////////////////////////////////////////////////
-	// Evenly distributed points with a spacing radius dependednt on the value of a bitmap
-	// rLo maps to black in the bit map, rHi maps to white in the bitmap
-	//
-	void setPackingRadius(float rLo, float rHi, BufferedImage distImg) {
-		radiusLow = rLo;
-		radiusHigh = rHi;
+	// default is 300 attempts, but you can alter it 0..1 -> 10...600, so 0.5 is about the default.
+	void setPackingSearchTenacity(float t) {
+		attemptsCounter = (int)	MOMaths.lerp(t, 10,600);
+	}
+	
+	void setPackingRadius(PackingInterpolationScheme is,  BufferedImage distImg) {
+		imageRadiusInterpolationScheme = is;
 		distributionImage = distImg;
 	}
 	
-	void setPackingRadius(float rLo, float rHi, float lowLimit, BufferedImage distImg) {
-		radiusLow = rLo;
-		radiusHigh = rHi;
-		lowDistributionThreshold = lowLimit;
-		distributionImage = distImg;
-	}
 	
 	ArrayList<PVector> generatePoints() {
-		if(distributionImage == null) return generateDistributedPoints(radiusLow);
-		return generateDistributedPoints(radiusLow, radiusHigh);
+		if(distributionImage == null) return generateUniformlyDistributedPoints();
+		return generateImageResponsiveDistributedPoints();
 	}
 		
 		
-	ArrayList<PVector> generateDistributedPoints(float radius){	
+	ArrayList<PVector> generateUniformlyDistributedPoints(){	
 		int attempts = 0;
+		
 		while (true) {
 			PVector thisPt = getRandomDocSpacePoint();
-			boolean success = tryAddDistributedPoint(thisPt, radius);
+			boolean success = tryAddDistributedPoint(thisPt, fixedRadius);
 			if (!success) {
 				attempts++;
 			} else {
@@ -83,7 +78,7 @@ class PointGenerator_RadialPack2D extends PointGenerator {
 	
 
 	
-	ArrayList<PVector> generateDistributedPoints(float rLo, float rHi) {
+	ArrayList<PVector> generateImageResponsiveDistributedPoints() {
 		int previousBiggestNumberOfAttempts = 0;
 		
 		
@@ -96,11 +91,12 @@ class PointGenerator_RadialPack2D extends PointGenerator {
 			
 			// check against the bitmap lowDistributionThreshold
 			boolean success;
-			if( getBitmapValue01(thisPt) < lowDistributionThreshold ) {
+			float v = getBitmapValue01(thisPt);
+			if(  imageRadiusInterpolationScheme.isExcluded(v) ) {
 				success = false;
 			} else {
-				// it's passed the low threshold, so claculate a point
-				float radius = lerpRadiusOnImage(thisPt, rLo, rHi );
+				
+				float radius = imageRadiusInterpolationScheme.getValue(v);
 				success = tryAddDistributedPoint(thisPt, radius);
 			}
 			
@@ -163,19 +159,6 @@ class PointGenerator_RadialPack2D extends PointGenerator {
 
 	}
 
-	
-	
-	private float lerpRadiusOnImage(PVector docPt, float radiusAtLowImageValue, float radiusAtHighImageValue) {
-		
-		float t = getBitmapValue01( docPt);
-		
-		// so what you want is the densest distribution at white, the thinnest distribution at the cuttoff
-		t = MOMaths.lerp(t,lowDistributionThreshold,1.0f);
-		float thisSurfaceArea = MOMaths.lerp(t, radiusAtLowImageValue, radiusAtHighImageValue);
-		//float r = (float) Math.sqrt(thisSurfaceArea/Math.PI);
-		return thisSurfaceArea;
-	}
-	
 	float getBitmapValue01(PVector docPt) {
 		PVector imgPixelLoc = distributionImageCoordinateSpaceConverter.docSpaceToImageCoord(docPt);
 		return ImageProcessing.getValue01(distributionImage, (int) imgPixelLoc.x, (int) imgPixelLoc.y);
@@ -185,27 +168,30 @@ class PointGenerator_RadialPack2D extends PointGenerator {
 }// end of PointGenerator_RadialPack class
 
 ////////////////////////////////////////////////////////////////////////////
-//This class will return a list of random points packed to a specified radius in 3D
+//Generates a set of evenly distributed points on the 3D surface
+//then preserves them as a depth-enhanced set of document points
+//The depth is normalised 0...1
+////////////////////////////////////////////////////////////////////////////
+//The points are packed to a specified radius in 3D
 //on the surface of the 3D in SceneData
 //the algorithm keeps going until it fails to find a new packing point after a number of attempts.
-//There is an option which packs according to the tone of an image
-//There is an option which uses a list of pixels to pack from
-//
-//The radius is defined as a document space number (0...1), so a radius of 0.1 would give 10 points across the image
+//There is an option which packs according to the tone of an image, by adjusting the radius against the image tone,
+//inherited from the super class, but using 3D packing in this class,
+// The radius is defined in world 3D units
 //
 
 
 
 class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
 
-
+ 
 	
 	
 	// a list of 3d points for the 3d packing algorithm
 	ArrayList<PVector> points3d = new ArrayList<PVector>();
 	SceneData3D sceneData;
 
-	
+	boolean useSurfaceArea = true;
 	
 	public PointGenerator_RadialPackSurface3D(int rseed, SceneData3D sd) {
 		super(rseed);
@@ -214,9 +200,12 @@ class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
 
 	
 	boolean tryAddDistributedPoint(PVector docSpcPt, float radius) {
-		// just tries to add 1 point, returns true if added, false if not added
 		
-		PVector thisPoint3d = sceneData.get3DSurfacePoint(docSpcPt);;
+		
+		
+		
+		
+		PVector thisPoint3d = sceneData.get3DSurfacePoint(docSpcPt);
 		
 		// this is where you would invent a depth for volume distribution
 		// using sceneData.get3DVolumePoint(docSpcPt, invented depth);
@@ -229,7 +218,7 @@ class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
 		// if suitably far from any other point, add both the 2d docspace point
 		// and the 3d point
 		PVector depthEnhancedDocSpacePt = docSpcPt.copy();
-		//depthEnhancedDocSpacePt.z = normDepth;
+		depthEnhancedDocSpacePt.z = normDepth;
 		points.add(depthEnhancedDocSpacePt);
 		points3d.add(thisPoint3d);
 		
@@ -274,8 +263,9 @@ class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
 
 
 ////////////////////////////////////////////////////////////////////////////
-//
-//
+// Generates a set of randomly scattered points in 3D
+// then preserves the visible ones as a depth-enhanced set of document points
+// The depth is in actual eye-space units
 class PointGenerator_Volume3D extends CollectionIterator {
 
 	RandomStream randomStream;

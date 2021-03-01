@@ -79,8 +79,6 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 	KeepAwake keepAwake = new KeepAwake();
 
-	//BufferedImage alternateView;
-
 	public Surface(JFrame papp) {
 		parentApp = papp;
 		parentApp.add(this);

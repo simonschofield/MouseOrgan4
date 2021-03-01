@@ -758,6 +758,18 @@ public class PVector implements Serializable{
 		this.z = MOMaths.lerp(amt, this.z, z);
 		return this;
 	}
+	
+	
+	float pNorm(PVector p, PVector startPt, PVector endPt){
+	    // return the normalised value of the p as it journeys from startP, to endP, 
+	    // based on distance between
+	    // so returns 0 when p == startPt, 
+	    // return 1 when p == endPt
+	    // but can return a value <0 easily
+	    float largestDist = startPt.dist(endPt);
+	    float thisDist = p.dist(startPt);
+	    return MOMaths.norm(thisDist, 0, largestDist);
+	  }
 
 	/**
 	 * ( begin auto-generated from PVector_angleBetween.xml )

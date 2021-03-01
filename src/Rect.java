@@ -3,45 +3,46 @@ class Rect{
   
   float left,top,right,bottom;
   public Rect(){
-	  setRect(0,0,1,1);
+	  setWithExtents(0,0,1,1);
   }
   
   
   
-  //public Rect(PVector upperleft, PVector lowerright){
-  //  setRect(upperleft.x,upperleft.y,lowerright.x,lowerright.y);
-  //}
+	public Rect(float x1, float y1, float x2, float y2) {
+		setWithExtents(x1, y1, x2, y2);
+	}
+
+	public Rect(PVector tl, PVector br) {
+		setWithExtents(tl.x, tl.y, br.x, br.y);
+	}
+
+	public Rect(PVector upperleft, float w, float h) {
+		setWithDimensions(upperleft.x, upperleft.y, w, h);
+	}
+
+	void setRect(Rect other) {
+		setWithExtents(other.left, other.top, other.right, other.bottom);
+	}
+
+	void setWithExtents(float x1, float y1, float x2, float y2) {
+		this.left = Math.min(x1, x2);
+		this.top = Math.min(y1, y2);
+		this.right = Math.max(x1, x2);
+		this.bottom = Math.max(y1, y2);
+	}
+
+	void setWithDimensions(float x, float y, float w, float h) {
+		left = x;
+		top = y;
+		right = left + w;
+		bottom = top + h;
+
+	}
+
+	Rect copy() {
+		return new Rect(left, top, right, bottom);
+	}
   
-  public Rect(float x1, float y1, float x2, float y2){
-    setRect(x1,y1,x2,y2);
-  }
-  
-  public Rect(PVector tl, PVector br) {
-	  setRect(tl.x,tl.y,br.x,br.y);
-  }
-  
-  void setRect(Rect other){
-    setRect(other.left, other.top, other.right, other.bottom);
-  }
-  
-  void setWithDimensions(float x, float y, float w, float h) {
-	  left = x;
-	  top = y;
-	  right = left + w;
-	  bottom = top + h;
-	  
-  }
-  
-  Rect copy(){
-    return new Rect(left, top, right, bottom);
-  }
-  
-  void setRect(float x1, float y1, float x2, float y2){
-    this.left = Math.min(x1,x2);
-    this.top = Math.min(y1,y2);
-    this.right = Math.max(x1,x2);
-    this.bottom = Math.max(y1,y2);
-  }
   
   
   boolean equals(Rect other){
@@ -81,6 +82,7 @@ class Rect{
 	  bottom = top+h; 
   }
   
+  /*
   Rect getNormalised(){
     // this function makes the rect a square, by lengthening the shortest edge
     // this is useful for certain image-related operations, where the x and y
@@ -97,7 +99,7 @@ class Rect{
       normRect.right=right/aspect;
     }
     return normRect;
-  }
+  }*/
   
   PVector getCentre(){
     float cx = this.left + (this.right - this.left)/2.0f;
@@ -126,13 +128,21 @@ class Rect{
     return (this.bottom - this.top);
   }
   
-  PVector getTopLeft(){
-    return new PVector(left,top);
-  }
-  
-  PVector getBottomRight(){
-    return new PVector(right,bottom);
-  }
+	PVector getTopLeft() {
+		return new PVector(left, top);
+	}
+
+	PVector getTopRight() {
+		return new PVector(right, top);
+	}
+
+	PVector getBottomLeft() {
+		return new PVector(left, bottom);
+	}
+
+	PVector getBottomRight() {
+		return new PVector(right, bottom);
+	}
   
   float aspect(){
     return getWidth()/getHeight();
@@ -171,7 +181,7 @@ class Rect{
   
   
   String reportIntersection(Rect otherRect) {
-	  // retorts THIS rects intersection with OTHER
+	  // reports THIS rect's intersection with OTHER
 	  // so, WHOLLYINSITE means THIS is WHOLLYINSIDE other, and LEFT means THIS LEFT intersects OTHER RECT
 	  //System.out.println("reportIntersection: this Rect: " + this.toStr() + " Other rect "  + otherRect.toStr());
 	  if( intersects( otherRect) == false) return "NONE";
@@ -235,6 +245,33 @@ class Rect{
 	  
 	  return new PVector(px,py);
   }
+  
+  int getQuadrant(PVector p){
+	   // The rectange divides the space into 9 quadrants
+	   // 0,1,2
+	   // 3,4,5
+	   // 6,7,8
+	   // where quadant 4 is inside the rect.
+
+	   if( p.x <= left && p.y <= top) return 0;
+	   if( p.x >= left && p.x <= right && p.y <= top) return 1;
+	   if( p.x >= right && p.y <= top) return 2;
+	   if( p.x <= left && p.y >= top && p.y <= bottom) return 3;
+	   if(isPointInside(p)) return 4;
+	   if( p.x >= right && p.y >= top && p.y <= bottom) return 5;
+	   if( p.x <= left && p.y >= bottom) return 6;
+	   if( p.x >= left &&  p.x <= right && p.y >= bottom) return 7;
+	   if( p.x >= right && p.y >= bottom) return 8;
+	   
+	   System.out.println("Rect get quadrant something is wrong" + p + " in " + getStr());
+	   return -1;
+	 }
+  
+  String getStr(){ 
+	  return "Rect: L:" + left + " T:" + top + " R:" + right + " B:" + bottom; 
+	  }
+  
+  
   
   
 }// end Rect class
