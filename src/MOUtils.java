@@ -38,6 +38,17 @@ public class MOUtils {
 	    return name.substring(lastIndexOf);
 	}
 	
+	static String getFileNameWithoutExtension(String filename) {
+		// filename can be with or without path
+		//File file = new File(filename);
+	    //String name = file.getName();
+	    int lastIndexOf = filename.lastIndexOf(".");
+	    if (lastIndexOf == -1) {
+	        return filename; // no extension anyway
+	    }
+	    return filename.substring(0,lastIndexOf);
+	}
+	
 	static boolean checkDirectoryExist(String foldername) {
 		File targetFolder = new File(foldername);
 		if (targetFolder.exists())
@@ -124,108 +135,13 @@ public class MOUtils {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// is used to define distribution against an input (e.g. point of distribution against image value)
-// The special consideration with distribution interpolations, is what to do beyond the inputMin and inputMax values
-// This is dealt with by the underInputMinAction a,d overInputMaxOption settings, so that beyond this the min/max input extents:-
-// EXCLUDE -  report that this value is excluded, so no further action may be taken (e.g. do not put a point down at all)
-// CLAMP -  clamp the input to that extent, so the returned value is constant beyond that extent (e.g. keep the same distribution as if it was the extent)
-// EXTRAPOLATE - keep on interpolating beyond that extent (i.e. so the output values exceed the outputValueAtInputMin/Max values )
-//
-// getValue() always returns a the packing radius, which is used to calculate possible neighbouring point spacings and their "exclusion zones" by the utilising packing algorithm. 
-// The units which are interpolated between (rangeAtControlValMin...rangeAtControlValMax) can be set to either RADIUS, SURFACE_AREA or VOLUME.
 
-// Explanation: If the this class just interpolated a RADIUS against tone,  the the packing would be dis-proportionally spaced against the tone. For instance, if the spacing was to increase with brightness, 
-// then small increases in image brightness would result in increasingly large spacings, as the SA (and therefore the packing) of a circle is proportional to the square of its radius. 
-// Hence the user may wish the interpolation to be in terms of resultant surface area, or volume of a point's "exclusion zone". Surface_area is the default mode.
-//
-class PackingInterpolationScheme{
-	static final int EXCLUDE = 0; // excluded() returns true is the input is under the inputMin, or over the inputMax, value is clamped at limit.
-	static final int CLAMP = 1; // returns false from outsideLimit, value is clamped at limit
-	static final int EXTRAPOLATE = 2; // returns false from outsideLimit, value continues to be extrapolated
-	static final int RANGE_UNITS_RADIUS = 3; // the output range is regarded as a simple linear interpolation, so left alone
-	static final int RANGE_UNITS_SURFACE_AREA = 4; // The output value range is the radius derived from a linear interpolation of surface areas. 
-	static final int RANGE_UNITS_VOLUME = 5; // The output value range is the radius derived from a linear interpolation of surface areas. 
-	
-	float controlValueMin = 0;
-	float controlValueMax = 1;
-	
-	float rangeAtControlValMin = 0;
-	float rangeAtControlValMax = 1;
-	
-	int underControlValueMinOption = EXTRAPOLATE;
-	int overControlValueMaxOption = EXTRAPOLATE;
-	
-	
-	// userUnits - RADIUS, SURFACE_AREA, VOLUME
-	int rangeUnits = RANGE_UNITS_SURFACE_AREA;
-	
-	PackingInterpolationScheme(){
-	
-	}
-	
-	
-	PackingInterpolationScheme(float controlValMin, float controlValMax, float rangeMin, float rangeMax, int underControlValMinOption, int overControlValMaxOption){
-		set(  controlValMin,  controlValMax,  rangeMin,  rangeMax,  underControlValMinOption,  overControlValMaxOption);
-	}
-	
-	void setRangeUnits(int m) {
-		if(m == RANGE_UNITS_RADIUS) rangeUnits = m;
-		if(m == RANGE_UNITS_SURFACE_AREA) rangeUnits = m;
-		if(m == RANGE_UNITS_VOLUME) rangeUnits = m;
-	}
-	
-	
-	void set(float controlValMin, float controlValMax, float unitRangeMin, float unitRangeMax, int underControlValMinOption, int overControlValMaxOption) {
-		
-		controlValueMin = controlValMin;
-		controlValueMax = controlValMax;
-		
-		rangeAtControlValMin = unitRangeMin;
-		rangeAtControlValMax = unitRangeMax;
-		
-		
-		underControlValueMinOption = underControlValMinOption;
-		overControlValueMaxOption = overControlValMaxOption;
-		
-		
-	}
-	
-	
-	
-	boolean isExcluded(float controlVal) {
-		if(controlVal < controlValueMin && underControlValueMinOption == EXCLUDE) return true;
-		if(controlVal > controlValueMax && overControlValueMaxOption == EXCLUDE) return true;
-		return false;
-	}
-	
-	// getRadius
-	float getValue(float controlVal) {
-		
-		
-		if((underControlValueMinOption == CLAMP || underControlValueMinOption == EXCLUDE) &&  controlVal < controlValueMin) controlVal = controlValueMin;
-		if((overControlValueMaxOption == CLAMP  || overControlValueMaxOption == EXCLUDE ) &&  controlVal >  controlValueMax) controlVal = controlValueMax;
-		
-		float val =  MOMaths.map(controlVal, controlValueMin, controlValueMax, rangeAtControlValMin, rangeAtControlValMax);
-		
-		if(rangeUnits == RANGE_UNITS_SURFACE_AREA) {
-			return (float) Math.sqrt(val/Math.PI);
-		}
-		
-		if(rangeUnits == RANGE_UNITS_VOLUME) {
-			return (float) Math.cbrt(val/Math.PI);
-		}
-		
-		return val;
-		
-	}
-	
-}
+
 
 class SecondsTimer{
 	  
 	  long startMillis = 0;
-	  float elapsedTime;
+	  float lastNow;
 	  
 	  float durationEndTime = 0;
 	  
@@ -236,7 +152,7 @@ class SecondsTimer{
 	  
 	  void start(){
 	    startMillis = System.currentTimeMillis();
-	    elapsedTime = 0;
+	    lastNow = 0;
 	  }
 	  
 	  
@@ -252,9 +168,10 @@ class SecondsTimer{
 		  
 	  // returns the elapsed time since you last called this function
 	  float getElapsedTime(){
-	    float tot = getTimeSinceStart();
-	    elapsedTime = tot - elapsedTime;
-	    return elapsedTime;
+		 float now =  getTimeSinceStart();
+		 float elapsedTime = now - lastNow;
+		 lastNow = now;
+		 return elapsedTime;
 	    
 	  }
 	  

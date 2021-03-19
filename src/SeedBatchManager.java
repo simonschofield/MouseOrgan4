@@ -7,7 +7,7 @@ import java.util.Comparator;
 //SeedBatchManager
 //
 //
-class SeedBatchManager {
+class SeedBatchManager  extends CollectionIterator{
 	// important classes necessary for independently generating new seed layers
 
 	ImageSampleGroupManager contentManager;
@@ -32,6 +32,10 @@ class SeedBatchManager {
 
 	void addSeedBatch(SeedBatch sl) {
 		seedBatches.add(sl);
+	}
+	
+	int getNumSeedBatches() {
+		return seedBatches.size();
 	}
 
 	ArrayList<Seed> getCollatedSeeds() {
@@ -72,6 +76,7 @@ class SeedBatchManager {
 	}
 
 	void updateSeedDepthsAgainstScene() {
+		if(sceneData3D == null) return;
 		// call this if you are changing to a different depth filter
 		// TBD: ideally checks to see if the filter has changed,
 		for (Seed s : collatedSeeds) {
@@ -147,6 +152,23 @@ class SeedBatchManager {
 		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage());
 		pointField.setPackingRadius(is, pointDistributionImage);
 		return pointField;
+	}
+	
+	
+	Seed getNextSeed() {
+		return (Seed) getNextItem();
+	}
+
+	@Override
+	int getNumItems() {
+		// TODO Auto-generated method stub
+		return collatedSeeds.size();
+	}
+
+	@Override
+	Object getItem(int n) {
+		// TODO Auto-generated method stub
+		return collatedSeeds.get(n);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////

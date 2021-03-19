@@ -12,14 +12,10 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.LookupOp;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
+
 
 public class ImageProcessing {
 
@@ -357,6 +353,9 @@ public class ImageProcessing {
 		return new Color(r,g,b,a);
 	}
 	
+	
+	
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// Geometric transforms
 	//	
@@ -583,6 +582,22 @@ public class ImageProcessing {
 			data[0][n] = (byte) MOMaths.lerp(amt, n, c.getRed());
 			data[1][n] = (byte) MOMaths.lerp(amt, n, c.getGreen());
 			data[2][n] = (byte) MOMaths.lerp(amt, n, c.getBlue());
+		}
+		return pointFunction(image, data);
+	}
+	
+	
+	public static BufferedImage replaceColor(BufferedImage image, Color c) {
+		//ignores any alpha, just replaces rgb values with colour
+		byte[][] data = new byte[3][256];
+		
+		byte r = (byte) c.getRed();
+		byte g = (byte) c.getGreen();
+		byte b = (byte) c.getBlue();
+		for (int n = 0; n < 256; n++) {
+			data[0][n] = r;
+			data[1][n] = g;
+			data[2][n] = b;
 		}
 		return pointFunction(image, data);
 	}
@@ -919,7 +934,8 @@ class ConvolutionFilter {
 
 	float[][] sharpen_matrix = { { 0, -1, 0 }, { -1, 5, -1 }, { 0, -1, 0 } };
 
-	float[][] gaussianblur_matrix = { { 0.000f, 0.000f, 0.001f, 0.001f, 0.001f, 0.000f, 0.000f },
+	float[][] gaussianblur_matrix = { 
+			{ 0.000f, 0.000f, 0.001f, 0.001f, 0.001f, 0.000f, 0.000f },
 			{ 0.000f, 0.002f, 0.012f, 0.020f, 0.012f, 0.002f, 0.000f },
 			{ 0.001f, 0.012f, 0.068f, 0.109f, 0.068f, 0.012f, 0.001f },
 			{ 0.001f, 0.020f, 0.109f, 0.172f, 0.109f, 0.020f, 0.001f },
@@ -927,10 +943,18 @@ class ConvolutionFilter {
 			{ 0.000f, 0.002f, 0.012f, 0.020f, 0.012f, 0.002f, 0.000f },
 			{ 0.000f, 0.000f, 0.001f, 0.001f, 0.001f, 0.000f, 0.000f } };
 
-	float[][] sobelX_matrix5 = { { 2, 1, 0, -1, -2 }, { 2, 1, 0, -1, -2 }, { 4, 2, 0, -2, -4 }, { 2, 1, 0, -1, -2 },
+	float[][] sobelX_matrix5 = { 
+			{ 2, 1, 0, -1, -2 }, 
+			{ 2, 1, 0, -1, -2 }, 
+			{ 4, 2, 0, -2, -4 }, 
+			{ 2, 1, 0, -1, -2 },
 			{ 2, 1, 0, -1, -2 } };
 
-	float[][] sobelY_matrix5 = { { 2, 2, 4, 2, 2 }, { 1, 1, 2, 1, 1 }, { 0, 0, 0, 0, 0 }, { -1, -1, -2, -1, -1 },
+	float[][] sobelY_matrix5 = { 
+			{  2,  2,  4,  2,  2 }, 
+			{  1,  1,  2,  1,  1 }, 
+			{  0,  0,  0,  0,  0 }, 
+			{ -1, -1, -2, -1, -1 },
 			{ -2, -2, -4, -2, -2 } };
 
 	float[][] sobelX_matrix3 = { { 2, 0, -2 }, { 4, 0, -4 }, { 2, 0, -2 } };
@@ -939,6 +963,11 @@ class ConvolutionFilter {
 	float[][] currentMatrix;
 	int currentMatrixDim;
 
+	public ConvolutionFilter() {
+		
+		// should probably set the identity matrix
+	}
+	
 	public ConvolutionFilter(String type) {
 		setCurrentFilter(type);
 	}
@@ -1009,8 +1038,8 @@ class ConvolutionFilter {
 		for (int i = 0; i < currentMatrixDim; i++) {
 			for (int j = 0; j < currentMatrixDim; j++) {
 				// get the image pixel clamped to the dims
-				int xloc = x + i - offset;
-				int yloc = y + j - offset;
+				int xloc = x + j - offset;
+				int yloc = y + i - offset;
 				float imgval = img.getClamped(xloc, yloc);
 
 				// Calculate the convolution
@@ -1022,6 +1051,58 @@ class ConvolutionFilter {
 		// Return the resulting color
 		return total;
 	}
+	
+	
+	float convolvePixel(int x, int y, BufferedImage img) {
+
+		// x,y is the central pixel of the floatimage in the convolution
+		float total = 0.0f;
+		int offset = currentMatrixDim / 2;
+
+		// println("current matrix dim ",currentMatrixDim);
+		for (int i = 0; i < currentMatrixDim; i++) {
+			for (int j = 0; j < currentMatrixDim; j++) {
+				// get the image pixel clamped to the dims
+				int xloc = x + j - offset;
+				int yloc = y + i - offset;
+				float imgval = ImageProcessing.getValue01Clamped(img, xloc, yloc);
+
+				// Calculate the convolution
+				total += (imgval * currentMatrix[i][j]);
+				// println("loc total",loc,total);
+			}
+		}
+
+		// Return the resulting color
+		return total;
+	}
+	
+	
+	PVector getGradient(PVector docSpace, BufferedImage img) {
+		// uses a 5x5 Sobel filet.
+		// returns the direction and magnitude from dark to light
+		// The vector returned is in the direction of change from dark to light
+		// A magnitude of 0, means the image is flat in that region using a 5x5 kernel
+		KeyImageSampler kimg =  new KeyImageSampler(img);
+		PVector bufferXY =  kimg.docSpaceToBufferSpace( docSpace);
+		return getGradient((int)bufferXY.x, (int)bufferXY.y, kimg.getBufferedImage() );
+	}
+	
+	PVector getGradient(int x, int y, BufferedImage img) {
+		setCurrentFilter("sobelx5");
+		float dx = convolvePixel( x,  y,  img);
+		
+		setCurrentFilter("sobely5");
+		float dy = convolvePixel( x,  y,  img);
+
+		PVector grad =  new PVector(-dx,-dy);
+		
+		//grad.rotate((float)Math.toRadians(90));
+		return grad;
+	}
+	
+	
+	
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//

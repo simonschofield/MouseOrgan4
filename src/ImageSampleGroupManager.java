@@ -31,6 +31,10 @@ class ImageSampleGroupManager {
 		}
 		return null;
 	}
+	
+	
+	
+	
 
 	int getNumItems(String name) {
 		ImageSampleGroup cc = getImageSampleGroup(name);
@@ -123,7 +127,21 @@ class ImageSampleGroupManager {
 		loadImageSampleGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect(), origin, sizeInScene);
 
 	}
-
+	
+	/////////////////////////////////////////////////////////////////////////////
+	// creates a completely independent copy of an already loaded sample group, 
+	// the new group has a different name
+	///////////////////////////////////////////////////////////////////////////// first
+    void cloneImageSampleGroup(String existingGroupname, String newGroupName, PVector orig, Float sizeInScn) {
+    	ImageSampleGroup cc = getImageSampleGroup(existingGroupname);
+    	PVector origin = cc.spriteOrigin;
+    	if(orig != null  ) origin = orig;
+    	float sizeInScene = cc.spriteSizeInScene;
+    	if(sizeInScn != null  ) sizeInScene = sizeInScn;
+    	ImageSampleGroup newGroup = cc.copyToNewGroup(newGroupName, origin, sizeInScene);
+    	
+    	imageSampleGroups.add(newGroup);
+    }
 	/////////////////////////////////////////////////////////////////////////////
 	// these are the long-hand method of establishing an image-collection
 	// If you are doing it long hand - then the method below needs to be called
@@ -174,30 +192,40 @@ class ImageSampleGroupManager {
 	 * @param p3        third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
-	void colorAdjustImageSampleGroup(String groupname, int function, float p1, float p2, float p3) {
+	void colorTransformImageSampleGroup(String groupname, int function, float p1, float p2, float p3) {
 		ImageSampleGroup ic = getImageSampleGroup(groupname);
 		if (ic == null)
 			return;
-		ic.colorAdjustAll(function, p1, p2, p3);
+		ic.colorTransformAll(function, p1, p2, p3);
 	}
 
-	void hsvAdjustImageSampleGroup(String name, float dh, float ds, float dv) {
-		ImageSampleGroup ic = getImageSampleGroup(name);
-		if (ic == null)
-			return;
-		ic.hsvAdjustAll(dh, ds, dv);
-	}
+	
 
 	void paradeContent(String groupName, int effect, float p1, float p2, float p3 ) {
 		ImageSampleGroup sampleGroup = this.getImageSampleGroup(groupName);
 		sampleGroup.paradeContent(effect, p1, p2, p3);
 	}
 
-}// end of class ContentManager
+}// end of class ImageSampleGroupManager
+
+
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-//ImageContentGroup
+//
+//
+//
+//
+//
+//
+//ImageSampleGroup
 //A list of content items held in memory as BufferedImages
 //They are pre-scaled to the session scale at load time, and then the scaled items cached for rapid reload next time.
 //They have a shared spriteOrigin
@@ -224,6 +252,21 @@ class ImageSampleGroup extends DirectoryImageGroup {
 
 		groupName = collectionName;
 
+	}
+	
+	
+	// not tested yet
+	ImageSampleGroup copyToNewGroup(String newGroupName, PVector groupOrigin, float sizeInScene) {
+		ImageSampleGroup newGroup = new ImageSampleGroup(newGroupName, directoryPath);
+		int numImage = imageList.size();
+		for (int n = 0; n < numImage; n++) {
+			BufferedImage img = imageList.get(n);
+			BufferedImage copyImg =  ImageProcessing.copyImage(img);
+			newGroup.imageList.add(copyImg);
+		}
+		newGroup.setSpriteOrigins(groupOrigin);
+		newGroup.setSpriteSizeInScene(sizeInScene);
+		return newGroup;
 	}
 
 	boolean isNamed(String name) {
@@ -393,27 +436,8 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		}
 	}
 
-	void hsvAdjustAll(float dh, float ds, float dv) {
-		int numImage = imageList.size();
-		for (int n = 0; n < numImage; n++) {
-			BufferedImage img = imageList.get(n);
-			BufferedImage scaled = ImageProcessing.adjustHSV(img, dh, ds, dv);
-			imageList.set(n, scaled);
-		}
-
-	}
-
-	void brightnessAdjustAll(float db) {
-		int numImage = imageList.size();
-		for (int n = 0; n < numImage; n++) {
-			BufferedImage img = imageList.get(n);
-			img = ImageProcessing.adjustBrightness(img, db);
-			imageList.set(n, img);
-		}
-
-	}
-
-	void colorAdjustAll(int function, float p1, float p2, float p3) {
+	
+	void colorTransformAll(int function, float p1, float p2, float p3) {
 		int numImage = imageList.size();
 
 		for (int n = 0; n < numImage; n++) {
@@ -423,7 +447,8 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		}
 
 	}
-
+	
+	
 	void compressSizes(float amount) {
 		// when amount == 0 no change in sizes
 		// when amount == 1, all shapes scaled to fit into smallest
@@ -461,12 +486,9 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		}
 
 		float world3Dheight = getSpriteSizeInScene();
-		// System.out.println("gImageSprite getSprite() world3Dheight " +
-		// world3Dheight);
-		ImageSprite sprite = new ImageSprite(getImage(n), spriteOrigin.copy(), world3Dheight, seed.id);
-		sprite.setDocPoint(seed.getDocPoint());
 		
-		sprite.contentGroupName = seed.imageSampleGroupName;
+		ImageSprite sprite = new ImageSprite(getImage(n), spriteOrigin.copy(), world3Dheight, seed);
+		
 		return sprite;
 	}
 
@@ -482,7 +504,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 
 		float world3Dheight = getSpriteSizeInScene();
 		ImageSprite sprite = new ImageSprite(getImage(num), spriteOrigin.copy(), world3Dheight, uniqueID.next());
-		sprite.contentGroupName = this.groupName;
+		sprite.imageSampleGroupName = this.groupName;
 		return sprite;
 	}
 
@@ -705,6 +727,7 @@ class ImageSampleSelector {
 
 	ImageSampleDescription getImageSampleDescriptionFromGroup(String groupName) {
 		int numItemsInContentGroup = theImageSampleGroupManager.getNumItems(groupName);
+		//System.out.println("getImageSampleDescriptionFromGroup - numItemsInContentGroup " + groupName + " is " + numItemsInContentGroup);
 		int itemNum = randomStream.randRangeInt(0, numItemsInContentGroup - 1);
 		return new ImageSampleDescription(groupName, itemNum);
 

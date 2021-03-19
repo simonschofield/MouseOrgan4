@@ -2,15 +2,21 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-public class PointGenerator extends CollectionIterator{
+public class PointGenerator_Random extends CollectionIterator{
 	RandomStream randomStream;
 	float aspect;
+	
+	/////////////////////////////////////////////////////////////////////////
+	// The generation area is a Rect, in which the points are evenly generated.
+	// The points could be in any coordinate space, but the default setting
+	// is to define the  generationAreaRect as the whole document space
+	// Hence the points generated are in DocumentSpace
 	Rect generationAreaRect;
 	// the mask image is set to black/white specifiying where points may be
 	// generated
-	BufferedImage maskImage;
+	
+	KeyImageSampler maskKeyImageSampler;
 	float maskThreshold = 0.5f;
-	CoordinateSpaceConverter maskImageCoordinateSpaceConverter;
 
 	// the list of points eventiallu calculated
 	ArrayList<PVector> points = new ArrayList<PVector>();
@@ -20,7 +26,7 @@ public class PointGenerator extends CollectionIterator{
 	
 	
 
-	public PointGenerator(int rseed) {
+	public PointGenerator_Random(int rseed) {
 		aspect = GlobalObjects.theDocument.getDocumentAspect();
 		randomStream = new RandomStream(rseed);
 		float w = GlobalObjects.theDocument.getDocumentWidth();
@@ -39,10 +45,10 @@ public class PointGenerator extends CollectionIterator{
 	}
 	
 	ArrayList<PVector> generatePoints(){
-		return generateRandomPoints(numberOfPointsRequest);
+		return generatePoints(numberOfPointsRequest);
 	}
 	
-	ArrayList<PVector> generateRandomPoints(int num){
+	ArrayList<PVector> generatePoints(int num){
 		for(int n = 0; n < num; n++) {
 			PVector p = getRandomDocSpacePoint();
 			points.add(p);
@@ -67,10 +73,7 @@ public class PointGenerator extends CollectionIterator{
 	}
 
 	void setMaskImage(BufferedImage mask) {
-
-		maskImage = mask;
-		maskImageCoordinateSpaceConverter =  new CoordinateSpaceConverter(maskImage.getWidth(), maskImage.getHeight(), aspect);
-		//System.out.println("setting mask image" + mask);
+		maskKeyImageSampler = new KeyImageSampler(mask);
 	}
 	
 	
@@ -86,7 +89,7 @@ public class PointGenerator extends CollectionIterator{
 	PVector getRandomDocSpacePoint() {
 		PVector p = randomStream.randomPoint2(generationAreaRect);
 		
-		if (maskImage == null)
+		if (maskKeyImageSampler == null)
 			return p;
 		int bailCount = 0;
 
@@ -105,11 +108,11 @@ public class PointGenerator extends CollectionIterator{
 	}
 
 	boolean permittedByMaskImage(PVector p) {
-		if(maskImage==null) return true;
+		if(maskKeyImageSampler==null) return true;
 		
-		PVector imgPixelLoc = maskImageCoordinateSpaceConverter.docSpaceToImageCoord(p);
+		float t = maskKeyImageSampler.getValue01DocSpace(p);
 		
-		float t =  ImageProcessing.getValue01(maskImage, (int) imgPixelLoc.x, (int) imgPixelLoc.y);
+		//float t =  ImageProcessing.getValue01(maskImage, (int) imgPixelLoc.x, (int) imgPixelLoc.y);
 		
 		if (t < maskThreshold) return false;
 		

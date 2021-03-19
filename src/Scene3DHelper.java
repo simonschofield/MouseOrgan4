@@ -11,7 +11,7 @@ class SceneHelper {
 	}
 	
 	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount, boolean flipInRotationDirection) {
-		QRandomStream ranStream = sprite.qRandomStream;
+		QRandomStream ranStream = sprite.getRandomStream();
 		float rscale = ranStream.randRangeF(1-scaleAmt,1+scaleAmt);
 		
 		float rrot = ranStream.randRangeF(-rotAmount,rotAmount);
@@ -22,7 +22,7 @@ class SceneHelper {
 	}
 	
 	static void randomMirrorSprite(ImageSprite sprite, boolean inX, boolean inY) {
-		QRandomStream ranStream = sprite.qRandomStream;
+		QRandomStream ranStream = sprite.getRandomStream();
 		boolean coinTossX = ranStream.randomEvent(0.5f);
 		boolean coinTossY = ranStream.randomEvent(0.5f);
 		if(coinTossX && inX) {
@@ -53,7 +53,7 @@ class SceneHelper {
 	}
 	
 	static void addRandomHSV(ImageSprite sprite, float rH, float rS, float rV) {
-		QRandomStream ranStream = sprite.qRandomStream;
+		QRandomStream ranStream = sprite.getRandomStream();
 		float randH = ranStream.randRangeF(-rH, rH);
 		float randS = ranStream.randRangeF(-rS, rS);
 		float randV = ranStream.randRangeF(-rV, rV);
@@ -109,8 +109,10 @@ class RenderSaver {
 
 	String baseName;
 	boolean useSubDirectory = false;
+	boolean useLayers = false;
 	String subDirectory;
 	int imageNumCounter = 0;
+	
 
 	boolean photoshopLayerOrderNumbering = false;
 	int photoshopLayerNumberMaxNum = 99;
@@ -121,7 +123,8 @@ class RenderSaver {
 		
 	}
 
-	void createSubDirectory() {
+	void createSubDirectory(boolean usinglayer) {
+		useLayers = usinglayer;
 		useSubDirectory = true;
 		subDirectory = MOUtils.createDirectory(GlobalObjects.theSurface.getUserSessionPath(), baseName, true);
 	}
@@ -137,20 +140,27 @@ class RenderSaver {
 
 	void saveImageFile() {
 		if (useSubDirectory) {
-			String name = "img";
-
-			if (photoshopLayerOrderNumbering) {
-				int thisPhotoshopLayerNum = photoshopLayerNumberMaxNum - imageNumCounter;
-				name = name + "_PSLayer_" + thisPhotoshopLayerNum;
+			if(useLayers) {
+				String name = "img";
+	
+				if (photoshopLayerOrderNumbering) {
+					int thisPhotoshopLayerNum = photoshopLayerNumberMaxNum - imageNumCounter;
+					name = name + "_PSLayer_" + thisPhotoshopLayerNum;
+				}
+	
+				name = name + "_MOLayer_" + imageNumCounter;
+	
+				String fullPathAndName = subDirectory + "\\" + name + ".png";
+				System.out.println("saveRenderLayers to folder: saving " + fullPathAndName);
+				GlobalObjects.theDocument.saveRenderToFile(fullPathAndName);
+	
+				imageNumCounter++;
+			} else {
+				
+				String fullPathAndName = subDirectory + "\\" + baseName + ".png";
+				System.out.println("saveRender and masks to folder: saving " + fullPathAndName);
+				GlobalObjects.theDocument.saveRenderToFile(fullPathAndName);
 			}
-
-			name = name + "_MOLayer_" + imageNumCounter;
-
-			String fullPathAndName = subDirectory + "\\" + name + ".png";
-			System.out.println("saveRenderLayer: saving " + fullPathAndName);
-			GlobalObjects.theDocument.saveRenderToFile(fullPathAndName);
-
-			imageNumCounter++;
 		} else {
 
 			String path = GlobalObjects.theSurface.getUserSessionPath();
@@ -200,11 +210,29 @@ public class Scene3DHelper {
 			
 		}
 		
+		
+		static float addWave(ImageSprite sprite, String waveImageName, float amt, boolean flipInDirection) {
+			
+			ConvolutionFilter cf = new ConvolutionFilter();
+			BufferedImage gritty = sceneData3D.getRenderImage(waveImageName);
+			PVector grad = cf.getGradient(sprite.getDocPoint(), gritty);
+			float mag = grad.mag();
+			
+			if(mag>0.001) {
+				float rot = grad.heading();
+				float scaledRot = rot*mag*amt;
+				if(scaledRot > 0 && flipInDirection) sprite.image = ImageProcessing.mirrorImage(sprite.image, true, false);
+				sprite.rotate((float)Math.toDegrees(scaledRot));
+				return scaledRot;
+			}
+			return 0;
+		}
+		
 		static float addWave(ImageSprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise) {
 			sceneData3D.setCurrentRenderImage(waveImageName);
 			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
 			
-			QRandomStream ranStream = sprite.qRandomStream;
+			QRandomStream ranStream = sprite.getRandomStream();
 			degreesLeft = ranStream.perturb(degreesLeft, noise);
 			degreesRight = ranStream.perturb(degreesRight, noise);
 			
@@ -223,7 +251,7 @@ public class Scene3DHelper {
 			
 			if(noise > 0.001) {
 				
-			QRandomStream ranStream = sprite.qRandomStream;
+			QRandomStream ranStream = sprite.getRandomStream();
 			v = ranStream.perturb(v, noise);
 			}
 			

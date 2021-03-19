@@ -23,7 +23,7 @@ import javax.swing.Timer;
 //
 class GlobalObjects{
 	static Surface theSurface;
-	static RenderTarget theDocument;
+	static MainDocumentRenderTarget theDocument;
 	
 	static String sampleLibPath = "C:\\simon\\sample lib\\";
 	
@@ -48,7 +48,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 	private float globalSessionScale = 1.0f;
 
-	RenderTarget theDocument;
+	MainDocumentRenderTarget theDocument;
 	ViewController theViewControl = new ViewController();
 	SimpleUI theUI;
 
@@ -62,10 +62,10 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	
 	private Timer updateTimer;
 	private final int DELAY = 0;
-	SecondsTimer secondsTimer;
+	//SecondsTimer secondsTimer;
 
 	boolean userSessionPaused = false;
-	int userSessionUpdateCount = 0;
+	private int userSessionUpdateCount = 0;
 	// this is the path to the user's session folder
 	private String userSessionPath = "";
 
@@ -73,9 +73,9 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	// in respect to userSessionUpdates. 50 has been arrived at through trial and
 	// error
 	// but the number can be dropped during interactions for a smoother update rate.
-	int canvasUpdateFrequency = 50;
+	private int canvasUpdateFrequency = 50;
 
-	float measuringToolSize = 1f;
+	
 
 	KeepAwake keepAwake = new KeepAwake();
 
@@ -120,7 +120,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 
 	public void initialiseDocument(int dw, int dh, float sessionScale) {
 		globalSessionScale = sessionScale;
-		theDocument = new RenderTarget();
+		theDocument = new MainDocumentRenderTarget();
 		GlobalObjects.theDocument = theDocument;
 		theDocument.setRenderBufferSize((int) (dw * globalSessionScale), (int) (dh * globalSessionScale));
 		
@@ -131,7 +131,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		
 		theViewControl.init();
 		buildUI();
-		secondsTimer = new SecondsTimer();
+		
 	}
 	
 	private void updateUserSession_All() {
@@ -184,7 +184,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	/////////////////////////////////////////////////////////////////////
 	// UI related methods
 	//
-	void buildUI() {
+	private void buildUI() {
 
 		theUI = new SimpleUI(this);
 
@@ -255,6 +255,15 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	public float getSessionScale() {
 		return globalSessionScale;
 	}
+	
+	public int getCanvasUpdateFrequency() {
+		return canvasUpdateFrequency;
+	}
+	
+	void setCanvasUpdateFrequency(int cuf) {
+		canvasUpdateFrequency = cuf;
+	}
+	
 	
 	
 	float fullScalePixelsToDocSpace(float pixels) {

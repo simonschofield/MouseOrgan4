@@ -27,8 +27,8 @@ public class SceneData3D {
 	PVector cameraLookat;
 	
 	
-	CoordinateSpaceConverter coordinateSpaceConverter;
-	
+	//CoordinateSpaceConverter coordinateSpaceConverter;
+	KeyImageSampler distanceBufferKeyImageSampler;
 	// document aspect is the aspect of the
 	// output compositer render, not the input roi
 	float mouseOrganDocAspect;
@@ -115,12 +115,9 @@ public class SceneData3D {
 		
 		originalViewCropRect = new Rect(topLeftV,botRighV);
 		
+		distanceBufferKeyImageSampler = new KeyImageSampler(distanceImage);
 		
-		
-		coordinateSpaceConverter = new CoordinateSpaceConverter(renderWidth,renderHeight, mouseOrganDocAspect);
-		
-		
-		geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter, originalViewWidth, originalViewHeight, originalViewCropRect);
+		geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov,  distanceFilter, originalViewWidth, originalViewHeight, originalViewCropRect);
 		
 		setCurrentRenderImage(0);
 	}
@@ -128,7 +125,7 @@ public class SceneData3D {
     
     void setDistanceBufferGamma(float g) {
     	distanceFilter.setDistanceGamma(g);
-    	geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov, coordinateSpaceConverter, distanceFilter, originalViewWidth, originalViewHeight, originalViewCropRect);
+    	geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov,  distanceFilter, originalViewWidth, originalViewHeight, originalViewCropRect);
     }
     
 	
@@ -182,7 +179,8 @@ public class SceneData3D {
 	}
 	
 	Color getCurrentRenderColor(PVector docSpace) {
-		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		//PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
 		int packedCol = currentRenderKeyImage.getRGB((int)coord.x, (int)coord.y);
 		
 		return ImageProcessing.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
@@ -191,7 +189,8 @@ public class SceneData3D {
 	
 	
 	boolean isSubstance(PVector docSpace) {
-		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		//PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
 		int packedCol = geometryBuffer3d.substanceImage.getRGB((int)coord.x, (int)coord.y);
 		Color c = ImageProcessing.packedIntToColor(packedCol, true);
 		if( c.getRed() > 0) return true;
@@ -314,18 +313,20 @@ class GeometryBuffer3D{
 	// document aspect is the aspect of the
 	// output compositer render, not the input roi
 	float documentAspect;
-	CoordinateSpaceConverter coordinateSpaceConverter;
+	KeyImageSampler distanceBufferKeyImageSampler;
+	//CoordinateSpaceConverter coordinateSpaceConverter;
 	
 	DistanceBufferFilter distanceBufferFilter = new DistanceBufferFilter();
 	
 	
-	public GeometryBuffer3D(FloatImage distanceBuff, float vfov, CoordinateSpaceConverter csc, DistanceBufferFilter dbf, int origViewWidth, int origViewHeight, Rect ROIcrop) {
+	public GeometryBuffer3D(FloatImage distanceBuff, float vfov, DistanceBufferFilter dbf, int origViewWidth, int origViewHeight, Rect ROIcrop) {
+		distanceBufferKeyImageSampler = new KeyImageSampler(distanceBuff);
 		distanceBufferFilter = dbf;
 		distanceBuffer = distanceBuff;
 		verticalFOVover2 = (vfov/2.0)*(Math.PI/180.0);
 		//documentAspect = docAspect;
 		
-		coordinateSpaceConverter = csc;
+		//coordinateSpaceConverter = csc;
 		
 		width = distanceBuffer.getWidth();
 		height = distanceBuffer.getHeight();
@@ -450,7 +451,7 @@ class GeometryBuffer3D{
 	
 	float getDistance(PVector docSpace) {
 		// returns the filtered distance
-		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
 		return filteredDistanceBuffer.getPixelBilin(coord.x, coord.y); 
 	}
 	
@@ -462,12 +463,12 @@ class GeometryBuffer3D{
 	}
 	
 	float getUnfilteredDistance(PVector docSpace) {
-		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
 		return distanceBuffer.getPixelBilin(coord.x, coord.y); 
 	}
 
 	float getDepth(PVector docSpace) {
-		PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
 		float d =  depthBuffer.getPixelBilin(coord.x, coord.y); 
 		return d;
 	}
@@ -489,7 +490,7 @@ class GeometryBuffer3D{
 	
 	
 	PVector docSpaceToEyeSpaceWindowCoord(PVector docSpace) {
-		PVector imgeCoord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
+		PVector imgeCoord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
 		
 		float originalViewImageCoordX = imgeCoord.x + originalROICropLeft;
 		float originalViewImageCoordY = imgeCoord.y + originalROICropTop;
@@ -506,7 +507,8 @@ class GeometryBuffer3D{
 		
 		float wx = (eyeSpaceWinCoordXOffset+originalViewWidthOver2);
 		float wy = (eyeSpaceWinCoordYOffset+originalViewHeightOver2);
-		return coordinateSpaceConverter.renderImageCoordToDocSpace(wx,wy);
+		PVector wp = new PVector(wx,wy);
+		return distanceBufferKeyImageSampler.bufferSpaceToDocSpace(wp);
 	}
 	
 	PVector getVectorIntoScene(PVector docSpace) {
@@ -526,7 +528,8 @@ class GeometryBuffer3D{
 
 	// calculates the orthogonal depth at the x,y of the filtered distance buffer
 	private float distanceBufferToDepthBufferValue(int x, int y) {
-		PVector docSpace = coordinateSpaceConverter.renderImageCoordToDocSpace(x,y);
+		PVector p = new PVector(x,y);
+		PVector docSpace = distanceBufferKeyImageSampler.bufferSpaceToDocSpace(p);
 		float cos = getCosineVectorIntoScene( docSpace);
 		float d = getDistance(x,y);
 		return d*cos;

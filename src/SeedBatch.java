@@ -21,43 +21,43 @@ import java.util.ArrayList;
 @SuppressWarnings("serial")
 class Seed implements Serializable {
 
-// the name of the Seedbatch this seed is made in
-// this enables the user to identify seeds from different batches and treat them differently
+	// the name of the Seedbatch this seed is made in
+	// this enables the user to identify seeds from different batches and treat them differently
 	String batchName = " ";
 
-/////////////////////////////////////////////////////
-// the name of the image sample group to be used by
-// and the number of the item within that group
+	/////////////////////////////////////////////////////
+	// the name of the image sample group to be used by
+	// and the number of the item within that group
 	String imageSampleGroupName = " ";
 	int imageSampleGroupItemNumber = 0;
 
-/////////////////////////////////////////////////////
-// Geometric transforms applied
-// the doc point of the seed
-// used to position (translate) the item
+	/////////////////////////////////////////////////////
+	// Geometric transforms applied
+	// the doc point of the seed
+	// used to position (translate) the item
 	float docPointX;
 	float docPointY;
 
-// scale
+	// scale
 	float scale = 1;
 
-//Rotation, in degrees clockwise
-//where 0 represent the "up" of the image
+	//Rotation, in degrees clockwise
+	//where 0 represent the "up" of the image
 	float rotation = 0;
 
-// flip in x and y
+	// flip in x and y
 	boolean flipX = false;
 	boolean flipY = false;
 
-/////////////////////////////////////////////////////
-// the depth is set to the normalised depth in the 3D scene, 
-// usually used to sort the render order of the seeds
-// 
+	/////////////////////////////////////////////////////
+	// the depth is set to the normalised depth in the 3D scene, 
+	// usually used to sort the render order of the seeds
+	// 
 	float depth;
 
-// the id is a unique integer
-// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
-// regardless of previous random events
+	// the id is a unique integer
+	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
+	// regardless of previous random events
 	int id;
 
 	public Seed() {
@@ -98,41 +98,64 @@ class Seed implements Serializable {
 		depth = d;
 	}
 
+
+
 	String getAsCSVStr() {
+		// in the processing side of things
+		// seeds are always set using normalised x,y location
+		// in the createSeeds() method
 
+		// if environment == JAVA
 		PVector np = docSpaceToNormalisedSpace(new PVector(docPointX, docPointY));
+		// if environment == PROCESSING
+		// PVector np = new PVector(docPointX, docPointY));
 
-		CSVKeyValue csvKV = new CSVKeyValue();
-		csvKV.appendLine("BatchName", batchName);
-		csvKV.appendLine("ImageSampleGroup", imageSampleGroupName);
-		csvKV.appendLine("DocPointX", np.x);
-		csvKV.appendLine("DocPointY", np.y);
-		csvKV.appendLine("Scale", scale);
-		csvKV.appendLine("Rotation", rotation);
-		csvKV.appendLine("FlipX", flipX);
-		csvKV.appendLine("FlipY", flipY);
-		csvKV.appendLine("Depth", depth);
-		csvKV.appendLine("Id", id);
-		return csvKV.getLine();
+
+		KeyValuePairList kvlist = new KeyValuePairList();
+		kvlist.addKeyValue("BatchName", batchName);
+		kvlist.addKeyValue("ImageSampleGroup", imageSampleGroupName);
+		kvlist.addKeyValue("DocPointX", np.x);
+		kvlist.addKeyValue("DocPointY", np.y);
+		kvlist.addKeyValue("Scale", scale);
+		kvlist.addKeyValue("Rotation", rotation);
+		kvlist.addKeyValue("FlipX", flipX);
+		kvlist.addKeyValue("FlipY", flipY);
+		kvlist.addKeyValue("Depth", depth);
+		kvlist.addKeyValue("Id", id);
+		String line =  kvlist.getAsCSVLine();
+		//System.out.println(line);
+		return line;
+
 	}
 
 	void setWithCSVStr(String csvStr) {
-		CSVKeyValue csvKV = new CSVKeyValue(csvStr);
-		
-		batchName = csvKV.getString("BatchName");
-		imageSampleGroupName = csvKV.getString("ImageSampleGroup");
-		float npX = csvKV.getFloat("DocPointX");
-		float npY = csvKV.getFloat("DocPointY");
-		scale = csvKV.getFloat("Scale");
-		rotation = csvKV.getFloat("Rotation");
-		flipX = csvKV.getBoolean("FlipX");
-		flipY = csvKV.getBoolean("FlipY");
-		depth = csvKV.getFloat("Depth");
-		id = csvKV.getInt("Id");
+		// in the processing side of things
+		// seeds are always set using normalised x,y location
+		// in the createSeeds() method
+		// It is then down to the application to translate this to the vehical locations
+		KeyValuePairList kvlist = new KeyValuePairList();
+		kvlist.ingestCSVLine(csvStr);
+		batchName = kvlist.getString("BatchName");
+		imageSampleGroupName = kvlist.getString("ImageSampleGroup");
+		float npX = kvlist.getFloat("DocPointX");
+		float npY = kvlist.getFloat("DocPointY");
 
+		scale = kvlist.getFloat("Scale");
+		rotation = kvlist.getFloat("Rotation");
+		flipX = kvlist.getBoolean("FlipX");
+		flipY = kvlist.getBoolean("FlipY");
+		depth = kvlist.getFloat("Depth");
+		id = kvlist.getInt("Id");
+
+		// if environment == JAVA
 		PVector dpt = normalisedSpaceToDocSpace(new PVector(npX, npY));
+		// if environment == PROCESSING
+		// PVector dpt = new PVector(npX, npY);
+
 		setDocPoint(dpt);
-		
+
+
+
 	}
 
 	PVector normalisedSpaceToDocSpace(PVector normPt) {
@@ -159,16 +182,16 @@ public class SeedBatch extends CollectionIterator{
 	boolean isVisible = true;
 	ArrayList<Seed> seeds = new ArrayList<Seed>();
 	int uniqueSeedIDCounter = 0;
-	
+
 	SeedBatch(String name){
 		batchName = name;
 	}
-	
-	
-	
-	ArrayList<Seed> generateSeeds(ImageSampleSelector cc, PointGenerator pg){
+
+
+
+	ArrayList<Seed> generateSeeds(ImageSampleSelector cc, PointGenerator_Random pg){
 		imageSampleSelector = cc;
-		PointGenerator pointGenerator = pg;
+		PointGenerator_Random pointGenerator = pg;
 		if(pointGenerator.getNumItems()==0) {
 			pointGenerator.generatePoints();
 		}
@@ -183,23 +206,23 @@ public class SeedBatch extends CollectionIterator{
 		}
 		return seeds;
 	}
-	
+
 	boolean nameEquals(String n) {
-		 return n.contentEquals(batchName);
+		return n.contentEquals(batchName);
 	}
-	
+
 	ArrayList<Seed> getSeeds(){
 		return seeds;
 	}
-	
+
 	void setVisible(boolean vis) {
 		isVisible = vis;
 	}
-	
+
 	boolean isVisible() {
 		return isVisible;
 	}
-	
+
 	ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
 		for(Seed s : seeds) {
@@ -207,32 +230,9 @@ public class SeedBatch extends CollectionIterator{
 		}
 		return points;
 	}
-	
-	///////////////////////////////////////////////////////
-	// load and save seeds using serialisation
-	// these automatically save and load using the name of the seed batch
-	/*/// OLD Serialised saving
-	void saveSeeds(String path) {
-		// there should be a directory in the project folder called seeds
-		ensureSeedsDirectoryExists(path);
-		String pathandname = path + "seeds\\" + batchName + ".sds";
-		SerializableFile.save(pathandname, seeds);
-	}
-	
-	@SuppressWarnings("unchecked")
-	void loadSeeds(String path) {
-		String seedsDirectoryPath = path + "seeds\\";
-		String pathandname = seedsDirectoryPath + batchName + ".sds";
-		System.out.println("loading seed layer " + pathandname);
-		seeds = (ArrayList<Seed>)(SerializableFile.load(pathandname));
-		if(seeds==null) {
-			System.out.println("load failed, does file exist?");
-		}else {
-			System.out.println("number seed loaded " + seeds.size());
-		}
-	}
-	*/
-	
+
+
+
 	///////////////////////////////////////////////////////
 	// load and save seeds using serialisation
 	// these automatically save and load using the name of the seed batch to a local folder called seeds
@@ -249,73 +249,73 @@ public class SeedBatch extends CollectionIterator{
 		String pathandname = seedsDirectoryPath + batchName + ".sds";
 		System.out.println("loading seed layer " + pathandname);
 		loadSeedsAsCSV(pathandname);
-		
+
 	}
-	
+
 	///////////////////////////////////////////////////////
 	// load and save seeds using csv
 	void saveSeedsAsCSV(String fileAndPath) {
-	    // there should be a directory in the project folder called seeds
-	   
-	    
-	    FileWriter csvWriter = null;
-	    try{
-	      csvWriter = new FileWriter(fileAndPath);
-	   
-	    
-	      for(Seed s: seeds){
-	        csvWriter.append(s.getAsCSVStr());
-	        }
-	      
-	      csvWriter.flush();
-	      csvWriter.close();
-	      
-	      }// end try
-	      catch(Exception ex){
-	        System.out.println("SeedBatch.saveSeedsAsCSV: csv writer failed - "  + fileAndPath + ex);
-	       }
-	    
-	    
-	    }
-	    
-	    void loadSeedsAsCSV(String fileAndPath) {
-	    // there should be a directory in the project folder called seeds
-	      try{
-	        BufferedReader csvReader = new BufferedReader(new FileReader(fileAndPath));
-	        
-	        String row;
-	        
-	        while ((row = csvReader.readLine()) != null) {
-	        	
-	            // do something with the data
-	            Seed s = new Seed();
-	            s.setWithCSVStr(row);
-	            seeds.add(s);
-	          }
-	        csvReader.close();
-	        } catch(Exception e){
-	        	
-	        	System.out.println("SeedBatch.loadSeedsAsCSV: csv reader failed - " + fileAndPath + e);
-	        }
-	      
-	    }
-	  
-	
-	    void scaleSeedPositions(float sx, float sy) {
-	    	// scales the seed batch
-	    	ArrayList<Seed> temp = new ArrayList<Seed>();
-	    	for(Seed s : seeds) {
-				s.docPointX *= sx;
-				s.docPointY *= sy;
-				//if(GlobalObjects.theDocument.isInsideDocumentSpace(new PVector(s.docPointX, s.docPointY))){
-				//	temp.add(s);
-				//}
+		// there should be a directory in the project folder called seeds
+
+
+		FileWriter csvWriter = null;
+		try{
+			csvWriter = new FileWriter(fileAndPath);
+
+
+			for(Seed s: seeds){
+				csvWriter.append(s.getAsCSVStr());
 			}
-	    	//seeds = temp;
-	    }
-	
-	
-	
+
+			csvWriter.flush();
+			csvWriter.close();
+
+		}// end try
+		catch(Exception ex){
+			System.out.println("SeedBatch.saveSeedsAsCSV: csv writer failed - "  + fileAndPath + ex);
+		}
+
+
+	}
+
+	void loadSeedsAsCSV(String fileAndPath) {
+		// there should be a directory in the project folder called seeds
+		try{
+			BufferedReader csvReader = new BufferedReader(new FileReader(fileAndPath));
+
+			String row;
+
+			while ((row = csvReader.readLine()) != null) {
+
+				// do something with the data
+				Seed s = new Seed();
+				s.setWithCSVStr(row);
+				seeds.add(s);
+			}
+			csvReader.close();
+		} catch(Exception e){
+
+			System.out.println("SeedBatch.loadSeedsAsCSV: csv reader failed - " + fileAndPath + e);
+		}
+
+	}
+
+
+	void scaleSeedPositions(float sx, float sy) {
+		// scales the seed batch
+		ArrayList<Seed> temp = new ArrayList<Seed>();
+		for(Seed s : seeds) {
+			s.docPointX *= sx;
+			s.docPointY *= sy;
+			//if(GlobalObjects.theDocument.isInsideDocumentSpace(new PVector(s.docPointX, s.docPointY))){
+			//	temp.add(s);
+			//}
+		}
+		//seeds = temp;
+	}
+
+
+
 	void ensureSeedsDirectoryExists(String path) {
 		String alledgedDirectory = path + "seeds";
 		if(MOUtils.checkDirectoryExist(alledgedDirectory)) return;
@@ -333,217 +333,13 @@ public class SeedBatch extends CollectionIterator{
 		// TODO Auto-generated method stub
 		return seeds.get(n);
 	}
-	
-	
+
+
 	Seed getNextSeed() {
 		return (Seed) getNextItem();
 	}
 
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////
-//converts between a Key Value pair of types (Boolean, int, float, String) - e.g. "X" : 3.56
-//and a string containing this pair "X:3.56"
-//Can be used to assemble a CSV line by calling appendLine(k,v) 
-//
-class CSVKeyValue {
-	static final int NOTSET = 0;
-	static final int BOOLEAN = 1;
-	static final int INTEGER = 2;
-	static final int FLOAT = 3;
-	static final int STRING = 4;
-
-	String key;
-	private int TYPE = NOTSET;
-	boolean bval;
-	int ival;
-	float fval;
-	String sval;
-
-	String assembledLine = "";
-	String[] linePairs;
-
-	CSVKeyValue() {
-	}
-
-	CSVKeyValue(String line) {
-		setLine(line);
-	}
-
-	boolean getBoolean(String k) {
-		String v = findValueInLinePairs(k);
-		if (v == null)
-			return false;
-		return Boolean.parseBoolean(v);
-	}
-
-	int getInt(String k) {
-		String v = findValueInLinePairs(k);
-		if (v == null)
-			return 0;
-		return Integer.parseInt(v);
-	}
-
-	float getFloat(String k) {
-		String v = findValueInLinePairs(k);
-		if (v == null)
-			return 0;
-		return Float.parseFloat(v);
-	}
-
-	String getString(String k) {
-		String v = findValueInLinePairs(k);
-		if (v == null)
-			return "";
-		return v;
-	}
-
-	private String findValueInLinePairs(String k) {
-		for (String s : linePairs) {
-			String[] kv = splitPairIntoKeyValue(s);
-			if (kv[0].equals(k)) {
-				return kv[1];
-			}
-		}
-		return null;
-	}
-
-	void setLine(String line) {
-		assembledLine = line;
-		linePairs = splitLineIntoPairs(assembledLine);
-		
-	}
-
-	void appendLine(String k, boolean v) {
-		String s = set(k, v);
-		appendLine(s);
-	}
-
-	void appendLine(String k, int v) {
-		String s = set(k, v);
-		appendLine(s);
-	}
-
-	void appendLine(String k, float v) {
-		String s = set(k, v);
-		appendLine(s);
-	}
-
-	void appendLine(String k, String v) {
-		String s = set(k, v);
-		appendLine(s);
-	}
-
-	String getLine() {
-		return (assembledLine + "\n");
-	}
-
-	void clearLine() {
-		assembledLine = "";
-	}
-
-	void appendLine() {
-// adds the current state of this object to the string
-		String s = getAsKeyValueString();
-		appendLine(s);
-	}
-
-	private void appendLine(String s) {
-		if (assembledLine.contentEquals("")) {
-			assembledLine = s;
-			return;
-		}
-		assembledLine = assembledLine + "," + s;
-	}
-
-	String[] splitLineIntoPairs(String assembled) {
-		return assembled.split(",");
-	}
-
-	void setWithPairString(String keyVal, int type) {
-		String[] s_pair = splitPairIntoKeyValue(keyVal);
-		String k = s_pair[0];
-		String v = s_pair[1];
-
-		if (type == NOTSET) {
-			return;
-		}
-		if (type == BOOLEAN) {
-			Boolean b = Boolean.parseBoolean(v);
-			set(k, b);
-		}
-		if (type == INTEGER) {
-			int i = Integer.parseInt(v);
-			set(k, i);
-		}
-		if (type == FLOAT) {
-			float f = Float.parseFloat(v);
-			set(k, f);
-		}
-		if (type == STRING) {
-			set(k, v);
-		}
-	}
-
-	String[] splitPairIntoKeyValue(String pair) {
-		return pair.split(":");
-	}
-
-	int getType() {
-		return TYPE;
-	}
-
-// these are used to generate the sting sin the first instance from your data
-	String set(String k, boolean v) {
-		TYPE = BOOLEAN;
-		key = k;
-		bval = v;
-		return getAsKeyValueString();
-	}
-
-	String set(String k, int v) {
-		TYPE = INTEGER;
-		key = k;
-		ival = v;
-		return getAsKeyValueString();
-	}
-
-	String set(String k, float v) {
-		TYPE = FLOAT;
-		key = k;
-		fval = v;
-		return getAsKeyValueString();
-	}
-
-	String set(String k, String v) {
-		TYPE = STRING;
-		if(v.contentEquals("")) v = " ";
-		key = k;
-		sval = v;
-		return getAsKeyValueString();
-	}
-
-	String getAsKeyValueString() {
-		if (TYPE == NOTSET) {
-			return "";
-		}
-		if (TYPE == BOOLEAN) {
-			return key + ":" + bval;
-		}
-		if (TYPE == INTEGER) {
-			return key + ":" + ival;
-		}
-		if (TYPE == FLOAT) {
-			return key + ":" + fval;
-		}
-		if (TYPE == STRING) {
-			return key + ":" + sval;
-		}
-		return "";
-	}
-}
-
 
 
 

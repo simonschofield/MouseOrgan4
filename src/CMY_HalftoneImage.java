@@ -13,7 +13,7 @@ import java.util.ArrayList;
 //To do this the class generates three temporary images, which are initialised as copies of the render target.
 //
 public class CMY_HalftoneImage{
-	RenderTarget cmyRenderTarget;
+	MainDocumentRenderTarget cmyRenderTarget;
 	
 	ArrayList<PVector> gridPoints = new ArrayList<PVector>();
 	Color cyan_rgb = new Color(0,211,255);
@@ -22,7 +22,7 @@ public class CMY_HalftoneImage{
 
 	KeyImageSampler sourceImageSampler;
 	
-	RenderTarget theDocument;
+	MainDocumentRenderTarget theDocument;
 	Surface theSurface;
 	
 	Rect documentTargetRect;
@@ -48,7 +48,7 @@ public class CMY_HalftoneImage{
 		
 		
 		documentTargetRect = targetArea;
-		cmyRenderTarget = new RenderTarget();
+		cmyRenderTarget = new MainDocumentRenderTarget();
 		int newWidth = (int) (documentTargetRect.getWidth()*theDocument.getBufferWidth());
 		int newHeight = (int) (documentTargetRect.getHeight()*theDocument.getBufferHeight());
 		cmyRenderTarget.setRenderBufferSize(newWidth, newHeight);
@@ -98,7 +98,7 @@ public class CMY_HalftoneImage{
 		
 		// need to convert the topleft of the documentTargetRect, which is in normalised space,
 		// into document space
-		PVector docSpaceTopLeft = theDocument.coordinateSpaceCoverter.normalizedSpaceToDocSpace(documentTargetRect.getTopLeft());
+		PVector docSpaceTopLeft = theDocument.normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
 		theDocument.pasteImage(composite, docSpaceTopLeft, 1);
 		
 		if(saveOutImages) {
@@ -155,8 +155,8 @@ public class CMY_HalftoneImage{
 	        // then adjust the size of the dot according to the tonal value
 			
 			// convert the output image docspace coordinate to normalised space
-			PVector pnorm = cmyRenderTarget.coordinateSpaceCoverter.docSpaceToNormalizedSpace(p);
-			Color sampleCol = sourceImageSampler.getPixelColorNormalised(pnorm);
+			PVector pnorm = cmyRenderTarget.docSpaceToNormalisedSpace(p);
+			Color sampleCol = sourceImageSampler.getPixelNormalisedSpace(pnorm);
 			
 			float[] cmy =  RGBtoCMY(sampleCol);
 	         
@@ -266,68 +266,4 @@ public class CMY_HalftoneImage{
 //
 
 
-
-////////////////////////////////////////////////////////////////////////////////
-// simple wrapper round an image, so you can use parametric (longest edge 0..1, shortest edge 0..1/aspect) and normalised 
-// sample space
-// Also does bilinear sampling of the image
-
-class KeyImageSampler{
-	BufferedImage sourceImage;
-	int sourceImageWidth;
-	int sourceImageHeight;
-	float sourceImageAspect;
-	boolean sourceHasAlpha;
-	
-	boolean useBilinearSampling = false;
-	
-	KeyImageSampler(BufferedImage src){
-		sourceImage = src;
-		sourceImageWidth = sourceImage.getWidth();
-		sourceImageHeight = sourceImage.getHeight();
-		sourceImageAspect = sourceImageWidth/(float)sourceImageHeight;
-		sourceHasAlpha = ImageProcessing.hasAlpha(sourceImage);
-	}
-	
-	void setBilinearSampling(boolean b) {
-		useBilinearSampling = b;
-		
-	}
-	
-	Color getPixelColorParametric(PVector p) {
-		// where the space is 0..1 on longest edge, 0..1/aspect on shortest edge of THIS image
-		int pixelX = (int) MOMaths.constrain(p.x *  sourceImageWidth/maxParametricX() , 0, sourceImageWidth-1);
-		int pixelY = (int) MOMaths.constrain(p.y *  sourceImageHeight/maxParametricY() , 0, sourceImageHeight-1);
-		int packedColor =  sourceImage.getRGB(pixelX, pixelY);
-		return ImageProcessing.packedIntToColor(packedColor, sourceHasAlpha);
-	}
-	
-	Color getPixelColorDocSpace(PVector p) {
-		
-		int pixelX = (int) MOMaths.constrain(p.x *  sourceImageWidth , 0, sourceImageWidth-1);
-		int pixelY = (int) MOMaths.constrain(p.y *  sourceImageHeight , 0, sourceImageHeight-1);
-		int packedColor =  sourceImage.getRGB(pixelX, pixelY);
-		return ImageProcessing.packedIntToColor(packedColor, sourceHasAlpha);
-	}
-	
-	Color getPixelColorNormalised(PVector p) {
-		int pixelX = (int) MOMaths.constrain(p.x *  sourceImageWidth , 0, sourceImageWidth-1);
-		int pixelY = (int) MOMaths.constrain(p.y *  sourceImageHeight , 0, sourceImageHeight-1);
-		int packedColor =  sourceImage.getRGB(pixelX, pixelY);
-		return ImageProcessing.packedIntToColor(packedColor, sourceHasAlpha);
-	}
-	
-	// this must return a number equal to or less than 1
-	float maxParametricX() {
-		if(sourceImageAspect>=1)  return 1;
-		return sourceImageAspect;
-	}
-	
-	// this must return a number equal to or less than 1
-	float maxParametricY() {
-		if(sourceImageAspect<=1)  return 1;
-		return 1/sourceImageAspect;
-	}
-	
-}
 

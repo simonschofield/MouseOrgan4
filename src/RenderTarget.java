@@ -15,165 +15,18 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-class PermittedPasteArea {
-	// The rect is set using Normalized coordinates (0..1 in both x and y), but stored using docSpace coordinates
-	// If the PermittedPasteArea is active
-	//	- then some cropping will occur. 
-	// 	- if sprites are completely outside they will be EXCLUDED
-	//  - if they are completely within they will be pasted as normal
-	//  - if the fall on a boundary, then a decision is made as to the action
-	//  	-- if the boundary is comprised of just one edge then that edge action takes place
-	//      -- if the boundary has two edges, then EXCLUDED takes precedence over CROP or BESPOKE_CROP
-	// the actions that can be done on an edge are
-	
-	// EXCLUDE : do not paste any sprite overlapping an edge with this setting
-	// CROP : Crop any sprite to the hard edge, also default action
-	// BESPOKE_CROP : Apply a bespoke crop to a sprite overlapping this edge
-	boolean isActive = false;
-	
-	Rect permittedPasteAreaRect;
-	
-	String leftEdgeAction = "CROP";
-	String topEdgeAction = "CROP";
-	String rightEdgeAction = "CROP";
-	String bottomEdgeAction = "CROP";
-	
-	ImageSampleGroup permittedPasteAreaCropImages;
-	RenderTarget theRenderTarget;
-	
-	
-	PermittedPasteArea(RenderTarget rt){
-		theRenderTarget = rt;
-		setPermittedPasteRectWithNomalizedCoords( 0,  0,  1,  1);
-	}
-	
-	void set(float left, float top, float right, float bottom, String edgeAction,  ImageSampleGroup bespokeCropImage) {
-		set( left,  top,  right,  bottom, edgeAction,edgeAction,edgeAction,edgeAction,  bespokeCropImage);
-	}
-	
-	void setActive(boolean active) {
-		isActive = active;
-	}
-	
-	boolean isActive() {
-		return isActive;
-	}
-	
-	void set(float left, float top, float right, float bottom, String leftAction, String topAction, String rightAction, String bottomAction, ImageSampleGroup bespokeCropImage){
-		setPermittedPasteRectWithNomalizedCoords( left,  top,  right,  bottom);
-		leftEdgeAction = leftAction;
-		topEdgeAction = topAction;
-		rightEdgeAction = rightAction;
-		bottomEdgeAction = bottomAction;
-		
-		permittedPasteAreaCropImages = bespokeCropImage;
-		isActive = true;
-	}
-	
-	private void setPermittedPasteRectWithNomalizedCoords(float left, float top, float right, float bottom) {
-		PVector topLeftNormSpace = new PVector(left,top);
-		PVector bottomRightNormSpace = new PVector(right,bottom);
-		PVector topLeft = theRenderTarget.coordinateSpaceCoverter.normalizedSpaceToDocSpace(topLeftNormSpace);
-		PVector bottomRight = theRenderTarget.coordinateSpaceCoverter.normalizedSpaceToDocSpace(bottomRightNormSpace);
-		
-		permittedPasteAreaRect = new Rect(topLeft, bottomRight);
-	}
-	
-	Rect getRect() {
-		return permittedPasteAreaRect.copy();
-	}
-	
-	boolean isPointInside(PVector docSpacePt) {
-		
-		return permittedPasteAreaRect.isPointInside(docSpacePt);
-	}
-	
-	boolean isFullyPermitted(Rect r) {
-		// simple interface for drawn shapes based on their rectangle, either in or out!
-		if(isActive == false) return true;
-		return r.isWhollyInsideOther(permittedPasteAreaRect);
-	}
-	
-	String cropEdgeDecision(String overlapReport) {
-		// given an intersection edge report from the Sprite
-		// decide what edge crop action to do.
-		
-		// if totally outside the ppa
-		if(overlapReport.contentEquals("NONE")) return "EXCLUDE";
-		
-		String action = getActionByEdgeString(overlapReport);
-		if(action.contentEquals("MULTIPLE_EDGES")) {
-			// if you get this far then the overlapReport must contains two or more edges, and we have to make a decision on this
-			return getDominantAction(overlapReport);
-		}
-		// ..then the overlapReport must contain only one edge, so return the edgeAction
-		return action;
-		
-		//System.out.println("cropEdgeDecision on intersection: " + overlapReport);
-		
-		
-	}
-	
-	String getDominantAction(String overlapReport) {
-		// only allows for first two string components
-		String[] edgeStrings = overlapReport.split(",");
-		if( edgeStrings.length < 2) {
-			System.out.println("PermittedPasteArea getDominantAction: problem with number of edges reported - num = " + edgeStrings.length);
-			return "EXCLUDE";
-		}
-		
-		String edgeString1 = edgeStrings[0];
-		String edgeString2 = edgeStrings[1];
-		String action1 = getActionByEdgeString(edgeString1);
-		String action2 = getActionByEdgeString(edgeString2);
-		if( action1.contentEquals(action2)) return action1;
-		
-		if(action1.contentEquals("EXCLUDE") || action2.contentEquals("EXCLUDE")) return "EXCLUDE";
-		if(action1.contentEquals("BESPOKE_CROP") || action2.contentEquals("BESPOKE_CROP")) return "BESPOKE_CROP";
-		// should cause a crash, but should never get here
-		System.out.println("PermittedPasteArea getDominantAction: problem with decided action between " + action1 +" and "+ action2);
-		return null;
-	}
-	
-	String getActionByEdgeString(String edgeString) {
-		
-		if(edgeString.contentEquals("TOP")) return topEdgeAction;
-		if(edgeString.contentEquals("LEFT")) return leftEdgeAction;
-		if(edgeString.contentEquals("RIGHT")) return rightEdgeAction;
-		if(edgeString.contentEquals("BOTTOM")) return bottomEdgeAction;
-		return "MULTIPLE_EDGES";
-	}
-	
-	String reportPermittedPasteAreaOverlap(ImageSprite sprite) {
-		Rect r = sprite.getPasteRectDocSpace(theRenderTarget);
-		return r.reportIntersection(permittedPasteAreaRect);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Generic RenderTarget
+//
+//
+//
+//
 
-	}
+
+class RenderTarget{
+	protected Graphics2D graphics2D;
+	protected BufferedImage bufferedImage;
 	
-
-	boolean isSpriteWhollyInside(ImageSprite sprite) {
-		Rect r = sprite.getPasteRectDocSpace(theRenderTarget); 
-		return r.isWhollyInsideOther( this.permittedPasteAreaRect );
-		
-	}
-	
-	/*
-	String reportPermittedPasteAreaOverlap(DrawnShape shape) {
-		Rect r = shape.getPasteRectDocSpace(theRenderTarget);
-		return r.reportIntersection(permittedPasteAreaRect);
-
-	}
-	*/
-	
-}
-
-class RenderTarget {
-
-	Graphics2D graphics2D;
-	private BufferedImage bufferedImage;
-
-	
-
 	// these are the pixel dimensions of the output image
 	int bufferWidth, bufferHeight;
 	float longestBufferEdge;
@@ -183,20 +36,20 @@ class RenderTarget {
 	float documentWidth, documentHeight;
 
 	ShapeDrawer shapeDrawer;
-
-	PermittedPasteArea permittedPasteArea;
-	
-	CoordinateSpaceConverter coordinateSpaceCoverter;
-	
 	
 	
 	public RenderTarget() {
 
 	}
-
-	void setRenderBufferSize(int w, int h) { 
-
-		bufferedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+	
+	public RenderTarget(int w, int h, int imgType) {
+		setRenderBuffer( w,  h,  imgType);
+	}
+	
+	void setRenderBuffer(int w, int h, int imgType) {
+		
+		// BufferedImage.TYPE_INT_ARGB
+		bufferedImage = new BufferedImage(w, h, imgType);
 		
 		bufferWidth = w;
 		bufferHeight = h;
@@ -211,13 +64,9 @@ class RenderTarget {
 		
 		shapeDrawer = new ShapeDrawer(graphics2D);
 		
-		coordinateSpaceCoverter = new CoordinateSpaceConverter(w, h, getDocumentAspect());
-		permittedPasteArea = new PermittedPasteArea(this);
 	}
 	
 	
-	
-
 	public BufferedImage getImage() {
 		return bufferedImage;
 	}
@@ -285,110 +134,30 @@ class RenderTarget {
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
-	// 
-	// All arguments are in Normalised space, as working in DocSpace for humans is difficult.
-	//
-	
-	// old legacy way of setting margins
-	void setPermittedPasteArea(float left, float top, float right, float bottom, boolean applyCrop, ImageSampleGroup cropImages) {
-		// NO_CROP : Don't do anything, just allow the image to be pasted, also default action
-		// EXCLUDE_OVERLAPPING : do not paste any sprite overlapping an edge with this setting
-		// CROP : Crop any sprite to the hard edge
-		// BESPOKE_CROP : Apply a bespoke crop to a sprite overlapping this edge
-		String edgeCropAction = "EXCLUDE";
-		if(applyCrop && cropImages==null) {
-			edgeCropAction = "CROP";
-		}
-		if(applyCrop && cropImages!=null) {
-			edgeCropAction = "BESPOKE_CROP";
-		}
-		permittedPasteArea.set(left, top, right, bottom, edgeCropAction, cropImages);
-	}
-	
-	
-	void setPermittedPasteArea(float left, float top, float right, float bottom, String leftAct, String topAct, String rightAct, String bottomAct, ImageSampleGroup cropImages) {
-		// NO_CROP : Don't do anything, just allow the image to be pasted, also default action
-		// TBD: a crop that allows the whole to be pasted, but only if th start point is inside the PPA
-		// EXCLUDE_OVERLAPPING : do not paste any sprite overlapping an edge with this setting
-		// CROP : Crop any sprite to the hard edge
-		// BESPOKE_CROP : Apply a bespoke crop to a sprite overlapping this edge
-		
-		permittedPasteArea.set(left, top, right, bottom, leftAct,  topAct,  rightAct,  bottomAct, cropImages);
-	}
-	
-	void setPermittedPasteArea(boolean active) {
-		
-		permittedPasteArea.setActive(active);
-	}
-	
-	
-	////////////////////////////////////////////////////////////////////////////////////
-	// pastes the topleft of the image at docSpacePoint
-	//
-	void pasteSprite(ImageSprite sprite, float alpha) {
-		// work out the offset in the image from the origin
-		Rect r = sprite.getPasteRectDocSpace(this); 
-		
-		//System.out.println("pasteSprite pasteRectDocSpace = " + r.toStr());
-		
-		String overlapReport =  permittedPasteArea.reportPermittedPasteAreaOverlap(sprite);
-		//System.out.println("overlap report " + overlapReport);
-		
-		if( overlapReport.contentEquals("WHOLLYINSIDE") || permittedPasteArea.isActive()==false){
-			//System.out.println("here 1");
-			pasteImage(sprite.image, r.getTopLeft(),  alpha);
-			return;
-		}
-		
-		//System.out.println("here 2");
-		// otherwise do some sort of crop
-		// decide what to do
-		// the options are
-		// 1/ if EXCLUDE_OVERLAPPING don't allow any paste, so return
-		// 2/ crop to the permitted area with bespoke crop
-		// 3/ a hard geometric crop to the area
-		//if( bespokeCropToPermittedPasteArea == false ) return;
-		
-		
-		String cropDecision = permittedPasteArea.cropEdgeDecision(overlapReport);
-		//System.out.println("cropDecision " + cropDecision);
-		if( cropDecision.contentEquals("EXCLUDE") ) return;
-		
-		if( cropDecision.contentEquals("NO_CROP") ) {
-			pasteImage(sprite.image, r.getTopLeft(),  alpha);
-			return;
-		}
-		
-		//System.out.println("here 3");
-		//if( permittedPasteAreaClass.leftEdgeAction.contentEquals("EXCLUDE") ) return;
-		// if you get this far, 
-		boolean cropOK = sprite.cropToPermittedPasteArea(this);
-		if(cropOK==false) return;
-		//System.out.println("here 4");
-			
-		
-		//System.out.println(" pasted ");
-		pasteImage(sprite.image, r.getTopLeft(),  alpha);
-	}
-	
-
-	////////////////////////////////////////////////////////////////////////////////////
 	// pastes the topleft of the image at docSpacePoint
 	// 
 	void pasteImage(BufferedImage img, PVector docSpacePoint, float alpha) {
-		
+
 		Rect r = getPasteRectDocSpace(img, docSpacePoint);
 		PVector bufferPt = docSpaceToBufferSpace(docSpacePoint);
 		pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
-	}
+
+	// this is where we need to add the mask images if any
 	
+	// documentMaskImages.pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
+	// where the sprite contains information about the mask image it is
+
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////
+	// This is the method that actually does the compositing of the sprite with the
+	// document image
 	public void pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha) {
 		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
 		graphics2D.setComposite(ac);
 		graphics2D.drawImage(img, x, y, null);
 	}
-	
-	
+
 	Rect getPasteRectDocSpace(BufferedImage img, PVector docSpacePoint) {
 		// Final pasting always by defining the top left of the image in doc space
 		// give an image and its upperleft at docSpacePoint
@@ -398,8 +167,6 @@ class RenderTarget {
 		return new Rect(docSpacePoint.x, docSpacePoint.y, bottomRight.x, bottomRight.y);
 	}
 
-	
-
 	////////////////////////////////////////////////////////////////////////////////////
 	// this is called by the Surface to get the current view rect from the whole
 	//////////////////////////////////////////////////////////////////////////////////// bufferedImage
@@ -408,37 +175,37 @@ class RenderTarget {
 		PVector topLeft = docSpaceToBufferSpace(docSpaceRect.getTopLeft());
 		PVector bottomRight = docSpaceToBufferSpace(docSpaceRect.getBottomRight());
 		Rect bufferSpaceRect = new Rect(topLeft, bottomRight);
-		return getCropBufferSpace( bufferSpaceRect);
+		return getCropBufferSpace(bufferSpaceRect);
 	}
-	
+
 	BufferedImage getCropBufferSpace(Rect bufferSpaceRect) {
 		return ImageProcessing.cropImage(bufferedImage, bufferSpaceRect);
 	}
 
 	void saveRenderToFile(String pathAndFilename) {
-		
+		System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename);
 		// check to see if extension exists
 		String ext = MOUtils.getFileExtension(pathAndFilename);
 		String extensionChecked = pathAndFilename;
-		if(ext.contentEquals("")) {
+		if (ext.contentEquals("")) {
 			extensionChecked = pathAndFilename + ".png";
 		}
-		
+
 		// check to see if extension is correct
 		ext = MOUtils.getFileExtension(extensionChecked);
-		if(ext.contentEquals(".png") || ext.contentEquals(".PNG")) {
+		if (ext.contentEquals(".png") || ext.contentEquals(".PNG")) {
 			// OK
 		} else {
 			System.out.println("RenderTarget:saveRenderToFile file extesion is wrong - " + ext);
 			return;
 		}
-		
+
 		try {
 			// retrieve image
 			File outputfile = new File(extensionChecked);
 			ImageIO.write(bufferedImage, "png", outputfile);
 		} catch (IOException e) {
-			// do nothing
+			System.out.println("RenderTarget:saveRenderToFile could not save file - " + extensionChecked + " " + e);
 		}
 
 	}
@@ -448,40 +215,39 @@ class RenderTarget {
 	//
 	//
 	PVector docSpaceToBufferSpace(PVector docPt) {
-		
+
 		float bx = docPt.x * longestBufferEdge;
 		float by = docPt.y * longestBufferEdge;
 		return new PVector(bx, by);
 	}
 
-	
 	PVector bufferSpaceToDocSpace(PVector p) {
-		return bufferSpaceToDocSpace((int) p.x, (int) p.y);
+		return bufferSpaceToDocSpace((int) (p.x), (int) (p.y));
 	}
 
 	PVector bufferSpaceToDocSpace(int bx, int by) {
-		
-		float docX = bx/longestBufferEdge;
-		float docY = by/longestBufferEdge;
+
+		float docX = bx / longestBufferEdge;
+		float docY = by / longestBufferEdge;
 		return new PVector(docX, docY);
 	}
-	
+
 	PVector docSpaceToNormalisedSpace(PVector docPt) {
-		
+
 		PVector buffPt = docSpaceToBufferSpace(docPt);
-		return new PVector( buffPt.x/bufferWidth,  buffPt.y/bufferHeight);
-		
+		return new PVector(buffPt.x / bufferWidth, buffPt.y / bufferHeight);
+
 	}
-	
+
 	PVector normalisedSpaceToDocSpace(PVector normPt) {
 		// Doesn't lose precision by avoiding bufferspace methods
 		float bx = normPt.x * bufferWidth;
 		float by = normPt.y * bufferHeight;
-		
-		float docX = bx/longestBufferEdge;
-		float docY = by/longestBufferEdge;
+
+		float docX = bx / longestBufferEdge;
+		float docY = by / longestBufferEdge;
 		return new PVector(docX, docY);
-		
+
 	}
 	
 	
@@ -489,15 +255,14 @@ class RenderTarget {
 	// scaled drawing operations
 	// All units are in documentSpace, including lineThickness
 	// so, in this case, radius and lineThickness are fractions of the longest edge.
-	
-	void drawCircle(PVector docPoint, float radiusDocSpace, Color fillColor, Color lineColor, float lineThicknessDocSpace) {
-		
+
+	void drawCircle(PVector docPoint, float radiusDocSpace, Color fillColor, Color lineColor,
+			float lineThicknessDocSpace) {
+
 		// work out if its succumbs to the permitted paste area
-		Rect r = new Rect(docPoint.x-radiusDocSpace,docPoint.y-radiusDocSpace, docPoint.x+radiusDocSpace,docPoint.y+radiusDocSpace);
-		if( permittedPasteArea.isFullyPermitted(r) == false ) {
-			//System.out.println("not permitted");
-			return;
-		}
+		Rect r = new Rect(docPoint.x - radiusDocSpace, docPoint.y - radiusDocSpace, docPoint.x + radiusDocSpace,
+				docPoint.y + radiusDocSpace);
+		
 
 		PVector bufpt = docSpaceToBufferSpace(docPoint);
 
@@ -505,21 +270,17 @@ class RenderTarget {
 		shapeDrawer.setDrawingStyle(fillColor, lineColor, lineThicknessInPixels);
 
 		//shapeDrawer.setDrawingStyle(fillColor, Color.BLACK, 4);
-		
-		
-	    float radiusInPixels = radiusDocSpace * getLongestBufferEdge();
-	    
-	    
-	    //
-	    float left = bufpt.x - radiusInPixels;
-	    float top = bufpt.y - radiusInPixels;
-	    float w = radiusInPixels*2;
-	    
-	    
-	    shapeDrawer.drawEllipse(left,top,w,w);
+
+		float radiusInPixels = radiusDocSpace * getLongestBufferEdge();
+
+		//
+		float left = bufpt.x - radiusInPixels;
+		float top = bufpt.y - radiusInPixels;
+		float w = radiusInPixels * 2;
+
+		shapeDrawer.drawEllipse(left, top, w, w);
 
 	}
-	
 
 	//////////////////////////////////////////
 	// debug drawing operations other than paste
@@ -534,16 +295,15 @@ class RenderTarget {
 		}
 
 	}
-	
-	
+
 	void drawPoint(PVector docSpacePoint, Color c, int size) {
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
 		PVector bufpt = docSpaceToBufferSpace(docSpacePoint);
 		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, size, size);
-		
+
 	}
-	
+
 	void drawLine(PVector start, PVector end, Color c, int thickness) {
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
 		shapeDrawer.setDrawingStyle(ca, ca, thickness);
@@ -551,8 +311,7 @@ class RenderTarget {
 		PVector bufEnd = docSpaceToBufferSpace(end);
 		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
-	
-	
+
 	void drawText(String str, int bufferX, int bufferY, int size, Color c) {
 		DrawnShape textShape = new DrawnShape();
 		textShape.setTextShape(bufferX, bufferY, str, c, size);

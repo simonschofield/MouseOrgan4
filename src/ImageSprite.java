@@ -214,20 +214,22 @@ public class ImageSprite{
 	float sizeInScene = 1; // 
 	
 	// secondary (sometimes needed) information
-	String contentGroupName = "";
+	String imageSampleGroupName = "";
+	String seedBatchName = "";
+	int id = 0;
 	
 	// for internal workings
-	ImageQuad imageQuad;
+	private ImageQuad imageQuad;
 	
-	int bufferWidth; 
-	int bufferHeight;
-	float aspect;
+	private int bufferWidth; 
+	private int bufferHeight;
+	private float aspect;
 	
-	QRandomStream qRandomStream;
+	private QRandomStream qRandomStream;
 	
-	SceneData3D sceneData;
+	private SceneData3D sceneData;
 	
-	int id = 0;
+	
 	
 	ImageSprite(){
 		
@@ -237,17 +239,30 @@ public class ImageSprite{
 	
 	ImageSprite(BufferedImage im, PVector orig, float sizeInScn, int rseed){
 		
-		image = im;
-		bufferWidth = image.getWidth();
-	    bufferHeight = image.getHeight();
-	    aspect = bufferWidth/(float)bufferHeight;
-	    origin = orig.copy();
-	    sizeInScene = sizeInScn;
-	    id = rseed;
-	    qRandomStream = new QRandomStream(id);
-	    imageQuad = new ImageQuad(this);
+		init(im,orig,sizeInScn, rseed );
 	}
 	
+	ImageSprite(BufferedImage img, PVector orig, float sizeInScn, Seed seed){
+		
+		init(img, orig, sizeInScn, seed.id);
+		setDocPoint(seed.getDocPoint());
+		
+		this.imageSampleGroupName = seed.imageSampleGroupName;
+		this.seedBatchName = seed.batchName;
+	}
+	
+	private void init(BufferedImage img, PVector origin, float sizeInScn, int id) {
+		this.image = img;
+		this.bufferWidth = image.getWidth();
+		this.bufferHeight = image.getHeight();
+		this.aspect = bufferWidth/(float)bufferHeight;
+		this.id = id;
+		this.sizeInScene = sizeInScn;
+		this.origin = origin;
+		qRandomStream = new QRandomStream(id);
+	    imageQuad = new ImageQuad(this);
+	   
+	}
 	
 	String toStr() {
 		//return "ImageSprite seed:" + seed.toStr() + " own doc pt:" + docPoint + " Image:" + image;
@@ -273,6 +288,8 @@ public class ImageSprite{
 	SNum getSNum(int seedOffset, Integer sequencePos) {
 		return qRandomStream.snum(seedOffset, sequencePos);
 	}
+	
+	
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -361,13 +378,18 @@ public class ImageSprite{
 	///////////////////////////////////////////////////////////////////////////////////////////
 	
 	
-	boolean contentGroupEquals(String s) {
-		return contentGroupName.contentEquals(s);
+	boolean imageSampleGroupEquals(String s) {
+		return imageSampleGroupName.contentEquals(s);
+	}
+	
+	boolean seedBatchEquals(String s) {
+		return seedBatchName.contentEquals(s);
 	}
 	
 	
 	// needed by the RenderTarget to paste
 	PVector getOriginBufferCoords() {
+		
 	    return new PVector( (origin.x * bufferWidth), (origin.y* bufferHeight) );
 	}
 	
@@ -397,11 +419,13 @@ public class ImageSprite{
 		return new Rect(new PVector(x1,y1), new PVector(x2,y2) );
 	}
 	
-	Rect getPasteRectDocSpace(RenderTarget rt) {
+	Rect getPasteRectDocSpace(MainDocumentRenderTarget rt) {
 		PVector spriteOffset = this.getOriginBufferCoords();
+		
 		PVector docSpaceSpriteOffset = rt.bufferSpaceToDocSpace(spriteOffset);
 		PVector docSpacePt = this.getDocPoint();
 		PVector shiftedDocSpacePt = PVector.sub(docSpacePt, docSpaceSpriteOffset);
+		
 		return rt.getPasteRectDocSpace(this.image, shiftedDocSpacePt);
 	}
 	
@@ -441,12 +465,14 @@ public class ImageSprite{
 	//
 	// if the render target needs to crop to the permittedPasteArea before pasting
 	// The permittedPasteArea is in document space (the class PermittedpastewrArea converts user's normalised space to document space)
-	boolean cropToPermittedPasteArea(RenderTarget rt) {
+	boolean cropToPermittedPasteArea(MainDocumentRenderTarget rt) {
 		// assume that the sprite has been tested for being wholly-inside already, so that by here,
 		// we know a crop is due.
 		
 		// get intersection of both in documentSpace
 		Rect permittedPasteArea = rt.permittedPasteArea.permittedPasteAreaRect;
+		
+		System.out.println("cropToPermittedPasteArea");
 		Rect uncroppedSpriteRect = getPasteRectDocSpace(rt);
 		Rect croppedSpriteRect = permittedPasteArea.getBooleanIntersection(uncroppedSpriteRect);
 		
@@ -497,7 +523,7 @@ public class ImageSprite{
 	}
 	
 	// alters the preCroppedImage
-	boolean doBespokeCrop(RenderTarget rt, BufferedImage preCroppedImage, String edgeCropReport) {
+	boolean doBespokeCrop(MainDocumentRenderTarget rt, BufferedImage preCroppedImage, String edgeCropReport) {
 		// do the bespoke crop using the selected crop image
 		String splitEdgeReport[] = edgeCropReport.split(",");
 		for(String edge:splitEdgeReport) {
@@ -511,7 +537,7 @@ public class ImageSprite{
 	}
 	
 	// alters the preCroppedImage
-	boolean addBespokeCropToEdge(RenderTarget rt, BufferedImage preCroppedImage, String theEdge) {
+	boolean addBespokeCropToEdge(MainDocumentRenderTarget rt, BufferedImage preCroppedImage, String theEdge) {
 		int numCropImages = rt.permittedPasteArea.permittedPasteAreaCropImages.getNumItems();
 		int n = qRandomStream.randRangeInt(0, numCropImages-1);
 		BufferedImage cropper = rt.permittedPasteArea.permittedPasteAreaCropImages.getImage(n);
@@ -621,7 +647,7 @@ public class ImageSprite{
 	//
 	// scaling to 3D scene
 	//
-	void scaleToSizeInScene(SceneData3D sceneData, RenderTarget renderTarget, float scaleModifier) {
+	void scaleToSizeInScene(SceneData3D sceneData, MainDocumentRenderTarget renderTarget, float scaleModifier) {
 		// scales the image to the correct size using  sizeInScene to represent the
 		// items's size in the 3D scene in world units.
 		
@@ -629,14 +655,14 @@ public class ImageSprite{
 		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
 		float scale = (heightInPixels/bufferHeight) * scaleModifier;
 		if(scale > 1) {
-		 System.out.println(contentGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
+		 System.out.println(imageSampleGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
 		}
 
 		scale(scale,scale);
 		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
 	}
 	
-	float getHeightInRenderTargetPixels3D(SceneData3D sceneData, RenderTarget renderTarget) {
+	float getHeightInRenderTargetPixels3D(SceneData3D sceneData, MainDocumentRenderTarget renderTarget) {
 		
 		float heightDocSpace = sizeInScene * sceneData.get3DScale(docPoint);
 		return getHeightInRenderTargetPixels2D( renderTarget, heightDocSpace);
@@ -648,7 +674,7 @@ public class ImageSprite{
 	//
 	// scaling to 2D scene
 	//
-	void scaleToSizeInScene(RenderTarget renderTarget, float scaleModifier) {
+	void scaleToSizeInScene(MainDocumentRenderTarget renderTarget, float scaleModifier) {
 		// The height of the sample image is set using sizeInScene as a documentSpace measurement.
 		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
 		
@@ -656,7 +682,7 @@ public class ImageSprite{
 		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
 		float scale = (heightInPixels / bufferHeight) * scaleModifier;
 		if (scale > 1) {
-			System.out.println(contentGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
+			System.out.println(imageSampleGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
 		}
 	
 		scale(scale, scale);
@@ -664,7 +690,7 @@ public class ImageSprite{
 	}
 
 	
-	float getHeightInRenderTargetPixels2D(RenderTarget renderTarget, float size) {
+	float getHeightInRenderTargetPixels2D(MainDocumentRenderTarget renderTarget, float size) {
 
 		PVector heightDocSpaceVector = new PVector(0, size);
 		PVector heightInPixelsVector = renderTarget.docSpaceToBufferSpace(heightDocSpaceVector);
