@@ -16,10 +16,14 @@ class KeyValuePairList{
       kvplCopy.addKeyValuePair( kvp.copy() );
       
     }
-    
-    
-    
     return kvplCopy;
+  }
+  
+  boolean containsEqual(KeyValuePair otherKvp) {
+	  for(KeyValuePair thisKvp: keyValuePairs) {
+		  if(thisKvp.equals(otherKvp)) return true;
+	  }
+	  return false;
   }
   
   void printMe(){
@@ -56,7 +60,7 @@ class KeyValuePairList{
   }
 
 
-  private void addKeyValuePair(KeyValuePair kv){
+  void addKeyValuePair(KeyValuePair kv){
     removeKeyValue( kv.getKey() );
     keyValuePairs.add(kv);
   }
@@ -175,10 +179,10 @@ class KeyValuePair {
   private int TYPE = NOTSET;
 
   // the values; only one of these should be set
-  boolean bval;
-  int ival;
-  float fval;
-  String sval;
+  boolean bval = false;
+  int ival = 0;
+  float fval = 0;
+  String sval = "";
 
 
   KeyValuePair() {
@@ -198,6 +202,15 @@ class KeyValuePair {
   
   void printMe(){
     
+  }
+  
+  boolean equals(KeyValuePair other) {
+	  if(this.theKey.equals(other.theKey)==false) return false;
+	  if (TYPE == BOOLEAN && this.bval == other.bval) return true;
+	  if (TYPE == INTEGER  && this.ival == other.ival) return true;
+	  if (TYPE == FLOAT  && this.fval == other.fval) return true; 
+	  if (TYPE == STRING  && this.sval.equals(other.sval)) return true; 
+	  return false;
   }
   
   //////////////////////////////////////////////////////

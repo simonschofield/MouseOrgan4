@@ -216,6 +216,7 @@ class GenericArrayListUtils{
 }
 
 
+
 class KeepAwake{
 	Robot hal;
 	SecondsTimer timer;
@@ -307,6 +308,31 @@ class Counter{
 		return thisNum;
 	}
 	
+}
+
+
+
+
+///////////////////////////////////////////////////////////
+//
+//
+class UniqueID{
+	int idNumCounter = 0;
+
+
+	int getUniqueID(){
+		return idNumCounter++;
+	}
+
+	void reset(){
+		idNumCounter=0;
+	}
+
+	void setMinNewID(int n){
+		if( n > idNumCounter){
+			idNumCounter = n + 1;
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

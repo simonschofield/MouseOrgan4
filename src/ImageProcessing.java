@@ -171,14 +171,7 @@ public class ImageProcessing {
 		return imgCopy;
 	}
 	
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	// Blend image with color 
-	//
-	public static BufferedImage blendImage(BufferedImage img, Color c, float amt) {
-		BufferedImage colorFilledImage = fill(img,c);
-		return getCompositeImage(colorFilledImage, img, 0,0,amt, AlphaComposite.DST_IN);
 	
-	}
 
 	
 	///////////////////////////////////////////////////////////////////////////////////////
@@ -574,14 +567,18 @@ public class ImageProcessing {
 	
 	
 	public static BufferedImage blendWithColor(BufferedImage image, Color c, float amt) {
+		image = assertImageTYPE_INT_ARGB(image);
 		//ignores any alpha, just blends the rgb values.
-		byte[][] data = new byte[3][256];
+		byte[][] data = new byte[4][256];
 		
 		
 		for (int n = 0; n < 256; n++) {
+			//data[0][n] = (byte) n;
+			
 			data[0][n] = (byte) MOMaths.lerp(amt, n, c.getRed());
 			data[1][n] = (byte) MOMaths.lerp(amt, n, c.getGreen());
 			data[2][n] = (byte) MOMaths.lerp(amt, n, c.getBlue());
+			data[3][n] = (byte) n;
 		}
 		return pointFunction(image, data);
 	}
@@ -595,9 +592,9 @@ public class ImageProcessing {
 		byte g = (byte) c.getGreen();
 		byte b = (byte) c.getBlue();
 		for (int n = 0; n < 256; n++) {
-			data[0][n] = r;
+			data[0][n] = b;
 			data[1][n] = g;
-			data[2][n] = b;
+			data[2][n] = r;
 		}
 		return pointFunction(image, data);
 	}

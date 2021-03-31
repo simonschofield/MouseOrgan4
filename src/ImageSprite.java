@@ -373,6 +373,118 @@ public class ImageSprite{
 		
 	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Experimental - needs generalising in terms of what point gets mapped to where
+	// map to line
+	// The origin is mapped to p1 of the line. The sprite is scaled so that it is as high as the line
+	// The sprite is rotated into the same direction as the line p1-p2
+	void mapToLine2(Line2 line) {
+		float r = line.getRotation();
+		float len = line.getLength();
+		scaleToSizeInDocSpace(null, len);
+		rotate(r);
+	}
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// scaling to 3D scene
+	//
+	void scaleToSizeInScene(SceneData3D sceneData, float scaleModifier) {
+		// scales the image to the correct size using  sizeInScene to represent the
+		// items's size in the 3D scene in world units.
+
+		float heightInPixels = getHeightInRenderTargetPixels3D(sceneData);
+		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
+		float scale = (heightInPixels / bufferHeight) * scaleModifier;
+		if (scale > 1) {
+			System.out.println(imageSampleGroupName + " overscaled, original size in pixels " + bufferHeight
+					+ " to be scale to " + heightInPixels + " scale " + scale);
+		}
+
+		scale(scale, scale);
+		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
+	}
+
+	float getHeightInRenderTargetPixels3D(SceneData3D sceneData) {
+
+		float heightDocSpace = sizeInScene * sceneData.get3DScale(docPoint);
+		return docSizeToRenderTargetPixels2D(heightDocSpace);
+
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// scaling to 2D scene
+	//
+	void scaleToSizeInScene(float scaleModifier) {
+		// The height of the sample image is set using pre-set sizeInScene member variable as a documentSpace measurement.
+		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
+		float scale = scaleModifier * sizeInScene;
+		//System.out.println("scaleToSizeInScene  scaleModifier " + scaleModifier + "  sizeInScene " + sizeInScene + " result " + scale);
+		scaleToSizeInDocSpace(null, scale);
+	}
+
+	void scaleToSizeInDocSpace(Float sizeX, Float sizeY) {
+		// i.e. size of 1 means that the image is scaled to be the same as the longest edge of the document
+		if (sizeX == null && sizeY == null)
+			return;
+		float scaleY = 1;
+		float scaleX = 1;
+		//System.out.println("scaleToSizeInDocSpace  sizeXY " + sizeX + "  " + sizeY);
+		if (sizeX != null) {
+			float widthInPixels = docSizeToRenderTargetPixels2D(sizeX);
+			
+			
+			
+			scaleX = (widthInPixels / bufferWidth);
+			
+			if (scaleX > 1) {
+				System.out.println(
+						imageSampleGroupName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
+								+ bufferWidth + " to be scale to " + widthInPixels + " scale " + scaleX);
+			}
+		}
+
+		if (sizeY != null) {
+			float heightInPixels = docSizeToRenderTargetPixels2D(sizeY);
+			scaleY = (heightInPixels / bufferHeight);
+			//System.out.println("heightInPixels  " + heightInPixels);
+			//System.out.println("bufferHeight  " + bufferHeight);
+			if (scaleY > 1) {
+				System.out.println(
+						imageSampleGroupName + " scaleToSizeInDocSpace overscaled in Y, original size in pixels "
+								+ bufferHeight + " to be scale to " + heightInPixels + " scale " + scaleY);
+			}
+			
+		}
+		//System.out.println("scaleToSizeInDocSpace  scaleXY " + scaleX + "  " + scaleY);
+		
+		if(sizeX == null) {
+			scale(scaleY, scaleY);
+			return;
+		}
+		
+		if(sizeY == null) {
+			scale(scaleX, scaleX);
+			return;
+		}
+		
+		scale(scaleX, scaleY);
+
+		//
+	}
+
+	float docSizeToRenderTargetPixels2D(float size) {
+
+		PVector heightDocSpaceVector = new PVector(0, size);
+		PVector heightInPixelsVector = GlobalObjects.theDocument.docSpaceToBufferSpace(heightDocSpaceVector);
+		return (float) Math.abs(heightInPixelsVector.y);
+
+	}
+
+
+
+	
 	///////////////////////////////////////////////////////////////////////////////////////////
 	/// end of geometric transforms
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -642,62 +754,6 @@ public class ImageSprite{
 	// end of cropping stuff
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// scaling to 3D scene
-	//
-	void scaleToSizeInScene(SceneData3D sceneData, MainDocumentRenderTarget renderTarget, float scaleModifier) {
-		// scales the image to the correct size using  sizeInScene to represent the
-		// items's size in the 3D scene in world units.
-		
-		float heightInPixels = getHeightInRenderTargetPixels3D( sceneData,  renderTarget);
-		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
-		float scale = (heightInPixels/bufferHeight) * scaleModifier;
-		if(scale > 1) {
-		 System.out.println(imageSampleGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
-		}
-
-		scale(scale,scale);
-		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
-	}
-	
-	float getHeightInRenderTargetPixels3D(SceneData3D sceneData, MainDocumentRenderTarget renderTarget) {
-		
-		float heightDocSpace = sizeInScene * sceneData.get3DScale(docPoint);
-		return getHeightInRenderTargetPixels2D( renderTarget, heightDocSpace);
-		
-	}
-	
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// scaling to 2D scene
-	//
-	void scaleToSizeInScene(MainDocumentRenderTarget renderTarget, float scaleModifier) {
-		// The height of the sample image is set using sizeInScene as a documentSpace measurement.
-		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
-		
-		float heightInPixels = getHeightInRenderTargetPixels2D(renderTarget, sizeInScene);
-		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
-		float scale = (heightInPixels / bufferHeight) * scaleModifier;
-		if (scale > 1) {
-			System.out.println(imageSampleGroupName + " overscaled, original size in pixels " + bufferHeight + " to be scale to " + heightInPixels + " scale " + scale);
-		}
-	
-		scale(scale, scale);
-	//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
-	}
-
-	
-	float getHeightInRenderTargetPixels2D(MainDocumentRenderTarget renderTarget, float size) {
-
-		PVector heightDocSpaceVector = new PVector(0, size);
-		PVector heightInPixelsVector = renderTarget.docSpaceToBufferSpace(heightDocSpaceVector);
-		return (float)Math.abs(heightInPixelsVector.y);
-		
-	}
-	
 	
 	
 	

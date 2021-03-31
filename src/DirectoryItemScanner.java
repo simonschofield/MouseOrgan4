@@ -153,11 +153,11 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 
 	void loadImages(String dir, String fileStrEndsWith, String fileStrContains, int fromIndex, int toIndex, float preScale, Rect cropRect) {
 
-		ArrayList<String> allNames = getFilesInDirectory(dir, fileStrEndsWith, fileStrContains);
-		ArrayList<String> allSortNames = getShortFileNamesInDirectory(dir, fileStrEndsWith, fileStrContains);
+		ArrayList<String> allPathAndNames = getFilesInDirectory(dir, fileStrEndsWith, fileStrContains);
+		ArrayList<String> allShortNames = getShortFileNamesInDirectory(dir, fileStrEndsWith, fileStrContains);
 		System.out.println("load content " + dir + " from to " + fromIndex + "," + toIndex);
 		for (int i = fromIndex; i <= toIndex; i++) {
-			String pathAndName = allNames.get(i);
+			String pathAndName = allPathAndNames.get(i);
 			BufferedImage img = ImageProcessing.loadImage(pathAndName);
 			
 			
@@ -175,15 +175,28 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 			heightExtrema.addExtremaCandidate(img.getHeight());
 			
 			directoryContentPathAndNamesList.add(pathAndName);
-			String shortName = allSortNames.get(i);
-			directoryContentShortNameList.add(shortName);
-			//System.out.println("added image " + pathAndName + " shortname " + shortName);
-			imageList.add(img);
+			String shortName = allShortNames.get(i);
+			addImage( img,  shortName);
 		}
 		System.out.println("loaded " + directoryPath + " width etrema " + widthExtrema.toStr() + " height etrema " + heightExtrema.toStr());
 	}
-
 	
+	void copyImageFromOtherGroup(String shortName, DirectoryImageGroup otherGroup) {
+		// makes a new independent copy
+		BufferedImage img = otherGroup.getImage(shortName);
+		BufferedImage copyOfImage = ImageProcessing.copyImage(img);
+		addImage(copyOfImage, shortName);
+	}
+
+	void addImage(BufferedImage img, String shortName) {
+		directoryContentShortNameList.add(shortName);
+		//System.out.println("added image " + pathAndName + " shortname " + shortName);
+		imageList.add(img);
+		
+		if(directoryContentShortNameList.size() != imageList.size()) {
+			System.out.println("DirectoryImageGroup:Image name list and BufferedImage list are out of step!");
+		}
+	}
 
 	// specific to this class
 	BufferedImage getImage(int n) {
@@ -204,6 +217,8 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 		System.out.println("ImageGroup:getImage - cannot find image called " + shortName);
 		return null;
 	}
+	
+	
 
 	int getNumItems() {
 		return imageList.size();
@@ -215,6 +230,14 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 			return;
 		}
 		imageList.set(n,img);
+	}
+	
+	void copyImage(String shortName, DirectoryImageGroup otherGroup) {
+		BufferedImage img = otherGroup.getImage(shortName);
+		
+		if(img!=null) {
+			addImage(img,shortName);
+		}
 	}
 	
 	

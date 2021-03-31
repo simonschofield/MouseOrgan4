@@ -255,6 +255,13 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	}
 	
 	
+	public ImageSampleGroup(String collectionName) {
+		// this is for saving arbitrary collections loaded from elsewhere
+		super(null, ".png", "");
+		
+	}
+	
+	
 	// not tested yet
 	ImageSampleGroup copyToNewGroup(String newGroupName, PVector groupOrigin, float sizeInScene) {
 		ImageSampleGroup newGroup = new ImageSampleGroup(newGroupName, directoryPath);
@@ -415,6 +422,15 @@ class ImageSampleGroup extends DirectoryImageGroup {
 			imageList.set(n, scaled);
 		}
 	}
+	
+	void rotateAll(float rot) {
+		int numImage = imageList.size();
+		for (int n = 0; n < numImage; n++) {
+			BufferedImage img = imageList.get(n);
+			BufferedImage rotated = ImageProcessing.rotateImage(img, rot);
+			imageList.set(n, rotated);
+		}
+	}
 
 	void resizeToAll(int x, int y) {
 		int numImage = imageList.size();
@@ -445,14 +461,6 @@ class ImageSampleGroup extends DirectoryImageGroup {
 			BufferedImage colTransformedImage = ImageProcessing.colorTransform( img,  function,  p1,  p2,  p3);
 			imageList.set(n, colTransformedImage);
 		}
-
-	}
-	
-	
-	void compressSizes(float amount) {
-		// when amount == 0 no change in sizes
-		// when amount == 1, all shapes scaled to fit into smallest
-		// 0.5 == halfway between these two options
 
 	}
 
@@ -506,6 +514,30 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		ImageSprite sprite = new ImageSprite(getImage(num), spriteOrigin.copy(), world3Dheight, uniqueID.next());
 		sprite.imageSampleGroupName = this.groupName;
 		return sprite;
+	}
+	
+	
+	BufferedImage getRandomImage(QRandomStream ranStream, String nameContainsFilter) {
+		// allows the user to get a random image from the group
+		// and apply a filter to that name; the name returned must contain the filter expression
+		// if set to null or "", allows all image to be returned
+		// Needs a reference to a rand number generator to work.
+		
+		if(nameContainsFilter == null) nameContainsFilter = "";
+		if(nameContainsFilter == "") {
+			int rnum = ranStream.randRangeInt(0, this.getNumItems()-1);
+			return getImage(rnum);
+		}
+		
+		ArrayList<String> filteredNamesFound = new ArrayList<String>();
+		for (String thisName : directoryContentShortNameList) {
+			if (thisName.contains(nameContainsFilter))
+				filteredNamesFound.add(thisName);
+		}
+		
+		int rnum = ranStream.randRangeInt(0, filteredNamesFound.size()-1);
+		String foundName = filteredNamesFound.get(rnum);
+		return getImage(foundName);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////

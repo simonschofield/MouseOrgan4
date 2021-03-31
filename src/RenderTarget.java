@@ -85,6 +85,11 @@ class RenderTarget{
 		graphics2D.setBackground(c);
 		graphics2D.clearRect(0, 0, bufferWidth, bufferHeight);
 	}
+	
+	void fillBackgroundWithImage(BufferedImage img, float alpha) {
+		BufferedImage resizedImage = ImageProcessing.resizeTo(img, bufferWidth, bufferHeight);
+		pasteImage_BufferCoordinates(resizedImage,0,0,alpha);
+	}
 
 	
 	// these are in image-buffer space
@@ -304,9 +309,9 @@ class RenderTarget{
 
 	}
 
-	void drawLine(PVector start, PVector end, Color c, int thickness) {
+	void drawLine(PVector start, PVector end, Color c, int w) {
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
-		shapeDrawer.setDrawingStyle(ca, ca, thickness);
+		shapeDrawer.setDrawingStyle(ca, ca, w);
 		PVector bufStart = docSpaceToBufferSpace(start);
 		PVector bufEnd = docSpaceToBufferSpace(end);
 		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);

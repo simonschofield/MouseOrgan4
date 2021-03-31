@@ -180,6 +180,10 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	Rect getViewDisplayRegion() {
 		return viewDisplayRect.copy();
 	}
+	
+	Rect getViewPortDocSpace() {
+		return theViewControl.getCurrentViewPortDocSpace();
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	// UI related methods

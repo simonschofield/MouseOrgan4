@@ -89,6 +89,17 @@ public class ViewController {
 		return currentViewCropRect.copy();
 	}
 	
+	
+	Rect getCurrentViewPortDocSpace() {
+		// returns the currentViewCropRect (whihc is in buffer-space) into documentSpace
+		// this is needed by external objects only to do cropping operations
+		PVector topLeftBufferSpace = currentViewCropRect.getTopLeft();
+		PVector bottomRightBufferSpace = currentViewCropRect.getBottomRight();
+		PVector topLeftDocSpace = GlobalObjects.theDocument.bufferSpaceToDocSpace(topLeftBufferSpace);
+		PVector bottomRightDocSpace = GlobalObjects.theDocument.bufferSpaceToDocSpace(bottomRightBufferSpace);
+		return new Rect(topLeftDocSpace, bottomRightDocSpace);
+	}
+	
 	void setViewDisplayRectBackgroundColor(Color c) {
 		viewDisplayRectBackgroundColor = c;
 		

@@ -16,6 +16,9 @@ class KeyImageSampler{
 	
 	boolean useBilinearSampling = false;
 	
+	Rect documentExtentsRect = new Rect(0,0,1,1);
+	
+	
 	KeyImageSampler(BufferedImage src){
 		bufferedImage = src;
 		sourceImageWidth = bufferedImage.getWidth();
@@ -97,6 +100,11 @@ class KeyImageSampler{
 	int getHeight() { return sourceImageHeight;}
 	
 	PVector normalisedSpaceToBufferSpace(PVector normSpace) {
+		
+		//
+		//normSpace = documentExtentsRect.norm(normSpace);
+		
+		
 		int pixelX = (int) MOMaths.constrain(normSpace.x *  sourceImageWidth , 0, sourceImageWidth-1);
 		int pixelY = (int) MOMaths.constrain(normSpace.y *  sourceImageHeight , 0, sourceImageHeight-1);
 		return new PVector(pixelX,pixelY);
@@ -118,6 +126,10 @@ class KeyImageSampler{
 	PVector bufferSpaceToNormalisedSpace(PVector p) {
 		float nx = p.x/sourceImageWidth;
 		float ny = p.y/sourceImageHeight;
+		//PVector normSpace = new PVector(nx,ny);
+		
+		
+		
 		return new PVector(nx,ny);
 	
 	}

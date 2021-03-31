@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -62,6 +63,7 @@ public class CMY_HalftoneImage{
 		cmyRenderTarget.permittedPasteArea.setActive(active);
 		
 	}
+	
 	
 	public void makeCMYhalftoneComposite(int dotSpacingPixels, boolean saveOutImages) {
 		// dotSpacingPixels is the number of pixels you want the dot spacing to be at in pixels in 100% scale output image
@@ -230,40 +232,5 @@ public class CMY_HalftoneImage{
 		return cmy;
 	}
 }
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-//
-//
-
-
-//class SolidImageInterpolationTexture:
-//	   ## places a key images on a set plane within
-//	   # the texture volume
-//	   # and defines dropOff in value away from that plane in Z
-//	   
-//	   def __init__(self, imagePathandName, pos, drpOff):
-//	      self.keyImage = MOKeyImages.MOKeyImage()
-//	      self.keyImage.loadImage(imagePathandName)
-//	      # dropOff
-//	      self.dropOff = drpOff
-//	      # position is defined as a number 0...1, where 0 is the front plane of the
-//	      # volume, and 1 is the rear plane
-//	      self.position = pos
-//
-//	   def getValue(self, p):
-//	      # first value is in x,z space (image projects down from
-//	      # top of volume )
-//	      px = p[0]
-//	      py = p[1]
-//	      pz = p[2]
-//	      val = self.keyImage.getTone( (px,py))
-//	      distance = abs( pz-self.position)
-//	      multiplyer = MOUtils.mapRange(distance,0,self.dropOff, 1, 0)
-//	      multiplyer = MOUtils.clamp(multiplyer,0,1)
-//	      return multiplyer*val
-//
-
 
 
