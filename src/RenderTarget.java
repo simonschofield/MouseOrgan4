@@ -290,13 +290,14 @@ class RenderTarget{
 	//////////////////////////////////////////
 	// debug drawing operations other than paste
 	// these do not scale the drawing to the document
-	void drawPoints(ArrayList<PVector> docSpacePoints, Color c) {
+	void drawPoints(ArrayList<PVector> docSpacePoints, Color c, float pixelRadius) {
+		float r = pixelRadius * GlobalObjects.theSurface.getSessionScale();
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
 
 		for (PVector p : docSpacePoints) {
 			PVector bufpt = docSpaceToBufferSpace(p);
-			shapeDrawer.drawEllipse(bufpt.x, bufpt.y, 6, 6);
+			shapeDrawer.drawEllipse(bufpt.x, bufpt.y, r, r);
 		}
 
 	}

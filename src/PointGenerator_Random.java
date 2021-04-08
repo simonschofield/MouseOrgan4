@@ -136,6 +136,7 @@ public class PointGenerator_Random extends CollectionIterator{
 	@Override
 	PVector getItem(int n) {
 		// TODO Auto-generated method stub
+		if(n >= points.size()) return null;
 		return points.get(n);
 	}
 	

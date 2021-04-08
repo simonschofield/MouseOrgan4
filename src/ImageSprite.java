@@ -383,6 +383,7 @@ public class ImageSprite{
 		float len = line.getLength();
 		scaleToSizeInDocSpace(null, len);
 		rotate(r);
+		setDocPoint(line.p2);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -755,7 +756,9 @@ public class ImageSprite{
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	
-	
+	void  colorTransform(int function, float p1, float p2, float p3) {
+		image = ImageProcessing.colorTransform( image,  function,  p1,  p2,  p3);
+	}
 	
 	
 	

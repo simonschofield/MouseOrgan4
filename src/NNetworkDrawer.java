@@ -132,6 +132,48 @@ class NNetworkProcessor{
 		return true;
 	}
 	
+	ArrayList<PVector> getVertices(ArrayList<NEdge> edges){
+		if( checkEdgesAreOrdered(edges)==false) {
+			System.out.println("getVertices - edges are not ordered");
+			return null;
+		}
+		ArrayList<PVector> vertices = new ArrayList<PVector>();
+		
+		NEdge thisEdge = edges.get(0);
+		if(edges.size()==1) {
+			vertices.add(thisEdge.getEndPt(0));
+			vertices.add(thisEdge.getEndPt(1));
+			return vertices;
+		}
+		
+		
+		
+		NEdge nextEdge = edges.get(1);
+		
+		// find first dangling vertex
+		NPoint connectionPoint = getEdgeJoinPoint(thisEdge, nextEdge);
+		NPoint firstPoint = getOtherEdgeEnd(thisEdge, connectionPoint);
+		vertices.add(firstPoint.getPt());
+		
+		
+		
+		int numEdges = edges.size();
+		// find all the connecting points in order
+		for(int n = 1; n < numEdges; n++) {
+			nextEdge = edges.get(n);
+			connectionPoint = getEdgeJoinPoint(thisEdge, nextEdge);
+			vertices.add(connectionPoint.getPt());
+			thisEdge = nextEdge;
+		}
+		
+		// find final dangling point
+		NPoint finalPoint = getOtherEdgeEnd(nextEdge, connectionPoint);
+		vertices.add(finalPoint.getPt());
+		
+		return vertices;
+		
+	}
+	
 ////////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -238,34 +280,32 @@ class NNetworkProcessor{
 
 }
 
-
-
-
-
-class NetworkEdgeMarcher extends NNetworkProcessor{
+//////////////////////////////////////////////////////////////////////////////////////
+// This network processor extracts a continuous run of edges from a network
+//
+//
+class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	
 	ArrayList<NEdge> theEdgeList;
 	
-	boolean isStarted = false;
-	boolean isFinished = false;
+	boolean isInitialised = false;
 	
-	PVector currentStrideEndPoint;
-	float theMarchStride;
-	NEdge currentEdge;
-	NEdge runStartEdge;
+	float angleTolleranceDegrees = 45;
 	//ArrayList<NEdge> currentEdgeRunList;
 	
-	RandomStream randomStream = new RandomStream(6);
+	RandomStream randomStream = new RandomStream(1);
 	
 	
-	NetworkEdgeMarcher(NNetwork ntwk){
+	NNetworkEdgeRunExtractor(NNetwork ntwk){
 		super(ntwk);
 		
 	} 
 	
 	
-	void startEdgeMarch(float marchStride) {
-		theMarchStride = marchStride;
+	private void initialiseRun() {
+		// gets called just before the runs are collected
+		// after all parameters are set up.
+		if(isInitialised == true) return;
 		if(currentSearchAttribute == null) {
 			// makes a copy because theEdgeList gets destroyed by the search
 			theEdgeList = (ArrayList)theNetwork.getEdges().clone();
@@ -281,57 +321,95 @@ class NetworkEdgeMarcher extends NNetworkProcessor{
 			return;
 		}
 		
-		isStarted = true;
+		isInitialised = true;
 	}
 	
 	
 	
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	// This method returns an ordered list of connected edges, starting at a random
+	// public methods This method returns an ordered list of connected edges, starting at a random
 	// available edge. These edges are removed from the initial
 	// edgeList, so cannot be re-used in any other search
 	//
-	ArrayList<NEdge> collectEdgeRun() {
-		ArrayList<NEdge> currentEdgeRunList= new ArrayList<NEdge>();
-		runStartEdge = findRandomStartEdge();
+	ArrayList<NEdge> extractEdgeRun_RandomStart() {
+		initialiseRun();
+		NEdge runStartEdge = findRandomStartEdge();
 		if(runStartEdge == null) {
 			// there are no more edges to be processed
 			return null;
 		}
+		return extractEdgeRun(runStartEdge);
 
-		ArrayList<NEdge> edgesP1Direction = getConnectedRun(runStartEdge, runStartEdge.p1); 
-		ArrayList<NEdge> edgesP2Direction = getConnectedRun(runStartEdge, runStartEdge.p2);
+	}
+	
+	
+	ArrayList<NEdge> extractEdgeRun(NEdge startEdge) {
+		initialiseRun();
+		ArrayList<NEdge> currentEdgeRunList= new ArrayList<NEdge>();
+
+		ArrayList<NEdge> edgesP1Direction = getConnectedRun(startEdge, startEdge.p1); 
+		ArrayList<NEdge> edgesP2Direction = getConnectedRun(startEdge, startEdge.p2);
+
+		if(edgesP1Direction==null && edgesP2Direction==null) {
+			if(startEdge!=null) currentEdgeRunList.add(startEdge);
+			return currentEdgeRunList;
+		}
+		
 
 		if(edgesP1Direction!=null) {
 			Collections.reverse(edgesP1Direction);
 			currentEdgeRunList.addAll(edgesP1Direction);
 		}
-		if(runStartEdge!=null) currentEdgeRunList.add(runStartEdge);
+		if(startEdge!=null) currentEdgeRunList.add(startEdge);
 		if(edgesP2Direction!=null) currentEdgeRunList.addAll(edgesP2Direction);
 		
-		/*
-		int edgesP1DirectionSize = 0;
-		int edgesP2DirectionSize = 0;
-		if(edgesP1Direction!=null) edgesP1DirectionSize = edgesP1Direction.size();
-		if(edgesP2Direction!=null)  edgesP2DirectionSize = edgesP2Direction.size();
-		System.out.println("This run is composed of " + edgesP1DirectionSize + " + 1 + " + edgesP2DirectionSize);
-		*/
+		
 		boolean result = checkEdgesAreOrdered(currentEdgeRunList);
 
 		return currentEdgeRunList;
 	}
 	
+	void setAngleTollerance(float angleDegrees) {
+		angleTolleranceDegrees = angleDegrees;
+	}
+	
+	void setRandomSeed(int s) {
+		randomStream = new RandomStream(s);
+	}
 	
 	
-	NEdge findRandomStartEdge() {
+	void testRun() {
+	
+		while(true) {
+			ArrayList<NEdge> thisRun = extractEdgeRun_RandomStart();
+			
+			
+			if(thisRun == null) break;
+			
+			int thisRunSize = thisRun.size();
+			
+			//System.out.println("found run of " + thisRunSize + " total edges found" + numEdgesFound + " out of " + totalEdges);
+			int r = randomStream.randRangeInt(20, 255);
+			int g = randomStream.randRangeInt(20, 255);
+			int b = randomStream.randRangeInt(20, 255);
+			Color col = new Color(r,g,b);
+			drawEdges(thisRun, col , 4);
+			
+		}
+
+	}
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	// private methods
+	//
+	private NEdge findRandomStartEdge() {
 		if(theEdgeList == null) {
 			System.out.println("NetworkEdgeMarcher:findAStartEdge edge = null");
 			return null;
 		}
 		if(theEdgeList.size()==0) {
 			System.out.println("NetworkEdgeMarcher:findAStartEdge no more edges found");
-			isFinished = true;
 			return null;
 		}
 		
@@ -345,7 +423,7 @@ class NetworkEdgeMarcher extends NNetworkProcessor{
 	}
 	
 	
-	ArrayList<NEdge> getConnectedRun(NEdge startEdge, NPoint whichPoint) {
+	private ArrayList<NEdge> getConnectedRun(NEdge startEdge, NPoint whichPoint) {
 		
 		ArrayList<NEdge> connectedEdges = new ArrayList<NEdge>();
 		NEdge currentEdge =  startEdge;
@@ -373,25 +451,31 @@ class NetworkEdgeMarcher extends NNetworkProcessor{
 	
 	
 	
-	NEdge getConnectedEdge(NEdge thisEdge, NPoint usingThisPoint) {
+	private NEdge getConnectedEdge(NEdge thisEdge, NPoint usingThisPoint) {
 		//finds an single edge connected to either end of thisEdge
 		NEdge foundEdge = null;
 		//System.out.println("getBestConnection this edge ID = " + thisEdge.getID());
 		ArrayList<NEdge> connectedEdges = (ArrayList)usingThisPoint.getEdgeReferences().clone();
-		foundEdge = getBestConnection(thisEdge, connectedEdges);
-		
+		foundEdge = getMostCollinearEdge(thisEdge, connectedEdges);
 		if(foundEdge==null) {
 			//System.out.println("getConnectedEdge: no connecting edge found");
 			return null;
 		}
+		
+		
+		if(isCollinearWithinTollearance(thisEdge, foundEdge, angleTolleranceDegrees)== false){
+			//System.out.println("getConnectedEdge: best connected edge is at too great an angle");
+			return null;
+		}
+		
 		popFromEdgeList(foundEdge);
 		return foundEdge;
 		
 	}
 	
 	
-	NEdge getBestConnection(NEdge e, ArrayList<NEdge> connectedEdges) {
-		
+	private NEdge getMostCollinearEdge(NEdge e, ArrayList<NEdge> connectedEdges) {
+		// looks for the "most straight" edge to connect to
 		connectedEdges.remove(e);
 		
 		NEdge bestEdge = null;
@@ -408,273 +492,162 @@ class NetworkEdgeMarcher extends NNetworkProcessor{
 		return bestEdge;
 	}
 	
+	
+	
+	
+	boolean isCollinearWithinTollearance(NEdge e1, NEdge e2, float angleTolInDegrees) {
+		//if(edgesConnect( e1, e2)== false) return false;
+		float radiansBetween = angleBetweenEdges( e1,  e2);
+		float degreesBetween = radiansBetween*57.2958f;
+				
+		if( ( MOMaths.isClose(degreesBetween, 0, angleTolInDegrees) || MOMaths.isClose(degreesBetween, 180, angleTolInDegrees) ) )  return true;
+		return false;
+	}
+	
 	boolean isInEdgeList(NEdge e) {
 		return theEdgeList.contains(e);
 	}
 	
 	
-	void popFromEdgeList(NEdge e) {
+	private void popFromEdgeList(NEdge e) {
 		theEdgeList.remove(e);
 	}
-	
-	
-	void testRun() {
-		Color col;
-		
-		int totalEdges = theEdgeList.size();
-		int numEdgesFound = 0;
-		
-		while(true) {
-			ArrayList<NEdge> thisRun = collectEdgeRun();
-			
-			
-			if(thisRun == null) break;
-			
-			int thisRunSize = thisRun.size();
-			numEdgesFound += thisRunSize;
-			//System.out.println("found run of " + thisRunSize + " total edges found" + numEdgesFound + " out of " + totalEdges);
-			int r = randomStream.randRangeInt(20, 255);
-			int g = randomStream.randRangeInt(20, 255);
-			int b = randomStream.randRangeInt(20, 255);
-			col = new Color(r,g,b);
-			drawEdges(thisRun, col , 4);
-			
-		}
-		
-		
-		
-	}
-	
-	
-	
-	
-	Line2 update() {
-		
-		// starting at currentStrideEndPoint, if the march end point is within this line
-		//Line2 currentEdgeLine = 
-		//if()
-		return null;
-	}
-	
-	
-	
+
 }
 
-class NNetworkEdgeJoiner extends NNetworkProcessor{
-	// loads a network
-	// then iterates over the edges of each type of edge (a-road, b-road, river..)
-	// defined by the search attribute
-	// and joins up edges that are not dissimilar in angle
-	// This class is destructive to the network, so do not save back over itself.
+
+class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
+	static final int MODE_EXTRACTED = 0;
+	static final int MODE_REGIONS = 1;
+	int mode = MODE_EXTRACTED;
+	Vertices2 currentVertices;
 	
-	// The process starts with an iterative search through the edge list until it finds
-	// a matching type to the search attribute, that has not been processed - this is the candidate edge.
-	// if a matching edge is found that can extend the candidate edge, then the matching edge end the current edge are effectively deleted, and replaced by a new merged edge
-	// A new candidate edge is then selected. 
-	// if the search returns a null, then the candidate edge is set to having been processed - this is either because there was no
-	// connectable edge, or the edge is too long to connect to a new one.
-	// A new candidate edge is selected.
-	// if there are no more candidate edges, the search is complete.
+	// this is the user-set size of the crawl step in document space
+	float crawlStepDistance = 0.01f;
 	
-	// this is in degrees
-	float angleTollerance = 5;
-	// this is in document space units i.e. 1 = long edge of document, 0.05 == 1/20th of this
-	float maxLengthJoinedLines = 0.1f;
+	// these are the normalised state of the crawl
+	float crawlStepParametric = 0.01f;
+	float currentVerticesProgressParametric = 0;
 	
+	NNetworkItemIterator regionIterator;
 	
-	
-	RandomStream random = new RandomStream();   
-	
-	ArrayList<NEdge> currentEdges;
-	
-	NNetworkEdgeJoiner(NNetwork ntwk){
+	NNetworkEdgeRunCrawler(NNetwork ntwk){
 		super(ntwk);
+		regionIterator = new NNetworkItemIterator();
+		regionIterator.setRegions(ntwk.getRegions());
 	}
 	
-	
-	
-	
-	
-	void simplifyEdges(KeyValuePair searchCriteria, int bailCount) {
-		setSearchAttribute(searchCriteria);
-		gatherCurrentEdges();
-
-		int num = currentEdges.size();
-		System.out.println("NNetworkEdgeJoiner::simplifyEdges total number of edges of this type = " + num);
-
-		int count = 0;
-	    for(int n = 0; n < bailCount; n++) {
-	    	
-	    	NEdge ne = this.findStartEdge();
-	    	
-	    	if(ne==null) { 
-	    		System.out.println("NNetworkEdgeJoiner::simplifyEdges cannot find any new edges after " + count);
-	    		// this means there are no more start edges to find
-	    		break;
-	    	}
-	    	
-	    	
-	    	NEdge ce = this.findConnectingEdge(ne);
-	    	if( ce == null ) {
-	    		// This edge has no more connecting edges, so mark as processed
-	    		this.setAsProcessed(ne);
-	    		//System.out.println("cannot find connecting edge " + count);
-	    		count++;
-	    		continue;
-	    	}
-	    	if( ne.isUsingIdenticalPoints(ce) ) {
-	    		// rare, but sometimes the edge has been entered twice over itself
-	    		deleteEdge(ce);
-	    		continue;
-	    	}
-	    	
-	    	this.connectEdges(ne, ce);
-	    }
-	    System.out.println("NNetworkEdgeJoiner::simplifyEdges out" + count);
-	}
-	
-	void gatherCurrentEdges() {
-		if(currentSearchAttribute==null) {
-			System.out.println("Search attributes have not been set - everything will be selected");
-			
-		}
-		currentEdges = getEdgesMatching(currentSearchAttribute);
-	}
-	
-
-	void setTollerances(float angle, float maxLength) {
-		angleTollerance = angle;
-		maxLengthJoinedLines = maxLength;
-	}
-	
-	NEdge findStartEdge() {
+	void setMode(int m) {
 		
-		for (int n = 0; n < currentEdges.size(); n++) {
-			NEdge e = currentEdges.get(n);
-			if(isMatchingSearchAttribute(e) && !hasBeenProcessed(e)) return e;
-		}
-		return null;
+	 mode = m;
 	}
-	
-	
-	NEdge findConnectingEdge(NEdge thisEdge) {
-		// this finds a connecting edge, that can be merged, at either end of the candidate edge
-		NEdge otherEdge = findConnectedEdge( thisEdge, 0);
-		
-		if(otherEdge == null)  otherEdge = findConnectedEdge( thisEdge, 1);
-		return otherEdge;
-	}
-	
-	NEdge findConnectedEdge(NEdge thisEdge, int end) {
-		// this finds a connecting edge, that can be merged, at one end of the candidate edge
-		//System.out.println("findConnecting edge " + end);
-		NPoint np = thisEdge.getEndNPoint(end);
-		ArrayList<NEdge> connectedEdges = np.getEdgeReferences();
-		
-		for(NEdge otherEdge: connectedEdges) {
-			//System.out.println("here 1");
-			if(thisEdge == otherEdge) continue;
-			//System.out.println("here 2");
-			if(isMatchingSearchAttribute(otherEdge) == false) continue;
-			//System.out.println("here 3");
-			if(hasBeenProcessed(otherEdge)) continue;
-			//System.out.println("here 4");
-			if(isLinedUp(thisEdge, otherEdge, angleTollerance) == false) continue;
-			//System.out.println("here 5");
-			if(isMergedTooLong(thisEdge, otherEdge,  maxLengthJoinedLines)) {
+
+	Line2 updateCrawl() {
+		if(currentVertices==null) {
+			boolean result = nextEdgeRun();
+			if(result == false) {
+				System.out.println("updateCrawl: cannot get an initial edge run with current vertices");
 				return null;
-			} else {
-				//System.out.println("here 6");
-				return otherEdge;
 			}
 		}
-		//System.out.println("here 7");
-		return null;
+		Line2 line = getNextCrawlLine();
+		if(line == null) {
+			// System.out.println("updateCrawl: finished previous crawl, getting new edge run");
+			boolean result = nextEdgeRun();
+			
+			if(result == false) {
+				// System.out.println("updateCrawl: no more edge runs");
+				return null;
+			}
+			
+			
+			line = getNextCrawlLine();
+			if(line == null) {
+				// probably should not happen but ....
+				// System.out.println("updateCrawl: cannot get a line from new edge run");
+				return null;
+			}
+		}
+		
+		return line;
+		
 	}
 	
 	
 	
+	boolean nextEdgeRun() {
+		if(mode == MODE_EXTRACTED) return nextEdgeRun_Extracted() ;
+		if(mode == MODE_REGIONS) return getNextEdgeRun_NextRegion() ;
+		return false;
+	}
 	
-	NEdge connectEdges(NEdge e1, NEdge e2){
-		// should have already been tested that these two edges do indeed connect
-		// but just to be safe we check the results of the unconnectedEnds
-		// so these two edges can be connected
-		// returns the edge just in case you need it
+	
+	boolean nextEdgeRun_Extracted() {
+		ArrayList<NEdge> thisRun = extractEdgeRun_RandomStart();
+		if(thisRun == null) return false;
+		ArrayList<PVector> verts = getVertices(thisRun);
+		currentVertices = new Vertices2(verts);
 		
-		if(e1.isUsingIdenticalPoints(e2)) {
-			//theNetwork.deleteEdge(e2);	
+		float totalLen = currentVertices.getTotalLength();
+		float numSteps = (int)(totalLen/crawlStepDistance);
+		if(numSteps == 0) numSteps = 1;
+		crawlStepParametric = 1/numSteps;
+		currentVerticesProgressParametric = 0;
+		return true;
+	}
+	
+	
+	boolean getNextEdgeRun_NextRegion() {
+		NRegion nextRegion = regionIterator.getNextRegion();
+		if(nextRegion == null) return false;
+		
+		ArrayList<PVector> v = nextRegion.getVertices();
+		currentVertices = new Vertices2(v);
+		currentVertices.close();
+		
+		float totalLen = currentVertices.getTotalLength();
+		float numSteps = (int)(totalLen/crawlStepDistance);
+		if(numSteps == 0) numSteps = 1;
+		crawlStepParametric = 1/numSteps;
+		currentVerticesProgressParametric = 0;
+		return true;
+		
+	}
+	
+	
+	NRegion getCurrentRegion() {
+		return regionIterator.getCurrentRegion();
+	}
+	
+	
+	void setCrawlStep(float s) {
+		crawlStepDistance = s;
+	}
+	
+	Line2 getNextCrawlLine() {
+		// the crawl line lies between currentVerticesProgressParametric and currentVerticesProgressParametric+crawlStepParametric
+		// it will return a consistent line length, but the final one will probably be curtailed.
+		if(currentVerticesProgressParametric >= 1) {
+			//System.out.println("getNextCrawlLine: vertices have been fully traversed");
 			return null;
 		}
+
+
+		PVector lineStart = currentVertices.lerp(currentVerticesProgressParametric);
+		
+		currentVerticesProgressParametric += crawlStepParametric;
+		currentVerticesProgressParametric = MOMaths.constrain(currentVerticesProgressParametric, 0, 1);
+		PVector lineEnd = currentVertices.lerp(currentVerticesProgressParametric);
 		
 		
-		NPoint[] endPts = getUnconnectedEnds(e1, e2);
-		if(endPts[0] == null || endPts[1] == null)	 return null;
-		if(endPts[0] == endPts[1]) return null;
 		
 		
+		//System.out.println("getNextCrawlLine: progress " + currentVerticesProgressParametric + " lineStart " + lineStart.toStr() + " line end " + lineEnd.toStr());
 		
-		KeyValuePairList attr1 = e1.getAttributes().copy();
-		deleteEdge(e1);
-		deleteEdge(e2);		
-		
-		NEdge newEdge =  addEdge(endPts[0], endPts[1]);
-		//setCurrentEdges();
-		if(newEdge == null) return  null;
-		newEdge.setAttributes(attr1);
-		//setAsJoined(newEdge);
-		return newEdge;
-	}
-	
-	NEdge addEdge(NPoint np1, NPoint np2) {
-		NEdge newEdge =   theNetwork.addEdge(np1,np2);
-		currentEdges.add(newEdge);
-		return newEdge;
-	}
-	
-	void deleteEdge(NEdge e) {
-		currentEdges.remove(e);
-		theNetwork.deleteEdge(e);
-	}
-	
-	
-	
-	
-	NPoint[] getUnconnectedEnds(NEdge e1, NEdge e2) {
-		if(e1 == e2) System.out.println("getUnconnectedEnds: identical edges error");
-		NPoint[] ends = new NPoint[2];
+		Line2 line = new Line2(lineStart, lineEnd);
 		
 		
-		NPoint joinPt = getEdgeJoinPoint(e1,e2);
-		ends[0] = getOtherEdgeEnd(e1,joinPt);
-		ends[1] = getOtherEdgeEnd(e2,joinPt);
-		
-		if(ends[0] == ends[1]) {
-			System.out.println("getUnconnectedEnds: returning identical points error" + e1.getID() + " " + e2.getID());
-		}
-		
-		return ends;
-	}
-	
-	NPoint getOtherEdgeEnd(NEdge e, NPoint oneEnd) {
-		if(e.p1 == oneEnd) return e.p2;
-		if(e.p2 == oneEnd) return e.p1;
-		return null;
-	}
-	
-	NPoint getEdgeJoinPoint(NEdge e1, NEdge e2) {
-		if(e1.p1 == e2.p1) {
-			return e1.p1;
-		}
-		if(e1.p2 == e2.p2) {
-			return e1.p2;
-		}
-		if(e1.p1 == e2.p2) {
-			return e1.p1;
-		}
-		if(e1.p2 == e2.p1) {
-			return e1.p2;
-		}
-		return null;
+		return line;
 	}
 	
 	
@@ -682,48 +655,8 @@ class NNetworkEdgeJoiner extends NNetworkProcessor{
 	
 	
 	
-	float angleBetweenEdges(NEdge e1, NEdge e2) {
-		Line2 l1 = e1.line2;
-		Line2 l2 = e2.line2;
-		return l1.getAngleBetween(l2);
-	}
 	
 	
-	boolean isLinedUp(NEdge e1, NEdge e2, float angleTol) {
-		//if(edgesConnect( e1, e2)== false) return false;
-		float radiansBetween = angleBetweenEdges( e1,  e2);
-		float degreesBetween = radiansBetween*57.2958f;
-				
-		if( ( MOMaths.isClose(degreesBetween, 0, angleTol) || MOMaths.isClose(degreesBetween, 180, angleTol) ) )  return true;
-		return false;
-	}
-	
-	boolean isMergedTooLong(NEdge e1, NEdge e2, float cumulativeLengthMax) {
-		
-		float len1 = e1.getLength();
-		float len2 = e2.getLength();
-		
-		if( (len1 + len2) > cumulativeLengthMax) return true;
-		
-		return false;
-	}
-	
-	
-	Color getEdgeColor(NEdge ne){
-	    
-		if( hasBeenProcessed(ne) ) {
-			int r = random.randRangeInt(0, 255);
-			int g = random.randRangeInt(0, 255);
-			int b = random.randRangeInt(0, 255);
-			return  new Color(r,g,b);
-		}
-		
-		
-	    if(isMatchingSearchAttribute(ne)){
-	      return new Color(255,100,100);
-	    }
-		
-		return new Color(240,240,240);
-	    //return super.getEdgeColor(ne);
-	}
 }
+
+

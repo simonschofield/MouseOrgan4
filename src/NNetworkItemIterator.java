@@ -5,6 +5,7 @@ class NNetworkItemIterator{
 	ArrayList<NPoint> pointList;
 	ArrayList<NEdge> edgeList;
 	ArrayList<NRegion> regionList;
+	NRegion currentRegion;
 	int pointCounter = 0;
 	int edgeCounter = 0;
 	int regionCounter = 0;
@@ -61,17 +62,26 @@ class NNetworkItemIterator{
 	}
 	
 	NPoint getNextPoint(){
-		if(pointCounter >= pointList.size()-1) return null;
+		if(pointCounter >= pointList.size()) return null;
 		return pointList.get(pointCounter++);
 	}
 	
 	NEdge getNextEdge(){
-		if(edgeCounter >= edgeList.size()-1) return null;
+		if(edgeCounter >= edgeList.size()) return null;
 		return edgeList.get(edgeCounter++);
 	}
 	
 	NRegion getNextRegion(){
-		if(regionCounter >= regionList.size()-1) return null;
-		return regionList.get(regionCounter++);
+		if(regionCounter >= regionList.size()) return null;
+		
+		NRegion r = regionList.get(regionCounter);
+		regionCounter+=1;
+		currentRegion = r;
+		return r;
 	}
+	
+	NRegion getCurrentRegion() {
+		return currentRegion;
+	}
+	
 }

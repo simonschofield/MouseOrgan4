@@ -86,10 +86,20 @@ public class RandomStream{
 	
 	PVector brownianWalk(PVector currentPt, float maxDist){
 		// same as, but better than, jiggle point
-		PVector rp = this.randomPoint2();
-		rp.normalize();
-		rp.mult(maxDist);
-		return PVector.add(currentPt, rp);
+		float direction = this.randRangeF(0, 6.283185f);
+		PVector directionVector = PVector.fromAngle(direction);
+		directionVector.normalize();
+		float thisDist = this.randRangeF(maxDist/4, maxDist);
+		directionVector.mult(thisDist);
+		//PVector rdirection = Pvector.
+		
+		
+		
+		//PVector rp = this.randomPoint2();
+		//rp.sub(-0.5f, -0.5f);
+		//rp.normalize();
+		//rp.mult(maxDist);
+		return PVector.add(currentPt, directionVector);
 	}
 	
 	

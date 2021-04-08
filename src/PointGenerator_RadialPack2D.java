@@ -336,7 +336,7 @@ class PointGenerator_Volume3D extends CollectionIterator {
 	
 	
 	void drawPoints(Color c) {
-		GlobalObjects.theDocument.drawPoints(points2d, c);
+		GlobalObjects.theDocument.drawPoints(points2d, c, 3);
 	}
 	
 	void drawPoints(Color nearCol, Color farCol) {

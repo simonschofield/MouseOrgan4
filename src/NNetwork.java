@@ -455,6 +455,9 @@ class NRegion  extends NAttributes {
   }
   
   
+  
+  
+  
   void splitEdge(NEdge oldEdge, NEdge newEdge1, NEdge newEdge2){
     if( containsEdge(oldEdge) == false) return;
     ArrayList<NEdge> newEdges = (ArrayList)edgeReferences.clone();
@@ -522,6 +525,13 @@ class NRegion  extends NAttributes {
       if ( connectedToCurrent.connectsWith(startEdge)  && currentEdge != startEdge) break;
       currentEdge = connectedToCurrent;
     }
+    
+    if( edgesIn.size() != loopedEdges.size() ){
+    	// this is to stop a fatal bug TBD
+        System.out.println("Network findLoop problem - edges in " + edgesIn.size() + " edges out " + loopedEdges.size() + " strating edge = " + startingEdgeNum);
+        return false;
+      }
+    
     return true;
   }
 

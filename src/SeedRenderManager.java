@@ -238,7 +238,7 @@ public class SeedRenderManager{
 			Color c = palette[colnum];
 			
 			ArrayList<PVector> points = layers.get(n).getPoints();
-			theSurface.theDocument.drawPoints(points, c);
+			theSurface.theDocument.drawPoints(points, c, 3);
 		}
 		
 	}

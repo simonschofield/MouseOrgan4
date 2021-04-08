@@ -165,8 +165,9 @@ class Line2 {
 
 /////////////////////////////////////////////////////////////
 // Vertices2
-// is initialised with an unclosed set of points
-// so this algorithm closes the fist and last point
+// is initialised with collection of points.
+// There is no checking done to see if the points are closed or not
+// 
 class Vertices2 {
 
   ArrayList<PVector> vertices;
@@ -175,9 +176,95 @@ class Vertices2 {
     vertices = (ArrayList)verts.clone();
   }
   
+  Vertices2 copy() {
+	  return new Vertices2(this.vertices);
+  }
   
-  int getNumVertices(){
-    return vertices.size();
+  int size(){ return vertices.size();}
+  
+  void add(PVector p){ vertices.add(p.copy());}
+  
+  void addAt(int i, PVector p){ vertices.add(i, p.copy());}
+  
+  void add(Vertices2 vin){
+	  Vertices2 v = vin.copy();
+    // adds a new set of vertices on to the end. If it finds that the end point of the existing verts
+    // and the start point of the added verts are the same, then it ignores the duplicated point
+    if(  v.getStartPoint().equals( this.getEndPoint() )  )  {
+      v.remove(0);
+    }
+    
+    this.vertices.addAll(  v.vertices );
+  }
+  
+  void addAt(int i, Vertices2 vin){
+    Vertices2 v = vin.copy();
+    // adds a new set of vertices on to the end. If it finds that the end point of the existing verts
+    // and the start point of the added verts are the same, then it ignores the duplicated point
+    if(  v.getStartPoint().equals( this.get(i) )  )  {
+      v.remove(0);
+    }
+    
+    this.vertices.addAll( i, v.vertices );
+  }
+  
+  PVector get(int n){ return vertices.get(n);}
+  
+  void set(int n, PVector p){ vertices.set(n,p.copy()); }
+  
+  void clear(){ vertices.clear(); }
+  
+  void set(ArrayList<PVector> points){ 
+    for(PVector p:points){
+      this.add(p);
+     }
+  }
+  
+  void remove(int i){
+	  vertices.remove(i);
+  }
+  
+  void reverse(){
+    Collections.reverse(vertices);
+  }
+  
+  
+  void open() {
+	  if(isClosed()==false) return;
+	  int lastElement = vertices.size()-1;
+	  vertices.remove( lastElement );
+  }
+  
+  void close() {
+	  if(isClosed()) return;
+	  PVector startP = getStartPoint();
+	  vertices.add(startP);
+  }
+  
+  boolean isClosed() {
+	  PVector startP = getStartPoint();
+	  PVector endP = getEndPoint();
+	  
+	  if(startP.equals(endP)) return true;
+	  return false;
+  }
+  
+  
+  
+  
+  PVector getStartPoint(){
+    return vertices.get(0);
+  }
+  
+  PVector getEndPoint(){
+    if( vertices.size() == 0) return null;
+    return vertices.get( vertices.size()-1 );
+  }
+  
+  PVector popStartPoint(){
+    PVector p = vertices.get(0);
+    vertices.remove(0);
+    return p;
   }
 
   boolean isPointInside(PVector p) {
@@ -229,4 +316,53 @@ class Vertices2 {
     PVector maxExtents = new PVector(maxx, maxy);
     return new Rect(minExtents, maxExtents);
   }
+  
+  int getNumLines() {
+	  return this.size()-1;
+  }
+  
+  Line2 getLine(int n) {
+	  // there are NumVertices - 1 lines.
+	  PVector p1 = vertices.get(n);
+	  PVector p2 = vertices.get(n+1);
+	  return new Line2(p1,p2);
+  }
+  
+  
+  
+  PVector lerp(float param) {
+	 // traverses the vertices, where 0 returns the first point
+	 // 1 returns the last point
+	 float totalLength =  getTotalLength();
+	 float targetLength = totalLength*param;
+	 
+	 float traversedLength = 0;
+	  for(int n = 0; n < getNumLines(); n++) {
+		  Line2 thisLine = getLine(n);
+		  traversedLength += thisLine.getLength();
+		  if(traversedLength > targetLength) {
+			  // then the targetlength lies within this line. So...
+			  // get the length as it was before this line...
+			  float traversedLengthAtStartOfThisLine = traversedLength- thisLine.getLength();
+			  // get the length along this line to get to targetlength
+			  float targetLengthAlongThisLine = targetLength - traversedLengthAtStartOfThisLine;
+			  // nromalize this 0..1
+			  float thisLineParam = targetLengthAlongThisLine/thisLine.getLength();
+			  return thisLine.interpolate(thisLineParam);
+		  }
+	  }
+	  return getEndPoint();
+  }
+  
+  
+  
+  float getTotalLength() {
+	  float totalLength = 0;
+	  for(int n = 0; n < getNumLines(); n++) {
+		  Line2 thisLine = getLine(n);
+		  totalLength += thisLine.getLength();
+	  }
+	  return totalLength;
+  }
+  
 }

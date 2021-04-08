@@ -57,7 +57,7 @@ class SeedBatchManager  extends CollectionIterator{
 		if (batch == null)
 			return;
 		ArrayList<PVector> points = batch.getPoints();
-		GlobalObjects.theDocument.drawPoints(points, c);
+		GlobalObjects.theDocument.drawPoints(points, c, 3);
 	}
 
 	void collateSeedBatches() {
