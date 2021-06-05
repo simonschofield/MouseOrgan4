@@ -40,7 +40,7 @@ abstract class CollectionIterator {
 	}
 
 	Object getNextItem() {
-		if (itemIteratorCounter > getNumItems()) {
+		if (itemIteratorCounter >= getNumItems()) {
 			isFinishedFlag = true;
 			return null;
 		}

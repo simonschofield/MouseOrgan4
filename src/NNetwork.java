@@ -488,7 +488,7 @@ class NRegion  extends NAttributes {
     edgeReferences = loopedEdges;
 
     if (result) {
-      System.out.println("loop found - region is OK ");
+      //System.out.println("loop found - region is OK ");
       vertices = new Vertices2(getVertices());
       extents = vertices.getExtents();
       //printEdges(edgeReferences);

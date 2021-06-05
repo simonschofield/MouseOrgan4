@@ -1,4 +1,6 @@
 import java.util.Collections;
+import java.awt.Shape;
+import java.awt.geom.Path2D;
 import java.util.ArrayList;
 
 
@@ -145,9 +147,14 @@ class Line2 {
   }
   
   float getRotation() {
+	  // returns the rotation in degrees clockwise, 0 being straight up.(-y)
+	  // a line (north) straight up, from p1(0,0) to p2(0,-1)
+	  // a line east (right) from p1(0,0) to p2(1,0)
+	  // A line north has a rotation of 0
+	  // A line east has a rotation of 90
 	  PVector v =  getAsPVector();
-	  float rads = v.heading();
-	  return rads*57.296f + 90; 
+	  float degrees = (float) (Math.atan2(v.y,v.x)*180/Math.PI) + 90;
+	  return degrees;
   }
   
   float getAngleBetween(Line2 otherLine) {
@@ -166,19 +173,68 @@ class Line2 {
 /////////////////////////////////////////////////////////////
 // Vertices2
 // is initialised with collection of points.
-// There is no checking done to see if the points are closed or not
-// 
+// You can close the lines, which inserts an end point the same as the start point.
+// Once closed you can re-open it.
+// Needs to be closed to use the isPointInside() method
 class Vertices2 {
 
   ArrayList<PVector> vertices;
 
+  Vertices2(){
+	  vertices = new ArrayList<PVector>();
+  }
+  
   Vertices2( ArrayList<PVector> verts) {
     vertices = (ArrayList)verts.clone();
   }
   
+  
+  
   Vertices2 copy() {
 	  return new Vertices2(this.vertices);
   }
+  
+  
+  
+  boolean setWithLine2List(ArrayList<Line2> lines) {
+	  // assumes lines are connected
+	  vertices = new ArrayList<PVector>();
+	  PVector lastLineEndPoint = lines.get(0).p1;
+	  for(int n = 0; n < lines.size(); n++) {
+		  Line2 line = lines.get(n);
+		  if(n > 0) {
+			 if( lastLineEndPoint.equals(line.p1) ==  false) {
+				 System.out.println(" Vertices2: setWithLine2List -  line " + (n-1) + " and " + n + " are not contiguous");
+				 return false;
+			 }
+			  
+		  }
+		  vertices.add(line.p1);
+		  
+		  if(n == lines.size()-1) {
+			  vertices.add(line.p2); 
+		  }
+		  
+		  lastLineEndPoint = line.p2;
+		  
+	  }
+	  return true;
+  }
+  
+
+  ArrayList<Line2> getAsLine2List(){
+	  ArrayList<Line2> linesOut = new ArrayList<Line2>();
+	  int numLines = getNumLines();
+	  for(int n = 0; n < numLines; n++) {
+		  
+		  linesOut.add( getLine(n) );
+	  }
+	 return  linesOut;
+  }
+  
+  
+  
+  
   
   int size(){ return vertices.size();}
   
@@ -269,6 +325,10 @@ class Vertices2 {
 
   boolean isPointInside(PVector p) {
     //using the winding method
+	if(isClosed()==false) {
+		System.out.println("Vertices2: isPointInside shape is not closed");
+		return false;
+	}
     float a = 0;
     int numPoints = vertices.size();
     for (int i =0; i< numPoints-1; ++i) {
@@ -328,7 +388,26 @@ class Vertices2 {
 	  return new Line2(p1,p2);
   }
   
+  void translate(float dx, float dy) {
+	  for(PVector p: vertices) {
+		  p.x += dx;
+		  p.y += dy;
+	  }
+  }
   
+  void scale(float sx, float sy) {
+	  for(PVector p: vertices) {
+		  p.x *= sx;
+		  p.y *= sy;
+	  }
+	  
+  }
+  
+  void scaleAbout(float origX, float origY, float scaleX, float scaleY) {
+	  translate(-origX, -origY );
+	  scale(scaleX,scaleY);
+	  translate(origX, origY );
+  }
   
   PVector lerp(float param) {
 	 // traverses the vertices, where 0 returns the first point
@@ -364,5 +443,63 @@ class Vertices2 {
 	  }
 	  return totalLength;
   }
+  
+  
+  
+  
+  Vertices2 getInBufferSpace(boolean shiftToTopLeft) {
+	  Vertices2 bufferSpaceVerts = new Vertices2();
+	    int numPoints = this.size();
+	    
+	    PVector topleft = getExtents().getTopLeft();
+	    
+	    
+	    
+	    PVector p = vertices.get(0).copy();
+
+	    for (int i = 0; i < numPoints; i++) {
+	      p = vertices.get(i).copy();
+	      
+	      if(shiftToTopLeft) {
+	    	  p = p.sub(topleft);
+	      }
+
+	      p = GlobalObjects.theDocument.docSpaceToBufferSpace(p);
+	      bufferSpaceVerts.add(p);
+	    }
+	    
+	    return bufferSpaceVerts;
+	  
+  }
+  
+  Path2D getAsPath2D(boolean convertToBufferSpace, boolean shiftToTopLeft) {
+	  Path2D path = new Path2D.Float();
+	    int numPoints = this.size();
+	    
+	    PVector topleft = getExtents().getTopLeft();
+	    
+	    
+	    
+	    PVector p = vertices.get(0).copy();
+	    path.moveTo(p.x, p.y);
+	    for (int i = 1; i < numPoints; i++) {
+	      p = vertices.get(i).copy();
+	      
+	      if(shiftToTopLeft) {
+	    	  p = p.sub(topleft);
+	      }
+	      
+	      
+	      if(convertToBufferSpace) {
+	    	  p = GlobalObjects.theDocument.docSpaceToBufferSpace(p);
+	      }
+
+	      path.lineTo(p.x, p.y);
+	    }
+	    if(isClosed()) path.closePath();
+	    return path;
+	  
+  }
+  
   
 }

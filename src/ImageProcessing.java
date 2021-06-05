@@ -146,15 +146,30 @@ public class ImageProcessing {
 	
 	public static BufferedImage cropImage(BufferedImage src, Rect r) {
 		  //System.out.println("ImageProcessing:cropImage rect " + r.toStr());
-	      BufferedImage dest = src.getSubimage((int)r.left,(int)r.top, (int)r.getWidth(), (int)r.getHeight());
+		
+		  int wid = Math.min(src.getWidth(), (int)r.getWidth());
+		  int hig = Math.min(src.getHeight(), (int)r.getHeight());
+		
+		
+	      BufferedImage dest = src.getSubimage((int)r.left,(int)r.top, wid, hig);
 	      return dest; 
 	   }
 	
-	public static BufferedImage cropImageWithParametricRect(BufferedImage src, Rect r) {
+	public static BufferedImage cropImageWithNormalisedRect(BufferedImage src, Rect r) {
 		int w = src.getWidth();
 		int h = src.getHeight();
 		Rect pixelCropRect = new Rect(r.left*w, r.top*h, r.right*w, r.bottom*h);
 		return cropImage(src, pixelCropRect);
+	}
+	
+
+	public static BufferedImage addBoarder(BufferedImage img, int left, int top, int right, int bottom) {
+		// adds a transparent boarder around an image. Units are in pixels.
+		int newWidth = left + img.getWidth() + right;
+		int newHeight = top + img.getHeight() + bottom;
+		BufferedImage imgOut = new BufferedImage(newWidth, newHeight, img.getType());
+		compositeImage_ChangeTarget(img, imgOut, left, top, 1);
+		return imgOut;
 	}
 	
 	
@@ -175,8 +190,8 @@ public class ImageProcessing {
 
 	
 	///////////////////////////////////////////////////////////////////////////////////////
-	// compositing operations
-	//
+	// compositing operations using SRC_OVER (the classic paste), preserves alpha of source
+	// and contributes with grater alpha
 	public static void compositeImage_ChangeTarget(BufferedImage source, BufferedImage target, int x, int y, float alpha) {
 		compositeImage_ChangeTarget( source,  target,  x,  y,  alpha, AlphaComposite.SRC_OVER);
 	}
@@ -199,7 +214,6 @@ public class ImageProcessing {
 		compositeImage_ChangeTarget( source,  target_copy,  x,  y,  alpha, mode);
 		return target_copy;
 	}
-	
 	
 	
 	
@@ -516,7 +530,7 @@ public class ImageProcessing {
 	
 	public static BufferedImage colorTransform(BufferedImage img, int function, float p1, float p2, float p3) {
 		
-			System.out.println("in colorAdjustAll . Function = " + function);
+			//System.out.println("in colorAdjustAll . Function = " + function);
 			
 			switch (function) {
 			case COLORTRANSFORM_HSV: {
@@ -688,15 +702,15 @@ public class ImageProcessing {
 			return adjustLevels( image,  shadowVal,  midtoneVal,  highlightVal, 0,  255);
 		}
 	
-	static float ajustLevels_applyInputLevels(float valIn, float shadowVal,  float highlightVal){
+	private static float ajustLevels_applyInputLevels(float valIn, float shadowVal,  float highlightVal){
 		  return 255 * (( valIn - shadowVal) / (highlightVal - shadowVal));
 		}
 
-	static float ajustLevels_applyMidTones(float valIn, float gamma){
+	private static float ajustLevels_applyMidTones(float valIn, float gamma){
 		  return (float) (255 * (Math.pow( (valIn/255), gamma)));
 		}
 
-	static float ajustLevels_applyOutputLevels(float valIn, float outShadowVal,  float outHighlightVal){
+	private static float ajustLevels_applyOutputLevels(float valIn, float outShadowVal,  float outHighlightVal){
 		  return (valIn/255.0f) * ( outHighlightVal - outShadowVal) + outShadowVal;
 		}
 	

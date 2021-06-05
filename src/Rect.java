@@ -145,7 +145,21 @@ class Rect{
 	}
   
   float aspect(){
+	// returns the simple single number aspect width/height
     return getWidth()/getHeight();
+  }
+  
+  
+  float xAspect() {
+	  // returns 1 if x is the longer edge, < 1 if not
+	  if(aspect()>=1) return 1;
+	  return aspect();
+  }
+  
+  float yAspect() {
+	  // returns 1 if y is the longer edge, < 1 if not
+	  if(aspect()>=1) return 1/aspect();
+	  return 1;
   }
   
   float area(){

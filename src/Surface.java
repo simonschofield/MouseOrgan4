@@ -157,13 +157,13 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		}
 		
 		if(theUserSessionState == UserSessionState.FINALISE) {
-				finishUserSession();
+				finaliseUserSession();
 				canvasUpdateFrequency = 1;
 				theUserSessionState = UserSessionState.FINISHED;
 		}
 		
 		if (theUserSessionState == UserSessionState.FINISHED) {
-			// do nothing
+			userSessionFinished();
 		}
 
 	}
@@ -184,6 +184,8 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	Rect getViewPortDocSpace() {
 		return theViewControl.getCurrentViewPortDocSpace();
 	}
+	
+	
 
 	/////////////////////////////////////////////////////////////////////
 	// UI related methods
@@ -372,7 +374,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	abstract void updateUserSession();
 	
 	// optional
-	void finishUserSession() {}
+	void finaliseUserSession() {}
 	
 	abstract void handleCanvasMouseEvent(UIEventData uied);
 
@@ -381,6 +383,12 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	/////////////////////////////////////////////////////////////////////
 	// private event methods
 	//
+	private void userSessionFinished() {
+		//
+		userSessionUpdateCount++;
+	}
+	
+	
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		// TODO Auto-generated method stub

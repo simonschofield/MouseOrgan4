@@ -145,6 +145,11 @@ class SecondsTimer{
 	  
 	  float durationEndTime = 0;
 	  
+	  // used for calculating average interval times
+	  // for calls to getElapsedTime() - generally used
+	  // in profiling
+	  int counter = 0;
+	  
 	  public SecondsTimer(){
 	    start();
 	  }
@@ -153,6 +158,7 @@ class SecondsTimer{
 	  void start(){
 	    startMillis = System.currentTimeMillis();
 	    lastNow = 0;
+	    counter = 0;
 	  }
 	  
 	  
@@ -171,8 +177,18 @@ class SecondsTimer{
 		 float now =  getTimeSinceStart();
 		 float elapsedTime = now - lastNow;
 		 lastNow = now;
+		 counter++;
 		 return elapsedTime;
 	    
+	  }
+	  
+	  // returns the average elapsed time, based on cumulative elapsed times
+	  // so, gets more accurate the longer it runs
+	  float getAverageElapsedTime() {
+		  getElapsedTime();
+		  float now =  getTimeSinceStart();
+		  return (now/counter);
+		  
 	  }
 	  
 	  float getTimeSinceStart(){

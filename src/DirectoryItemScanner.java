@@ -57,7 +57,6 @@ class DirectoryItemScanner {
 	
 	
 	
-	
 
 	// returns the filename only, without extension
 	ArrayList<String> getShortFileNamesInDirectory(String dir, String fileStrEndsWith,  String fileStrContains) {
@@ -163,7 +162,7 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 			
 			if(cropRect.equals(new Rect())==false) {
 				// crop rect is in parametric form, need to turn this into actual pixel values for this image
-				img = ImageProcessing.cropImageWithParametricRect(img,cropRect);
+				img = ImageProcessing.cropImageWithNormalisedRect(img,cropRect);
 			}	
 			
 			if(preScale < 1) {

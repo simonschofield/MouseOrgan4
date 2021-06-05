@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 
 
 
@@ -107,8 +108,13 @@ class NNetworkProcessor{
 	
 	
 	float angleBetweenEdges(NEdge e1, NEdge e2) {
-		Line2 l1 = e1.line2;
-		Line2 l2 = e2.line2;
+		
+		NPoint connectingPoint = e1.getConnectingPoint(e2);
+		
+		NPoint otherPointE1 = e1.getOtherPoint(connectingPoint);
+		NPoint otherPointE2 = e2.getOtherPoint(connectingPoint);
+		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
+		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
 		return l1.getAngleBetween(l2);
 	}
 	
@@ -296,6 +302,7 @@ class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	RandomStream randomStream = new RandomStream(1);
 	
 	
+	
 	NNetworkEdgeRunExtractor(NNetwork ntwk){
 		super(ntwk);
 		
@@ -339,6 +346,7 @@ class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 			// there are no more edges to be processed
 			return null;
 		}
+		
 		return extractEdgeRun(runStartEdge);
 
 	}
@@ -366,7 +374,7 @@ class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 		
 		
 		boolean result = checkEdgesAreOrdered(currentEdgeRunList);
-
+	
 		return currentEdgeRunList;
 	}
 	
@@ -377,6 +385,8 @@ class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	void setRandomSeed(int s) {
 		randomStream = new RandomStream(s);
 	}
+	
+	
 	
 	
 	void testRun() {
@@ -519,8 +529,15 @@ class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	static final int MODE_EXTRACTED = 0;
 	static final int MODE_REGIONS = 1;
+	static final int MODE_PRE_EXTRACTED = 2;
 	int mode = MODE_EXTRACTED;
+	
+	// the most recently extracted edge run
 	Vertices2 currentVertices;
+	
+	// to store pre-extracted edge runs, so you can sort them
+	ArrayList<Vertices2> preExtractedEdgeRuns = new ArrayList<Vertices2>();
+	
 	
 	// this is the user-set size of the crawl step in document space
 	float crawlStepDistance = 0.01f;
@@ -530,6 +547,9 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	float currentVerticesProgressParametric = 0;
 	
 	NNetworkItemIterator regionIterator;
+	
+	int runCounter = 0;
+	int lineInRunCounter = 0;
 	
 	NNetworkEdgeRunCrawler(NNetwork ntwk){
 		super(ntwk);
@@ -542,7 +562,12 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	 mode = m;
 	}
 
+	//////////////////////////////////////////////////////////////////////////////
+	// repeatedly calling updateCrawl will eventually traverse the entire extracted set of edges
+	//
+	//
 	Line2 updateCrawl() {
+		//System.out.println("updateCrawl: run count = " + getRunCount());
 		if(currentVertices==null) {
 			boolean result = nextEdgeRun();
 			if(result == false) {
@@ -568,18 +593,49 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 				return null;
 			}
 		}
-		
+		lineInRunCounter++;
 		return line;
 		
 	}
 	
+	int getRunCount() {
+		// this can be used to identify which run a line belongs to
+		return runCounter;
+	}
 	
+	
+	int getLineInRunCount() {
+		return lineInRunCounter;
+		
+	}
+	
+	//////////////////////////////////////////////////////////////////////////////
+	// to extract a particular edge into currentVertices, call nextEdgeRun.
+	// This returns true if there is another edge run found.
+	// Then, you can inspect the edge run vertices, and interpolate over them by getting
+	// getCurrentVertices()
 	
 	boolean nextEdgeRun() {
-		if(mode == MODE_EXTRACTED) return nextEdgeRun_Extracted() ;
-		if(mode == MODE_REGIONS) return getNextEdgeRun_NextRegion() ;
-		return false;
+		boolean result = false;
+		if(mode == MODE_EXTRACTED) result =  nextEdgeRun_Extracted() ;
+		if(mode == MODE_REGIONS) result =  getNextEdgeRun_NextRegion() ;
+		if(mode == MODE_PRE_EXTRACTED) result = getNextEdgeRun_PreExtracted() ;
+		if(result==false) return false; // no more runs to be found
+		
+		float totalLen = currentVertices.getTotalLength();
+		//System.out.println("new edge run : total length = " + totalLen);
+		float numSteps = (int)(totalLen/crawlStepDistance);
+		if(numSteps == 0) numSteps = 1;
+		crawlStepParametric = 1/numSteps;
+		currentVerticesProgressParametric = 0;
+		
+		lineInRunCounter=0;
+		runCounter++;
+		return true;
 	}
+	
+	
+	
 	
 	
 	boolean nextEdgeRun_Extracted() {
@@ -587,33 +643,71 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 		if(thisRun == null) return false;
 		ArrayList<PVector> verts = getVertices(thisRun);
 		currentVertices = new Vertices2(verts);
-		
-		float totalLen = currentVertices.getTotalLength();
-		float numSteps = (int)(totalLen/crawlStepDistance);
-		if(numSteps == 0) numSteps = 1;
-		crawlStepParametric = 1/numSteps;
-		currentVerticesProgressParametric = 0;
 		return true;
 	}
+	
 	
 	
 	boolean getNextEdgeRun_NextRegion() {
 		NRegion nextRegion = regionIterator.getNextRegion();
 		if(nextRegion == null) return false;
-		
 		ArrayList<PVector> v = nextRegion.getVertices();
 		currentVertices = new Vertices2(v);
 		currentVertices.close();
-		
-		float totalLen = currentVertices.getTotalLength();
-		float numSteps = (int)(totalLen/crawlStepDistance);
-		if(numSteps == 0) numSteps = 1;
-		crawlStepParametric = 1/numSteps;
-		currentVerticesProgressParametric = 0;
 		return true;
+	}
+	
+	boolean getNextEdgeRun_PreExtracted() {
+		if(runCounter >= preExtractedEdgeRuns.size()) return false;
+		currentVertices = preExtractedEdgeRuns.get(runCounter);
+		return true;
+	}
+	
+	
+	ArrayList<Vertices2> preExtractEdgeRuns(){
+		preExtractedEdgeRuns.clear();
+		while(true) {
+			boolean result = false;
+			if(mode == MODE_EXTRACTED) result =  nextEdgeRun_Extracted() ;
+			if(mode == MODE_REGIONS) result =  getNextEdgeRun_NextRegion() ;
+			if(result==false) break;
+			preExtractedEdgeRuns.add(currentVertices);
+			
+		}
+		System.out.println("preExtractEdgeRuns: found " + preExtractedEdgeRuns.size() + " runs");
+		runCounter = 0;
+		return preExtractedEdgeRuns;
+	}
+	
+	void sortPreExtractedEdgeRuns(boolean shortestFirst) {
+		if(preExtractedEdgeRuns==null) return;
+		
+		
+		if(shortestFirst) {
+			preExtractedEdgeRuns.sort(Comparator.comparing(Vertices2::size));
+		} else {
+			preExtractedEdgeRuns.sort(Comparator.comparing(Vertices2::size).reversed());
+		}
+
 		
 	}
 	
+	
+	Vertices2 getCurrentVertices() {
+		return currentVertices;
+	}
+	
+	float getCurrentVerticesInterpolationControlValue() {
+		return currentVerticesProgressParametric;
+	}
+	
+	void setCurrentVerticesInterpolationControlValue(float v) {
+		currentVerticesProgressParametric = v;
+	}
+	
+	void advanceCurrentVerticesInterpolationControlValue(float v) {
+		currentVerticesProgressParametric += v;
+	}
 	
 	NRegion getCurrentRegion() {
 		return regionIterator.getCurrentRegion();
@@ -626,7 +720,7 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	
 	Line2 getNextCrawlLine() {
 		// the crawl line lies between currentVerticesProgressParametric and currentVerticesProgressParametric+crawlStepParametric
-		// it will return a consistent line length, but the final one will probably be curtailed.
+		// it will return a consistent line length, as the division of total steps in th eline is pre-calculated as an integer
 		if(currentVerticesProgressParametric >= 1) {
 			//System.out.println("getNextCrawlLine: vertices have been fully traversed");
 			return null;

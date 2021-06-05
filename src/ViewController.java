@@ -83,6 +83,8 @@ public class ViewController {
 			return;
 		}
 		backgroundImage = ImageProcessing.resizeTo(bi, theDocumentWidth, theDocumentHeight);
+		System.out.println(
+				"background image set to width " + theDocumentWidth + "  height " + theDocumentHeight);
 	}
 
 	Rect getCurrentViewCropRect() {
@@ -222,12 +224,19 @@ public class ViewController {
 		
 
 		if(backgroundImage != null) {
-			g2d.drawImage(ImageProcessing.cropImage(backgroundImage, currentViewCropRect), (int) imageDisplayRegion.left,
+			// draw the background image first, then the render on top
+			//System.out.println("ViewControl: drawView currentViewCropRect " + currentViewCropRect.toStr());
+			
+			BufferedImage croppedToCurrentViewRectImg = ImageProcessing.cropImage(backgroundImage, currentViewCropRect);
+			
+			
+			
+			g2d.drawImage(croppedToCurrentViewRectImg, (int) imageDisplayRegion.left,
 					(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
 			
 		}
 		
-		
+		// draw the render image
 		BufferedImage displayImage = GlobalObjects.theDocument.getCropBufferSpace(currentViewCropRect);
 		g2d.drawImage(displayImage, (int) imageDisplayRegion.left,
 				(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);

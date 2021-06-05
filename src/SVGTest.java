@@ -9,10 +9,6 @@ import java.util.regex.Pattern;
 import org.apache.batik.util.SVGConstants;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.apache.commons.io.FileUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.svg.SVGDocument;
 import org.w3c.dom.svg.SVGSVGElement;
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
@@ -91,6 +87,7 @@ public class SVGTest {
 		return doc;
 	}
 
+		/*
 	public  void saveSvgDocument(String pathAndName, SVGDocument document)	
 	{
 		File file = new File(pathAndName);
@@ -98,7 +95,7 @@ public class SVGTest {
 	    Writer out = null;
 		try {
 			out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-			svgGenerator.stream(document.getDocumentElement(), out);
+			svgGenerator.stream(out,false);
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -112,6 +109,7 @@ public class SVGTest {
 		}
 	    
 	}
+	*/
 
 	void setStrokeWeight(SVGDocument doc) {
 		SVGSVGElement root = doc.getRootElement();

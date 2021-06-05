@@ -129,7 +129,7 @@ public class RegularPattern {
         p = addFractionalOffset(p);
         p = addJiggle(p);
         
-        ImageSprite sprite = new ImageSprite(img, imageSampleGroup.spriteOrigin, imageSampleGroup.getSpriteSizeInScene(), 1);
+        ImageSprite sprite = new ImageSprite(img, imageSampleGroup.spriteOrigin, imageSampleGroup.getGroupSizeInScene(), 1);
         sprite.setDocPoint(p);
         advancePattern();
         

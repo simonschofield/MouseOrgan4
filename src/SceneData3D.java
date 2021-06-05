@@ -31,7 +31,7 @@ public class SceneData3D {
 	KeyImageSampler distanceBufferKeyImageSampler;
 	// document aspect is the aspect of the
 	// output compositer render, not the input roi
-	float mouseOrganDocAspect;
+	//float mouseOrganDocAspect;
 	
 	// the with and height of the renders and depth images (should all be the same)
 	int renderWidth;
@@ -62,13 +62,19 @@ public class SceneData3D {
 	FloatImage distanceImage;
 	float fov;
 	
-	public SceneData3D(float docAspect, DistanceBufferFilter dFilter) {
-		mouseOrganDocAspect = docAspect;
+	// if you want to focus in on a region of the 
+	// sceneData to be the extents of the image you
+	// are rendering then set the roiRect
+	Rect roiRect = new Rect(0,0,1,1);
+	boolean maintainRelativeScaling = true;
+	
+	public SceneData3D(DistanceBufferFilter dFilter) {
+		
 		distanceFilter = dFilter;
 	}
 	
-	public SceneData3D(float docAspect) {
-		mouseOrganDocAspect = docAspect;
+	public SceneData3D() {
+		
 		distanceFilter = new DistanceBufferFilter();
 	}
 
@@ -129,23 +135,31 @@ public class SceneData3D {
     }
     
 	
+	void setROIRect(Rect r, boolean maintainRelativeAssetScale) {
+		roiRect = r.copy();
+		maintainRelativeScaling = maintainRelativeAssetScale;
+	}
 	
+	Rect getROIRect() {
+		return roiRect.copy();
+	}
+	
+	
+	float getWholeSceneAspect() {
+		// this is the apsect of the whole scene, no roi applied
+		return renderWidth/(float)renderHeight;
+	}
     
 	/////////////////////////////////////////////////////////////////////////////////////
 	// The mask image is an image reflecting the sky/land pixels
 	// land pixels are set to white, sky to black
-	BufferedImage getSubstanceMaskImage() {
-		return geometryBuffer3d.substanceImage;
-	}
+	
 	
 	
 	ArrayList<String> getRenderImageNames(){
 		return renderImages.getShortNameList();
 	}
-	
-	
-	
-	
+
 	public BufferedImage setCurrentRenderImage(String shortName) {
 		currentRenderKeyImage = renderImages.getImage(shortName);
 		currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentRenderKeyImage);
@@ -159,17 +173,54 @@ public class SceneData3D {
 		currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentRenderKeyImage);
 	}
 
+	////////////////////////////////////////////////////////////////
+	//
+	// get images
+	//
+	BufferedImage getSubstanceMaskImage() {
+		return cropToROI(geometryBuffer3d.substanceImage);
+	}
 	
 	BufferedImage getCurrentRenderImage() {
-		return currentRenderKeyImage;
+		return cropToROI(currentRenderKeyImage);
 	}
 	
 	BufferedImage getRenderImage(String shortName) {
 		BufferedImage renderImage = renderImages.getImage(shortName);
-		return renderImage;
+		return cropToROI(renderImage);
 	}
 	
-
+	
+	////////////////////////////////////////////////////////////////
+	//
+	// when using the ROI
+	//
+		
+	BufferedImage cropToROI(BufferedImage uncropped) {
+		// returns the roi cropped image from whatever function
+		return ImageProcessing.cropImageWithNormalisedRect(uncropped,roiRect);
+	}
+	
+	
+	// used to convert the doc space of the section you are re-rendering into the correct
+	// point within the ROI
+	private PVector getROILoc(PVector docSpace) {
+		//PVector normalisedPoint = MOMaths.docSpaceToNormalisedSpace(docSpace, this.getWholeSceneAspect()); // this might be ROI aspect needed
+		PVector normalisedPoint = GlobalObjects.theDocument.docSpaceToNormalisedSpace(docSpace);
+		// scale down docspace into the roi
+		// then re-interpolate that across the roi to get back to the ROI as a sort of crop-rect within the larger image 
+		PVector roiIterpolatedPoint = roiRect.interpolate(normalisedPoint); // so this scrunches the point which is in DocSpace (0..1,0..1) down into the roiRect (l,t,r,b)
+		
+		//return MOMaths.normalisedSpaceToDocSpace(roiIterpolatedPoint, this.getWholeSceneAspect());
+		return GlobalObjects.theDocument.normalisedSpaceToDocSpace(roiIterpolatedPoint);
+		
+	}
+	
+	
+	////////////////////////////////////////////////////////////////
+	//
+	// get pixel data 
+	//
 	float getCurrentRender01Value(PVector docSpace) {
 		Color rgb = getCurrentRenderColor(docSpace);
 		int r = rgb.getRed();
@@ -178,9 +229,12 @@ public class SceneData3D {
 		return (r+g+b)/765f;
 	}
 	
+	
+	
 	Color getCurrentRenderColor(PVector docSpace) {
-		//PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
-		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
+		PVector roiSpace = getROILoc(docSpace);
+		
+		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
 		int packedCol = currentRenderKeyImage.getRGB((int)coord.x, (int)coord.y);
 		
 		return ImageProcessing.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
@@ -189,8 +243,9 @@ public class SceneData3D {
 	
 	
 	boolean isSubstance(PVector docSpace) {
-		//PVector coord = coordinateSpaceConverter.docSpaceToImageCoord(docSpace);
-		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
+		PVector roiSpace = getROILoc(docSpace);
+		
+		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
 		int packedCol = geometryBuffer3d.substanceImage.getRGB((int)coord.x, (int)coord.y);
 		Color c = ImageProcessing.packedIntToColor(packedCol, true);
 		if( c.getRed() > 0) return true;
@@ -198,33 +253,51 @@ public class SceneData3D {
 	}
 	
 	PVector get3DSurfacePoint(PVector docSpace) {
-		return geometryBuffer3d.docSpaceToWorld3D(docSpace);
+		PVector roiSpace = getROILoc(docSpace);
+		
+		return geometryBuffer3d.docSpaceToWorld3D(roiSpace);
 	}
 	
 	PVector get3DVolumePoint(PVector docSpace, float normDepth) {
+		PVector roiSpace = getROILoc(docSpace);
+		
 		// needs to take angle into consideration but OK for the moment
 		float realDistance = geometryBuffer3d.normalisedDepthToRealDepth(normDepth);
-		return geometryBuffer3d.docSpaceToWorld3D( docSpace, realDistance);
+		return geometryBuffer3d.docSpaceToWorld3D( roiSpace, realDistance);
 	}
 	
 	float get3DScale(PVector docSpace) {
-		return geometryBuffer3d.get3DScale(docSpace);
+		PVector roiSpace = getROILoc(docSpace);
+		
+		float relativeAssetScale = 1;
+		if(maintainRelativeScaling) {
+			float verticalCropProportion = roiRect.bottom-roiRect.top;
+			relativeAssetScale = 1/verticalCropProportion;
+		}
+		
+		return geometryBuffer3d.get3DScale(roiSpace) * relativeAssetScale;
 	}
 	
 	
 	float getDepth(PVector docSpace) {
-		return geometryBuffer3d.getDepth(docSpace);
+		PVector roiSpace = getROILoc(docSpace);
+		
+		return geometryBuffer3d.getDepth(roiSpace);
 	}
 	
 	
 	float getDepthNormalised(PVector docSpace) {
-		return geometryBuffer3d.getDepthNormalised(docSpace);
+		PVector roiSpace = getROILoc(docSpace);
+		
+		return geometryBuffer3d.getDepthNormalised(roiSpace);
 	}
 	
 	
 	
 	float getDistance(PVector docSpace) {
-		return geometryBuffer3d.getDistance(docSpace);
+		PVector roiSpace = getROILoc(docSpace);
+		
+		return geometryBuffer3d.getDistance(roiSpace);
 	}
 	
 	

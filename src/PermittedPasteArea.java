@@ -1,5 +1,5 @@
 class PermittedPasteArea {
-	// The rect is set using Normalized coordinates (0..1 in both x and y), but stored using docSpace coordinates
+	// The rect is SET using Normalized coordinates (0..1 in both x and y), but STORED using docSpace coordinates
 	// If the PermittedPasteArea is active
 	//	- then some cropping will occur. 
 	// 	- if sprites are completely outside they will be EXCLUDED

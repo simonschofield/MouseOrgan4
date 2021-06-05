@@ -80,7 +80,8 @@ class Seed implements Serializable {
 	PVector getDocPoint() {
 		return new PVector(docPointX, docPointY, 0);
 	}
-
+	
+	
 	void setDocPoint(PVector p) {
 		docPointX = p.x;
 		docPointY = p.y;
@@ -114,6 +115,7 @@ class Seed implements Serializable {
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.addKeyValue("BatchName", batchName);
 		kvlist.addKeyValue("ImageSampleGroup", imageSampleGroupName);
+		kvlist.addKeyValue("imageSampleGroupItemNumber", imageSampleGroupItemNumber);
 		kvlist.addKeyValue("DocPointX", np.x);
 		kvlist.addKeyValue("DocPointY", np.y);
 		kvlist.addKeyValue("Scale", scale);
@@ -137,6 +139,7 @@ class Seed implements Serializable {
 		kvlist.ingestCSVLine(csvStr);
 		batchName = kvlist.getString("BatchName");
 		imageSampleGroupName = kvlist.getString("ImageSampleGroup");
+		imageSampleGroupItemNumber = kvlist.getInt("imageSampleGroupItemNumber");
 		float npX = kvlist.getFloat("DocPointX");
 		float npY = kvlist.getFloat("DocPointY");
 

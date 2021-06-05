@@ -317,6 +317,31 @@ class RenderTarget{
 		PVector bufEnd = docSpaceToBufferSpace(end);
 		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
+	
+	
+	void drawLine(Line2 l, Color c, int w) {
+		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
+		shapeDrawer.setDrawingStyle(ca, ca, w);
+		PVector bufStart = docSpaceToBufferSpace(l.p1);
+		PVector bufEnd = docSpaceToBufferSpace(l.p2);
+		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
+	}
+	
+	
+	
+	void drawVertices(Vertices2 v, Color c, int w) {
+		int numLines = v.getNumLines();
+		for(int n = 0; n < numLines; n++) {
+			Line2 l = v.getLine(n);
+			drawLine( l,  c,  w);
+		}
+		
+	}
+	
+	void drawText(String str, PVector docSpacePoint, int size, Color c) {
+		PVector bufpt = docSpaceToBufferSpace(docSpacePoint);
+		drawText( str, (int)bufpt.x, (int)bufpt.y,  size,  c);
+	}
 
 	void drawText(String str, int bufferX, int bufferY, int size, Color c) {
 		DrawnShape textShape = new DrawnShape();

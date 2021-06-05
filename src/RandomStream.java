@@ -318,17 +318,17 @@ class QRandomStream {
 
 class SNum{
 	
-	enum SNumMethod{
-		FIXED,
-		UNIFORM_RANGE,
-		NORMALISED_RANGE,
-		SKEWED_NORMALISED_RANGE,
-		INTEGER_RANGE
-	}
+	
+	static final int	FIXED = 0;
+	static final int	UNIFORM_RANGE=1;
+	static final int	NORMALISED_RANGE=2;
+	static final int	SKEWED_NORMALISED_RANGE=3;
+	static final int	INTEGER_RANGE = 4;
+	
 	
 	private QRandomStream qRandomStream;
 	
-	SNumMethod method = SNumMethod.FIXED;
+	int method = FIXED;
 	float lowerLimit = 0;
 	float upperLimit = 1;
 	float centerOfDistribution = 0;
@@ -380,24 +380,24 @@ class SNum{
 	///////////////////////////////////////////////////////////////
 	// these methods set the method and values in this object
 	void fixed(float v) {
-		setMethod(SNumMethod.FIXED, v, Float.MAX_VALUE);
+		setMethod(FIXED, v, Float.MAX_VALUE);
 	}
 	
 
 	void uRange(float lo, float hi) {
-		setMethod(SNumMethod.UNIFORM_RANGE, lo, hi);
+		setMethod(UNIFORM_RANGE, lo, hi);
 	}
 	
 	void nRange(float lo, float hi) {
-		setMethod(SNumMethod.NORMALISED_RANGE, lo, hi);
+		setMethod(NORMALISED_RANGE, lo, hi);
 	}
 	
 	void snRange(float lo, float cen, float hi) {
-		setMethod(SNumMethod.SKEWED_NORMALISED_RANGE, lo, cen, hi);
+		setMethod(SKEWED_NORMALISED_RANGE, lo, cen, hi);
 	}
 	
 	void iRange(int lo, int hi) {
-		setMethod(SNumMethod.INTEGER_RANGE, lo, hi);
+		setMethod(INTEGER_RANGE, lo, hi);
 	}
 	
 	/*
@@ -431,14 +431,14 @@ class SNum{
 	
 	
 	
-	void setMethod(SNumMethod m, float lo, float hi) {
+	void setMethod(int m, float lo, float hi) {
 		method = m;
 		lowerLimit = lo;
 		centerOfDistribution = (hi-lo)/2;
 		upperLimit = hi;
 	}
 	
-	void setMethod(SNumMethod m, float lo, float cen, float hi) {
+	void setMethod(int m, float lo, float cen, float hi) {
 		method = m;
 		lowerLimit = lo;
 		centerOfDistribution = cen;

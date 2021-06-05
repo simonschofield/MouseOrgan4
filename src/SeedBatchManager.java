@@ -51,12 +51,20 @@ class SeedBatchManager  extends CollectionIterator{
 		System.out.println("SeedBatchManager:getSeedBatch , cannot find batch " + name);
 		return null;
 	}
+	
+	
 
 	void drawSeedBatchPoints(String name, Color c) {
 		SeedBatch batch = getSeedBatch(name);
 		if (batch == null)
 			return;
 		ArrayList<PVector> points = batch.getPoints();
+		GlobalObjects.theDocument.drawPoints(points, c, 3);
+	}
+	
+	void drawCollatedSeedPoints(Color c) {
+		
+		ArrayList<PVector> points = getPoints();
 		GlobalObjects.theDocument.drawPoints(points, c, 3);
 	}
 
@@ -98,6 +106,47 @@ class SeedBatchManager  extends CollectionIterator{
 		}
 		return points;
 	}
+	
+	
+	void applyROIToSeeds(SceneData3D sd3d) {
+		// adjusts the document point of seeds from a seed batch of a whole scene (no ROI)
+		// to a specific ROI within that scene
+		collateSeedBatches();
+		
+		ArrayList<Seed> adjustedList = new ArrayList<Seed>();
+		
+		System.out.println("applyROIToSeeds: original number of seeds " + collatedSeeds.size());
+		
+		Rect theROI = sd3d.getROIRect();
+		
+		int n = 0;
+		for(Seed s: collatedSeeds) {
+			
+			PVector newSceneDocPoint = s.getDocPoint();
+			PVector normalisedPoint = GlobalObjects.theDocument.docSpaceToNormalisedSpace(newSceneDocPoint);
+			if(theROI.isPointInside(normalisedPoint)==false) continue;
+
+			PVector newROIPoint = theROI.norm(normalisedPoint); // convert to normalised space within the roi
+			PVector newDocSpacePt = GlobalObjects.theDocument.normalisedSpaceToDocSpace(newROIPoint);
+			
+			if(n%100==0) {
+				//System.out.println("original norm seed point" + normalisedPoint.toStr() + " point within ROI " + newROIPoint.toStr());
+				//System.out.println("old Doc space in " + oldDocPoint.toStr() + " new doc space point out " + newDocSpacePt.toStr());
+				//System.out.println();
+			}
+			
+			s.setDocPoint(newDocSpacePt);
+			adjustedList.add(s);
+			n++;
+		}
+		
+		
+		collatedSeeds = adjustedList;
+		System.out.println("applyROIToSeeds: roi adjusted number of seeds " + collatedSeeds.size());
+		
+	}
+	
+	
 
 	////////////////////////////////////////////////////////////////////////////////
 	// Creating seed batches from 3D SceneData

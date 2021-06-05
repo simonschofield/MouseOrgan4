@@ -1,4 +1,5 @@
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
@@ -215,6 +216,7 @@ public class ImageSprite{
 	
 	// secondary (sometimes needed) information
 	String imageSampleGroupName = "";
+	String shortImageFileName = "";
 	String seedBatchName = "";
 	int id = 0;
 	
@@ -237,31 +239,24 @@ public class ImageSprite{
 	}
 	
 	
-	ImageSprite(BufferedImage im, PVector orig, float sizeInScn, int rseed){
+	ImageSprite(BufferedImage img, PVector orig, float sizeInScn, int id ){
+
+		setImage(img); 
 		
-		init(im,orig,sizeInScn, rseed );
-	}
-	
-	ImageSprite(BufferedImage img, PVector orig, float sizeInScn, Seed seed){
-		
-		init(img, orig, sizeInScn, seed.id);
-		setDocPoint(seed.getDocPoint());
-		
-		this.imageSampleGroupName = seed.imageSampleGroupName;
-		this.seedBatchName = seed.batchName;
-	}
-	
-	private void init(BufferedImage img, PVector origin, float sizeInScn, int id) {
-		this.image = img;
-		this.bufferWidth = image.getWidth();
-		this.bufferHeight = image.getHeight();
-		this.aspect = bufferWidth/(float)bufferHeight;
-		this.id = id;
 		this.sizeInScene = sizeInScn;
-		this.origin = origin;
-		qRandomStream = new QRandomStream(id);
+		this.origin = orig;
 	    imageQuad = new ImageQuad(this);
-	   
+	    setID_RandomSeed(id);
+	}
+	
+	void setID_RandomSeed(int rseed) {
+		// not sure sprites need a unique ID, however
+		// seeds do have one, and a sprite's random stream is set by this
+		// therefore guaranteeing reproducible effects to this sprite.
+		// When is sprite created without a seed, the sprite batch manager
+		// generates a sprite using a unique ID. 
+		this.id = rseed;
+		qRandomStream = new QRandomStream(rseed);
 	}
 	
 	String toStr() {
@@ -270,6 +265,13 @@ public class ImageSprite{
 	}
 	
 	
+	void setImage(BufferedImage img) {
+		this.image = img;
+		this.bufferWidth = image.getWidth();
+		this.bufferHeight = image.getHeight();
+		this.aspect = bufferWidth/(float)bufferHeight;
+		imageQuad = new ImageQuad(this);
+	}
 	
 	PVector getDocPoint() {
 		return docPoint.copy();
@@ -289,7 +291,29 @@ public class ImageSprite{
 		return qRandomStream.snum(seedOffset, sequencePos);
 	}
 	
+	int getImageBufferWidth() {
+		return bufferWidth;
+		
+	}
 	
+	int getImageBufferHeight() {
+		return bufferHeight;
+		
+	}
+	
+	float getAspect() {
+		this.aspect = bufferWidth/(float)bufferHeight;
+		return this.aspect;
+	}
+	
+	String getImageName() {
+		return shortImageFileName;
+	}
+	
+	
+	boolean imageNameContains(String s) {
+		return shortImageFileName.contains(s);
+	}
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -299,6 +323,7 @@ public class ImageSprite{
 		image = ImageProcessing.scaleImage(image, scaleW, scaleH);
 		bufferWidth = image.getWidth();
 		bufferHeight = image.getHeight();
+		
 		//imageQuad.theImage = image;
 		imageQuad.applyScale(scaleW, scaleH);
 	}
@@ -376,14 +401,30 @@ public class ImageSprite{
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Experimental - needs generalising in terms of what point gets mapped to where
 	// map to line
-	// The origin is mapped to p1 of the line. The sprite is scaled so that it is as high as the line
+	// The origin is set to be the bottom centre of the sprite. This gets mapped to p1.
+	// The other end gets mapped to p2. The sprite is scaled so that it is as high as the line p1->p2
 	// The sprite is rotated into the same direction as the line p1-p2
-	void mapToLine2(Line2 line) {
+	void mapToLine2(Line2 line, float overlap) {
+		origin = new PVector(0.5f, 1.0f);
 		float r = line.getRotation();
-		float len = line.getLength();
+		float len = line.getLength()*overlap;
+		//System.out.println( "BEFORE SCALE sprite width " + this.getImageBufferWidth() + " sprite height " + this.getImageBufferHeight() + " aspect = " + getAspect());
 		scaleToSizeInDocSpace(null, len);
+		//System.out.println( "AFTER SCALE sprite width " + this.getImageBufferWidth() + " sprite height " + this.getImageBufferHeight() + " aspect = " + getAspect() + "\n");
 		rotate(r);
-		setDocPoint(line.p2);
+		setDocPoint(line.p1);
+	}
+	
+	
+	void scaleToDocSpace(float docSpaceWidth, float docSpaceHeight) {
+		float widthInPixels = docSizeToRenderTargetPixels2D(docSpaceWidth);
+		float scalerX = (widthInPixels / bufferWidth);
+		
+		float heightInPixels = docSizeToRenderTargetPixels2D(docSpaceHeight);
+		float scalerY = (heightInPixels / bufferHeight);
+		
+		//System.out.println(" scaleWidthToDocSpace scaleing by " + scaler);
+		scale(scalerX,scalerY);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -434,14 +475,11 @@ public class ImageSprite{
 		//System.out.println("scaleToSizeInDocSpace  sizeXY " + sizeX + "  " + sizeY);
 		if (sizeX != null) {
 			float widthInPixels = docSizeToRenderTargetPixels2D(sizeX);
-			
-			
-			
 			scaleX = (widthInPixels / bufferWidth);
 			
-			if (scaleX > 1) {
+			if (scaleX > 2) {
 				System.out.println(
-						imageSampleGroupName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
+						imageSampleGroupName + "/" + shortImageFileName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
 								+ bufferWidth + " to be scale to " + widthInPixels + " scale " + scaleX);
 			}
 		}
@@ -449,11 +487,11 @@ public class ImageSprite{
 		if (sizeY != null) {
 			float heightInPixels = docSizeToRenderTargetPixels2D(sizeY);
 			scaleY = (heightInPixels / bufferHeight);
-			//System.out.println("heightInPixels  " + heightInPixels);
-			//System.out.println("bufferHeight  " + bufferHeight);
-			if (scaleY > 1) {
+
+
+			if (scaleY > 2) {
 				System.out.println(
-						imageSampleGroupName + " scaleToSizeInDocSpace overscaled in Y, original size in pixels "
+						imageSampleGroupName + "/" + shortImageFileName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
 								+ bufferHeight + " to be scale to " + heightInPixels + " scale " + scaleY);
 			}
 			
@@ -461,15 +499,18 @@ public class ImageSprite{
 		//System.out.println("scaleToSizeInDocSpace  scaleXY " + scaleX + "  " + scaleY);
 		
 		if(sizeX == null) {
+			//System.out.println("scaling in Y only " + scaleY);
 			scale(scaleY, scaleY);
 			return;
 		}
 		
 		if(sizeY == null) {
+			//System.out.println("scaling in X only " + scaleX);
 			scale(scaleX, scaleX);
 			return;
 		}
 		
+		System.out.println("scaling in X and Y " + scaleX + "," + scaleY);
 		scale(scaleX, scaleY);
 
 		//
@@ -585,7 +626,7 @@ public class ImageSprite{
 		// get intersection of both in documentSpace
 		Rect permittedPasteArea = rt.permittedPasteArea.permittedPasteAreaRect;
 		
-		System.out.println("cropToPermittedPasteArea");
+		//System.out.println("cropToPermittedPasteArea");
 		Rect uncroppedSpriteRect = getPasteRectDocSpace(rt);
 		Rect croppedSpriteRect = permittedPasteArea.getBooleanIntersection(uncroppedSpriteRect);
 		
@@ -653,36 +694,36 @@ public class ImageSprite{
 	boolean addBespokeCropToEdge(MainDocumentRenderTarget rt, BufferedImage preCroppedImage, String theEdge) {
 		int numCropImages = rt.permittedPasteArea.permittedPasteAreaCropImages.getNumItems();
 		int n = qRandomStream.randRangeInt(0, numCropImages-1);
-		BufferedImage cropper = rt.permittedPasteArea.permittedPasteAreaCropImages.getImage(n);
+		BufferedImage croppingMask = rt.permittedPasteArea.permittedPasteAreaCropImages.getImage(n);
 		int sourceImageW = preCroppedImage.getWidth();
 		int sourceImageH = preCroppedImage.getHeight();
 		
 		if(theEdge.contentEquals("LEFT")) {
 			// don't need to rotate the crop image
-			if(cropper.getWidth() > sourceImageW) return false;
-			cropper = matchImageSize(cropper, cropper.getWidth(), sourceImageH);
-			modifyAplhaUsingGrayScaleMask(preCroppedImage, cropper, 0, 0);
+			if(croppingMask.getWidth() > sourceImageW) return false;
+			croppingMask = stretchCroppingMaskToFitEdge(croppingMask, croppingMask.getWidth(), sourceImageH);
+			applyCroppingMask(preCroppedImage, croppingMask, 0, 0);
 			return true;
 		}
 		if(theEdge.contentEquals("RIGHT")) {
-			cropper = ImageProcessing.rotate90(cropper, 2);
-			if(cropper.getWidth() > sourceImageW) return false;
-			cropper = matchImageSize(cropper, cropper.getWidth(), sourceImageH);
-			modifyAplhaUsingGrayScaleMask(preCroppedImage, cropper, preCroppedImage.getWidth()-cropper.getWidth(), 0);
+			croppingMask = ImageProcessing.rotate90(croppingMask, 2);
+			if(croppingMask.getWidth() > sourceImageW) return false;
+			croppingMask = stretchCroppingMaskToFitEdge(croppingMask, croppingMask.getWidth(), sourceImageH);
+			applyCroppingMask(preCroppedImage, croppingMask, preCroppedImage.getWidth()-croppingMask.getWidth(), 0);
 			return true;
 		}
 		if(theEdge.contentEquals("TOP")) {
-			cropper = ImageProcessing.rotate90(cropper, 1);
-			if(cropper.getHeight() > sourceImageH) return false;
-			cropper = matchImageSize(cropper, sourceImageW, cropper.getHeight());
-			modifyAplhaUsingGrayScaleMask(preCroppedImage, cropper, 0, 0);
+			croppingMask = ImageProcessing.rotate90(croppingMask, 1);
+			if(croppingMask.getHeight() > sourceImageH) return false;
+			croppingMask = stretchCroppingMaskToFitEdge(croppingMask, sourceImageW, croppingMask.getHeight());
+			applyCroppingMask(preCroppedImage, croppingMask, 0, 0);
 			return true;
 		}
 		if(theEdge.contentEquals("BOTTOM")) {
-			cropper = ImageProcessing.rotate90(cropper, 3);
-			if(cropper.getHeight() > sourceImageH) return false;
-			cropper = matchImageSize(cropper, sourceImageW, cropper.getHeight());
-			modifyAplhaUsingGrayScaleMask(preCroppedImage, cropper, 0, preCroppedImage.getHeight()-cropper.getHeight());
+			croppingMask = ImageProcessing.rotate90(croppingMask, 3);
+			if(croppingMask.getHeight() > sourceImageH) return false;
+			croppingMask = stretchCroppingMaskToFitEdge(croppingMask, sourceImageW, croppingMask.getHeight());
+			applyCroppingMask(preCroppedImage, croppingMask, 0, preCroppedImage.getHeight()-croppingMask.getHeight());
 			return true;
 		}
 		
@@ -694,7 +735,7 @@ public class ImageSprite{
 	// returns the source image resized to match the w,h, if w or h are larger than the source image
 	// if the existing size in h or w is larger than h,w then crop in that dimension
 	// if it is larger then scale in that dimension
-	BufferedImage matchImageSize(BufferedImage source, int newW, int newH) {
+	BufferedImage stretchCroppingMaskToFitEdge(BufferedImage source, int newW, int newH) {
 		
 		if( source.getWidth() > newW ) {
 			Rect r = new Rect(0,0,newW, source.getHeight());
@@ -717,37 +758,26 @@ public class ImageSprite{
 		return source;
 	}
 	
-	// alters the preCroppedImage
-	void modifyAplhaUsingGrayScaleMask(BufferedImage preCroppedImage, BufferedImage maskImage, int offsetX, int offsetY) {
-		// the mask image uses its own tone value to calculate the alpha written into the preCroppedImage
+	
+	
+	
+	void applyCroppingMask(BufferedImage preCroppedImage, BufferedImage maskImage, int offsetX, int offsetY) {
+		// the mask image uses its own alpha to modify the preCroppedImage
+		// pixels in the preCroopeImage are made transparent (alpha'd out) where the mask image is solid.
 		int maskW = maskImage.getWidth();
 		int maskH = maskImage.getHeight();
 		
+		// crops out just the part we want to mask - i.e. only those pixels "under" the mask
 		Rect cropR = new Rect(offsetX, offsetY, offsetX+maskW, offsetY+maskH);
 		
 		BufferedImage preCroppedImageOverlap = ImageProcessing.cropImage(preCroppedImage, cropR);
 
-		int[] maskPixelUnpacked = new int[4];
-		int[] imagePixelUnpacked = new int[4];
+		// apply the crop mask. We are preserving those parts of no alpha in the mask - a hole in the mask means the pixels in the image being masked survive.
+		BufferedImage croppedByMaskImage =  ImageProcessing.getMaskedImage(preCroppedImageOverlap,  maskImage,  0, 0, AlphaComposite.DST_OUT);
 
-		for(int y = 0; y < maskH; y++) {
-			for(int x = 0; x < maskW; x++) {
-				int maskPixel = maskImage.getRGB(x,y);
-				ImageProcessing.unpackARGB(maskPixel, maskPixelUnpacked);
-				int newAlpha = maskPixelUnpacked[1];// this is the red value of the pixel
-				//if(newAlpha == 255) continue;
-				
-				int imagePixel = preCroppedImageOverlap.getRGB(x,y);
-				ImageProcessing.unpackARGB(imagePixel, imagePixelUnpacked);
-				int existingAlpha = imagePixelUnpacked[0];
-				int newPixel = ImageProcessing.packARGB(Math.min(newAlpha, existingAlpha), imagePixelUnpacked[1], imagePixelUnpacked[2], imagePixelUnpacked[3]);
-				
-				preCroppedImageOverlap.setRGB(x,y,newPixel);
-			}
-		}
+		// paste back in the masked section, using Porter Duff SRC - i.e. replace everything in target with source including alpha.
+		ImageProcessing.compositeImage_ChangeTarget(croppedByMaskImage, preCroppedImage, offsetX, offsetY, 1.0f, AlphaComposite.SRC);
 		
-		
-		ImageProcessing.compositeImage_ChangeTarget(preCroppedImageOverlap, preCroppedImage, offsetX, offsetY,1);
 		
 	}
 	
