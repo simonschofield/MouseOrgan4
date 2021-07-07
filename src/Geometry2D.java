@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 //////////////////////////////////////////////////////////////////////////////////
 // Line2 is a line segment class
-// Java complient
+// Java compliant
 class Line2 {
 
   // the end points

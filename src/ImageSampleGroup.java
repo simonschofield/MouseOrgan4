@@ -68,7 +68,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 			newGroup.imageList.add(copyImg);
 		}
 		newGroup.setGroupOrigins(groupOrigin);
-		newGroup.setGroupSizeInScene(sizeInScene);
+		newGroup.setGroupSizeInScene(sizeInScene, this.useIndividualItemSizeInScene);
 		return newGroup;
 	}
 	
@@ -304,9 +304,14 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	// In 2d context the units are in document space
 	// in 3d context the units are in world space size
 	// It is not until you call sprite.scaleToSizeInScene(...) that the value is used to actually scale the sprite
-	void setGroupSizeInScene(float h) {
+	//void setGroupSizeInScene(float h) {
+	//	groupSizeInScene = h;
+//
+	//}
+	
+	void setGroupSizeInScene(float h, boolean useInividualHeights) {
 		groupSizeInScene = h;
-
+		useIndividualItemSizeInScene = useInividualHeights;
 	}
 
 	float getGroupSizeInScene() {

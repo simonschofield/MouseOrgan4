@@ -178,6 +178,13 @@ class Rect{
 	  return new PVector(x,y);
   }
   
+  Rect norm(Rect r) {
+	  // returns the normalised version of r within this rect
+	  PVector topleftNormalised = norm(r.getTopLeft());
+	  PVector bottomRightNormalised = norm(r.getBottomRight());
+	  return new Rect(topleftNormalised,bottomRightNormalised);
+  }
+  
   String toStr() {
 	 return new String(left + "," + top + "," + right + "," + bottom) ;
   }

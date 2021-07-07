@@ -88,12 +88,14 @@ class ImageSampleGroupManager {
 	 *                             normalised coords
 	 * @param origin,              the origin of each sprite generated from this
 	 *                             collection
-	 * @param sizeInScene,         the size in scene, in scene-units, if using 3d
-	 *                             etc, as calculated by the sprite and scene data
+	 * @param sizeInScene,         the size in scene, if using 3d in scene-units, 
+	 *                             if using 2d, as a document-space measurement
+	 * @param useInividualSizes,   when set to true, takes the individual pixel height of the source image into consideration  
+	 * 							   relative to the tallest asset which is calculated as having the size in scene  ==  sizeInScene                        
 	 */
 	void loadImageSampleGroup(String contentGroupName, String targetDirectory, String fileNameMustEndWith,
 			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect, PVector origin,
-			Float sizeInScene) {
+			Float sizeInScene, boolean useInividualSizes) {
 
 		ImageSampleGroup thisImageContentGroup = addImageSampleGroupNameAndPath(contentGroupName, targetDirectory,
 				fileNameMustEndWith, fileNameMustContain);
@@ -114,7 +116,7 @@ class ImageSampleGroupManager {
 		if (sizeInScene == null) {
 			// do nothing
 		} else {
-			setImageSampleGroupSizeInScene(contentGroupName, sizeInScene);
+			setImageSampleGroupSizeInScene(contentGroupName, sizeInScene, useInividualSizes);
 		}
 
 	}
@@ -124,7 +126,7 @@ class ImageSampleGroupManager {
 	void loadImageSampleGroup(String name, String targetDirectory, Integer from, Integer to, PVector origin,
 			Float sizeInScene) {
 
-		loadImageSampleGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect(), origin, sizeInScene);
+		loadImageSampleGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect(), origin, sizeInScene, false);
 
 	}
 	
@@ -161,11 +163,11 @@ class ImageSampleGroupManager {
 		cc.setGroupOrigins(origin);
 	}
 
-	void setImageSampleGroupSizeInScene(String name, float size) {
+	void setImageSampleGroupSizeInScene(String name, float size, boolean useIndividualSizes) {
 		ImageSampleGroup ic = getImageSampleGroup(name);
 		if (ic == null)
 			return;
-		ic.setGroupSizeInScene(size);
+		ic.setGroupSizeInScene(size, useIndividualSizes);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////
