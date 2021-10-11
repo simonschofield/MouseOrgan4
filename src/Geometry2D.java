@@ -19,6 +19,7 @@ class Line2 {
   boolean intersection_segmentsIntersect;
   PVector intersection_point;
 
+  
   public Line2() {
     p1 = new PVector(0, 0);
     p2 = new PVector(0, 0);
