@@ -10,16 +10,14 @@ import java.util.ArrayList;
 //A seed is a light-weight data object that can be generated in large numbers
 //to pre-calculated the population of an image by a pre-render process.
 //
-//It is serializable so collections of seeds can be saved and loaded between sessions within this environment
-//When saving/loading seeds between different systems, we use CSV as the common file format, also the save coordinates are
+//When saving/loading seeds between different sessions/systems, the saved coordinates are
 //in NORMALISED space, so that different aspects in the source & destination systems is not an issue
 //They contain enough data to recreate the rendered sprite identically each render session
+
 //
-//Generally, during image production, seeds are given to sprites one at a time
 //
-//
-@SuppressWarnings("serial")
-class Seed implements Serializable {
+
+class Seed {
 
 	// the name of the Seedbatch this seed is made in
 	// this enables the user to identify seeds from different batches and treat them differently
@@ -134,7 +132,7 @@ class Seed implements Serializable {
 		// in the processing side of things
 		// seeds are always set using normalised x,y location
 		// in the createSeeds() method
-		// It is then down to the application to translate this to the vehical locations
+		// It is then down to the application to translate this to the vehicle locations
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.ingestCSVLine(csvStr);
 		batchName = kvlist.getString("BatchName");

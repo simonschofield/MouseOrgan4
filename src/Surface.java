@@ -143,10 +143,11 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		//	theUserSessionState = UserSessionState.LOAD;
 		//	return;
 		//}
-		
+		//System.out.println("User session state in updateUserSession_All = " + theUserSessionState);
 		if(theUserSessionState == UserSessionState.LOAD) {
-			loadContentUserSession();
 			theUserSessionState = UserSessionState.UPDATE;
+			loadContentUserSession();
+			return;
 		}
 		
 		if(theUserSessionState == UserSessionState.UPDATE) {
@@ -173,6 +174,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		// It automatically called userSessionFinishe() method once, then
 		// goes into idle state
 		theUserSessionState = UserSessionState.FINALISE;
+		//System.out.println("User session state in endUserSession = " + theUserSessionState);
 		keepAwake.setActive(false);
 	}
 	
@@ -498,5 +500,28 @@ class UserSessionSettings{
 		return currentSchemea.contentEquals(s);
 	}
 	
+	boolean schemaContains(String s) {
+		return currentSchemea.contains(s);
+	
+	}
+	
 	boolean isDraft() { return isDraft;}
+	
+	
+	float millimeterToDocspace(float mm) {
+		// you give it a dimension in the printed version (e.g. 5mm)
+		// and it returns the doc space dimension that is that size when printed at full size. Gives the same answer at all
+		// draft resolutions.
+		// Assumes print resolution is 300dpi, (or 11.811 pixels per mm)
+		if(fullScaleRenderWidth > fullScaleRenderHeight) {
+			// use width
+			float numMMAcrossLongestEdgeOfImage = fullScaleRenderWidth/11.811f; // this is the number of MM (at full size res) that are equal to a doc space of 1,
+			// Therefore 1/numMMAcrossLongestEdgeOfImage equals the doc space occupied by 1mm
+			return mm/numMMAcrossLongestEdgeOfImage;
+		}else {
+			float numMMAcrossLongestEdgeOfImage = fullScaleRenderHeight/11.811f;
+			return mm/numMMAcrossLongestEdgeOfImage;
+		}
+	}
+	
 }

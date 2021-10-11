@@ -209,9 +209,19 @@ class KeyValuePair {
 	  if (TYPE == BOOLEAN && this.bval == other.bval) return true;
 	  if (TYPE == INTEGER  && this.ival == other.ival) return true;
 	  if (TYPE == FLOAT  && this.fval == other.fval) return true; 
-	  if (TYPE == STRING  && this.sval.equals(other.sval)) return true; 
+	  if (TYPE == STRING  && stringValueEquals(other.sval)) return true; 
 	  return false;
   }
+  
+  boolean stringValueEquals(String otherString) {
+	 // we need this more complex expression for strings because they can support a wild-card "*"
+	 // if either of the strings is a wild card, then the test returns true. 
+	 if(sval.equals(otherString)) return true;
+	 if(sval.equals("*")) return true;
+	 if(otherString.equals("*")) return true;
+	 return false;
+  }
+  
   
   //////////////////////////////////////////////////////
   // setting methods

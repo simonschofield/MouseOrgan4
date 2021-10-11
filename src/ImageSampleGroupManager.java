@@ -15,10 +15,10 @@ import java.util.ArrayList;
 class ImageSampleGroupManager {
 
 	ArrayList<ImageSampleGroup> imageSampleGroups = new ArrayList<ImageSampleGroup>();
-	Surface parentSurface;
+	//Surface parentSurface;
 
 	public ImageSampleGroupManager() {
-		parentSurface = GlobalObjects.theSurface;
+		//parentSurface = GlobalObjects.theSurface;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////

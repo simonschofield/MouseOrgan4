@@ -58,7 +58,7 @@ class PointGenerator_RadialPack2D extends PointGenerator_Random {
 		
 		while (true) {
 			PVector thisPt = getRandomDocSpacePoint();
-			boolean success = tryAddDistributedPoint(thisPt, fixedRadius);
+			boolean success = tryAddDistributedPoint(thisPt, fixedRadius); // for 3D LOD needs to take Z into account
 			if (!success) {
 				attempts++;
 			} else {
@@ -94,7 +94,7 @@ class PointGenerator_RadialPack2D extends PointGenerator_Random {
 				success = false;
 			} else {
 				
-				float radius = packingInterpolationScheme.getRadius(v);
+				float radius = packingInterpolationScheme.getRadius(v); // for 3D LOD, this needs to be packingInterpolationScheme.getRadiusWithLOD(v,z);
 				success = tryAddDistributedPoint(thisPt, radius);
 			}
 			
@@ -173,6 +173,9 @@ class PointGenerator_RadialPack2D extends PointGenerator_Random {
 //There is an option which packs according to the tone of an image, by adjusting the radius against the image tone,
 //inherited from the super class, but using 3D packing in this class,
 // The radius is defined in world 3D units
+//
+//
+//Includes LOD on Z packing modification
 //
 
 
@@ -261,6 +264,7 @@ class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
 // Generates a set of randomly scattered points in 3D
 // then preserves the visible ones as a depth-enhanced set of document points
 // The depth is in actual eye-space units
+
 class PointGenerator_Volume3D extends CollectionIterator {
 
 	RandomStream randomStream;

@@ -686,7 +686,7 @@ class SimpleLabel extends Widget {
 	}
 
 	public void drawMe(ShapeDrawer drawer) {
-
+		
 		drawer.setDrawingStyle(SimpleUIBackgroundRectColor, new Color(100, 100, 100, 255), 1);
 		drawer.drawRect(locX, locY, widgetWidth, widgetHeight);
 

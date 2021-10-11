@@ -340,8 +340,11 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		ImageSprite sprite = getSprite(seed.imageSampleGroupItemNumber);
 		sprite.setID_RandomSeed(seed.id);
 		sprite.setDocPoint(seed.getDocPoint());
+		//sprite.depthFromSeed = seed.depth;
 		return sprite;
 	}
+	
+	
 
 	ImageSprite getSprite(int num) {
 		// creating a sprite from a simple item number within this group
@@ -367,16 +370,31 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	}
 	
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// allows the user to get a random sprite or image from the group
+	// and apply a filter to that name; the name returned must contain the filter expression
+	// if set to null or "", allows all image to be returned
+	// Needs a reference to a rand number generator to work.
+	ImageSprite getRandomSprite(QRandomStream ranStream, String nameContainsFilter) {
+		String foundName = getRandomImageName( ranStream,  nameContainsFilter);
+		int imgNum = getNumOfImageShortName(foundName);
+		return getSprite(imgNum);
+	}
+	
+	
 	BufferedImage getRandomImage(QRandomStream ranStream, String nameContainsFilter) {
-		// allows the user to get a random image from the group
-		// and apply a filter to that name; the name returned must contain the filter expression
-		// if set to null or "", allows all image to be returned
-		// Needs a reference to a rand number generator to work.
+		
+		String foundName = getRandomImageName( ranStream,  nameContainsFilter);
+		return getImage(foundName);
+	}
+	
+	
+	private String getRandomImageName(QRandomStream ranStream, String nameContainsFilter) {
 		
 		if(nameContainsFilter == null) nameContainsFilter = "";
 		if(nameContainsFilter == "") {
 			int rnum = ranStream.randRangeInt(0, this.getNumItems()-1);
-			return getImage(rnum);
+			return getShortNameOfItem(rnum);
 		}
 		
 		ArrayList<String> filteredNamesFound = new ArrayList<String>();
@@ -387,7 +405,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		
 		int rnum = ranStream.randRangeInt(0, filteredNamesFound.size()-1);
 		String foundName = filteredNamesFound.get(rnum);
-		return getImage(foundName);
+		return foundName;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////

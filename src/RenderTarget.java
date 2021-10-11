@@ -338,6 +338,17 @@ class RenderTarget{
 		
 	}
 	
+	void drawVerticesWithPoints(Vertices2 v, Color c, int w) {
+		int numLines = v.getNumLines();
+		for(int n = 0; n < numLines; n++) {
+			Line2 l = v.getLine(n);
+			drawLine( l,  c,  w);
+			drawPoint(l.p1, c, w+4);
+			drawPoint(l.p2, c, w+4);
+		}
+		
+	}
+	
 	void drawText(String str, PVector docSpacePoint, int size, Color c) {
 		PVector bufpt = docSpaceToBufferSpace(docSpacePoint);
 		drawText( str, (int)bufpt.x, (int)bufpt.y,  size,  c);

@@ -219,7 +219,9 @@ public class ImageSprite{
 	String shortImageFileName = "";
 	String seedBatchName = "";
 	int id = 0;
-	
+	//float depthFromSeed = 1;
+		
+		
 	// for internal workings
 	private ImageQuad imageQuad;
 	
@@ -228,8 +230,6 @@ public class ImageSprite{
 	private float aspect;
 	
 	private QRandomStream qRandomStream;
-	
-	private SceneData3D sceneData;
 	
 	
 	
@@ -280,6 +280,12 @@ public class ImageSprite{
 	void setDocPoint(PVector p) {
 		docPoint = p.copy();
 	}
+	
+	/*
+	float getDepthFromSeed() {
+		return this.depthFromSeed;
+	}*/
+	
 	
 	
 	PVector getQuadPoint(PVector docPt, float  nx, float ny) {

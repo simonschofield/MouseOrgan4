@@ -118,6 +118,21 @@ public class MOMaths {
 
 		return new PVector(newX, newY);
 	}
+	
+	public static PVector orthogonal(PVector v) {
+		// only works with 2D vectors. The Z is ignored but maintained
+		// returns the clockwise orthogonal. 
+		return new PVector(v.y, -v.x, v.z);
+	}
+	
+	public static PVector bisector(PVector v1, PVector v2) {
+		// returns the vector that bisects two other vectors. 2 and 3d. 
+		float angleBetween = PVector.angleBetween(v1, v2);
+		float halfAngle = angleBetween/2;
+		PVector v = v1.copy();
+		v.rotate(halfAngle);
+		return orthogonal(v);
+	}
 
 	//interpolates the input value between the low and hi values
 	public static float ramp(float v, float low, float hi) {
@@ -137,7 +152,7 @@ public class MOMaths {
 		if(aspect > 1) {
 			// i.e. landscape
 			// x already in range 0..1
-			// scales y to be in range 0...1
+			// scales y up to be in range 0...1
 			normalisedPoint.y = docSpace.y *aspect; 
 		} else {
 			// i.e. portrait

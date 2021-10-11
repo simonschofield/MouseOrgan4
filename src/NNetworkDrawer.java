@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -138,6 +139,8 @@ class NNetworkProcessor{
 		return true;
 	}
 	
+	// turns an array list of NEdges, which should be sequential (edges link, but by either end, so, the raw end points are not sequential), into an ordered
+	// list of PVector points by finding the joining points between each edge pair.
 	ArrayList<PVector> getVertices(ArrayList<NEdge> edges){
 		if( checkEdgesAreOrdered(edges)==false) {
 			System.out.println("getVertices - edges are not ordered");
@@ -180,31 +183,39 @@ class NNetworkProcessor{
 		
 	}
 	
-////////////////////////////////////////////////////////////////////////////////////
-//
-//
-	
+	////////////////////////////////////////////////////////////////////////////////////
+	// draw-all -type methods
+	//
 	void draw() {
+		drawPoints();
+		drawEdges();
+	}
+	
 		
-		
+	void drawPoints()	{
 		ArrayList<NPoint> points = theNetwork.getPoints();
 		for (int n = 0; n < points.size(); n++) {
 			NPoint np = points.get(n);
-			float radiusDocSpace = 0.001f;
+			float radiusDocSpace = 0.0002f;
 			drawPoint( np, Color.RED, radiusDocSpace);
 		}
+	}
 
+	void drawEdges() {
 		ArrayList<NEdge> edges = theNetwork.getEdges();
+	
 		for (int n = 0; n < edges.size(); n++) {
 			NEdge e = edges.get(n);
 			Color c = getEdgeColor(e);
-			int lineWt = getEdgeLineWeight(e);
+			int lineWt = getEdgeLineWeight(e)*3;
 			drawEdge(e,c,lineWt);
 		}
 
 	}
 	
-	
+	/////////////////////////////////////////////////////////////////////////////////
+	// more specific drawing 
+	//
 	void drawPoint(NPoint np, Color c, float radiusDocSpace) {
 		Rect viewPort = GlobalObjects.theSurface.getViewPortDocSpace();
 		float lineThicknessDocSpace = radiusDocSpace/3f;
@@ -264,6 +275,9 @@ class NNetworkProcessor{
 	    if(roadType.equals("C")){
 	      return new Color(127,200,200);
 	    }
+	    if(roadType.equals("F")){
+		      return new Color(78,209,127);
+		    }
 	    return Color.GRAY;
 	  }
 	
@@ -281,6 +295,9 @@ class NNetworkProcessor{
 	    if(roadType.equals("C")){
 	      return 3;
 	    }
+	    if(roadType.equals("F")){
+		      return 2;
+		    }
 	    return 2;
 	  }
 
@@ -288,7 +305,7 @@ class NNetworkProcessor{
 
 //////////////////////////////////////////////////////////////////////////////////////
 // This network processor extracts a continuous run of edges from a network
-//
+// The class keeps the found edge run in the form of and ArrayList of NEdges.
 //
 class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	
@@ -525,6 +542,14 @@ class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+// this class uses the base class to implement the extraction of "connected" edge runs as Vertices2
+// This can be done on the fly using MODE_EXTRACTED, or all the edge runs Vertices2's can be pre-calculated at start
+// using MODE_PRE_EXTRACTED. IN either case, the network is traversed in line2 segments of a defined length crawlStepDistance,
+// once the current Vertices2 has been exhausted, the next one is used, until the entire network has been traversed.
+
+// once pr extracted you can process the vertices further (e.g. add fractal detail)
+
 
 class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	static final int MODE_EXTRACTED = 0;
@@ -533,7 +558,7 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	int mode = MODE_EXTRACTED;
 	
 	// the most recently extracted edge run
-	Vertices2 currentVertices;
+	Vertices2 currentVertices = null;
 	
 	// to store pre-extracted edge runs, so you can sort them
 	ArrayList<Vertices2> preExtractedEdgeRuns = new ArrayList<Vertices2>();
@@ -575,6 +600,7 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 				return null;
 			}
 		}
+		//System.out.println("updateCrawl: currentVertices num = " + currentVertices.size());
 		Line2 line = getNextCrawlLine();
 		if(line == null) {
 			// System.out.println("updateCrawl: finished previous crawl, getting new edge run");
@@ -623,7 +649,7 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 		if(result==false) return false; // no more runs to be found
 		
 		float totalLen = currentVertices.getTotalLength();
-		//System.out.println("new edge run : total length = " + totalLen);
+		//System.out.println("nextEdgeRun : total currentVertices = " + currentVertices.size());
 		float numSteps = (int)(totalLen/crawlStepDistance);
 		if(numSteps == 0) numSteps = 1;
 		crawlStepParametric = 1/numSteps;
@@ -676,6 +702,7 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 		}
 		System.out.println("preExtractEdgeRuns: found " + preExtractedEdgeRuns.size() + " runs");
 		runCounter = 0;
+		currentVertices=null;
 		return preExtractedEdgeRuns;
 	}
 	
@@ -688,7 +715,6 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 		} else {
 			preExtractedEdgeRuns.sort(Comparator.comparing(Vertices2::size).reversed());
 		}
-
 		
 	}
 	
@@ -720,37 +746,95 @@ class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	
 	Line2 getNextCrawlLine() {
 		// the crawl line lies between currentVerticesProgressParametric and currentVerticesProgressParametric+crawlStepParametric
-		// it will return a consistent line length, as the division of total steps in th eline is pre-calculated as an integer
+		// it will return a consistent line length, as the division of total steps in the line is pre-calculated as an integer
 		if(currentVerticesProgressParametric >= 1) {
 			//System.out.println("getNextCrawlLine: vertices have been fully traversed");
 			return null;
 		}
-
 
 		PVector lineStart = currentVertices.lerp(currentVerticesProgressParametric);
 		
 		currentVerticesProgressParametric += crawlStepParametric;
 		currentVerticesProgressParametric = MOMaths.constrain(currentVerticesProgressParametric, 0, 1);
 		PVector lineEnd = currentVertices.lerp(currentVerticesProgressParametric);
-		
-		
-		
-		
-		//System.out.println("getNextCrawlLine: progress " + currentVerticesProgressParametric + " lineStart " + lineStart.toStr() + " line end " + lineEnd.toStr());
-		
+
 		Line2 line = new Line2(lineStart, lineEnd);
-		
 		
 		return line;
 	}
 	
 	
 	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// post=prossesing the pre-extracted edge runs
+	//
+	
+	ArrayList<Vertices2> getExtractEdgeRuns(){
+		return preExtractedEdgeRuns;
+	}
 	
 	
+	void displaceExtractedEdgeRuns(int pointdoubling, float wobble, BufferedImage displacementImage) {
+		KeyImageSampler kis = new KeyImageSampler(displacementImage);
+		int numEdgeRuns  = preExtractedEdgeRuns.size();
+		for(int n = 0; n < numEdgeRuns; n++) {
+			Vertices2 verts = preExtractedEdgeRuns.get(n);
+			verts.doubleVertices(pointdoubling);
+			float imageSampleYPoint = n/(float)numEdgeRuns;
+			verts = getDisplacedVerticesPoints( verts,  wobble,  kis,  imageSampleYPoint);
+			preExtractedEdgeRuns.set(n, verts);
+		}
+		
+		
+	}
 	
 	
+	void drawExtractedEdgeRuns(Color c, int width) {
+		
+		int numEdgeRuns  = preExtractedEdgeRuns.size();
+		for(int n = 0; n < numEdgeRuns; n++) {
+			Vertices2 verts = preExtractedEdgeRuns.get(n);
+			GlobalObjects.theDocument.drawVerticesWithPoints(verts,  c, width);
+		}
+		
+	}
+	
+	
+	Vertices2 getDisplacedVerticesPoints(Vertices2 verts, float wobble, KeyImageSampler displacementImage, float imageSampleYPoint) {
+		 
+		  // wobble is scaled by the total vertices length; so a wobble of 0.5, would become 0.5*verticeslength()
+		  //wobble *= verts.getTotalLength();
+
+		  ArrayList<PVector> verticesOut = new ArrayList<PVector> ();
+		  
+		  int numPoints = verts.size();
+		  for(int n = 0; n < numPoints; n++) {
+			  PVector thisPt = verts.get(n);
+
+			  float parametric = n/(float)numPoints;
+			  PVector imageSamplePoint = new PVector(parametric,imageSampleYPoint);
+			  float imageValue = displacementImage.getValue01NormalisedSpace(imageSamplePoint); // this gives
+			  
+			  float displacement = MOMaths.lerp(imageValue, -1, 1) * wobble;
+
+			  if(n == 0 || n == numPoints-1) displacement = 0;
+			  
+			  PVector displacedPoint = verts.getOrthogonallyDisplacedPoint(n, displacement);
+			  
+			  verticesOut.add(displacedPoint);
+		  }
+
+
+		  return new Vertices2(verticesOut);
+	  }
 	
 }
+
+
+
+
+
+
+
 
 

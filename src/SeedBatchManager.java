@@ -108,16 +108,17 @@ class SeedBatchManager  extends CollectionIterator{
 	}
 	
 	
-	void applyROIToSeeds(SceneData3D sd3d) {
+	void applyROIToSeeds() {
 		// adjusts the document point of seeds from a seed batch of a whole scene (no ROI)
-		// to a specific ROI within that scene
+		// to a specific ROI within that scene by mapping the orignal doc points into the nw
+		// doc space represtend by the ROI
 		collateSeedBatches();
 		
 		ArrayList<Seed> adjustedList = new ArrayList<Seed>();
 		
 		System.out.println("applyROIToSeeds: original number of seeds " + collatedSeeds.size());
 		
-		Rect theROI = sd3d.getROIRect();
+		Rect theROI = sceneData3D.getROIRect();
 		
 		int n = 0;
 		for(Seed s: collatedSeeds) {

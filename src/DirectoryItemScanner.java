@@ -218,6 +218,18 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 	}
 	
 	
+	int getNumOfImageShortName(String shortName) {
+		int n = 0;
+		for (String thisName : directoryContentShortNameList) {
+			if (thisName.contentEquals(shortName))
+				return n;
+			n++;
+		}
+		System.out.println("ImageGroup:getNumOfImageShortName - cannot find image called " + shortName);
+		return 0;
+	}
+	
+	
 
 	int getNumItems() {
 		return imageList.size();

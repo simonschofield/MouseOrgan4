@@ -138,9 +138,11 @@ class Line2 {
 	  }
 
 
-  PVector getNormalised() {
+  PVector getNormalisedVector() {
     return PVector.sub(p2, p1).normalize();
   }
+  
+  
 
   float getLength() {
     return p1.dist(p2);
@@ -284,7 +286,12 @@ class Vertices2 {
     Collections.reverse(vertices);
   }
   
-  
+  //////////////////////////////////////////////////////////////////////////
+  // open and closed, and closing a vertices. Normally a vertices2 would be open, in that
+  // the fist and last points would not be co-incident. A Closed line, means that the start and end point
+  // are co-incident (not a reference to the same point, but separate points equal in x and y coordinate value).
+  // Therefore closing a vertices adds a new point onto the end which is equal to the start point. Opening a closed vertices, removes then co-incident end point.
+  //
   void open() {
 	  if(isClosed()==false) return;
 	  int lastElement = vertices.size()-1;
@@ -448,6 +455,7 @@ class Vertices2 {
   
   
   Vertices2 getInBufferSpace(boolean shiftToTopLeft) {
+	  // used by TextRenderer, render text in polygon
 	  Vertices2 bufferSpaceVerts = new Vertices2();
 	    int numPoints = this.size();
 	    
@@ -502,4 +510,75 @@ class Vertices2 {
   }
   
   
+  
+  
+  PVector getOrthogonallyDisplacedPoint(int n, float dist) {
+	  // returns a point that is moved "orthogonally" to the lines connecting
+	  PVector orthogVector = new PVector(0,1);
+	  
+	  if( (n >0 && n < size()-1) && size()>2) {
+		  // the mid points
+		 PVector vbefore =  getLine(n-1).getNormalisedVector();
+		 PVector vafter =  getLine(n).getNormalisedVector();
+		 orthogVector =  MOMaths.bisector(vbefore, vafter);
+	  }
+	  if(n == 0 ) {
+		  // find the vector orthogonal to the start 
+		  PVector lineVector = getLine(0).getNormalisedVector();
+		  orthogVector = MOMaths.orthogonal(lineVector);
+	  } 
+	  if(n == size()-1) {
+		  // find the vector orthogonal to the end line
+		  PVector lineVector = getLine(n-1).getNormalisedVector();
+		  orthogVector = MOMaths.orthogonal(lineVector);
+	  }
+	  PVector p = this.get(n);
+	  PVector displacement = PVector.mult(orthogVector, dist);
+	  return PVector.add(p, displacement);
+  }
+  
+  
+  void doubleVertices(int octaves) {
+	  if(octaves == 0) return;
+	  for(int n = 0; n < octaves; n++) {
+		  addHalwayVertices();
+	  }
+	  
+	  
+  }
+  
+  void addHalwayVertices() {
+	// effectively breaks every connecting line into two and then displaces each point. Keeps end points un-moved.
+	  ArrayList<PVector> verticesOut = new ArrayList<PVector> ();
+	  
+	  int numLines = getNumLines();
+	    
+	  
+	  PVector startPoint = this.getStartPoint();
+	  verticesOut.add(startPoint);
+	  
+	  for (int i = 0; i < numLines; i++) {
+		  // then get each line an add the split point and then end point
+	      Line2 line = this.getLine(i);
+	      PVector lineStart = line.p1;
+	      PVector lineEnd = line.p2;
+	      PVector midPoint = lineStart.lerp(lineEnd, 0.5f);
+
+	      verticesOut.add(midPoint);
+	      verticesOut.add(lineEnd);
+	    }
+	  
+	  vertices = verticesOut;
+	  
+  }
+  
+  
 }
+
+
+
+
+
+
+
+

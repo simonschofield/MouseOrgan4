@@ -159,6 +159,10 @@ class NPoint extends NAttributes {
   public PVector getPt() {
     return coordinates;
   }
+  
+  public void setPt(PVector p) {
+	    coordinates = p.copy();
+	  }
 
   float getDistSq(PVector p) {
     float dx = p.x-coordinates.x;
@@ -433,6 +437,7 @@ class NRegion  extends NAttributes {
   boolean isPointInside(PVector p){
     if(vertices == null) return false;
     if(extents.isPointInside(p)==false) return false;
+    if( vertices.isClosed()==false ) vertices.close();
     return vertices.isPointInside(p);
   }
   
@@ -490,6 +495,7 @@ class NRegion  extends NAttributes {
     if (result) {
       //System.out.println("loop found - region is OK ");
       vertices = new Vertices2(getVertices());
+      vertices.close();
       extents = vertices.getExtents();
       //printEdges(edgeReferences);
     } else {
@@ -718,7 +724,17 @@ class NNetwork {
     }
   }
 
-
+  void applyROI(Rect roi) {
+	  for (NPoint np : points) {
+		  	PVector p = np.getPt();
+	        PVector nomPoint = roi.norm(p);
+	        PVector docSpcPt = GlobalObjects.theDocument.normalisedSpaceToDocSpace(nomPoint);
+	        np.setPt(docSpcPt);
+	      }
+  }
+  
+  
+  
   void addItemFromCSV_KVP(KeyValuePairList kvpl) {
     if (kvpl.getString("THING").equals("NPOINT")) {
       NPoint np = new NPoint( kvpl, this);

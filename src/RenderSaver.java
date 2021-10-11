@@ -1,15 +1,20 @@
 //////////////////////////////////////////////////////////////////////////////////
-//naming protocol
-//Single Image, no sub directory
-//UserSessionPath/baseName_timeStamp.png
+// Helps manage the saving process for renders, either as single images or as collections of images (layers) through the creation of a specially made subdirectory
+// Single images are time stamped. 
+// When a folder is made for multiple images, the folder is time-stamped and the images within follow a naming convention described below
+// 
 //
-//Using sub directory without layers -  this is probably done when generating images with  masks
-//UserSessionPath/baseName_timestamp/basename.png and UserSessionPath/baseName_timestamp/basename_mask.png
+// Single Image, no sub directory
+// UserSessionPath/baseName_timeStamp.png
 //
-//Using sub directory without Photoshop layering convention
-//UserSessionPath/baseName_timestamp/img_MOLayer_(num increasing).png
-//Using sub directory with Photoshop layering convention
-//UserSessionPath/baseName_timestamp/img_MOLayer_(num increasing)_PSLayer_(num decreasing from 99).png
+// Using sub directory without layers -  this is probably done when generating images with  masks
+// UserSessionPath/baseName_timestamp/basename.png and UserSessionPath/baseName_timestamp/basename_mask.png
+//
+// Using Layers
+// Using sub directory without Photoshop layering convention
+// UserSessionPath/baseName_timestamp/img_MOLayer_(num increasing).png
+// Using sub directory with Photoshop layering convention
+// UserSessionPath/baseName_timestamp/img_MOLayer_(num increasing)_PSLayer_(num decreasing from 99).png
 //
 
 class RenderSaver {
@@ -55,20 +60,8 @@ class RenderSaver {
 	void saveImageFile() {
 		if (useSubDirectory) {
 			if(useLayers) {
-				String name = "img";
-	
-				if (photoshopLayerOrderNumbering) {
-					int thisPhotoshopLayerNum = photoshopLayerNumberMaxNum - imageNumCounter;
-					name = name + "_PSLayer_" + thisPhotoshopLayerNum;
-				}
-	
-				name = name + "_MOLayer_" + imageNumCounter;
-	
-				String fullPathAndName = subDirectory + "\\" + name + ".png";
-				System.out.println("saveRenderLayers to folder: saving " + fullPathAndName);
-				GlobalObjects.theDocument.saveRenderToFile(fullPathAndName);
-	
-				imageNumCounter++;
+				saveLayer(false);
+				return;
 			} else {
 				
 				String fullPathAndName = subDirectory + "\\" + baseName + ".png";
@@ -86,9 +79,38 @@ class RenderSaver {
 
 	}
 	
+	void saveLayer(boolean clearImage) {
+		String name = "img";
+		
+		if (photoshopLayerOrderNumbering) {
+			int thisPhotoshopLayerNum = photoshopLayerNumberMaxNum - imageNumCounter;
+			name = name + "_PSLayer_" + thisPhotoshopLayerNum;
+		}
+
+		name = name + "_MOLayer_" + imageNumCounter;
+
+		String fullPathAndName = subDirectory + "\\" + name + ".png";
+		System.out.println("saveRenderLayers to folder: saving " + fullPathAndName);
+		GlobalObjects.theDocument.saveRenderToFile(fullPathAndName);
+
+		imageNumCounter++;
+		
+		if(clearImage) GlobalObjects.theDocument.clearImage();
+	}
 	
 	
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 	
