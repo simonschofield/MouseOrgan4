@@ -1,26 +1,27 @@
+package MOUtils;
 ////////////////////////////////////////////////////////////////////////////////
 //for session iteration - getting points generated one after another
 //
-abstract class CollectionIterator {
+public abstract class CollectionIterator {
 	int itemIteratorCounter = 0;
 	
 	boolean justfinishedFlag = false;
 	boolean isFinishedFlag = false;
 	
-	boolean areItemsRemaining() {
+	public boolean areItemsRemaining() {
 		if (getNumItemsRemaining() <= 0)
 			return false;
 		return true;
 	}
 	
 	
-	void reset() {
+	public void reset() {
 		itemIteratorCounter = 0;
 		justfinishedFlag = false;
 		isFinishedFlag = false;
 	}
 	
-	boolean isJustFinished() {
+	public boolean isJustFinished() {
 		// returns true just once upon finishing the iteration
 		if(areItemsRemaining()) return false;
 		if(justfinishedFlag == false) {
@@ -31,15 +32,15 @@ abstract class CollectionIterator {
 		return false;
 	}
 	
-	boolean isFinished() {
+	public boolean isFinished() {
 		return isFinishedFlag;
 	}
 
-	int getNumItemsRemaining() {
+	public int getNumItemsRemaining() {
 		return getNumItems() - itemIteratorCounter;
 	}
 
-	Object getNextItem() {
+	public Object getNextItem() {
 		if (itemIteratorCounter >= getNumItems()) {
 			isFinishedFlag = true;
 			return null;
@@ -47,11 +48,11 @@ abstract class CollectionIterator {
 		return getItem(itemIteratorCounter++);
 	}
 	
-	void advanceIterator(int n) {
+	public void advanceIterator(int n) {
 		setIterator(itemIteratorCounter +  n);
 	}
 	
-	void setIterator(int n) {
+	public void setIterator(int n) {
 		if(n < 0) { 
 				itemIteratorCounter = 0;
 				return;
@@ -65,18 +66,18 @@ abstract class CollectionIterator {
 	}
 	
 	
-	int getIteratorCounter() {
+	public int getIteratorCounter() {
 		return itemIteratorCounter;
 	}
 
-	void resetItemIterator() {
+	public void resetItemIterator() {
 		itemIteratorCounter = 0;
 		justfinishedFlag = false;
 		isFinishedFlag = false;
 	}
 	
-	abstract int getNumItems();
+	public abstract int getNumItems();
 	
-	abstract Object getItem(int n);
+	public abstract Object getItem(int n);
 
 }

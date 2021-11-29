@@ -1,5 +1,11 @@
 import java.io.FileWriter;
 import java.util.ArrayList;
+
+import MOUtils.Line2;
+import MOUtils.PVector;
+import MOUtils.Rect;
+import MOUtils.UniqueID;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 //////////////////////////////////////////////////////////////////////////////////////
@@ -79,6 +85,9 @@ class NAttributes {
 
 
   void addAttribute( KeyValuePair kvp ) {
+	// Items in the network are only allowed to have 1 instance
+	// of any specific key, so old instances get removed before adding a new one
+	attributes.removeKeyValue(kvp.getKey());
     attributes.addKeyValuePair(kvp);
   }
 
@@ -115,7 +124,9 @@ class NAttributes {
     }
   }
   
-  
+  void printAttributes() {
+	  attributes.printMe();
+  }
 }// end of NAttributes class
 
 
@@ -450,13 +461,13 @@ class NRegion  extends NAttributes {
     return rearEdge.getConnectingPoint(frontEdge);
   }
   
-  ArrayList<PVector> getVertices(){
+  Vertices2 getVertices(){
     ArrayList<PVector> verts = new ArrayList<PVector>();
     for(int n = 0; n < getNumEdges(); n++){
       NPoint np =  getNPointVertex(n);
       verts.add(np.getPt());
     }
-    return verts;
+    return new Vertices2(verts);
   }
   
   
@@ -494,7 +505,7 @@ class NRegion  extends NAttributes {
 
     if (result) {
       //System.out.println("loop found - region is OK ");
-      vertices = new Vertices2(getVertices());
+      vertices = getVertices();
       vertices.close();
       extents = vertices.getExtents();
       //printEdges(edgeReferences);

@@ -9,6 +9,11 @@ import java.util.Map;
 
 import javax.swing.JFileChooser;
 
+import MOUtils.MOMaths;
+import MOUtils.MOUtils;
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 
 // SimpleUI_Classes version 4.0
 // Started Dec 12th 2018

@@ -2,6 +2,11 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
+
+import MOUtils.CollectionIterator;
+import MOUtils.MOMaths;
+import MOUtils.PVector;
+import MOUtils.Rect;
 ////////////////////////////////////////////////////////////////////////////
 //This class will return a list of random points packed to a specified radius
 //the algorithm keeps going until it fails to find a new packing point after a number of attempts.
@@ -322,13 +327,13 @@ class PointGenerator_Volume3D extends CollectionIterator {
 	}
 
 	@Override
-	int getNumItems() {
+	public int getNumItems() {
 		// TODO Auto-generated method stub
 		return points2d.size();
 	}
 
 	@Override
-	Object getItem(int n) {
+	public Object getItem(int n) {
 		// TODO Auto-generated method stub
 		return points2d.get(n);
 	}

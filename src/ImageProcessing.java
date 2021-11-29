@@ -16,6 +16,10 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import MOUtils.MOMaths;
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 
 public class ImageProcessing {
 

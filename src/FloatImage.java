@@ -3,6 +3,11 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.ByteBuffer;
 import javax.imageio.*;
+
+import MOUtils.MOMaths;
+import MOUtils.PVector;
+import MOUtils.Range;
+
 import java.awt.image.*;
 import java.awt.color.ColorSpace;
 import java.awt.Transparency;

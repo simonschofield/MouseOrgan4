@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +144,7 @@ class ImageSampleGroupManager {
     	float sizeInScene = cc.groupSizeInScene;
     	if(sizeInScn != null  ) sizeInScene = sizeInScn;
     	ImageSampleGroup newGroup = cc.copyToNewGroup(newGroupName, origin, sizeInScene);
-    	
+    	//System.out.println("Cloned " + existingGroupname + " with " + cc.getNumItems() + " into " + newGroupName + " with " + newGroup.getNumItems());
     	imageSampleGroups.add(newGroup);
     }
 	/////////////////////////////////////////////////////////////////////////////

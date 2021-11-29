@@ -1,3 +1,6 @@
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 class PermittedPasteArea {
 	// The rect is SET using Normalized coordinates (0..1 in both x and y), but STORED using docSpace coordinates
 	// If the PermittedPasteArea is active

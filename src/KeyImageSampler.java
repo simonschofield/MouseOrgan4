@@ -1,6 +1,10 @@
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
+import MOUtils.MOMaths;
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 ////////////////////////////////////////////////////////////////////////////////
 // simple wrapper round an image, so you can use document space (of the HOST application, longest edge 0..1, shortest edge 0..1/aspect) and 
 // normalised  space (0..1 in both x and y) to access the data

@@ -3,6 +3,11 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import MOUtils.CollectionIterator;
+import MOUtils.PVector;
+import MOUtils.Range;
+import MOUtils.Rect;
+
 ///////////////////////////////////////////////////////////////////////////
 //SeedBatchManager
 //
@@ -210,13 +215,13 @@ class SeedBatchManager  extends CollectionIterator{
 	}
 
 	@Override
-	int getNumItems() {
+	public int getNumItems() {
 		// TODO Auto-generated method stub
 		return collatedSeeds.size();
 	}
 
 	@Override
-	Object getItem(int n) {
+	public Object getItem(int n) {
 		// TODO Auto-generated method stub
 		return collatedSeeds.get(n);
 	}

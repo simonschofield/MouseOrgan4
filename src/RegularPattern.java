@@ -1,6 +1,8 @@
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOUtils.PVector;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // a regular pattern is a repeating pattern defined by a string sequence (e.g. "a","b","a","c")
 // called a pattern row, and a Drop Offset, which defines dropPatternShunt - the offset from this pattern

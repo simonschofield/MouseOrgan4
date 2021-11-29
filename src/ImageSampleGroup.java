@@ -3,6 +3,13 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import MOUtils.Counter;
+import MOUtils.GenericArrayListUtils;
+import MOUtils.MOMaths;
+import MOUtils.MOUtils;
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -69,6 +76,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		}
 		newGroup.setGroupOrigins(groupOrigin);
 		newGroup.setGroupSizeInScene(sizeInScene, this.useIndividualItemSizeInScene);
+		newGroup.directoryContentShortNameList = (ArrayList)(this.directoryContentPathAndNamesList.clone());
 		return newGroup;
 	}
 	
@@ -337,6 +345,8 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	ImageSprite getSprite(Seed seed) {
 		// creating a sprite from a seed, the ImageSampleGroupManager has already determined
 		// to pass the seed to this ImageSampleGroup
+		//System.out.println("getSprite:: seed" + seed.getAsCSVStr());
+		//System.out.println("there are " + this.getNumItems() + " items available");
 		ImageSprite sprite = getSprite(seed.imageSampleGroupItemNumber);
 		sprite.setID_RandomSeed(seed.id);
 		sprite.setDocPoint(seed.getDocPoint());

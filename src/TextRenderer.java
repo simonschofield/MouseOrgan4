@@ -13,6 +13,10 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import MOUtils.Line2;
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 class TextRenderer {
 	String fontName = "Arial";
 	int fontStyle = 0;

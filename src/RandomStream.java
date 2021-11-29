@@ -2,6 +2,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
+import MOUtils.MOMaths;
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 /////////////////////////////////////////////////////////////////////////////
 // This is a proper random stream
 //

@@ -5,6 +5,10 @@ import java.io.FileReader;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import MOUtils.CollectionIterator;
+import MOUtils.MOUtils;
+import MOUtils.PVector;
+
 
 ///////////////////////////////////////////////////////////////////////////
 //A seed is a light-weight data object that can be generated in large numbers
@@ -324,13 +328,13 @@ public class SeedBatch extends CollectionIterator{
 	}
 
 	@Override
-	int getNumItems() {
+	public int getNumItems() {
 		// TODO Auto-generated method stub
 		return seeds.size();
 	}
 
 	@Override
-	Object getItem(int n) {
+	public Object getItem(int n) {
 		// TODO Auto-generated method stub
 		return seeds.get(n);
 	}

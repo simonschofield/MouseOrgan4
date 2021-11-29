@@ -2,6 +2,9 @@ import java.util.ArrayList;
 // The process of using a master image and ROIs within the master image works thus: The master image is rendered out
 // say at sale 0.2. This generates an output image - The master image - of 1200 x 2400 pixels. This is the master height and width. The rscale is 0.2.
 
+import MOUtils.ImageDimensions;
+import MOUtils.Rect;
+
 // Next look for the ROI renders you want to make in the master image and demark them. These will be the PPAs (permitted paste areas) of each ROI image. Each PPA area requires a bigger
 // full extents to allow for the pasting of sprites outside the PPA, but still partially appearing within the PPA. These larger areas are the ROIExtents; demark them too.
 // Add each ROI image to the helper using the pixel coordinates you find in the master image to define both the ROIExtents and the PPA of each. Also add the desired full render width of the 

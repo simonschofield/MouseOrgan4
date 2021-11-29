@@ -1,5 +1,7 @@
 import java.awt.image.BufferedImage;
 
+import MOUtils.PVector;
+
 public class SolidTexture3D {
 	
 	BufferedImage textureImage;

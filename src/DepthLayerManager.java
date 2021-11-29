@@ -1,3 +1,5 @@
+import MOUtils.Range;
+
 /////////////////////////////////////////////////////////////////////////
 // To help with establishing depth layers and triggering events (like save image and clear) when a depth-layer is fully rendered
 //Depth is defined in normalised units 1..0, where 1 is farthest away.

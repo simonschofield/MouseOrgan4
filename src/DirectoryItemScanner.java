@@ -2,6 +2,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 
+import MOUtils.Range;
+import MOUtils.Rect;
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 // DirectoryItemScanner 
 // abstract DirectoryItemGroup class. 
@@ -9,6 +12,10 @@ import java.util.ArrayList;
 class DirectoryItemScanner {
 
 	String directoryPath;
+	
+	// filters
+	String fileStringEndsWith = "";
+	String fileStringContains = "";
 
 	ArrayList<String> directoryContentPathAndNamesList = new ArrayList<String>();
 	ArrayList<String> directoryContentShortNameList = new ArrayList<String>();
@@ -17,6 +24,12 @@ class DirectoryItemScanner {
 		init(targetDirectory);
 
 	}
+	
+	void setFileNameFilters(String fileStrEndsWith,  String fileStrContains) {
+		fileStringEndsWith = fileStrEndsWith;
+		fileStringContains = fileStrContains;
+	}
+
 
 	void init(String targetDirectory) {
 		directoryPath = targetDirectory;
@@ -27,13 +40,19 @@ class DirectoryItemScanner {
 	}
 
 	String getShortNameOfItem(int n) {
-		return directoryContentShortNameList.get(n);
+		//System.out.println("directoryContentShortNameList size = " + directoryContentShortNameList.size());
+		String s =  directoryContentShortNameList.get(n);
+		//System.out.println("getShortNameOfItem = " + n + " is called " + s);
+		return s;
 	}
 	
     int getNumFileTypeInTargetDirectory(String fileStrEndsWith,  String fileStrContains) {
 		return getFilesInDirectory(directoryPath, fileStrEndsWith, fileStrContains).size();
 	}
 
+    ArrayList<String> getFilesInDirectory(){
+    	return  getFilesInDirectory(directoryPath, fileStringEndsWith,  fileStringContains);
+    }
     
 	// returns the full path and filename
 	ArrayList<String> getFilesInDirectory(String dir, String fileStrEndsWith,  String fileStrContains) {
@@ -56,7 +75,9 @@ class DirectoryItemScanner {
 	}
 	
 	
-	
+	ArrayList<String> getShortFileNamesInDirectory(){
+    	return  getShortFileNamesInDirectory(directoryPath, fileStringEndsWith,  fileStringContains);
+    }
 
 	// returns the filename only, without extension
 	ArrayList<String> getShortFileNamesInDirectory(String dir, String fileStrEndsWith,  String fileStrContains) {
@@ -121,14 +142,11 @@ class DirectoryImageGroup extends DirectoryItemScanner {
 	Range widthExtrema = new Range();
 	Range heightExtrema = new Range();
 	
-	// filters
-	String fileStringEndsWith = "";
-	String fileStringContains = "";
+	
 	
 	public DirectoryImageGroup(String targetDirectory, String fileStrEndsWith, String fileStrContains) {
 		super(targetDirectory);
-		fileStringEndsWith = fileStrEndsWith;
-		fileStringContains = fileStrContains;
+		setFileNameFilters( fileStrEndsWith,   fileStrContains);
 		// TODO Auto-generated constructor stub
 	}
 	

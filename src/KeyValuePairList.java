@@ -19,6 +19,14 @@ class KeyValuePairList{
     return kvplCopy;
   }
   
+  // for comparing a KVPList against this one, to see if it contains an equal KVP - i.e. both K and V are the same
+  boolean containsEqual(KeyValuePairList otherKvpList) {
+	  for(KeyValuePair otherKvp: otherKvpList.keyValuePairs) {
+		  if(containsEqual(otherKvp)) return true;
+	  }
+	  return false;
+  }
+  
   boolean containsEqual(KeyValuePair otherKvp) {
 	  for(KeyValuePair thisKvp: keyValuePairs) {
 		  if(thisKvp.equals(otherKvp)) return true;
@@ -28,8 +36,7 @@ class KeyValuePairList{
   
   void printMe(){
     for(KeyValuePair kvp: keyValuePairs){
-     // tbd
-      
+     System.out.println(kvp.getStr());
     }
   }
   //////////////////////////////////////////////////////
@@ -61,7 +68,6 @@ class KeyValuePairList{
 
 
   void addKeyValuePair(KeyValuePair kv){
-    removeKeyValue( kv.getKey() );
     keyValuePairs.add(kv);
   }
 
@@ -187,6 +193,22 @@ class KeyValuePair {
 
   KeyValuePair() {
   }
+  
+  KeyValuePair(String k, boolean v){
+	  set(k,v);
+  }
+  
+  KeyValuePair(String k, int v){
+	  set(k,v);
+  }
+  
+  KeyValuePair(String k, float v){
+	  set(k,v);
+  }
+  
+  KeyValuePair(String k, String v){
+	  set(k,v);
+  }
 
   KeyValuePair copy(){
     KeyValuePair kvpcopy = new KeyValuePair();
@@ -200,8 +222,13 @@ class KeyValuePair {
     
   }
   
-  void printMe(){
-    
+  String getStr(){
+    String s = "Key " + theKey;
+    if (TYPE == BOOLEAN) s = s + " Value : Boolean : " + this.bval;
+	  if (TYPE == INTEGER) s = s + " Value : Int : " + this.ival;
+	  if (TYPE == FLOAT) s = s + " Value : Float : " + this.fval;
+	  if (TYPE == STRING) s = s + " Value : String : " + this.sval;
+	  return s;
   }
   
   boolean equals(KeyValuePair other) {

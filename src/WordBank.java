@@ -15,6 +15,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import MOUtils.CollectionIterator;
+
 public class WordBank extends CollectionIterator{
 
 	ArrayList<String> wordList = new ArrayList<String>();
@@ -73,13 +75,13 @@ public class WordBank extends CollectionIterator{
 	 }
 
 	@Override
-	int getNumItems() {
+	public int getNumItems() {
 		// TODO Auto-generated method stub
 		return wordList.size();
 	}
 
 	@Override
-	Object getItem(int n) {
+	public Object getItem(int n) {
 		// TODO Auto-generated method stub
 		return wordList.get(n);
 	}

@@ -3,6 +3,11 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
+import MOUtils.Line2;
+import MOUtils.MOMaths;
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 
 //////////////////////////////////////////////////////////////////////
 // Enables the tracking of arbitrary points within a sprite after multiple transforms to the sprite

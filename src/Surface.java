@@ -17,6 +17,10 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import MOUtils.KeepAwake;
+import MOUtils.MOUtils;
+import MOUtils.Rect;
+
 //////////////////////////////////////////////////////////////////
 // static global access to important long-lived classes
 //

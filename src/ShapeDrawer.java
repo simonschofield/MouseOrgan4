@@ -7,6 +7,8 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 
+import MOUtils.PVector;
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // a separate drawing class that could be used anywhere would look like this

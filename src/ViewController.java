@@ -5,6 +5,9 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 // This is an improved view controller that uses the whole window and is not limited to the aspect of the document
 // Given the following unchanging parameters
 // Document size (w, h and aspect)

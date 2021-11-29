@@ -8,6 +8,10 @@ import java.util.ArrayList;
 // However the start and end points are always accurate.
 //
 
+import MOUtils.Line2;
+import MOUtils.PVector;
+import MOUtils.Rect;
+
 
 
 public class WordVerticeCrawler {

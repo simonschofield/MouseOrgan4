@@ -1,6 +1,14 @@
 import java.awt.image.BufferedImage;
+
+
+
 import java.util.ArrayList;
 import java.util.Comparator;
+
+import MOUtils.CollectionIterator;
+import MOUtils.PVector;
+import MOUtils.Rect;
+import MOUtils.CollectionIterator;
 
 public class PointGenerator_Random extends CollectionIterator{
 	RandomStream randomStream;
@@ -128,13 +136,13 @@ public class PointGenerator_Random extends CollectionIterator{
 	
 
 	@Override
-	int getNumItems() {
+	public int getNumItems() {
 		// TODO Auto-generated method stub
 		return points.size();
 	}
 
 	@Override
-	PVector getItem(int n) {
+	public PVector getItem(int n) {
 		// TODO Auto-generated method stub
 		if(n >= points.size()) return null;
 		return points.get(n);
