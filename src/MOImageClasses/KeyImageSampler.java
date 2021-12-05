@@ -1,18 +1,23 @@
+package MOImageClasses;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import MOUtils.MOMaths;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOMaths.Rect;
+import MOUtils.ImageCoordinateSystem;
+import MOUtils.MOUtilGlobals;
 
 ////////////////////////////////////////////////////////////////////////////////
 // simple wrapper round an image, so you can use document space (of the HOST application, longest edge 0..1, shortest edge 0..1/aspect) and 
 // normalised  space (0..1 in both x and y) to access the data
 // TBD bilinear sampling of the image
 
-class KeyImageSampler{
+public class KeyImageSampler{
 	private BufferedImage bufferedImage;
 	private FloatImage floatImage;
+	
 	int sourceImageWidth;
 	int sourceImageHeight;
 	float sourceImageAspect;
@@ -20,10 +25,12 @@ class KeyImageSampler{
 	
 	boolean useBilinearSampling = false;
 	
-	Rect documentExtentsRect = new Rect(0,0,1,1);
+	Rect documentExtentsRect = new Rect();
 	
 	
-	KeyImageSampler(BufferedImage src){
+	
+	
+	public KeyImageSampler(BufferedImage src){
 		bufferedImage = src;
 		sourceImageWidth = bufferedImage.getWidth();
 		sourceImageHeight = bufferedImage.getHeight();
@@ -31,7 +38,7 @@ class KeyImageSampler{
 		sourceHasAlpha = ImageProcessing.hasAlpha(bufferedImage);
 	}
 	
-	KeyImageSampler(FloatImage src){
+	public KeyImageSampler(FloatImage src){
 		floatImage = src;
 		sourceImageWidth = floatImage.getWidth();
 		sourceImageHeight = floatImage.getHeight();
@@ -39,7 +46,7 @@ class KeyImageSampler{
 		
 	}
 	
-	void setBilinearSampling(boolean b) {
+	public void setBilinearSampling(boolean b) {
 		useBilinearSampling = b;
 		
 	}
@@ -51,28 +58,28 @@ class KeyImageSampler{
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	// for BufferedImages only
 	//
-	BufferedImage getBufferedImage() { return bufferedImage;}
+	public BufferedImage getBufferedImage() { return bufferedImage;}
 	
-	Color getPixelDocSpace(PVector docSpace) {
+	public Color getPixelDocSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
-		PVector np = GlobalObjects.theDocument.docSpaceToNormalisedSpace(docSpace);
+		PVector np = MOUtilGlobals.theDocumentCoordSystem.docSpaceToNormalisedSpace(docSpace);
 		return getPixelNormalisedSpace(np);
 	}
 	
-	Color getPixelNormalisedSpace(PVector p) {
+	public Color getPixelNormalisedSpace(PVector p) {
 		PVector pixelLoc = normalisedSpaceToBufferSpace(p);
 		int packedColor =  bufferedImage.getRGB((int)pixelLoc.x, (int)pixelLoc.y);
 		return ImageProcessing.packedIntToColor(packedColor, sourceHasAlpha);
 	}
 	
 	
-	float getValue01DocSpace(PVector docSpace) {
+	public float getValue01DocSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
 		PVector pixelLoc = docSpaceToBufferSpace( docSpace);
 		return ImageProcessing.getValue01Clamped(bufferedImage,(int)pixelLoc.x, (int)pixelLoc.y);
 	}
 	
-	float getValue01NormalisedSpace(PVector p) {
+	public float getValue01NormalisedSpace(PVector p) {
 		PVector pixelLoc = normalisedSpaceToBufferSpace(p);
 		return ImageProcessing.getValue01Clamped(bufferedImage,(int)pixelLoc.x, (int)pixelLoc.y);
 	}
@@ -80,16 +87,16 @@ class KeyImageSampler{
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	// for FloatImages only
 	//
-	FloatImage getFloatImage() {return floatImage;}
+	public FloatImage getFloatImage() {return floatImage;}
 	
 	
-	float getFloatImageValDocSpace(PVector docSpace) {
+	public float getFloatImageValDocSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
 		PVector pixelLoc = docSpaceToBufferSpace( docSpace);
 		return floatImage.get((int)pixelLoc.x, (int)pixelLoc.y);
 	}
 	
-	float getFloatImageValNormalisedpace(PVector normalSpace) {
+	public float getFloatImageValNormalisedpace(PVector normalSpace) {
 		// the document space refers to the DocSpace of the HOST application
 		PVector pixelLoc = normalisedSpaceToBufferSpace( normalSpace);
 		return floatImage.get((int)pixelLoc.x, (int)pixelLoc.y);
@@ -99,11 +106,11 @@ class KeyImageSampler{
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//  General functions
 	//
-	int getWidth() { return sourceImageWidth;}
+	public int getWidth() { return sourceImageWidth;}
 	
-	int getHeight() { return sourceImageHeight;}
+	public int getHeight() { return sourceImageHeight;}
 	
-	PVector normalisedSpaceToBufferSpace(PVector normSpace) {
+	public PVector normalisedSpaceToBufferSpace(PVector normSpace) {
 		
 		//
 		//normSpace = documentExtentsRect.norm(normSpace);
@@ -114,20 +121,20 @@ class KeyImageSampler{
 		return new PVector(pixelX,pixelY);
 	}
 	
-	PVector docSpaceToBufferSpace(PVector docSpace) {
+	public PVector docSpaceToBufferSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
-		PVector np = GlobalObjects.theDocument.docSpaceToNormalisedSpace(docSpace);
+		PVector np = MOUtilGlobals.theDocumentCoordSystem.docSpaceToNormalisedSpace(docSpace);
 		return normalisedSpaceToBufferSpace(np);
 	}
 	
 	
-	PVector bufferSpaceToDocSpace(PVector p) {
+	public PVector bufferSpaceToDocSpace(PVector p) {
 		PVector normPt = bufferSpaceToNormalisedSpace(p);
-		return GlobalObjects.theDocument.normalisedSpaceToDocSpace(normPt);
+		return MOUtilGlobals.theDocumentCoordSystem.normalisedSpaceToDocSpace(normPt);
 	}
 	
 	
-	PVector bufferSpaceToNormalisedSpace(PVector p) {
+	public PVector bufferSpaceToNormalisedSpace(PVector p) {
 		float nx = p.x/sourceImageWidth;
 		float ny = p.y/sourceImageHeight;
 		//PVector normSpace = new PVector(nx,ny);

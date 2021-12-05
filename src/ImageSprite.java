@@ -3,10 +3,15 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import MOUtils.Line2;
-import MOUtils.MOMaths;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOImageClasses.BendImage;
+import MOImageClasses.ImageProcessing;
+import MOImageClasses.SceneData3D;
+import MOMaths.Line2;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOMaths.QRandomStream;
+import MOMaths.Rect;
+import MOMaths.SNum;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -60,11 +65,11 @@ class ImageQuad{
 		//System.out.println("Pixel Loc in sprite of Enquiry Nom Point " + normX + " " + normY + " is " + pixelLocOfEnquiryPtInQuad.toStr());
 		//PVector spriteOriginPixelLoc = new PVector(theSprite.origin.x * getImageWidth(), theSprite.origin.y * getImageHeight());
 		PVector spriteOriginPixelLoc = theSprite.getOriginBufferCoords();
-		PVector pixCoordOfDocumentPastePoint = GlobalObjects.theDocument.docSpaceToBufferSpace(pastePoint);
+		PVector pixCoordOfDocumentPastePoint = GlobalObjects.theDocument.coordinateSystem.docSpaceToBufferSpace(pastePoint);
 		
 		PVector pixelOffsetEnquryPointFomSpriteOrigin = new PVector(pixelLocOfEnquiryPtInQuad.x - spriteOriginPixelLoc.x, pixelLocOfEnquiryPtInQuad.y - spriteOriginPixelLoc.y);
 		PVector pixelCoordinateInDocument = pixCoordOfDocumentPastePoint.add(pixelOffsetEnquryPointFomSpriteOrigin);
-		return GlobalObjects.theDocument.bufferSpaceToDocSpace(pixelCoordinateInDocument);
+		return GlobalObjects.theDocument.coordinateSystem.bufferSpaceToDocSpace(pixelCoordinateInDocument);
 	}
 	
 	
@@ -530,7 +535,7 @@ public class ImageSprite{
 	float docSizeToRenderTargetPixels2D(float size) {
 
 		PVector heightDocSpaceVector = new PVector(0, size);
-		PVector heightInPixelsVector = GlobalObjects.theDocument.docSpaceToBufferSpace(heightDocSpaceVector);
+		PVector heightInPixelsVector = GlobalObjects.theDocument.coordinateSystem.docSpaceToBufferSpace(heightDocSpaceVector);
 		return (float) Math.abs(heightInPixelsVector.y);
 
 	}
@@ -587,7 +592,7 @@ public class ImageSprite{
 	Rect getPasteRectDocSpace(MainDocumentRenderTarget rt) {
 		PVector spriteOffset = this.getOriginBufferCoords();
 		
-		PVector docSpaceSpriteOffset = rt.bufferSpaceToDocSpace(spriteOffset);
+		PVector docSpaceSpriteOffset = rt.coordinateSystem.bufferSpaceToDocSpace(spriteOffset);
 		PVector docSpacePt = this.getDocPoint();
 		PVector shiftedDocSpacePt = PVector.sub(docSpacePt, docSpaceSpriteOffset);
 		
@@ -657,8 +662,8 @@ public class ImageSprite{
 		croppedSpriteRect.translate(-uncroppedLeft, -uncroppedTop);
 		
 		// work out the buffer space coords in the sprite image
-		PVector bTopLeft = rt.docSpaceToBufferSpace(croppedSpriteRect.getTopLeft());
-		PVector bBottomRight = rt.docSpaceToBufferSpace(croppedSpriteRect.getBottomRight());
+		PVector bTopLeft = rt.coordinateSystem.docSpaceToBufferSpace(croppedSpriteRect.getTopLeft());
+		PVector bBottomRight = rt.coordinateSystem.docSpaceToBufferSpace(croppedSpriteRect.getBottomRight());
 		
 		
 		
@@ -703,7 +708,7 @@ public class ImageSprite{
 	
 	// alters the preCroppedImage
 	boolean addBespokeCropToEdge(MainDocumentRenderTarget rt, BufferedImage preCroppedImage, String theEdge) {
-		int numCropImages = rt.permittedPasteArea.permittedPasteAreaCropImages.getNumItems();
+		int numCropImages = rt.permittedPasteArea.permittedPasteAreaCropImages.getNumImages();
 		int n = qRandomStream.randRangeInt(0, numCropImages-1);
 		BufferedImage croppingMask = rt.permittedPasteArea.permittedPasteAreaCropImages.getImage(n);
 		int sourceImageW = preCroppedImage.getWidth();
@@ -779,7 +784,7 @@ public class ImageSprite{
 		int maskH = maskImage.getHeight();
 		
 		// crops out just the part we want to mask - i.e. only those pixels "under" the mask
-		Rect cropR = new Rect(offsetX, offsetY, offsetX+maskW, offsetY+maskH);
+		Rect cropR = new Rect(offsetX, offsetY, maskW, maskH);
 		
 		BufferedImage preCroppedImageOverlap = ImageProcessing.cropImage(preCroppedImage, cropR);
 

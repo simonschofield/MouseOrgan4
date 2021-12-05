@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 
-public class MOUtils {
+public class MOStringUtils {
 
 
 	
@@ -45,6 +45,15 @@ public class MOUtils {
 	        return filename; // no extension anyway
 	    }
 	    return filename.substring(0,lastIndexOf);
+	}
+	
+	public static String getShortFileNameFromFullPathAndFileName(String fullPathAndFileName) {
+		// returns the file name without path or extension
+		File f = new File(fullPathAndFileName); 
+		String shortFileNameWithExtension = f.getName();
+		int strlen = shortFileNameWithExtension.length();
+		String fileNameOnly = shortFileNameWithExtension.substring(0, strlen - 4);
+		return fileNameOnly;
 	}
 	
 	public static boolean checkDirectoryExist(String foldername) {

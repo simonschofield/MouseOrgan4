@@ -5,9 +5,11 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import MOImageClasses.KeyImageSampler;
+import MOMaths.PVector;
+import MOMaths.RandomStream;
+import MOMaths.Rect;
 import MOUtils.CollectionIterator;
-import MOUtils.PVector;
-import MOUtils.Rect;
 import MOUtils.CollectionIterator;
 
 public class PointGenerator_Random extends CollectionIterator{
@@ -35,10 +37,10 @@ public class PointGenerator_Random extends CollectionIterator{
 	
 
 	public PointGenerator_Random(int rseed) {
-		aspect = GlobalObjects.theDocument.getDocumentAspect();
+		aspect = GlobalObjects.theDocument.coordinateSystem.getDocumentAspect();
 		randomStream = new RandomStream(rseed);
-		float w = GlobalObjects.theDocument.getDocumentWidth();
-		float h = GlobalObjects.theDocument.getDocumentHeight();
+		float w = GlobalObjects.theDocument.coordinateSystem.getDocumentWidth();
+		float h = GlobalObjects.theDocument.coordinateSystem.getDocumentHeight();
 		setGenerationArea(new Rect(0,0,w,h));
 	}
 	

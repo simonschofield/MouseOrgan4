@@ -1,12 +1,13 @@
+package MOImageClasses;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.ByteBuffer;
 import javax.imageio.*;
 
-import MOUtils.MOMaths;
-import MOUtils.PVector;
-import MOUtils.Range;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOMaths.Range;
 
 import java.awt.image.*;
 import java.awt.color.ColorSpace;
@@ -24,7 +25,7 @@ import java.awt.Transparency;
 // so can be used as Mask values. 
 ///////////////////////////////////////////////////////////
 
-class FloatImage{
+public class FloatImage{
   float [] floatArray;
   int xdim, ydim;
   Range extrema = new Range(0,1);
@@ -73,7 +74,7 @@ class FloatImage{
   
   
   
-  Range getExtrema(){
+  public Range getExtrema(){
     updateExtrema();
     return extrema.copy();
   }
@@ -110,7 +111,7 @@ class FloatImage{
   }
   
 
-  float get(int x, int y){
+  public float get(int x, int y){
     int loc = xdim*y + x;
     return floatArray[loc];
   }
@@ -128,7 +129,7 @@ class FloatImage{
   
   
   
-  void set(int x, int y, float val){
+  public void set(int x, int y, float val){
     int index = xdim*y + x;
     
     set(index, val);

@@ -17,9 +17,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import MOMaths.PVector;
+import MOMaths.Rect;
+import MOUtils.ImageCoordinateSystem;
 import MOUtils.KeepAwake;
-import MOUtils.MOUtils;
-import MOUtils.Rect;
+import MOUtils.MOStringUtils;
+import MOUtils.MOUtilGlobals;
 
 //////////////////////////////////////////////////////////////////
 // static global access to important long-lived classes
@@ -50,7 +53,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	
 	JFrame parentApp = null;
 
-	private float globalSessionScale = 1.0f;
+	//private float globalSessionScale = 1.0f;
 
 	MainDocumentRenderTarget theDocument;
 	ViewController theViewControl = new ViewController();
@@ -114,7 +117,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		parentApp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setFocusable(true);
 		
-		viewDisplayRect = new Rect(100, 5, windowWidth - 20,  windowHeight - 45);
+		viewDisplayRect = new Rect(new PVector(100, 5), new PVector(windowWidth - 20,  windowHeight - 45));
 	}
 
 
@@ -123,10 +126,14 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	//
 
 	public void initialiseDocument(int dw, int dh, float sessionScale) {
-		globalSessionScale = sessionScale;
+		MOUtilGlobals.setSessionScale(sessionScale);
+		
 		theDocument = new MainDocumentRenderTarget();
 		GlobalObjects.theDocument = theDocument;
-		theDocument.setRenderBufferSize((int) (dw * globalSessionScale), (int) (dh * globalSessionScale));
+		
+		theDocument.setRenderBufferSize((int) (dw * MOUtilGlobals.getSessionScale()), (int) (dh * MOUtilGlobals.getSessionScale()));
+		
+		MOUtilGlobals.theDocumentCoordSystem = theDocument.getCoordinateSystem();
 		
 		//setWindowSize();
 		
@@ -265,7 +272,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	}
 
 	public float getSessionScale() {
-		return globalSessionScale;
+		return MOUtilGlobals.getSessionScale();
 	}
 	
 	public int getCanvasUpdateFrequency() {
@@ -284,8 +291,8 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 		// certain drawing operations, such as defining line thickness and circle radius. 
 		// To be resolution independent, these operations take measurement in document space.
 		// But the user may wish to think in pixel size in the final 100% scale image.
-		float pixelsScaled = pixels*globalSessionScale;
-		return (pixelsScaled/theDocument.getLongestBufferEdge());
+		float pixelsScaled = pixels*MOUtilGlobals.getSessionScale();
+		return (pixelsScaled/theDocument.coordinateSystem.getLongestBufferEdge());
 	}
 
 	SimpleUI getSimpleUI() {
@@ -365,7 +372,7 @@ abstract class Surface extends JPanel implements ActionListener, MouseListener, 
 	String getSessionTimeStampedFileName(String enhancement) {
 		String sessionName = getUserSessionDirectoryName();
 		String fullPathAndFileName = userSessionPath + sessionName;
-		return MOUtils.getDateStampedImageFileName(fullPathAndFileName + enhancement);
+		return MOStringUtils.getDateStampedImageFileName(fullPathAndFileName + enhancement);
 	}
 
 	////////////////////////////////////////////////////////////////////////

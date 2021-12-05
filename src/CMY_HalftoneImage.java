@@ -3,8 +3,11 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOImageClasses.ImageProcessing;
+import MOImageClasses.KeyImageSampler;
+import MOMaths.PVector;
+import MOMaths.Rect;
+import MOUtils.MOUtilGlobals;
 
  
 
@@ -26,7 +29,7 @@ public class CMY_HalftoneImage{
 
 	KeyImageSampler sourceImageSampler;
 	
-	MainDocumentRenderTarget theDocument;
+	//MainDocumentRenderTarget theDocument;
 	Surface theSurface;
 	
 	Rect documentTargetRect;
@@ -48,13 +51,13 @@ public class CMY_HalftoneImage{
 		sourceImageSampler = new KeyImageSampler(srcImage);
 		
 		theSurface = surface;
-		theDocument = theSurface.theDocument;
+		//theDocument = theSurface.theDocument;
 		
 		
 		documentTargetRect = targetArea;
 		cmyRenderTarget = new MainDocumentRenderTarget();
-		int newWidth = (int) (documentTargetRect.getWidth()*theDocument.getBufferWidth());
-		int newHeight = (int) (documentTargetRect.getHeight()*theDocument.getBufferHeight());
+		int newWidth = (int) (documentTargetRect.getWidth()* MOUtilGlobals.theDocumentCoordSystem.getBufferWidth());
+		int newHeight = (int) (documentTargetRect.getHeight()* MOUtilGlobals.theDocumentCoordSystem.getBufferHeight());
 		cmyRenderTarget.setRenderBufferSize(newWidth, newHeight);
 
 	}
@@ -71,7 +74,7 @@ public class CMY_HalftoneImage{
 	public void makeCMYhalftoneComposite(int dotSpacingPixels, boolean saveOutImages) {
 		// dotSpacingPixels is the number of pixels you want the dot spacing to be at in pixels in 100% scale output image
 		// i.e. when the session scale is at 100%
-		float dotSpacingNomalisedSpace = (dotSpacingPixels / (float)cmyRenderTarget.getLongestBufferEdge())*theSurface.getSessionScale();
+		float dotSpacingNomalisedSpace = (dotSpacingPixels / (float)cmyRenderTarget.coordinateSystem.getLongestBufferEdge())*theSurface.getSessionScale();
 		makeCMYhalftoneComposite( dotSpacingNomalisedSpace,  saveOutImages);
 	}
 	
@@ -103,8 +106,8 @@ public class CMY_HalftoneImage{
 		
 		// need to convert the topleft of the documentTargetRect, which is in normalised space,
 		// into document space
-		PVector docSpaceTopLeft = theDocument.normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
-		theDocument.pasteImage(composite, docSpaceTopLeft, 1);
+		PVector docSpaceTopLeft = theSurface.theDocument.coordinateSystem.normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
+		theSurface.theDocument.pasteImage(composite, docSpaceTopLeft, 1);
 		
 		if(saveOutImages) {
 			String pathAndName = theSurface.getUserSessionPath() + "cmyComposite.png";
@@ -160,7 +163,7 @@ public class CMY_HalftoneImage{
 	        // then adjust the size of the dot according to the tonal value
 			
 			// convert the output image docspace coordinate to normalised space
-			PVector pnorm = cmyRenderTarget.docSpaceToNormalisedSpace(p);
+			PVector pnorm = cmyRenderTarget.coordinateSystem.docSpaceToNormalisedSpace(p);
 			Color sampleCol = sourceImageSampler.getPixelNormalisedSpace(pnorm);
 			
 			float[] cmy =  RGBtoCMY(sampleCol);
@@ -211,14 +214,14 @@ public class CMY_HalftoneImage{
             thisX = thisX + dx*stepSize;
             thisY = thisY + dy*stepSize;
 
-            if(thisX > cmyRenderTarget.getDocumentWidth()) {
+            if(thisX > cmyRenderTarget.coordinateSystem.getDocumentWidth()) {
                 startX = startX - stepSize*dy;
                 thisX = startX;
                 startY = startY + stepSize*dx;
                 thisY = startY;
             }
 
-            if(startY >= cmyRenderTarget.getDocumentHeight()) break;
+            if(startY >= cmyRenderTarget.coordinateSystem.getDocumentHeight()) break;
         }
         
         

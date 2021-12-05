@@ -29,4 +29,22 @@ public class GenericArrayListUtils{
 		return true;
 	}
 	
+	// returns true if all the elements of list A are present in list B
+	public static <T> boolean listsAContainedInB(ArrayList<T> listA, ArrayList<T> listB) {
+		
+		for(int na = 0; na < listA.size(); na++) {
+			T sA = listA.get(na);
+			boolean matchFound = false;
+			for(int nb = 0; nb < listB.size(); nb++) {
+			    T sB = listB.get(nb);
+			    if( sA.equals(sB) ) {
+			    	matchFound = true;
+			    	break;
+			    }
+			}
+			if( matchFound==false ) return false;
+		}
+		return true;
+	}
+	
 }

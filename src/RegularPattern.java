@@ -1,7 +1,10 @@
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOUtils.PVector;
+import ImageCollectionClasses.ImageSampleGroup;
+import MOImageClasses.KeyImageSampler;
+import MOMaths.PVector;
+import MOMaths.QRandomStream;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // a regular pattern is a repeating pattern defined by a string sequence (e.g. "a","b","a","c")
@@ -126,12 +129,39 @@ public class RegularPattern {
 		
 		
 		String currentPatternStr = getCurrentPatternElement();
-        BufferedImage img = imageSampleGroup.getRandomImage(qRandomStream, currentPatternStr);
+		
+        //BufferedImage img = imageSampleGroup.getRandomImage(qRandomStream, currentPatternStr);
+		int numImgs = imageSampleGroup.getNumImages();
+		
+		BufferedImage img = null;
+		//imageSampleGroup.getRandomImage(qRandomStream, currentPatternStr);
+		
+		String nameContainsFilter = currentPatternStr;
+		if(currentPatternStr == null) nameContainsFilter = "";
+		if(nameContainsFilter == "") {
+			int rnum = (int)qRandomStream.randRangeInt(0, numImgs-1);
+			img = imageSampleGroup.getImage(rnum);
+		} else {
+		
+		ArrayList<String> imageNames = imageSampleGroup.getImageNameList();
+		ArrayList<String> filteredNamesFound = new ArrayList<String>();
+		for (String thisName : imageNames) {
+			if (thisName.contains(nameContainsFilter))
+				filteredNamesFound.add(thisName);
+		}
+		
+		int rnum = qRandomStream.randRangeInt(0, filteredNamesFound.size()-1);
+		String foundName = filteredNamesFound.get(rnum);
+		img = imageSampleGroup.getImage(foundName);
+		}
+		
+		
+		
         PVector p = currentPatternPosition.copy();
         p = addFractionalOffset(p);
         p = addJiggle(p);
         
-        ImageSprite sprite = new ImageSprite(img, imageSampleGroup.spriteOrigin, imageSampleGroup.getGroupSizeInScene(), 1);
+        ImageSprite sprite = new ImageSprite(img, imageSampleGroup.getGroupOrigin(), imageSampleGroup.getGroupSizeInScene(), 1);
         sprite.setDocPoint(p);
         advancePattern();
         

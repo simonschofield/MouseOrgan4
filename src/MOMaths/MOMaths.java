@@ -1,5 +1,4 @@
-package MOUtils;
-
+package MOMaths;
 
 public class MOMaths {
 

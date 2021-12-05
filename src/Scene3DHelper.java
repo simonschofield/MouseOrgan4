@@ -2,8 +2,13 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOUtils.MOMaths;
-import MOUtils.PVector;
+import MOImageClasses.ConvolutionFilter;
+import MOImageClasses.ImageProcessing;
+import MOImageClasses.SceneData3D;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOMaths.QRandomStream;
+import MOMaths.SNum;
 
 class SceneHelper {
 	static Surface theSurface = GlobalObjects.theSurface;

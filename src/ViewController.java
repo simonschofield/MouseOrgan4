@@ -5,8 +5,9 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOImageClasses.ImageProcessing;
+import MOMaths.PVector;
+import MOMaths.Rect;
 
 // This is an improved view controller that uses the whole window and is not limited to the aspect of the document
 // Given the following unchanging parameters
@@ -71,8 +72,8 @@ public class ViewController {
 				"viewRect width " + viewDisplayRect.getWidth() + " viewRect height " + viewDisplayRect.getWidth());
 		viewDisplayRectAspect = viewDisplayRect.aspect();
 
-		theDocumentWidth = GlobalObjects.theDocument.getBufferWidth();
-		theDocumentHeight = GlobalObjects.theDocument.getBufferHeight();
+		theDocumentWidth = GlobalObjects.theDocument.coordinateSystem.getBufferWidth();
+		theDocumentHeight = GlobalObjects.theDocument.coordinateSystem.getBufferHeight();
 		theDocumentAspect = theDocumentWidth / (float) theDocumentHeight;
 		theDocumentCentre = new PVector(theDocumentWidth / 2f, theDocumentHeight / 2f);
 		theDocumentRect = new Rect(0,0,theDocumentWidth,theDocumentHeight);
@@ -100,8 +101,8 @@ public class ViewController {
 		// this is needed by external objects only to do cropping operations
 		PVector topLeftBufferSpace = currentViewCropRect.getTopLeft();
 		PVector bottomRightBufferSpace = currentViewCropRect.getBottomRight();
-		PVector topLeftDocSpace = GlobalObjects.theDocument.bufferSpaceToDocSpace(topLeftBufferSpace);
-		PVector bottomRightDocSpace = GlobalObjects.theDocument.bufferSpaceToDocSpace(bottomRightBufferSpace);
+		PVector topLeftDocSpace = GlobalObjects.theDocument.coordinateSystem.bufferSpaceToDocSpace(topLeftBufferSpace);
+		PVector bottomRightDocSpace = GlobalObjects.theDocument.coordinateSystem.bufferSpaceToDocSpace(bottomRightBufferSpace);
 		return new Rect(topLeftDocSpace, bottomRightDocSpace);
 	}
 	
@@ -138,21 +139,21 @@ public class ViewController {
 		if (zoomSetting == 0) {
 			// do the correct mapping for the fitToWindow set up
 			PVector pixelInImageBuffer = Rect.map(viewDisplayRectPoint,  fitToWindowCentreRect, theDocumentRect);
-			PVector docSpace = GlobalObjects.theDocument.bufferSpaceToDocSpace(pixelInImageBuffer);
+			PVector docSpace = GlobalObjects.theDocument.coordinateSystem.bufferSpaceToDocSpace(pixelInImageBuffer);
 			//System.out.println("window click x " + x + " y " + y + "doc space point is " + docSpace.toStr());
 			return docSpace;
 		}
 		
 		// if zoom > 1 the use the currentViewCropRect
 		PVector pixelInImageBuffer = Rect.map(viewDisplayRectPoint, viewDisplayRect, currentViewCropRect);
-		return GlobalObjects.theDocument.bufferSpaceToDocSpace(pixelInImageBuffer);
+		return GlobalObjects.theDocument.coordinateSystem.bufferSpaceToDocSpace(pixelInImageBuffer);
 	}
 	
 	
 	PVector docSpaceToAppWindowCoordinate(PVector docSpacePt) {
 		// used by the SimpleUI interface canvas to draw overlay items to the viewDisplayRect
 		
-		PVector pixelInImageBuffer = GlobalObjects.theDocument.docSpaceToBufferSpace(docSpacePt);
+		PVector pixelInImageBuffer = GlobalObjects.theDocument.coordinateSystem.docSpaceToBufferSpace(docSpacePt);
 		if (zoomSetting == 0) {
 			return Rect.map(pixelInImageBuffer, theDocumentRect, fitToWindowCentreRect);
 		}

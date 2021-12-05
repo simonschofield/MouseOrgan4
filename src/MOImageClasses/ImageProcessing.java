@@ -1,3 +1,4 @@
+package MOImageClasses;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -16,9 +17,9 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import MOUtils.MOMaths;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOMaths.Rect;
 
 
 public class ImageProcessing {
@@ -162,7 +163,7 @@ public class ImageProcessing {
 	public static BufferedImage cropImageWithNormalisedRect(BufferedImage src, Rect r) {
 		int w = src.getWidth();
 		int h = src.getHeight();
-		Rect pixelCropRect = new Rect(r.left*w, r.top*h, r.right*w, r.bottom*h);
+		Rect pixelCropRect = new Rect(new PVector(r.left*w, r.top*h) , new PVector(r.right*w, r.bottom*h));
 		return cropImage(src, pixelCropRect);
 	}
 	
@@ -286,7 +287,7 @@ public class ImageProcessing {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// value get 
 	//	
-	static float getValue01Clamped(BufferedImage src, int x, int y) {
+	public static float getValue01Clamped(BufferedImage src, int x, int y) {
 		x = MOMaths.constrain(x, 0, src.getWidth()-1);
 		y = MOMaths.constrain(y, 0, src.getHeight()-1);
 		return getValue01( src,  x,  y);
@@ -323,7 +324,7 @@ public class ImageProcessing {
 
 	}
 
-	static Color packedIntToColor(int packedCol, boolean hasAlpha) {
+	public static Color packedIntToColor(int packedCol, boolean hasAlpha) {
 		return new Color(packedCol, hasAlpha);
 	}
 
@@ -332,7 +333,7 @@ public class ImageProcessing {
 		return (c.getRed() + c.getGreen() + c.getBlue()) / 765f;
 	}
 
-	static int packARGB(int a, int r, int g, int b) {
+	public static int packARGB(int a, int r, int g, int b) {
 		// Packs four 8 bit numbers into one 32 bit number
 
 		a = a << 24; // Binary: 11111111000000000000000000000000
@@ -344,7 +345,7 @@ public class ImageProcessing {
 		return argb;
 	}
 	
-	static Color blendColor(Color c1, Color c2, float blendAmt) {
+	public static Color blendColor(Color c1, Color c2, float blendAmt) {
 		//System.out.println("blend amt " + blendAmt);
 		float c1r = c1.getRed();
 		float c1g = c1.getGreen();
@@ -942,219 +943,3 @@ public class ImageProcessing {
 
 
 	
-class ConvolutionFilter {
-	float[][] edge_matrix = { { 0, -2, 0 }, { -2, 8, -2 }, { 0, -2, 0 } };
-
-	float[][] blur_matrix = { { 0.1f, 0.1f, 0.1f }, { 0.1f, 0.1f, 0.1f }, { 0.1f, 0.1f, 0.1f } };
-
-	float[][] sharpen_matrix = { { 0, -1, 0 }, { -1, 5, -1 }, { 0, -1, 0 } };
-
-	float[][] gaussianblur_matrix = { 
-			{ 0.000f, 0.000f, 0.001f, 0.001f, 0.001f, 0.000f, 0.000f },
-			{ 0.000f, 0.002f, 0.012f, 0.020f, 0.012f, 0.002f, 0.000f },
-			{ 0.001f, 0.012f, 0.068f, 0.109f, 0.068f, 0.012f, 0.001f },
-			{ 0.001f, 0.020f, 0.109f, 0.172f, 0.109f, 0.020f, 0.001f },
-			{ 0.001f, 0.012f, 0.068f, 0.109f, 0.068f, 0.012f, 0.001f },
-			{ 0.000f, 0.002f, 0.012f, 0.020f, 0.012f, 0.002f, 0.000f },
-			{ 0.000f, 0.000f, 0.001f, 0.001f, 0.001f, 0.000f, 0.000f } };
-
-	float[][] sobelX_matrix5 = { 
-			{ 2, 1, 0, -1, -2 }, 
-			{ 2, 1, 0, -1, -2 }, 
-			{ 4, 2, 0, -2, -4 }, 
-			{ 2, 1, 0, -1, -2 },
-			{ 2, 1, 0, -1, -2 } };
-
-	float[][] sobelY_matrix5 = { 
-			{  2,  2,  4,  2,  2 }, 
-			{  1,  1,  2,  1,  1 }, 
-			{  0,  0,  0,  0,  0 }, 
-			{ -1, -1, -2, -1, -1 },
-			{ -2, -2, -4, -2, -2 } };
-
-	float[][] sobelX_matrix3 = { { 2, 0, -2 }, { 4, 0, -4 }, { 2, 0, -2 } };
-
-	float[][] sobelY_matrix3 = { { 2, 4, 2 }, { 0, 0, 0 }, { -2, -4, -2 } };
-	float[][] currentMatrix;
-	int currentMatrixDim;
-
-	public ConvolutionFilter() {
-		
-		// should probably set the identity matrix
-	}
-	
-	public ConvolutionFilter(String type) {
-		setCurrentFilter(type);
-	}
-
-	void setCurrentFilter(String type) {
-		if (type.toLowerCase() == "edge") {
-			currentMatrix = edge_matrix;
-			currentMatrixDim = 3;
-			return;
-		}
-		if (type.toLowerCase() == "blur") {
-			currentMatrix = blur_matrix;
-			currentMatrixDim = 3;
-			return;
-		}
-		if (type.toLowerCase() == "gaussianblur") {
-			currentMatrix = gaussianblur_matrix;
-			currentMatrixDim = 7;
-			getCurrentMatrixSum();
-			return;
-		}
-		if (type.toLowerCase() == "sobelx3") {
-			currentMatrix = sobelX_matrix3;
-			currentMatrixDim = 3;
-			return;
-		}
-		if (type.toLowerCase() == "sobely3") {
-			currentMatrix = sobelY_matrix3;
-			currentMatrixDim = 3;
-			return;
-		}
-
-		if (type.toLowerCase() == "sobelx5") {
-			currentMatrix = sobelX_matrix5;
-			currentMatrixDim = 5;
-			return;
-		}
-		if (type.toLowerCase() == "sobely5") {
-			currentMatrix = sobelY_matrix5;
-			currentMatrixDim = 5;
-			return;
-		}
-
-		// println("ConvolutionFilter: unknown filter requested - ", type);
-	}
-
-	float getCurrentMatrixSum() {
-		float sum = 0;
-		for (int j = 0; j < currentMatrixDim; j++) {
-
-			for (int i = 0; i < currentMatrixDim; i++) {
-
-				sum += currentMatrix[i][j];
-
-			}
-		}
-
-		return sum;
-	}
-
-	float convolveFloatPixel(int x, int y, FloatImage img) {
-
-		// x,y is the central pixel of the floatimage in the convolution
-		float total = 0.0f;
-		int offset = currentMatrixDim / 2;
-
-		// println("current matrix dim ",currentMatrixDim);
-		for (int i = 0; i < currentMatrixDim; i++) {
-			for (int j = 0; j < currentMatrixDim; j++) {
-				// get the image pixel clamped to the dims
-				int xloc = x + j - offset;
-				int yloc = y + i - offset;
-				float imgval = img.getClamped(xloc, yloc);
-
-				// Calculate the convolution
-				total += (imgval * currentMatrix[i][j]);
-				// println("loc total",loc,total);
-			}
-		}
-
-		// Return the resulting color
-		return total;
-	}
-	
-	
-	float convolvePixel(int x, int y, BufferedImage img) {
-
-		// x,y is the central pixel of the floatimage in the convolution
-		float total = 0.0f;
-		int offset = currentMatrixDim / 2;
-
-		// println("current matrix dim ",currentMatrixDim);
-		for (int i = 0; i < currentMatrixDim; i++) {
-			for (int j = 0; j < currentMatrixDim; j++) {
-				// get the image pixel clamped to the dims
-				int xloc = x + j - offset;
-				int yloc = y + i - offset;
-				float imgval = ImageProcessing.getValue01Clamped(img, xloc, yloc);
-
-				// Calculate the convolution
-				total += (imgval * currentMatrix[i][j]);
-				// println("loc total",loc,total);
-			}
-		}
-
-		// Return the resulting color
-		return total;
-	}
-	
-	
-	PVector getGradient(PVector docSpace, BufferedImage img) {
-		// uses a 5x5 Sobel filet.
-		// returns the direction and magnitude from dark to light
-		// The vector returned is in the direction of change from dark to light
-		// A magnitude of 0, means the image is flat in that region using a 5x5 kernel
-		KeyImageSampler kimg =  new KeyImageSampler(img);
-		PVector bufferXY =  kimg.docSpaceToBufferSpace( docSpace);
-		return getGradient((int)bufferXY.x, (int)bufferXY.y, kimg.getBufferedImage() );
-	}
-	
-	PVector getGradient(int x, int y, BufferedImage img) {
-		setCurrentFilter("sobelx5");
-		float dx = convolvePixel( x,  y,  img);
-		
-		setCurrentFilter("sobely5");
-		float dy = convolvePixel( x,  y,  img);
-
-		PVector grad =  new PVector(-dx,-dy);
-		
-		//grad.rotate((float)Math.toRadians(90));
-		return grad;
-	}
-	
-	
-	
-
-	//////////////////////////////////////////////////////////////////////////////////
-	//
-	//
-	//
-	public void createGaussianKernal(int size, float sd) {
-		currentMatrixDim = size;
-		// println("distances");
-		currentMatrix = new float[currentMatrixDim][currentMatrixDim];
-		for (int j = 0; j < currentMatrixDim; j++) {
-			for (int i = 0; i < currentMatrixDim; i++) {
-				// currentMatrix[i][j]=gaussianDiscrete2D(sd,i-(size/2),j-(size/2));
-				currentMatrix[i][j] = gaussianValue(sd, i, j);
-			}
-			// println();
-		}
-
-		// this will produce a Gaussian Curve with values of 1.0 at the centre, fading
-		// off.
-		// we need to scal eit so that the sum of all values = 1
-		float sumAllValues = getCurrentMatrixSum();
-
-		for (int j = 0; j < currentMatrixDim; j++) {
-			for (int i = 0; i < currentMatrixDim; i++) {
-				float scaledVal = currentMatrix[i][j] / sumAllValues;
-				currentMatrix[i][j] = scaledVal;
-				// print("[",scaledVal,"]");
-			}
-			// println();
-		}
-	}
-
-	private float gaussianValue(float sd, int x, int y) {
-		float cx = (currentMatrixDim - 1) / 2.0f;
-		float distToCentre = PVector.dist(new PVector(cx, cx, 0), new PVector(x, y, 0));
-		// print("[",distToCentre,"]");
-		return MOMaths.gaussianCurve(distToCentre, 1.0f, 0, sd);
-	}
-
-}// end ConvolutionFilter class

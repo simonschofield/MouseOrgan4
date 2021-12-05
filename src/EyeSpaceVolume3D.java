@@ -1,5 +1,5 @@
-import MOUtils.MOMaths;
-import MOUtils.PVector;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
 
 //////////////////////////////////////////////////////////////////////
 // 3D geometric elements

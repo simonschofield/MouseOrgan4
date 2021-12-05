@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import MOUtils.PVector;
-import MOUtils.Rect;
+import ImageCollectionClasses.DirectoryFileNameScanner;
+import ImageCollectionClasses.ImageSampleGroup;
+import MOMaths.PVector;
+import MOMaths.Rect;
 
 
 
@@ -43,19 +45,20 @@ class ImageSampleGroupManager {
 		ImageSampleGroup cc = getImageSampleGroup(name);
 		if (cc == null)
 			return 0;
-		return cc.getNumItems();
+		return cc.getNumImages();
 	}
 
 	// generates an ImageSprite from a seed
 	// the seed defines the ConentGroup and item within
+	/*
 	ImageSprite getSprite(Seed seed) {
 		// got to get the correct contentItemGroup first
-		ImageSampleGroup dig = getImageSampleGroup(seed.imageSampleGroupName);
+		NewImageSampleGroup dig = getImageSampleGroup(seed.imageSampleGroupName);
 
 		if (dig == null)
 			return null;
 		return dig.getSprite(seed);
-	}
+	}*/
 
 	ImageSprite getSprite(String contentGroupName, int num) {
 		// got to get the correct contentItemGroup first
@@ -63,8 +66,51 @@ class ImageSampleGroupManager {
 
 		if (dig == null)
 			return null;
-		return dig.getSprite(num);
+		return getSprite(dig,num);
 	}
+	
+	ImageSprite getSprite(Seed seed) {
+		
+		ImageSampleGroup dig = getImageSampleGroup(seed.imageSampleGroupName);
+		if (dig == null)
+			return null;
+		// creating a sprite from a seed, the ImageSampleGroupManager has already determined
+		// to pass the seed to this ImageSampleGroup
+		//System.out.println("getSprite:: seed" + seed.getAsCSVStr());
+		//System.out.println("there are " + this.getNumItems() + " items available");
+		ImageSprite sprite = getSprite(dig, seed.imageSampleGroupItemNumber);
+		sprite.setID_RandomSeed(seed.id);
+		sprite.setDocPoint(seed.getDocPoint());
+		//sprite.depthFromSeed = seed.depth;
+		return sprite;
+	}
+	
+	
+
+	ImageSprite getSprite(ImageSampleGroup thisSampleGroup, int num) {
+		// creating a sprite from a simple item number within this group
+		// sets up almost everything except the document point
+		if (thisSampleGroup.getNumImages() == 0) {
+			System.out.println("getSprite:: ImageGroup has no images ");
+			return null;
+		}
+		if (num >= thisSampleGroup.getNumImages() || num < 0) {
+			System.out.println("getSprite:: index out of range - setting to uppermost available image");
+			num = thisSampleGroup.getNumImages() - 1;
+		}
+
+		float sizeInScene = thisSampleGroup.getItemSizeInScene(num);
+		
+		BufferedImage img = thisSampleGroup.getImage(num);
+		
+		
+		//ImageSprite sprite = new ImageSprite(img, thisSampleGroup.getGroupOrigin().copy(), sizeInScene, uniqueID.next());
+		ImageSprite sprite = new ImageSprite(img, thisSampleGroup.getGroupOrigin().copy(), sizeInScene, 1);
+		sprite.shortImageFileName = thisSampleGroup.getImageName(num);
+		sprite.imageSampleGroupName = thisSampleGroup.getGroupName();
+		return sprite;
+	}
+	
 
 	/**
 	 * @param contentGroupName,    this is the name you give the content group for
@@ -100,27 +146,21 @@ class ImageSampleGroupManager {
 			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect, PVector origin,
 			Float sizeInScene, boolean useInividualSizes) {
 
-		ImageSampleGroup thisImageContentGroup = addImageSampleGroupNameAndPath(contentGroupName, targetDirectory,
-				fileNameMustEndWith, fileNameMustContain);
-
-		if (from == null)
-			from = 0;
-		if (to == null) {
-			to = thisImageContentGroup.getNumFileTypeInTargetDirectory(fileNameMustEndWith, fileNameMustContain) - 1;
-		}
-
-		thisImageContentGroup.loadSamples(from, to, preScale, cropRect);
-
-		if (origin == null) {
-			origin = new PVector(0.5f, 0.5f);
-		}
-		setImageSampleGroupOrigin(contentGroupName, origin);
-
-		if (sizeInScene == null) {
-			// do nothing
-		} else {
-			setImageSampleGroupSizeInScene(contentGroupName, sizeInScene, useInividualSizes);
-		}
+		
+		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(targetDirectory);
+    	dfns.setFileNameContains(fileNameMustContain);
+    	dfns.setFileListRange(from, to);
+    	
+    	ImageSampleGroup newImageSampleGroup  = new ImageSampleGroup(contentGroupName);
+		
+		newImageSampleGroup.setDirectoryFileNameScanner(dfns);
+		newImageSampleGroup.setPreScale(preScale);
+		newImageSampleGroup.setCrop(cropRect);
+		newImageSampleGroup.setGroupOrigins(origin);
+		newImageSampleGroup.setGroupSizeInScene(sizeInScene);
+		newImageSampleGroup.setUseIndividuaImageSize(useInividualSizes);
+		newImageSampleGroup.loadSamples();
+		imageSampleGroups.add(newImageSampleGroup);
 
 	}
 
@@ -135,16 +175,22 @@ class ImageSampleGroupManager {
 	
 	/////////////////////////////////////////////////////////////////////////////
 	// creates a completely independent copy of an already loaded sample group, 
-	// the new group has a different name
+	// the new group has a different name, with the opportunity of making the new group a different size and origin
 	///////////////////////////////////////////////////////////////////////////// first
     void cloneImageSampleGroup(String existingGroupname, String newGroupName, PVector orig, Float sizeInScn) {
     	ImageSampleGroup cc = getImageSampleGroup(existingGroupname);
-    	PVector origin = cc.spriteOrigin;
-    	if(orig != null  ) origin = orig;
-    	float sizeInScene = cc.groupSizeInScene;
-    	if(sizeInScn != null  ) sizeInScene = sizeInScn;
-    	ImageSampleGroup newGroup = cc.copyToNewGroup(newGroupName, origin, sizeInScene);
-    	//System.out.println("Cloned " + existingGroupname + " with " + cc.getNumItems() + " into " + newGroupName + " with " + newGroup.getNumItems());
+    	if(cc==null) {
+    		
+    		
+    		
+    	}
+    	ImageSampleGroup newGroup = cc.copy(newGroupName);
+    	
+    	
+    	if(orig!=null) newGroup.setGroupOrigins(orig);
+    	if(sizeInScn!=null) newGroup.setGroupSizeInScene(sizeInScn);
+    	
+    	System.out.println("Cloned " + existingGroupname + " with " + cc.getNumImages() + " into " + newGroupName + " with " + newGroup.getNumImages());
     	imageSampleGroups.add(newGroup);
     }
 	/////////////////////////////////////////////////////////////////////////////
@@ -152,11 +198,18 @@ class ImageSampleGroupManager {
 	// If you are doing it long hand - then the method below needs to be called
 	///////////////////////////////////////////////////////////////////////////// first
 
-	ImageSampleGroup addImageSampleGroupNameAndPath(String name, String targetDirectory, String filesStrEndWith,
-			String fileStrContains) {
-		ImageSampleGroup ic = new ImageSampleGroup(name, targetDirectory, filesStrEndWith, fileStrContains);
-		imageSampleGroups.add(ic);
-		return ic;
+    ImageSampleGroup addImageSampleGroupNameAndPath(String name, String targetDirectory, String filesStrEndWith, String fileStrContains) {
+    	DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(targetDirectory);
+    	dfns.setFileNameContains(fileStrContains);
+    	
+    	
+    	ImageSampleGroup newImageSampleGroup  = new ImageSampleGroup(name);
+		
+		newImageSampleGroup.setDirectoryFileNameScanner(dfns);
+		newImageSampleGroup.loadSamples();
+		
+		imageSampleGroups.add(newImageSampleGroup);
+		return newImageSampleGroup;
 	}
 
 	void setImageSampleGroupOrigin(String name, PVector origin) {
@@ -170,7 +223,8 @@ class ImageSampleGroupManager {
 		ImageSampleGroup ic = getImageSampleGroup(name);
 		if (ic == null)
 			return;
-		ic.setGroupSizeInScene(size, useIndividualSizes);
+		ic.setGroupSizeInScene(size);
+		ic.setUseIndividuaImageSize(useIndividualSizes);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////
@@ -208,7 +262,8 @@ class ImageSampleGroupManager {
 
 	void paradeContent(String groupName, int effect, float p1, float p2, float p3 ) {
 		ImageSampleGroup sampleGroup = this.getImageSampleGroup(groupName);
-		sampleGroup.paradeContent(effect, p1, p2, p3);
+		System.out.println("Parade contend need to to be mored to this calss");
+		//sampleGroup.paradeContent(effect, p1, p2, p3);
 	}
 
 }// end of class ImageSampleGroupManager

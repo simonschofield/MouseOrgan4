@@ -2,8 +2,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 
-import MOUtils.Range;
-import MOUtils.Rect;
+import MOImageClasses.ImageProcessing;
+import MOMaths.Range;
+import MOMaths.Rect;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // DirectoryItemScanner 

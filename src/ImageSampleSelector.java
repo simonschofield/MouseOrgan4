@@ -3,12 +3,15 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import MOImageClasses.ImageProcessing;
+import MOImageClasses.SceneData3D;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOMaths.RandomStream;
+import MOMaths.Rect;
 import MOUtils.Counter;
 import MOUtils.GenericArrayListUtils;
-import MOUtils.MOMaths;
-import MOUtils.MOUtils;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOUtils.MOStringUtils;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -23,7 +26,7 @@ import MOUtils.Rect;
 //They are pre-scaled to the session scale at load time, and then the scaled items cached for rapid reload next time.
 //They have a shared spriteOrigin
 //and a shared world3DHeight
-
+/*
 class ImageSampleGroup extends DirectoryImageGroup {
 	String groupName = "";
 	Counter uniqueID = new Counter();
@@ -143,7 +146,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 			// if these is a problem with the cache (it doesn't exist or the files in the
 			// cache do not match the
 			// load from the original source directory place, but create a cache
-			boolean ok = MOUtils.createDirectory(cachedImagesFolderName);
+			boolean ok = MOStringUtils.createDirectory(cachedImagesFolderName);
 			if (!ok)
 				System.out.println("problem creating cache folder ..." + cachedImagesFolderName);
 
@@ -189,7 +192,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 	// see if all the cached files exist also.
 	// if not then return false.
 	boolean checkCacheOK(String directory, ArrayList<String> sampleLibFileNames, int fromIndex, int toIndex) {
-		if (MOUtils.checkDirectoryExist(directory) == false)
+		if (MOStringUtils.checkDirectoryExist(directory) == false)
 			return false;
 		ArrayList<String> cachedFileNames = getShortFileNamesInDirectory(directory, fileStringEndsWith,
 				fileStringContains);
@@ -432,8 +435,8 @@ class ImageSampleGroup extends DirectoryImageGroup {
 		int biggestItemWidth = (int) this.widthExtrema.getUpper();
 		int biggestItemHeight = (int) this.heightExtrema.getUpper();
 		float itemAspect = biggestItemWidth / (float) biggestItemHeight;
-		int outImageW = parentSurface.theDocument.getBufferWidth();
-		int outImageH = parentSurface.theDocument.getBufferHeight();
+		int outImageW = parentSurface.theDocument.coordinateSystem.getBufferWidth();
+		int outImageH = parentSurface.theDocument.coordinateSystem.getBufferHeight();
 
 		// assume they are all fit into shapes biggestWidth/Biggestheight - this will be
 		// a good fit for most content of similar aspects
@@ -485,7 +488,7 @@ class ImageSampleGroup extends DirectoryImageGroup {
 
 		String userSessionPath = parentSurface.getUserSessionPath();
 
-		String suggestedName = MOUtils.getDateStampedImageFileName("Parade_" + groupName + "_");
+		String suggestedName = MOStringUtils.getDateStampedImageFileName("Parade_" + groupName + "_");
 		System.out.println("saveRenderLayer: saving " + suggestedName);
 		parentSurface.theDocument.saveRenderToFile(userSessionPath + suggestedName);
 
@@ -493,6 +496,8 @@ class ImageSampleGroup extends DirectoryImageGroup {
 
 }
 
+
+*/
 @SuppressWarnings("serial")
 //a seed factory generates seeds. These have points in documentspace and associates
 //some asset with that point
@@ -525,7 +530,7 @@ class ImageSampleDescription implements Serializable {
 //
 // Experimental: an influencer image can be added to influence the decision
 // 
-class ImageSampleSelector {
+public class ImageSampleSelector {
 
 	// inner class ContentItemProbability
 	class ImageSampleGroupProbability {

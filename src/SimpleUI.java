@@ -9,10 +9,10 @@ import java.util.Map;
 
 import javax.swing.JFileChooser;
 
-import MOUtils.MOMaths;
-import MOUtils.MOUtils;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOMaths.Rect;
+import MOUtils.MOStringUtils;
 
 
 // SimpleUI_Classes version 4.0
@@ -126,7 +126,7 @@ public class SimpleUI {
 	public void openFileSaveDialog(String prompt) {
 
 		final JFileChooser fc = new JFileChooser(filaDialogTargetDirectory);
-		String suggestedName = MOUtils.getDateStampedImageFileName("savedImage");
+		String suggestedName = MOStringUtils.getDateStampedImageFileName("savedImage");
 		fc.setSelectedFile(new File(suggestedName));
 		int returnVal = fc.showSaveDialog(parentSurface.parentApp);
 
@@ -147,7 +147,7 @@ public class SimpleUI {
 	//
 	public void addCanvas(int x, int y, int w, int h) {
 
-		canvasRect = new Rect(x, y, x + w, y + h);
+		canvasRect = new Rect(x, y, w, h);
 	}
 
 	public boolean checkForCanvasEvent(String mouseEventType, int x, int y){
@@ -424,7 +424,7 @@ public class SimpleUI {
 	// to do: this should also set an offset for subsequent placement of the buttons
 
 	void setBackgroundRect(int left, int top, int right, int bottom, int r, int g, int b) {
-		backgroundRect = new Rect(left, top, right, bottom);
+		backgroundRect = new Rect(new PVector(left, top), new PVector(right, bottom));
 		backgroundRectColor = new Color(r, g, b);
 	}
 
@@ -638,7 +638,7 @@ class Widget {
 		locY = y;
 		widgetWidth = w;
 		widgetHeight = h;
-		bounds = new Rect(x, y, x + w, y + h);
+		bounds = new Rect(x, y,  w,  h);
 	}
 
 	public boolean isInMe(int x, int y) {

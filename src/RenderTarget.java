@@ -15,10 +15,13 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import MOUtils.Line2;
-import MOUtils.MOUtils;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOImageClasses.ImageProcessing;
+import MOMaths.Line2;
+import MOMaths.PVector;
+import MOMaths.Rect;
+import MOMaths.Vertices2;
+import MOUtils.ImageCoordinateSystem;
+import MOUtils.MOStringUtils;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Generic RenderTarget
@@ -32,13 +35,9 @@ class RenderTarget{
 	protected Graphics2D graphics2D;
 	protected BufferedImage bufferedImage;
 	
-	// these are the pixel dimensions of the output image
-	int bufferWidth, bufferHeight;
-	float longestBufferEdge;
 	
-	// these are the parametrised (0..1) width and height
-	// of the document. The longest edge is set to 1.0
-	float documentWidth, documentHeight;
+	public ImageCoordinateSystem coordinateSystem;
+	
 
 	ShapeDrawer shapeDrawer;
 	
@@ -54,18 +53,13 @@ class RenderTarget{
 	void setRenderBuffer(int w, int h, int imgType) {
 		
 		// BufferedImage.TYPE_INT_ARGB
+		coordinateSystem = new ImageCoordinateSystem(w,h);
 		bufferedImage = new BufferedImage(w, h, imgType);
 		
-		bufferWidth = w;
-		bufferHeight = h;
+		
 		graphics2D = bufferedImage.createGraphics();
 		graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		longestBufferEdge = Math.max(bufferWidth, bufferHeight);
-		
-		documentWidth = bufferWidth / longestBufferEdge;
-		documentHeight = bufferHeight / longestBufferEdge;
-		
 		
 		shapeDrawer = new ShapeDrawer(graphics2D);
 		
@@ -81,6 +75,10 @@ class RenderTarget{
 	}
 	
 	
+	public ImageCoordinateSystem getCoordinateSystem() {
+		return coordinateSystem;
+	}
+	
 	void clearImage() {
 		Color blank = new Color(0,0,0,0);
 		fillBackground(blank); 
@@ -88,59 +86,15 @@ class RenderTarget{
 
 	void fillBackground(Color c) {
 		graphics2D.setBackground(c);
-		graphics2D.clearRect(0, 0, bufferWidth, bufferHeight);
+		graphics2D.clearRect(0, 0, coordinateSystem.getBufferWidth(), coordinateSystem.getBufferHeight());
 	}
 	
 	void fillBackgroundWithImage(BufferedImage img, float alpha) {
-		BufferedImage resizedImage = ImageProcessing.resizeTo(img, bufferWidth, bufferHeight);
+		BufferedImage resizedImage = ImageProcessing.resizeTo(img, coordinateSystem.getBufferWidth(), coordinateSystem.getBufferHeight());
 		pasteImage_BufferCoordinates(resizedImage,0,0,alpha);
 	}
 
 	
-	// these are in image-buffer space
-	int getBufferWidth() {
-		return bufferWidth;
-	}
-
-	int getBufferHeight() {
-		return bufferHeight;
-	}
-	
-	int getLongestBufferEdge() {
-		return Math.max(bufferWidth, bufferHeight);
-	}
-
-	// these are in document space
-	float getDocumentWidth() {
-		return documentWidth;
-	}
-
-	float getDocumentHeight() {
-		return documentHeight;
-	}
-	
-	float getDocumentAspect() {
-		return documentWidth / documentHeight;
-	}
-	
-	boolean isInsideDocumentSpace(PVector p) {
-        
-        if(isInsideXDocumentSpace(p.x) && isInsideYDocumentSpace(p.y)) return true;
-        return false;
-    }
-    
-    boolean isInsideXDocumentSpace(float x) {
-    	float w = getDocumentWidth();
-    	if(x >= 0 && x <= w) return true;
-    	return false;
-    }
-    
-    boolean isInsideYDocumentSpace(float y) {
-    	float h = getDocumentHeight();
-    	if(y >= 0 && y <= h) return true;
-    	return false;
-    	
-    }
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +103,7 @@ class RenderTarget{
 	void pasteImage(BufferedImage img, PVector docSpacePoint, float alpha) {
 
 		Rect r = getPasteRectDocSpace(img, docSpacePoint);
-		PVector bufferPt = docSpaceToBufferSpace(docSpacePoint);
+		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(docSpacePoint);
 		pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
 
 	// this is where we need to add the mask images if any
@@ -172,9 +126,9 @@ class RenderTarget{
 		// Final pasting always by defining the top left of the image in doc space
 		// give an image and its upperleft at docSpacePoint
 		// return the doc space rect it occupies
-		PVector bottomRightOffset = bufferSpaceToDocSpace(img.getWidth(), img.getHeight());
+		PVector bottomRightOffset = coordinateSystem.bufferSpaceToDocSpace(img.getWidth(), img.getHeight());
 		PVector bottomRight = PVector.add(docSpacePoint, bottomRightOffset);
-		return new Rect(docSpacePoint.x, docSpacePoint.y, bottomRight.x, bottomRight.y);
+		return new Rect(docSpacePoint, bottomRight);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -182,8 +136,8 @@ class RenderTarget{
 	//////////////////////////////////////////////////////////////////////////////////// bufferedImage
 	//
 	BufferedImage getCropDocSpace(Rect docSpaceRect) {
-		PVector topLeft = docSpaceToBufferSpace(docSpaceRect.getTopLeft());
-		PVector bottomRight = docSpaceToBufferSpace(docSpaceRect.getBottomRight());
+		PVector topLeft = coordinateSystem.docSpaceToBufferSpace(docSpaceRect.getTopLeft());
+		PVector bottomRight = coordinateSystem.docSpaceToBufferSpace(docSpaceRect.getBottomRight());
 		Rect bufferSpaceRect = new Rect(topLeft, bottomRight);
 		return getCropBufferSpace(bufferSpaceRect);
 	}
@@ -195,14 +149,14 @@ class RenderTarget{
 	void saveRenderToFile(String pathAndFilename) {
 		System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename);
 		// check to see if extension exists
-		String ext = MOUtils.getFileExtension(pathAndFilename);
+		String ext = MOStringUtils.getFileExtension(pathAndFilename);
 		String extensionChecked = pathAndFilename;
 		if (ext.contentEquals("")) {
 			extensionChecked = pathAndFilename + ".png";
 		}
 
 		// check to see if extension is correct
-		ext = MOUtils.getFileExtension(extensionChecked);
+		ext = MOStringUtils.getFileExtension(extensionChecked);
 		if (ext.contentEquals(".png") || ext.contentEquals(".PNG")) {
 			// OK
 		} else {
@@ -220,45 +174,6 @@ class RenderTarget{
 
 	}
 
-	////////////////////////////////////////////////////////////////////////////
-	// coordinate space transformations
-	//
-	//
-	PVector docSpaceToBufferSpace(PVector docPt) {
-
-		float bx = docPt.x * longestBufferEdge;
-		float by = docPt.y * longestBufferEdge;
-		return new PVector(bx, by);
-	}
-
-	PVector bufferSpaceToDocSpace(PVector p) {
-		return bufferSpaceToDocSpace((int) (p.x), (int) (p.y));
-	}
-
-	PVector bufferSpaceToDocSpace(int bx, int by) {
-
-		float docX = bx / longestBufferEdge;
-		float docY = by / longestBufferEdge;
-		return new PVector(docX, docY);
-	}
-
-	PVector docSpaceToNormalisedSpace(PVector docPt) {
-
-		PVector buffPt = docSpaceToBufferSpace(docPt);
-		return new PVector(buffPt.x / bufferWidth, buffPt.y / bufferHeight);
-
-	}
-
-	PVector normalisedSpaceToDocSpace(PVector normPt) {
-		// Doesn't lose precision by avoiding bufferspace methods
-		float bx = normPt.x * bufferWidth;
-		float by = normPt.y * bufferHeight;
-
-		float docX = bx / longestBufferEdge;
-		float docY = by / longestBufferEdge;
-		return new PVector(docX, docY);
-
-	}
 	
 	
 	//////////////////////////////////////////////////////////////////////
@@ -270,18 +185,19 @@ class RenderTarget{
 			float lineThicknessDocSpace) {
 
 		// work out if its succumbs to the permitted paste area
-		Rect r = new Rect(docPoint.x - radiusDocSpace, docPoint.y - radiusDocSpace, docPoint.x + radiusDocSpace,
-				docPoint.y + radiusDocSpace);
+		PVector docPtMinusRad = new PVector(docPoint.x - radiusDocSpace, docPoint.y - radiusDocSpace);
+		PVector docPtPlusRad = new PVector(docPoint.x + radiusDocSpace, docPoint.y + radiusDocSpace);
+		Rect r = new Rect(docPtMinusRad, docPtPlusRad);
 		
 
-		PVector bufpt = docSpaceToBufferSpace(docPoint);
+		PVector bufpt = coordinateSystem.docSpaceToBufferSpace(docPoint);
 
-		int lineThicknessInPixels = (int) (lineThicknessDocSpace * getLongestBufferEdge());
+		int lineThicknessInPixels = (int) (lineThicknessDocSpace * coordinateSystem.getLongestBufferEdge());
 		shapeDrawer.setDrawingStyle(fillColor, lineColor, lineThicknessInPixels);
 
 		//shapeDrawer.setDrawingStyle(fillColor, Color.BLACK, 4);
 
-		float radiusInPixels = radiusDocSpace * getLongestBufferEdge();
+		float radiusInPixels = radiusDocSpace * coordinateSystem.getLongestBufferEdge();
 
 		//
 		float left = bufpt.x - radiusInPixels;
@@ -301,7 +217,7 @@ class RenderTarget{
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
 
 		for (PVector p : docSpacePoints) {
-			PVector bufpt = docSpaceToBufferSpace(p);
+			PVector bufpt = coordinateSystem.docSpaceToBufferSpace(p);
 			shapeDrawer.drawEllipse(bufpt.x, bufpt.y, r, r);
 		}
 
@@ -310,7 +226,7 @@ class RenderTarget{
 	void drawPoint(PVector docSpacePoint, Color c, int size) {
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
-		PVector bufpt = docSpaceToBufferSpace(docSpacePoint);
+		PVector bufpt = coordinateSystem.docSpaceToBufferSpace(docSpacePoint);
 		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, size, size);
 
 	}
@@ -318,8 +234,8 @@ class RenderTarget{
 	void drawLine(PVector start, PVector end, Color c, int w) {
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
 		shapeDrawer.setDrawingStyle(ca, ca, w);
-		PVector bufStart = docSpaceToBufferSpace(start);
-		PVector bufEnd = docSpaceToBufferSpace(end);
+		PVector bufStart = coordinateSystem.docSpaceToBufferSpace(start);
+		PVector bufEnd = coordinateSystem.docSpaceToBufferSpace(end);
 		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
 	
@@ -327,8 +243,8 @@ class RenderTarget{
 	void drawLine(Line2 l, Color c, int w) {
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
 		shapeDrawer.setDrawingStyle(ca, ca, w);
-		PVector bufStart = docSpaceToBufferSpace(l.p1);
-		PVector bufEnd = docSpaceToBufferSpace(l.p2);
+		PVector bufStart = coordinateSystem.docSpaceToBufferSpace(l.p1);
+		PVector bufEnd = coordinateSystem.docSpaceToBufferSpace(l.p2);
 		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
 	
@@ -355,7 +271,7 @@ class RenderTarget{
 	}
 	
 	void drawText(String str, PVector docSpacePoint, int size, Color c) {
-		PVector bufpt = docSpaceToBufferSpace(docSpacePoint);
+		PVector bufpt = coordinateSystem.docSpaceToBufferSpace(docSpacePoint);
 		drawText( str, (int)bufpt.x, (int)bufpt.y,  size,  c);
 	}
 

@@ -13,9 +13,12 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import MOUtils.Line2;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOImageClasses.ImageProcessing;
+import MOMaths.Line2;
+import MOMaths.PVector;
+import MOMaths.QRandomStream;
+import MOMaths.Rect;
+import MOMaths.Vertices2;
 
 class TextRenderer {
 	String fontName = "Arial";
@@ -124,7 +127,7 @@ class TextRenderer {
 	 
 	 Rect getStringBoundsDocSpace(String s) {
 		 Rect textBoundsBufferSpace =  getStringBoundsBufferSpace(s, graphics2D);
-		 PVector docSpaceExtents = GlobalObjects.theDocument.bufferSpaceToDocSpace((int)textBoundsBufferSpace.getWidth(), (int)textBoundsBufferSpace.getHeight());
+		 PVector docSpaceExtents = GlobalObjects.theDocument.coordinateSystem.bufferSpaceToDocSpace((int)textBoundsBufferSpace.getWidth(), (int)textBoundsBufferSpace.getHeight());
 		 return new Rect(0,0,docSpaceExtents.x,docSpaceExtents.y);
 	 }
 	 

@@ -3,10 +3,14 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import MOImageClasses.ImageProcessing;
+import MOImageClasses.KeyImageSampler;
+import MOImageClasses.SceneData3D;
+import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOMaths.RandomStream;
+import MOMaths.Rect;
 import MOUtils.CollectionIterator;
-import MOUtils.MOMaths;
-import MOUtils.PVector;
-import MOUtils.Rect;
 ////////////////////////////////////////////////////////////////////////////
 //This class will return a list of random points packed to a specified radius
 //the algorithm keeps going until it fails to find a new packing point after a number of attempts.
@@ -145,7 +149,7 @@ class PointGenerator_RadialPack2D extends PointGenerator_Random {
 		float x2 = MOMaths.constrain(p.x + radius, 0, 1);
 		float y2 = MOMaths.constrain(p.y + radius, 0, 1);
 
-		Rect rectUnderConsideration = new Rect(x1, y1, x2, y2);
+		Rect rectUnderConsideration = new Rect(new PVector(x1, y1), new PVector(x2, y2));
 
 		for (int n = 0; n < points.size(); n++) {
 			PVector thisPoint = points.get(n);
@@ -285,7 +289,7 @@ class PointGenerator_Volume3D extends CollectionIterator {
 
 	public PointGenerator_Volume3D(int rseed, float vfov) {
 		randomStream = new RandomStream(rseed);
-		eyeSpaceVolume = new EyeSpaceVolume3D(GlobalObjects.theDocument.getDocumentAspect(),vfov);
+		eyeSpaceVolume = new EyeSpaceVolume3D(GlobalObjects.theDocument.coordinateSystem.getDocumentAspect(),vfov);
 	}
 
 	void generateRandomPoints(int numPoints3D, float nearZ, float farZ) {

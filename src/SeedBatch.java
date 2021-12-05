@@ -5,9 +5,9 @@ import java.io.FileReader;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import MOMaths.PVector;
 import MOUtils.CollectionIterator;
-import MOUtils.MOUtils;
-import MOUtils.PVector;
+import MOUtils.MOStringUtils;
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -164,11 +164,11 @@ class Seed {
 	}
 
 	PVector normalisedSpaceToDocSpace(PVector normPt) {
-		return GlobalObjects.theDocument.normalisedSpaceToDocSpace( normPt);
+		return GlobalObjects.theDocument.coordinateSystem.normalisedSpaceToDocSpace( normPt);
 	}
 
 	PVector docSpaceToNormalisedSpace(PVector docPt) {
-		return GlobalObjects.theDocument.docSpaceToNormalisedSpace(getDocPoint());
+		return GlobalObjects.theDocument.coordinateSystem.docSpaceToNormalisedSpace(getDocPoint());
 	}
 }
 
@@ -323,8 +323,8 @@ public class SeedBatch extends CollectionIterator{
 
 	void ensureSeedsDirectoryExists(String path) {
 		String alledgedDirectory = path + "seeds";
-		if(MOUtils.checkDirectoryExist(alledgedDirectory)) return;
-		MOUtils.createDirectory(alledgedDirectory);
+		if(MOStringUtils.checkDirectoryExist(alledgedDirectory)) return;
+		MOStringUtils.createDirectory(alledgedDirectory);
 	}
 
 	@Override

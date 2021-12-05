@@ -1,4 +1,4 @@
-import MOUtils.MOUtils;
+import MOUtils.MOStringUtils;
 
 //////////////////////////////////////////////////////////////////////////////////
 // Helps manage the saving process for renders, either as single images or as collections of images (layers) through the creation of a specially made subdirectory
@@ -40,7 +40,7 @@ class RenderSaver {
 	void createSubDirectory(boolean usinglayer) {
 		useLayers = usinglayer;
 		useSubDirectory = true;
-		subDirectory = MOUtils.createDirectory(GlobalObjects.theSurface.getUserSessionPath(), baseName, true);
+		subDirectory = MOStringUtils.createDirectory(GlobalObjects.theSurface.getUserSessionPath(), baseName, true);
 	}
 
 	void usePhotoshopLayerOrderNumbering(int maxNum) {
@@ -73,7 +73,7 @@ class RenderSaver {
 		} else {
 
 			String path = GlobalObjects.theSurface.getUserSessionPath();
-			String timeStamp = MOUtils.getDateStamp();
+			String timeStamp = MOStringUtils.getDateStamp();
 			String fullPathAndName = path + baseName + "_" + timeStamp + ".png";
 			System.out.println("saveRender: saving " + fullPathAndName);
 			GlobalObjects.theDocument.saveRenderToFile(fullPathAndName);

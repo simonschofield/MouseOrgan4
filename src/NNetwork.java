@@ -1,9 +1,10 @@
 import java.io.FileWriter;
 import java.util.ArrayList;
 
-import MOUtils.Line2;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOMaths.Line2;
+import MOMaths.PVector;
+import MOMaths.Rect;
+import MOMaths.Vertices2;
 import MOUtils.UniqueID;
 
 import java.io.BufferedReader;
@@ -739,7 +740,7 @@ class NNetwork {
 	  for (NPoint np : points) {
 		  	PVector p = np.getPt();
 	        PVector nomPoint = roi.norm(p);
-	        PVector docSpcPt = GlobalObjects.theDocument.normalisedSpaceToDocSpace(nomPoint);
+	        PVector docSpcPt = GlobalObjects.theDocument.coordinateSystem.normalisedSpaceToDocSpace(nomPoint);
 	        np.setPt(docSpcPt);
 	      }
   }

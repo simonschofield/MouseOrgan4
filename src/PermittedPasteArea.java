@@ -1,5 +1,6 @@
-import MOUtils.PVector;
-import MOUtils.Rect;
+import ImageCollectionClasses.ImageSampleGroup;
+import MOMaths.PVector;
+import MOMaths.Rect;
 
 class PermittedPasteArea {
 	// The rect is SET using Normalized coordinates (0..1 in both x and y), but STORED using docSpace coordinates
@@ -60,8 +61,8 @@ class PermittedPasteArea {
 	private void setPermittedPasteRectWithNomalizedCoords(float left, float top, float right, float bottom) {
 		PVector topLeftNormSpace = new PVector(left,top);
 		PVector bottomRightNormSpace = new PVector(right,bottom);
-		PVector topLeft = theRenderTarget.normalisedSpaceToDocSpace(topLeftNormSpace);
-		PVector bottomRight = theRenderTarget.normalisedSpaceToDocSpace(bottomRightNormSpace);
+		PVector topLeft = theRenderTarget.coordinateSystem.normalisedSpaceToDocSpace(topLeftNormSpace);
+		PVector bottomRight = theRenderTarget.coordinateSystem.normalisedSpaceToDocSpace(bottomRightNormSpace);
 		//PVector bottomRight = theRenderTarget.coordinateSpaceCoverter.normalizedSpaceToDocSpace(bottomRightNormSpace);
 		
 		//normalisedSpaceToDocSpace

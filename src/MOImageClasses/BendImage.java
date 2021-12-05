@@ -1,8 +1,9 @@
+package MOImageClasses;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-import MOUtils.MOMaths;
+import MOMaths.MOMaths;
 
 
 public class BendImage {
@@ -15,7 +16,7 @@ public class BendImage {
 
     
     // bend the image left or right: negative displacementInX bends Left, while positive displacementInX bends right.
-    BufferedImage bendImage(BufferedImage source, float bendStart, float displacementInX, float bendHarshness) {
+    public BufferedImage bendImage(BufferedImage source, float bendStart, float displacementInX, float bendHarshness) {
     	if(displacementInX<0) {
     		return bendImageLeft( source,  bendStart,  -displacementInX,  bendHarshness);
     	}

@@ -1,3 +1,4 @@
+package MOImageClasses;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 

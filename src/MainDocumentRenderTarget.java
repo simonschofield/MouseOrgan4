@@ -15,9 +15,11 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import MOUtils.MOUtils;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import ImageCollectionClasses.ImageSampleGroup;
+import MOImageClasses.ImageProcessing;
+import MOMaths.PVector;
+import MOMaths.Rect;
+import MOUtils.MOStringUtils;
 
 
 
@@ -179,8 +181,8 @@ class MainDocumentMaskImage extends RenderTarget{
 	String itemToMaskIdentifier = "";
 	
 	MainDocumentMaskImage(String itemIdentifierToMask) {
-		int w = GlobalObjects.theDocument.getBufferWidth();
-		int h = GlobalObjects.theDocument.getBufferHeight();
+		int w = GlobalObjects.theDocument.coordinateSystem.getBufferWidth();
+		int h = GlobalObjects.theDocument.coordinateSystem.getBufferHeight();
 		setRenderBuffer(w,h,BufferedImage.TYPE_INT_ARGB);
 		this.fillBackground(Color.BLACK);;
 		this.itemToMaskIdentifier = itemIdentifierToMask;
@@ -210,7 +212,7 @@ class MainDocumentMaskImage extends RenderTarget{
 
 		// add in the special mask name
 		String maskName = "_" + itemToMaskIdentifier + "_Mask.png";
-		String pathAndFileNameNoExt = MOUtils.getFileNameWithoutExtension(pathAndFilename);
+		String pathAndFileNameNoExt = MOStringUtils.getFileNameWithoutExtension(pathAndFilename);
 		System.out.println("MainDocumentMaskImage:saveRenderToFile  " + pathAndFilename);
 		super.saveRenderToFile(pathAndFileNameNoExt + maskName);
 		

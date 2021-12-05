@@ -1,10 +1,8 @@
+package MOMaths;
 
 import java.util.Collections;
 
-import MOUtils.Line2;
-import MOUtils.MOMaths;
-import MOUtils.PVector;
-import MOUtils.Rect;
+import MOUtils.MOUtilGlobals;
 
 import java.awt.Shape;
 import java.awt.geom.Path2D;
@@ -40,7 +38,7 @@ public class Vertices2 {
   
   
   
-  boolean setWithLine2List(ArrayList<Line2> lines) {
+  public boolean setWithLine2List(ArrayList<Line2> lines) {
 	  // assumes lines are connected
 	  vertices = new ArrayList<PVector>();
 	  PVector lastLineEndPoint = lines.get(0).p1;
@@ -66,7 +64,7 @@ public class Vertices2 {
   }
   
 
-  ArrayList<Line2> getAsLine2List(){
+  public ArrayList<Line2> getAsLine2List(){
 	  ArrayList<Line2> linesOut = new ArrayList<Line2>();
 	  int numLines = getNumLines();
 	  for(int n = 0; n < numLines; n++) {
@@ -80,13 +78,13 @@ public class Vertices2 {
   
   
   
-  int size(){ return vertices.size();}
+  public int size(){ return vertices.size();}
   
-  void add(PVector p){ vertices.add(p.copy());}
+  public void add(PVector p){ vertices.add(p.copy());}
   
-  void addAt(int i, PVector p){ vertices.add(i, p.copy());}
+  public void addAt(int i, PVector p){ vertices.add(i, p.copy());}
   
-  void add(Vertices2 vin){
+  public void add(Vertices2 vin){
 	  Vertices2 v = vin.copy();
     // adds a new set of vertices on to the end. If it finds that the end point of the existing verts
     // and the start point of the added verts are the same, then it ignores the duplicated point
@@ -97,7 +95,7 @@ public class Vertices2 {
     this.vertices.addAll(  v.vertices );
   }
   
-  void addAt(int i, Vertices2 vin){
+  public void addAt(int i, Vertices2 vin){
     Vertices2 v = vin.copy();
     // adds a new set of vertices on to the end. If it finds that the end point of the existing verts
     // and the start point of the added verts are the same, then it ignores the duplicated point
@@ -108,23 +106,23 @@ public class Vertices2 {
     this.vertices.addAll( i, v.vertices );
   }
   
-  PVector get(int n){ return vertices.get(n);}
+  public PVector get(int n){ return vertices.get(n);}
   
-  void set(int n, PVector p){ vertices.set(n,p.copy()); }
+  public void set(int n, PVector p){ vertices.set(n,p.copy()); }
   
-  void clear(){ vertices.clear(); }
+  public void clear(){ vertices.clear(); }
   
-  void set(ArrayList<PVector> points){ 
+  public void set(ArrayList<PVector> points){ 
     for(PVector p:points){
       this.add(p);
      }
   }
   
-  void remove(int i){
+  public void remove(int i){
 	  vertices.remove(i);
   }
   
-  void reverse(){
+  public void reverse(){
     Collections.reverse(vertices);
   }
   
@@ -134,7 +132,7 @@ public class Vertices2 {
   // are co-incident (not a reference to the same point, but separate points equal in x and y coordinate value).
   // Therefore closing a vertices adds a new point onto the end which is equal to the start point. Opening a closed vertices, removes then co-incident end point.
   //
-  void open() {
+  public void open() {
 	  if(isClosed()==false) return;
 	  int lastElement = vertices.size()-1;
 	  vertices.remove( lastElement );
@@ -157,16 +155,16 @@ public class Vertices2 {
   
   
   
-  PVector getStartPoint(){
+  public PVector getStartPoint(){
     return vertices.get(0);
   }
   
-  PVector getEndPoint(){
+  public PVector getEndPoint(){
     if( vertices.size() == 0) return null;
     return vertices.get( vertices.size()-1 );
   }
   
-  PVector popStartPoint(){
+  public PVector popStartPoint(){
     PVector p = vertices.get(0);
     vertices.remove(0);
     return p;
@@ -226,25 +224,25 @@ public class Vertices2 {
     return new Rect(minExtents, maxExtents);
   }
   
-  int getNumLines() {
+  public int getNumLines() {
 	  return this.size()-1;
   }
   
-  Line2 getLine(int n) {
+  public Line2 getLine(int n) {
 	  // there are NumVertices - 1 lines.
 	  PVector p1 = vertices.get(n);
 	  PVector p2 = vertices.get(n+1);
 	  return new Line2(p1,p2);
   }
   
-  void translate(float dx, float dy) {
+  public void translate(float dx, float dy) {
 	  for(PVector p: vertices) {
 		  p.x += dx;
 		  p.y += dy;
 	  }
   }
   
-  void scale(float sx, float sy) {
+  public void scale(float sx, float sy) {
 	  for(PVector p: vertices) {
 		  p.x *= sx;
 		  p.y *= sy;
@@ -252,13 +250,13 @@ public class Vertices2 {
 	  
   }
   
-  void scaleAbout(float origX, float origY, float scaleX, float scaleY) {
+  public void scaleAbout(float origX, float origY, float scaleX, float scaleY) {
 	  translate(-origX, -origY );
 	  scale(scaleX,scaleY);
 	  translate(origX, origY );
   }
   
-  PVector lerp(float param) {
+  public PVector lerp(float param) {
 	 // traverses the vertices, where 0 returns the first point
 	 // 1 returns the last point
 	 float totalLength =  getTotalLength();
@@ -296,7 +294,7 @@ public class Vertices2 {
   
   
   
-  Vertices2 getInBufferSpace(boolean shiftToTopLeft) {
+  public Vertices2 getInBufferSpace(boolean shiftToTopLeft) {
 	  // used by TextRenderer, render text in polygon
 	  Vertices2 bufferSpaceVerts = new Vertices2();
 	    int numPoints = this.size();
@@ -314,7 +312,7 @@ public class Vertices2 {
 	    	  p = p.sub(topleft);
 	      }
 
-	      p = GlobalObjects.theDocument.docSpaceToBufferSpace(p);
+	      p = MOUtilGlobals.theDocumentCoordSystem.docSpaceToBufferSpace(p);
 	      bufferSpaceVerts.add(p);
 	    }
 	    
@@ -322,7 +320,7 @@ public class Vertices2 {
 	  
   }
   
-  Path2D getAsPath2D(boolean convertToBufferSpace, boolean shiftToTopLeft) {
+  public Path2D getAsPath2D(boolean convertToBufferSpace, boolean shiftToTopLeft) {
 	  Path2D path = new Path2D.Float();
 	    int numPoints = this.size();
 	    
@@ -341,7 +339,7 @@ public class Vertices2 {
 	      
 	      
 	      if(convertToBufferSpace) {
-	    	  p = GlobalObjects.theDocument.docSpaceToBufferSpace(p);
+	    	  p = MOUtilGlobals.theDocumentCoordSystem.docSpaceToBufferSpace(p);
 	      }
 
 	      path.lineTo(p.x, p.y);
@@ -354,7 +352,7 @@ public class Vertices2 {
   
   
   
-  PVector getOrthogonallyDisplacedPoint(int n, float dist) {
+  public PVector getOrthogonallyDisplacedPoint(int n, float dist) {
 	  // returns a point that is moved "orthogonally" to the lines connecting
 	  PVector orthogVector = new PVector(0,1);
 	  
@@ -380,7 +378,7 @@ public class Vertices2 {
   }
   
   
-  void doubleVertices(int octaves) {
+  public void doubleVertices(int octaves) {
 	  if(octaves == 0) return;
 	  for(int n = 0; n < octaves; n++) {
 		  addHalwayVertices();
@@ -389,7 +387,7 @@ public class Vertices2 {
 	  
   }
   
-  void addHalwayVertices() {
+  public void addHalwayVertices() {
 	// effectively breaks every connecting line into two and then displaces each point. Keeps end points un-moved.
 	  ArrayList<PVector> verticesOut = new ArrayList<PVector> ();
 	  

@@ -1,4 +1,4 @@
-package MOUtils;
+package MOMaths;
 
 public class Rect{
 
@@ -12,8 +12,8 @@ public class Rect{
 
 
 
-	public Rect(float x1, float y1, float x2, float y2) {
-		setWithExtents(x1, y1, x2, y2);
+	public Rect(float x1, float y1, float w, float h) {
+		setWithDimensions(x1, y1, w, h);
 	}
 
 	public Rect(PVector tl, PVector br) {
@@ -44,7 +44,7 @@ public class Rect{
 	}
 
 	public Rect copy() {
-		return new Rect(left, top, right, bottom);
+		return new Rect(left, top, getWidth(), getHeight());
 	}
 
 
@@ -57,7 +57,7 @@ public class Rect{
 
 	Rect getTranslated(float dx, float dy){
 		// returns a translated copy
-		return new Rect(left+dx, top+dy, right+dx, bottom+dy);
+		return new Rect(left+dx, top+dy, getWidth(), getHeight());
 	}
 
 	public void translate(float dx, float dy) {
@@ -261,7 +261,7 @@ public class Rect{
 		if (tx2 > rx2) tx2 = rx2;
 		if (ty2 > ry2) ty2 = ry2;
 
-		return new Rect(tx1, ty1, tx2, ty2);
+		return new Rect(new PVector(tx1, ty1), new PVector(tx2, ty2));
 	}
 
 	public static PVector map(PVector p, Rect inThis, Rect toThis) {

@@ -3,10 +3,11 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import MOImageClasses.SceneData3D;
+import MOMaths.PVector;
+import MOMaths.Range;
+import MOMaths.Rect;
 import MOUtils.CollectionIterator;
-import MOUtils.PVector;
-import MOUtils.Range;
-import MOUtils.Rect;
 
 ///////////////////////////////////////////////////////////////////////////
 //SeedBatchManager
@@ -129,11 +130,11 @@ class SeedBatchManager  extends CollectionIterator{
 		for(Seed s: collatedSeeds) {
 			
 			PVector newSceneDocPoint = s.getDocPoint();
-			PVector normalisedPoint = GlobalObjects.theDocument.docSpaceToNormalisedSpace(newSceneDocPoint);
+			PVector normalisedPoint = GlobalObjects.theDocument.coordinateSystem.docSpaceToNormalisedSpace(newSceneDocPoint);
 			if(theROI.isPointInside(normalisedPoint)==false) continue;
 
 			PVector newROIPoint = theROI.norm(normalisedPoint); // convert to normalised space within the roi
-			PVector newDocSpacePt = GlobalObjects.theDocument.normalisedSpaceToDocSpace(newROIPoint);
+			PVector newDocSpacePt = GlobalObjects.theDocument.coordinateSystem.normalisedSpaceToDocSpace(newROIPoint);
 			
 			if(n%100==0) {
 				//System.out.println("original norm seed point" + normalisedPoint.toStr() + " point within ROI " + newROIPoint.toStr());
