@@ -5,6 +5,13 @@ public class MOUtilGlobals {
 	public static ImageCoordinateSystem theDocumentCoordSystem;
 	public static String sampleLibPath = "C:\\simon\\sample lib\\";
 	public static String mouseOrganImageCachePath = "C:\\mouseOrganImageCache2\\";
+	public static String userSessionPath = "";
+	
+	
+	// MOUtilGlobals.sampleLibPath
+	// MOUtilGlobals.theDocumentCoordSystem
+	// MOUtilGlobals.getSessionScale();
+	// MOUtilGlobals.userSessionPath;
 	
 	
 	

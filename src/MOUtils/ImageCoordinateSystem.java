@@ -37,9 +37,10 @@ public class ImageCoordinateSystem {
 		}
 
 		public PVector bufferSpaceToDocSpace(int bx, int by) {
-
-			float docX = bx / longestBufferEdge;
-			float docY = by / longestBufferEdge;
+			
+			float docX = bx / (float)longestBufferEdge;
+			float docY = by / (float)longestBufferEdge;
+			//System.out.println("bufferSpaceToDocSpace bx by " + bx + "  " + by + " longestBufferEdge " + longestBufferEdge + "docX doxY " + docX + " " + docY);
 			return new PVector(docX, docY);
 		}
 
