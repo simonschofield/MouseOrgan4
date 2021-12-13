@@ -34,7 +34,7 @@ public class PointGenerator_Volume3D extends CollectionIterator {
 
 	public PointGenerator_Volume3D(int rseed, float vfov) {
 		randomStream = new RandomStream(rseed);
-		eyeSpaceVolume = new EyeSpaceVolume3D(MOUtilGlobals.theDocumentCoordSystem.getDocumentAspect(),vfov);
+		eyeSpaceVolume = new EyeSpaceVolume3D(MOUtilGlobals.getTheDocumentCoordSystem().getDocumentAspect(),vfov);
 	}
 
 	void generateRandomPoints(int numPoints3D, float nearZ, float farZ) {

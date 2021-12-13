@@ -37,7 +37,7 @@ public class WordVerticeCrawler {
 	//FontCharacterWidths fontCharacterWidths; 
 	
 	
-	WordVerticeCrawler(WordBank wb, TextRenderer tr){
+	public WordVerticeCrawler(WordBank wb, TextRenderer tr){
 		theWordBank = wb;
 		textRenderer = tr;
 		
@@ -48,7 +48,7 @@ public class WordVerticeCrawler {
 	///////////////////////////////////////////////////////////////////////////////
 	// This is set with the vertices you want to render as a "text ribbon"
 	// so called beofre you start a new text ribbon
-	void setVerticesRun(Vertices2 v) {
+	public void setVerticesRun(Vertices2 v) {
 		currentVertices = v;
 		currentVericesTraversalPosition = 0;
 		precalculateWordsOnCurrentVertices();
@@ -56,13 +56,13 @@ public class WordVerticeCrawler {
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// usually called once at the start of a series of text ribbons
-	void setCharacterHeight(float s) {
+	public void setCharacterHeight(float s) {
 		characterHeightDocSpace = s;
 	}
 	
 	
 	
-	boolean nextWord() {
+	public boolean nextWord() {
 		int wordListSize = getNumWordsOnCurrentVertices();
 		//System.out.println("nextWord: wordListSize " + wordListSize + " precalculatedListIterator " + precalculatedListIterator);
 		if(precalculatedListIterator+1 >= wordListSize) {
@@ -74,12 +74,12 @@ public class WordVerticeCrawler {
 	}
 	
 	
-	Line2 getCurrentWordLine() {
+	public Line2 getCurrentWordLine() {
 		return precalculatedLines.get(precalculatedListIterator);
 	}
 	
 	
-	String getCurrentWord() {
+	public String getCurrentWord() {
 		return precalculatedWords.get(precalculatedListIterator);
 	}
 	
@@ -88,7 +88,7 @@ public class WordVerticeCrawler {
 		return precalculatedWords.size();
 	}
 	
-	boolean isConcertinaed(String thisWord,Line2 wordLine, float minAspect) {
+	public boolean isConcertinaed(String thisWord,Line2 wordLine, float minAspect) {
 		// if a word is concertinaed over a particular amount, then return true.
 		// Used to remove such words, or replace them
 		// The aspect is the rectangular aspect of each letter

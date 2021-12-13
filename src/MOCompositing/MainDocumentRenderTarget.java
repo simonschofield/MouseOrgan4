@@ -185,8 +185,8 @@ class MainDocumentMaskImage extends RenderTarget{
 	String itemToMaskIdentifier = "";
 	
 	MainDocumentMaskImage(String itemIdentifierToMask) {
-		int w = MOUtilGlobals.theDocumentCoordSystem.getBufferWidth();
-		int h = MOUtilGlobals.theDocumentCoordSystem.getBufferHeight();
+		int w = MOUtilGlobals.getTheDocumentCoordSystem().getBufferWidth();
+		int h = MOUtilGlobals.getTheDocumentCoordSystem().getBufferHeight();
 		setRenderBuffer(w,h,BufferedImage.TYPE_INT_ARGB);
 		this.fillBackground(Color.BLACK);;
 		this.itemToMaskIdentifier = itemIdentifierToMask;

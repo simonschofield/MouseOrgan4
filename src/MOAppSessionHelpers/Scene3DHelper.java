@@ -2,8 +2,6 @@ package MOAppSessionHelpers;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-
-import MOApplication.GlobalObjects;
 import MOApplication.Surface;
 import MOCompositing.ImageSprite;
 import MOImage.ConvolutionFilter;

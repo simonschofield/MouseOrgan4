@@ -28,11 +28,11 @@ public class SNum{
 	float centerOfDistribution = 0;
 	int numAverageSamples = 4;
 	
-	SNum(int rseed){
+	public SNum(int rseed){
 		qRandomStream = new QRandomStream(rseed);
 	}
 	
-	SNum(QRandomStream qrs, int seedOffset, Integer streamPosition){
+	public SNum(QRandomStream qrs, int seedOffset, Integer streamPosition){
 		// make a fresh copy of the QRandomStream , with counter set to 0
 		// and can also set a seedoffset (set to 0 for exactly same stream sequence)
 		// streamPosition is nullable, in which case the copied random stream gets the position of the 
@@ -40,19 +40,19 @@ public class SNum{
 		setRandomStream(qrs, seedOffset, streamPosition);
 	}
 	
-	SNum copy() {
+	public SNum copy() {
 		SNum newSnum = new SNum(qRandomStream,0,0);
 		return newSnum;
 	}
 	
-	SNum copy(QRandomStream qrs, int seedOffset, Integer streamPosition) {
+	public SNum copy(QRandomStream qrs, int seedOffset, Integer streamPosition) {
 		// makes a copy but is initialised with another random stream.
 		// The copy has the start conditions of the passed random stream, but is totally independent there after
 		SNum newSnum = new SNum(qrs,seedOffset,streamPosition);
 		return newSnum;
 	}
 	
-	void setRandomStream(QRandomStream qrs,  int seedOffset, Integer streamPosition) {
+	public void setRandomStream(QRandomStream qrs,  int seedOffset, Integer streamPosition) {
 		int newSeed = qrs.getSeed() + seedOffset;
 		qRandomStream = qrs.copy();
 		qRandomStream.setSeedAndPosition(newSeed, streamPosition);
@@ -78,7 +78,7 @@ public class SNum{
 	}
 	
 
-	void uRange(float lo, float hi) {
+	public void uRange(float lo, float hi) {
 		setMethod(UNIFORM_RANGE, lo, hi);
 	}
 	
@@ -86,7 +86,7 @@ public class SNum{
 		setMethod(NORMALISED_RANGE, lo, hi);
 	}
 	
-	void snRange(float lo, float cen, float hi) {
+	public void snRange(float lo, float cen, float hi) {
 		setMethod(SKEWED_NORMALISED_RANGE, lo, cen, hi);
 	}
 	

@@ -18,7 +18,7 @@ public class NNetworkProcessor{
 	KeyValuePairList currentSearchAttributes = new KeyValuePairList();
 	KeyValuePair hasBeenProcessedFlag;
 	
-	NNetworkProcessor(NNetwork ntwk){
+	public NNetworkProcessor(NNetwork ntwk){
 		theNetwork = ntwk;
 		hasBeenProcessedFlag = new KeyValuePair();
 		hasBeenProcessedFlag.set("PROCESSED", true);

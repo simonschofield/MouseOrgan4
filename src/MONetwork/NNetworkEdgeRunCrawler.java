@@ -47,7 +47,7 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	int runCounter = 0;
 	//int lineInRunCounter = 0;
 
-	NNetworkEdgeRunCrawler(NNetwork ntwk, KeyValuePairList searchCriteria){
+	public NNetworkEdgeRunCrawler(NNetwork ntwk, KeyValuePairList searchCriteria){
 		super(ntwk, searchCriteria);
 
 		regionIterator = new NNetworkItemIterator();
@@ -56,7 +56,7 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 
 	}
 
-	void setMode(int m) {
+	public void setMode(int m) {
 
 		mode = m;
 	}
@@ -65,7 +65,7 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	// repeatedly calling updateCrawl will eventually traverse the entire extracted set of edges
 	//
 	//
-	Line2 updateCrawl() {
+	public Line2 updateCrawl() {
 
 		//System.out.println("updateCrawl: currentVertices num = " + currentVertices.size());
 		Line2 line = getNextCrawlLine();
@@ -98,7 +98,7 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	// Then, you can inspect the edge run vertices, and interpolate over them by getting
 	// getCurrentVertices()
 
-	Vertices2 nextEdgeRun() {
+	public Vertices2 nextEdgeRun() {
 		if(mode == MODE_EDGES) currentVertices =  getNextEdgeRun_PreExtracted() ;
 		if(mode == MODE_REGIONS) currentVertices =  getNextEdgeRunVertices_NextRegion() ;
 
@@ -125,7 +125,7 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	}
 
 
-	ArrayList<Vertices2> findEdgeRuns(){
+	public ArrayList<Vertices2> findEdgeRuns(){
 		preExtractedEdgeRuns.clear();
 		while(true) {
 			Vertices2 verts = new Vertices2();
@@ -159,7 +159,7 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 		return v;
 	}
 
-	void sortEdgeRuns(boolean shortestFirst) {
+	public void sortEdgeRuns(boolean shortestFirst) {
 		if(preExtractedEdgeRuns==null) return;
 
 
@@ -188,12 +188,12 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 		currentVerticesProgressParametric += v;
 	}
 
-	NRegion getCurrentRegion() {
+	public NRegion getCurrentRegion() {
 		return regionIterator.getCurrentRegion();
 	}
 
 
-	void setCrawlStep(float s) {
+	public void setCrawlStep(float s) {
 		crawlStepDistance = s;
 	}
 

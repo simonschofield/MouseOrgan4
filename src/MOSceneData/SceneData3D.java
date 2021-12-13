@@ -225,13 +225,13 @@ public class SceneData3D {
 	// point within the ROI
 	private PVector getROILoc(PVector docSpace) {
 		//PVector normalisedPoint = MOMaths.docSpaceToNormalisedSpace(docSpace, this.getWholeSceneAspect()); // this might be ROI aspect needed
-		PVector normalisedPoint = MOUtilGlobals.theDocumentCoordSystem.docSpaceToNormalisedSpace(docSpace);
+		PVector normalisedPoint = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
 		// scale down docspace into the roi
 		// then re-interpolate that across the roi to get back to the ROI as a sort of crop-rect within the larger image 
 		PVector roiIterpolatedPoint = roiRect.interpolate(normalisedPoint); // so this scrunches the point which is in DocSpace (0..1,0..1) down into the roiRect (l,t,r,b)
 		
 		//return MOMaths.normalisedSpaceToDocSpace(roiIterpolatedPoint, this.getWholeSceneAspect());
-		return MOUtilGlobals.theDocumentCoordSystem.normalisedSpaceToDocSpace(roiIterpolatedPoint);
+		return MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(roiIterpolatedPoint);
 		
 	}
 	

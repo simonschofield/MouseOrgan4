@@ -134,11 +134,11 @@ public class SeedBatchManager  extends CollectionIterator{
 		for(Seed s: collatedSeeds) {
 			
 			PVector newSceneDocPoint = s.getDocPoint();
-			PVector normalisedPoint = MOUtilGlobals.theDocumentCoordSystem.docSpaceToNormalisedSpace(newSceneDocPoint);
+			PVector normalisedPoint = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(newSceneDocPoint);
 			if(theROI.isPointInside(normalisedPoint)==false) continue;
 
 			PVector newROIPoint = theROI.norm(normalisedPoint); // convert to normalised space within the roi
-			PVector newDocSpacePt = MOUtilGlobals.theDocumentCoordSystem.normalisedSpaceToDocSpace(newROIPoint);
+			PVector newDocSpacePt = MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(newROIPoint);
 			
 			if(n%100==0) {
 				//System.out.println("original norm seed point" + normalisedPoint.toStr() + " point within ROI " + newROIPoint.toStr());

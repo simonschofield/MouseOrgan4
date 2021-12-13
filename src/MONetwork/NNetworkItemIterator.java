@@ -1,7 +1,7 @@
 package MONetwork;
 import java.util.ArrayList;
 
-class NNetworkItemIterator{
+public class NNetworkItemIterator{
 	
 	ArrayList<NPoint> pointList;
 	ArrayList<NEdge> edgeList;
@@ -21,7 +21,7 @@ class NNetworkItemIterator{
 		edgeCounter = 0;
 	}
 	
-	void setRegions(ArrayList<NRegion> listIn){
+	public void setRegions(ArrayList<NRegion> listIn){
 		regionList = listIn;
 		regionCounter = 0;
 	}

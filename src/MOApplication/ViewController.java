@@ -77,8 +77,8 @@ public class ViewController {
 				"viewRect width " + viewDisplayRect.getWidth() + " viewRect height " + viewDisplayRect.getWidth());
 		viewDisplayRectAspect = viewDisplayRect.aspect();
 
-		theDocumentWidth = MOUtilGlobals.theDocumentCoordSystem.getBufferWidth();
-		theDocumentHeight = MOUtilGlobals.theDocumentCoordSystem.getBufferHeight();
+		theDocumentWidth = MOUtilGlobals.getTheDocumentCoordSystem().getBufferWidth();
+		theDocumentHeight = MOUtilGlobals.getTheDocumentCoordSystem().getBufferHeight();
 		theDocumentAspect = theDocumentWidth / (float) theDocumentHeight;
 		theDocumentCentre = new PVector(theDocumentWidth / 2f, theDocumentHeight / 2f);
 		theDocumentRect = new Rect(0,0,theDocumentWidth,theDocumentHeight);
@@ -106,8 +106,8 @@ public class ViewController {
 		// this is needed by external objects only to do cropping operations
 		PVector topLeftBufferSpace = currentViewCropRect.getTopLeft();
 		PVector bottomRightBufferSpace = currentViewCropRect.getBottomRight();
-		PVector topLeftDocSpace = MOUtilGlobals.theDocumentCoordSystem.bufferSpaceToDocSpace(topLeftBufferSpace);
-		PVector bottomRightDocSpace = MOUtilGlobals.theDocumentCoordSystem.bufferSpaceToDocSpace(bottomRightBufferSpace);
+		PVector topLeftDocSpace = MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace(topLeftBufferSpace);
+		PVector bottomRightDocSpace = MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace(bottomRightBufferSpace);
 		return new Rect(topLeftDocSpace, bottomRightDocSpace);
 	}
 	
@@ -144,21 +144,21 @@ public class ViewController {
 		if (zoomSetting == 0) {
 			// do the correct mapping for the fitToWindow set up
 			PVector pixelInImageBuffer = Rect.map(viewDisplayRectPoint,  fitToWindowCentreRect, theDocumentRect);
-			PVector docSpace = MOUtilGlobals.theDocumentCoordSystem.bufferSpaceToDocSpace(pixelInImageBuffer);
+			PVector docSpace = MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace(pixelInImageBuffer);
 			//System.out.println("appWindowCoordinateToDocSpace window click x " + x + " y " + y + " pixelInImageBuffer " + pixelInImageBuffer + "doc space point is " + docSpace.toStr());
 			return docSpace;
 		}
 		
 		// if zoom > 1 the use the currentViewCropRect
 		PVector pixelInImageBuffer = Rect.map(viewDisplayRectPoint, viewDisplayRect, currentViewCropRect);
-		return MOUtilGlobals.theDocumentCoordSystem.bufferSpaceToDocSpace(pixelInImageBuffer);
+		return MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace(pixelInImageBuffer);
 	}
 	
 	
 	public PVector docSpaceToAppWindowCoordinate(PVector docSpacePt) {
 		// used by the SimpleUI interface canvas to draw overlay items to the viewDisplayRect
 		
-		PVector pixelInImageBuffer = MOUtilGlobals.theDocumentCoordSystem.docSpaceToBufferSpace(docSpacePt);
+		PVector pixelInImageBuffer = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(docSpacePt);
 		if (zoomSetting == 0) {
 			return Rect.map(pixelInImageBuffer, theDocumentRect, fitToWindowCentreRect);
 		}

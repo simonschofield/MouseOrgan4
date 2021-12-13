@@ -1,5 +1,4 @@
 package MOAppSessionHelpers;
-import MOApplication.GlobalObjects;
 import MOCompositing.MainDocumentRenderTarget;
 import MOImage.RenderTarget;
 import MOUtils.MOStringUtils;

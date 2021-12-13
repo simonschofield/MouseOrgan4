@@ -112,7 +112,7 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 		return currentEdgeRunList;
 	}
 	
-	void setAngleTollerance(float angleDegrees) {
+	public void setAngleTollerance(float angleDegrees) {
 		angleTolleranceDegrees = angleDegrees;
 	}
 	

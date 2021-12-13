@@ -57,8 +57,8 @@ public class CMY_HalftoneImage{
 		
 		documentTargetRect = targetArea;
 		cmyRenderTarget = new MainDocumentRenderTarget();
-		int newWidth = (int) (documentTargetRect.getWidth()* MOUtilGlobals.theDocumentCoordSystem.getBufferWidth());
-		int newHeight = (int) (documentTargetRect.getHeight()* MOUtilGlobals.theDocumentCoordSystem.getBufferHeight());
+		int newWidth = (int) (documentTargetRect.getWidth()* MOUtilGlobals.getTheDocumentCoordSystem().getBufferWidth());
+		int newHeight = (int) (documentTargetRect.getHeight()* MOUtilGlobals.getTheDocumentCoordSystem().getBufferHeight());
 		cmyRenderTarget.setRenderBufferSize(newWidth, newHeight);
 
 	}
@@ -107,7 +107,7 @@ public class CMY_HalftoneImage{
 		
 		// need to convert the topleft of the documentTargetRect, which is in normalised space,
 		// into document space
-		PVector docSpaceTopLeft = MOUtilGlobals.theDocumentCoordSystem.normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
+		PVector docSpaceTopLeft = MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
 		mainDocRenderTarget.pasteImage(composite, docSpaceTopLeft, 1);
 		
 		if(saveOutImages) {

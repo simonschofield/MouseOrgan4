@@ -127,7 +127,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		
 		theDocument.setRenderBufferSize((int) (dw * MOUtilGlobals.getSessionScale()), (int) (dh * MOUtilGlobals.getSessionScale()));
 		
-		MOUtilGlobals.theDocumentCoordSystem = theDocument.getCoordinateSystem();
+		MOUtilGlobals.setTheDocumentCoordSystem(theDocument.getCoordinateSystem());
 		
 		//setWindowSize();
 		
@@ -345,7 +345,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	////////////////////////////////////////////////////////////////////////
 	// user-session related methods
 	// -
-	protected void setUserSessionPath(String dir) {
+	public void setUserSessionPath(String dir) {
 		
 		userSessionPath = dir;
 		MOUtilGlobals.userSessionPath = userSessionPath;
@@ -353,11 +353,11 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		
 	}
 
-	protected String getUserSessionPath() {
+	public String getUserSessionPath() {
 		return MOUtilGlobals.userSessionPath;
 	}
 	
-	String getUserSessionDirectoryName() {
+	public String getUserSessionDirectoryName() {
 		// returns the final part of the path, so if
 		// C://aaa///bbb//ccc is the user session path,
 		// it returns "ccc"
@@ -366,7 +366,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		
 	}
 	
-	String getSessionTimeStampedFileName(String enhancement) {
+	public String getSessionTimeStampedFileName(String enhancement) {
 		String sessionName = getUserSessionDirectoryName();
 		String fullPathAndFileName = userSessionPath + sessionName;
 		return MOStringUtils.getDateStampedImageFileName(fullPathAndFileName + enhancement);

@@ -17,7 +17,7 @@ public class SolidTexture3D {
 	
 	float getValue01(PVector docPt, float normalizedDepth) {
 		
-		PVector normalizedPt = MOUtilGlobals.theDocumentCoordSystem.docSpaceToNormalisedSpace(docPt);
+		PVector normalizedPt = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docPt);
 		int bx = (int)( normalizedPt.x * textureImage.getWidth());
 		int by = (int)( (1-normalizedDepth) * textureImage.getHeight());
 		

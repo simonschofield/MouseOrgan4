@@ -1,8 +1,16 @@
 package MOUtils;
 
 public class MOUtilGlobals {
+	
+	///////////////////
+	// private as these are VERY important
+	//
 	private static float sessionScale = 0;
-	public static ImageCoordinateSystem theDocumentCoordSystem;
+	private static ImageCoordinateSystem theDocumentCoordSystem;
+	
+	
+	
+	////////////////////
 	public static String sampleLibPath = "C:\\simon\\sample lib\\";
 	public static String mouseOrganImageCachePath = "C:\\mouseOrganImageCache2\\";
 	public static String userSessionPath = "";
@@ -16,7 +24,7 @@ public class MOUtilGlobals {
 	
 	
 	public static void setSessionScale(float s) {
-		// only the surface can set this on instantiation!!!!
+		// only the surface can set this on instantiation by the Surface!!!!
 		sessionScale = s;
 	}
 	
@@ -26,6 +34,15 @@ public class MOUtilGlobals {
 			System.exit(0);
 		}
 		return sessionScale;
+	}
+
+	public static ImageCoordinateSystem getTheDocumentCoordSystem() {
+		return theDocumentCoordSystem;
+	}
+
+	public static void setTheDocumentCoordSystem(ImageCoordinateSystem theDocumentCoordSystem) {
+		// only set by surface.initiaiseDocument
+		MOUtilGlobals.theDocumentCoordSystem = theDocumentCoordSystem;
 	}
 }
 

@@ -40,10 +40,10 @@ public class PointGenerator_Random extends CollectionIterator{
 	
 
 	public PointGenerator_Random(int rseed) {
-		aspect = MOUtilGlobals.theDocumentCoordSystem.getDocumentAspect();
+		aspect = MOUtilGlobals.getTheDocumentCoordSystem().getDocumentAspect();
 		randomStream = new RandomStream(rseed);
-		float w = MOUtilGlobals.theDocumentCoordSystem.getDocumentWidth();
-		float h = MOUtilGlobals.theDocumentCoordSystem.getDocumentHeight();
+		float w = MOUtilGlobals.getTheDocumentCoordSystem().getDocumentWidth();
+		float h = MOUtilGlobals.getTheDocumentCoordSystem().getDocumentHeight();
 		setGenerationArea(new Rect(0,0,w,h));
 	}
 	

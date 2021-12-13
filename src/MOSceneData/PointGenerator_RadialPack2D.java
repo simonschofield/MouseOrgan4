@@ -14,7 +14,7 @@ import MOMaths.Rect;
 //The radius is defined as a document space number (0...1), so a radius of 0.1 would give 10 points across the image
 // It can be set with a fixed radius, or a range of radii set in response to a distributionImage
 // if it is a fixed radius, then radiusLow carries the setting
-class PointGenerator_RadialPack2D extends PointGenerator_Random {
+public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 
 	// specific data to help point generation
 	PackingInterpolationScheme packingInterpolationScheme = new PackingInterpolationScheme();

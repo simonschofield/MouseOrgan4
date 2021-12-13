@@ -33,7 +33,7 @@ public class WordBank extends CollectionIterator{
 		this.resetItemIterator();
 	}
 	
-	void load(String pathandfilename) {
+	public void load(String pathandfilename) {
 		    // there should be a directory in the project folder called seeds
 		    try {
 		      BufferedReader textFileReader = new BufferedReader(new FileReader(pathandfilename));

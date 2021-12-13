@@ -51,7 +51,7 @@ public class TextRenderer {
 		setGraphics2D(bufferedImage.createGraphics());
 	}
 	
-	void setFont(String name, int style, int size, Color col) {
+	public void setFont(String name, int style, int size, Color col) {
 		
 		fontStyle = style;
 		fontSize = (int)(size * MOUtilGlobals.getSessionScale());
@@ -70,7 +70,7 @@ public class TextRenderer {
 	}
 	
 	
-	ImageSprite getSprite(String text, float docSpaceFontHeight, Line2 line) {
+	public ImageSprite getSprite(String text, float docSpaceFontHeight, Line2 line) {
 		BufferedImage img = this.drawText(text);
 		ImageSprite sprite = new ImageSprite();
 		
@@ -131,7 +131,7 @@ public class TextRenderer {
 	 
 	 Rect getStringBoundsDocSpace(String s) {
 		 Rect textBoundsBufferSpace =  getStringBoundsBufferSpace(s, getGraphics2D());
-		 PVector docSpaceExtents = MOUtilGlobals.theDocumentCoordSystem.bufferSpaceToDocSpace((int)textBoundsBufferSpace.getWidth(), (int)textBoundsBufferSpace.getHeight());
+		 PVector docSpaceExtents = MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace((int)textBoundsBufferSpace.getWidth(), (int)textBoundsBufferSpace.getHeight());
 		 return new Rect(0,0,docSpaceExtents.x,docSpaceExtents.y);
 	 }
 	 
@@ -299,7 +299,7 @@ public class TextRenderer {
 		
 	}
 	
-	void paradeFonts(int size, RenderTarget rt) {
+	public void paradeFonts(int size, RenderTarget rt) {
 		int numFonts =  fontFamilies.size();
 		
 		float currentY = 0;

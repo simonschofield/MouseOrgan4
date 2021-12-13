@@ -62,7 +62,7 @@ public class KeyImageSampler{
 	
 	public Color getPixelDocSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
-		PVector np = MOUtilGlobals.theDocumentCoordSystem.docSpaceToNormalisedSpace(docSpace);
+		PVector np = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
 		return getPixelNormalisedSpace(np);
 	}
 	
@@ -123,14 +123,14 @@ public class KeyImageSampler{
 	
 	public PVector docSpaceToBufferSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
-		PVector np = MOUtilGlobals.theDocumentCoordSystem.docSpaceToNormalisedSpace(docSpace);
+		PVector np = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
 		return normalisedSpaceToBufferSpace(np);
 	}
 	
 	
 	public PVector bufferSpaceToDocSpace(PVector p) {
 		PVector normPt = bufferSpaceToNormalisedSpace(p);
-		return MOUtilGlobals.theDocumentCoordSystem.normalisedSpaceToDocSpace(normPt);
+		return MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(normPt);
 	}
 	
 	

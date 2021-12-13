@@ -312,7 +312,7 @@ public class Vertices2 {
 	    	  p = p.sub(topleft);
 	      }
 
-	      p = MOUtilGlobals.theDocumentCoordSystem.docSpaceToBufferSpace(p);
+	      p = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(p);
 	      bufferSpaceVerts.add(p);
 	    }
 	    
@@ -339,7 +339,7 @@ public class Vertices2 {
 	      
 	      
 	      if(convertToBufferSpace) {
-	    	  p = MOUtilGlobals.theDocumentCoordSystem.docSpaceToBufferSpace(p);
+	    	  p = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(p);
 	      }
 
 	      path.lineTo(p.x, p.y);

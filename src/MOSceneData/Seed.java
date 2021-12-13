@@ -158,11 +158,11 @@ public class Seed {
 	}
 
 	PVector normalisedSpaceToDocSpace(PVector normPt) {
-		return MOUtilGlobals.theDocumentCoordSystem.normalisedSpaceToDocSpace( normPt);
+		return MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace( normPt);
 	}
 
 	PVector docSpaceToNormalisedSpace(PVector docPt) {
-		return MOUtilGlobals.theDocumentCoordSystem.docSpaceToNormalisedSpace(getDocPoint());
+		return MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(getDocPoint());
 	}
 }
 

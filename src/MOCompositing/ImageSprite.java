@@ -69,11 +69,11 @@ class ImageQuad{
 		//System.out.println("Pixel Loc in sprite of Enquiry Nom Point " + normX + " " + normY + " is " + pixelLocOfEnquiryPtInQuad.toStr());
 		//PVector spriteOriginPixelLoc = new PVector(theSprite.origin.x * getImageWidth(), theSprite.origin.y * getImageHeight());
 		PVector spriteOriginPixelLoc = theSprite.getOriginBufferCoords();
-		PVector pixCoordOfDocumentPastePoint = MOUtilGlobals.theDocumentCoordSystem.docSpaceToBufferSpace(pastePoint);
+		PVector pixCoordOfDocumentPastePoint = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(pastePoint);
 		
 		PVector pixelOffsetEnquryPointFomSpriteOrigin = new PVector(pixelLocOfEnquiryPtInQuad.x - spriteOriginPixelLoc.x, pixelLocOfEnquiryPtInQuad.y - spriteOriginPixelLoc.y);
 		PVector pixelCoordinateInDocument = pixCoordOfDocumentPastePoint.add(pixelOffsetEnquryPointFomSpriteOrigin);
-		return MOUtilGlobals.theDocumentCoordSystem.bufferSpaceToDocSpace(pixelCoordinateInDocument);
+		return MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace(pixelCoordinateInDocument);
 	}
 	
 	
@@ -540,7 +540,7 @@ public class ImageSprite{
 	float docSizeToRenderTargetPixels2D(float size) {
 
 		PVector heightDocSpaceVector = new PVector(0, size);
-		PVector heightInPixelsVector = MOUtilGlobals.theDocumentCoordSystem.docSpaceToBufferSpace(heightDocSpaceVector);
+		PVector heightInPixelsVector = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(heightDocSpaceVector);
 		return (float) Math.abs(heightInPixelsVector.y);
 
 	}
