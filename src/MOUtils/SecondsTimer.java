@@ -17,7 +17,7 @@ public class SecondsTimer{
 	  }
 	  
 	  
-	  void start(){
+	  public void start(){
 	    startMillis = System.currentTimeMillis();
 	    lastNow = 0;
 	    counter = 0;
@@ -35,7 +35,7 @@ public class SecondsTimer{
 		  
 		  
 	  // returns the elapsed time since you last called this function
-	  float getElapsedTime(){
+	  public float getElapsedTime(){
 		 float now =  getTimeSinceStart();
 		 float elapsedTime = now - lastNow;
 		 lastNow = now;
@@ -53,11 +53,11 @@ public class SecondsTimer{
 		  
 	  }
 	  
-	  float getTimeSinceStart(){
+	  public float getTimeSinceStart(){
 	    return (System.currentTimeMillis() - startMillis)/1000.0f;
 	  }
 	  
-	  void printTimeSinceStart(String message) {
+	  public void printTimeSinceStart(String message) {
 		  System.out.println("Timer: " + message + getTimeSinceStart());
 	  }
 	  

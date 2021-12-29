@@ -5,7 +5,7 @@ public class UserSessionSettings{
 	public int fullScaleRenderWidth;
 	public int fullScaleRenderHeight;
 	float draftRenderScale = 0.2f;
-	String currentSchemea = "";
+	public String currentSchemea = "";
 	String userSessionPath = "";
 	
 	public UserSessionSettings(boolean isFinalCopy, float draftRendScale, String currentSchm){

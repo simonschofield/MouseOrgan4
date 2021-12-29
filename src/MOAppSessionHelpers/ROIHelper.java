@@ -5,6 +5,8 @@ import java.util.ArrayList;
 
 import MOMaths.Rect;
 import MOUtils.ImageDimensions;
+//The process of using a master image and ROIs within the master image works thus: The master image is rendered out
+//say at sale 0.2. This generates an output image - The master image - of 1200 x 2400 pixels. This is the master height and width. The rscale is 0.2.
 
 // Next look for the ROI renders you want to make in the master image and demark them. These will be the PPAs (permitted paste areas) of each ROI image. Each PPA area requires a bigger
 // full extents to allow for the pasting of sprites outside the PPA, but still partially appearing within the PPA. These larger areas are the ROIExtents; demark them too.
@@ -31,7 +33,7 @@ public class ROIHelper {
 		
 		
 		
-		ROIHelper(int masterWidth, int masterHeight, float rScale){
+		public ROIHelper(int masterWidth, int masterHeight, float rScale){
 			// This is established before the render document is initialised in initialiseSession()
 			// initialised with the saved-out render size of the master image, rendered at scale rscale
 			// this then can return the full-size width and height of the master render if needed.
@@ -44,12 +46,12 @@ public class ROIHelper {
 		}
 		
 		
-		void setCurrentROI(String s) {
+		public void setCurrentROI(String s) {
 			currentROIName = s;
 			
 		}
 		
-		String getCurrentROI() {
+		public String getCurrentROI() {
 			
 			return currentROIName;
 		}
@@ -60,13 +62,18 @@ public class ROIHelper {
 			return renderScale;
 		}
 		
-		void addROI(String name, Rect extents, Rect ppa, int fullPPARenderWidth) {
+		public boolean isFullsizeRender() {
+			if(renderScale==1f) return true;
+			return false;
+		}
+		
+		public void addROI(String name, Rect extents, Rect ppa, int fullPPARenderWidth) {
 			// all dims are in Master Image Pixel Space
 			ROIInfo ri = new ROIInfo(name,  extents,  ppa,  fullPPARenderWidth);
 			ROIInfoList.add(ri);
 		}
 		
-		ImageDimensions getFullSizeROIRenderDims() {
+		public ImageDimensions getFullSizeROIRenderDims() {
 			// returns the full size image, based on the ppaFullPixelWidth.
 			// This is used to establish the output render size in initialiseSession()
 			float widthOfROIExtentsInMaster = getCurrentROIInfo().ROIExtents.getWidth();
@@ -79,16 +86,20 @@ public class ROIHelper {
 			return new ImageDimensions(ROIEXtentsFullRenderWidth,ROIEXtentsFullRenderHeight);
 		}
 		
-		Rect getNormalisedROIExtentsRect() {
+		public Rect getNormalisedROIExtentsRect() {
 			// as a normalised rect within the master rect
 			// used to specify a ROI within the SceneData3D
 			Rect roiExtents = getCurrentROIInfo().ROIExtents;
+			System.out.println("ROIHelper::getNormalisedROIExtentsRect current roi extents " + roiExtents.toStr());
 			Rect masterRect = masterDimensions.getRect();
-			return masterRect.norm(roiExtents);
+			System.out.println("ROIHelper::getNormalisedROIExtentsRect masterRect " + masterRect.toStr());
+			Rect nomalised = masterRect.norm(roiExtents);
+			System.out.println("ROIHelper::getNormalisedROIExtentsRect normalised " + nomalised.toStr());
+			return nomalised;
 		}
 		
 		
-		Rect getNormalisedPPARect() {
+		public Rect getNormalisedPPARect() {
 			// the PPA rect within the ROI image.
 			// This is called when establishing the PPA in the ROI document
 			Rect roiExtents = getCurrentROIInfo().ROIExtents;
@@ -96,21 +107,32 @@ public class ROIHelper {
 			return roiExtents.norm(ppaExtents);
 		}
 		
-		boolean isUsingROI() {
+		public boolean isUsingROI() {
 			return !isUsingMaster();
 		}
 		
-		boolean isUsingMaster() {
+		public boolean isUsingMaster() {
 			if(currentROIName.equals("master")) return true;
 			return false;
 		}
 		
-		boolean isCurrentROI(String currentROI) {
+		public boolean isCurrentROI(String currentROI) {
 			if(currentROIName.equals(currentROI)) return true;
 			return false;
 		}
 		
-		
+		public void printCurrentROIInfo() {
+			ROIInfo ri = getCurrentROIInfo();
+			System.out.println("_____ROI______");
+			System.out.println("ROI Name " + ri.name);
+			
+			System.out.println("ROI ROIExtents " + ri.ROIExtents.toStr());
+			System.out.println("ROI ppaExtents " + ri.ppaExtents.toStr());
+			
+			System.out.println("ROI ppa width " + ri.ppaFullPixelWidth);
+			System.out.println("_________________");
+			
+		}
 		
 		// private
 		ROIInfo getCurrentROIInfo() {
@@ -149,5 +171,7 @@ class ROIInfo{
 		this.ppaExtents = ppaExtents;
 		this.ppaFullPixelWidth = ppaFullPixelWidth;
 	}
+	
+	
 	
 }

@@ -67,7 +67,7 @@ class QRandomStream {
 	// random number generating methods 
 	// each call advances the sequencePosition by at least 1 place
 	
-	int nextInt() {
+	public int nextInt() {
 		// all random number generating methods call this method
 		// hence the sequenceIncrement is here
 		int idexOfRandomNumber = (visitationOrder.get(sequencePosition) + seed)%arraySize;
@@ -94,7 +94,7 @@ class QRandomStream {
 		return (int) ((lo + r * (hi - lo)) + 0.5f);
 	}
 
-	float randRangeGaussian(float lo, float hi) {
+	public float randRangeGaussian(float lo, float hi) {
 		// apparently should be 20 samples for a true Gaussian
 		return randRangeAveragedDistribution( lo,  hi, 20); 
 	}

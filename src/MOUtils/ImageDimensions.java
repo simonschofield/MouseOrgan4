@@ -7,8 +7,8 @@ import MOMaths.Rect;
 //
 
 public class ImageDimensions{
-	int width = 0;
-	int height = 0;
+	public int width = 0;
+	public int height = 0;
 
 	public ImageDimensions(int w, int h) {
 		width = w;

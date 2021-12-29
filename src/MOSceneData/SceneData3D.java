@@ -148,13 +148,13 @@ public class SceneData3D {
 	}
     
     
-    void setDistanceBufferGamma(float g) {
+    public void setDistanceBufferGamma(float g) {
     	distanceFilter.setDistanceGamma(g);
     	geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov,  distanceFilter, originalViewWidth, originalViewHeight, originalViewCropRect);
     }
     
 	
-	void setROIRect(Rect r, boolean maintainRelativeAssetScale) {
+	public void setROIRect(Rect r, boolean maintainRelativeAssetScale) {
 		roiRect = r.copy();
 		maintainRelativeScaling = maintainRelativeAssetScale;
 	}
@@ -217,6 +217,7 @@ public class SceneData3D {
 		
 	BufferedImage cropToROI(BufferedImage uncropped) {
 		// returns the roi cropped image from whatever function
+		System.out.println("cropping to roi rect " + roiRect.toStr());
 		return ImageProcessing.cropImageWithNormalisedRect(uncropped,roiRect);
 	}
 	

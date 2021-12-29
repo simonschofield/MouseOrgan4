@@ -102,6 +102,7 @@ public class KeyValuePair {
 	}
 
 	void set(String k, int v) {
+		//System.out.println("setting integer " + k + " ," + v);
 		TYPE = INTEGER;
 		theKey = k;
 		ival = v;
@@ -109,6 +110,7 @@ public class KeyValuePair {
 	}
 
 	void set(String k, float v) {
+		//System.out.println("setting float " + k + " ," + v);
 		TYPE = FLOAT;
 		theKey = k;
 		fval = v;

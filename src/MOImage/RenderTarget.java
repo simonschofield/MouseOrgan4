@@ -120,6 +120,7 @@ public class RenderTarget{
 	// This is the method that actually does the compositing of the sprite with the
 	// document image
 	public void pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha) {
+		//System.out.println("compositing " + x + " " + y);
 		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
 		getGraphics2D().setComposite(ac);
 		getGraphics2D().drawImage(img, x, y, null);
@@ -278,10 +279,14 @@ public class RenderTarget{
 		drawText( str, (int)bufpt.x, (int)bufpt.y,  size,  c);
 	}
 
-	void drawText(String str, int bufferX, int bufferY, int size, Color c) {
+	public void drawText(String str, int bufferX, int bufferY, int size, Color c) {
 		VectorShape textShape = new VectorShape();
 		textShape.setTextShape(bufferX, bufferY, str, c, size);
 		shapeDrawer.drawDrawnShape(textShape);
+	}
+	
+	public VectorShapeDrawer getVectorShapeDrawer() {
+		return shapeDrawer;
 	}
 
 	public Graphics2D getGraphics2D() {

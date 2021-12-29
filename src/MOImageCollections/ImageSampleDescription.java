@@ -3,24 +3,26 @@ package MOImageCollections;
 import java.io.Serializable;
 
 
-@SuppressWarnings("serial")
+
 //a seed factory generates seeds. These have points in documentspace and associates
 //some asset with that point
 ///////////////////////////////////////////////////////////////////////////
 //ContentItemSelection is full description of the asset residing in a seed
 //and returned from ContentItemSelector
 
-public class ImageSampleDescription implements Serializable {
+public class ImageSampleDescription {
 	public String imageSampleGroupName;
 	public int itemNumber;
-
-	public ImageSampleDescription(String collectionName, int itemNum) {
+	public String shortName;
+	
+	public ImageSampleDescription(String collectionName, int itemNum, String shortNm) {
 		imageSampleGroupName = collectionName;
 		itemNumber = itemNum;
+		shortName = shortNm;
 	}
 
 	String toStr() {
 
-		return " content group name " + imageSampleGroupName + ", itemNumber " + itemNumber;
+		return " content group name " + imageSampleGroupName + ", itemNumber " + itemNumber + " short name " + shortName;
 	}
 }

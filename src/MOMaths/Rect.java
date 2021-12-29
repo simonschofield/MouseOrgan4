@@ -6,6 +6,8 @@ public class Rect{
 	public float top;
 	public float right;
 	public float bottom;
+	
+	
 	public Rect(){
 		setWithExtents(0,0,1,1);
 	}
@@ -24,9 +26,7 @@ public class Rect{
 		setWithDimensions(upperleft.x, upperleft.y, w, h);
 	}
 
-	void setRect(Rect other) {
-		setWithExtents(other.left, other.top, other.right, other.bottom);
-	}
+	
 
 	void setWithExtents(float x1, float y1, float x2, float y2) {
 		this.left = Math.min(x1, x2);
@@ -55,55 +55,10 @@ public class Rect{
 		return false;
 	}
 
-	Rect getTranslated(float dx, float dy){
-		// returns a translated copy
-		return new Rect(left+dx, top+dy, getWidth(), getHeight());
-	}
-
-	public void translate(float dx, float dy) {
-		// translates in-place 
-		left+=dx;
-		top+=dy;
-		right+=dx;
-		bottom+=dy; 
-	}
-
-	void moveTopLeftTo(float x, float y) {
-		float w = getWidth();
-		float h = getHeight();
-		left = x;
-		top = y;
-		right = left+w;
-		bottom = top+h; 
-	}
-
-	public void setCentreTo(float x, float y) {
-		float w = getWidth();
-		float h = getHeight();
-		left = x - w/2;;
-		top = y - h/2;
-		right = left+w;
-		bottom = top+h; 
-	}
-
-	/*
-  Rect getNormalised(){
-    // this function makes the rect a square, by lengthening the shortest edge
-    // this is useful for certain image-related operations, where the x and y
-    // need to be in the normal form
-    Rect normRect = this.copy();
-    float aspect = aspect();
-    if( aspect > 1.0 ){
-      // leave w alone, scale height up
-      normRect.top=top*aspect;
-      normRect.bottom=bottom*aspect; 
-    }else{
-      // leave h alone, scale up width
-      normRect.left=left/aspect;
-      normRect.right=right/aspect;
-    }
-    return normRect;
-  }*/
+	
+	//////////////////////////////////////////////////////////////////////////////////
+	// getting 
+	//
 
 	public PVector getCentre(){
 		float cx = this.left + (this.right - this.left)/2.0f;
@@ -111,18 +66,6 @@ public class Rect{
 		return new PVector(cx,cy);
 	}
 
-
-
-	public boolean isPointInside(PVector p){
-		// inclusive of the boundries
-		if(   MOMaths.isBetweenInc(p.x, this.left, this.right) && MOMaths.isBetweenInc(p.y, this.top, this.bottom) ) return true;
-		return false;
-	}
-
-	public boolean isPointInside(float x, float y){
-		PVector v = new PVector(x,y);
-		return isPointInside(v);
-	}
 
 	public float getWidth(){
 		return (this.right - this.left);
@@ -169,7 +112,50 @@ public class Rect{
 	float area(){
 		return getWidth()*getHeight();
 	}
+	
+	public String toStr() {
+		return new String(left + "," + top + "," + right + "," + bottom) ;
+	}
+	
+	
+	//////////////////////////////////////////////////////////////////////////////////
+	// translation
+	//
+	
+	Rect getTranslated(float dx, float dy){
+		// returns a translated copy
+		return new Rect(left+dx, top+dy, getWidth(), getHeight());
+	}
 
+	public void translate(float dx, float dy) {
+		// translates in-place 
+		left+=dx;
+		top+=dy;
+		right+=dx;
+		bottom+=dy; 
+	}
+
+	void moveTopLeftTo(float x, float y) {
+		float w = getWidth();
+		float h = getHeight();
+		left = x;
+		top = y;
+		right = left+w;
+		bottom = top+h; 
+	}
+
+	public void setCentreTo(float x, float y) {
+		float w = getWidth();
+		float h = getHeight();
+		left = x - w/2;;
+		top = y - h/2;
+		right = left+w;
+		bottom = top+h; 
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////
+	// interpolation
+	//
 	public PVector interpolate(PVector parametric){
 		float x = MOMaths.lerp(parametric.x,this.left,this.right);
 		float y = MOMaths.lerp(parametric.y,this.top,this.bottom );
@@ -177,6 +163,7 @@ public class Rect{
 	}
 
 	public PVector norm(PVector n) {
+		// returns the normalised position of p within this rect
 		float x = MOMaths.norm(n.x,this.left,this.right);
 		float y = MOMaths.norm(n.y,this.top,this.bottom ); 
 		return new PVector(x,y);
@@ -188,13 +175,59 @@ public class Rect{
 		PVector bottomRightNormalised = norm(r.getBottomRight());
 		return new Rect(topleftNormalised,bottomRightNormalised);
 	}
+	
+	public static PVector map(PVector p, Rect inThis, Rect toThis) {
+		float px = MOMaths.map(p.x, inThis.left, inThis.right, toThis.left, toThis.right);
+		float py = MOMaths.map(p.y, inThis.top, inThis.bottom, toThis.top, toThis.bottom);
 
-	String toStr() {
-		return new String(left + "," + top + "," + right + "," + bottom) ;
+		return new PVector(px,py);
+	}
+
+	
+
+	//////////////////////////////////////////////////////////////////////////////////
+	// point-rect intersection
+	//
+	
+	public boolean isPointInside(PVector p){
+		// inclusive of the boundaries
+		if(   MOMaths.isBetweenInc(p.x, this.left, this.right) && MOMaths.isBetweenInc(p.y, this.top, this.bottom) ) return true;
+		return false;
+	}
+
+	public boolean isPointInside(float x, float y){
+		PVector v = new PVector(x,y);
+		return isPointInside(v);
+	}
+	
+	int getQuadrant(PVector p){
+		// The rectangle divides the space into 9 quadrants
+		// 0,1,2
+		// 3,4,5
+		// 6,7,8
+		// where quadrant 4 is inside the rect.
+
+		if( p.x <= left && p.y <= top) return 0;
+		if( p.x >= left && p.x <= right && p.y <= top) return 1;
+		if( p.x >= right && p.y <= top) return 2;
+		if( p.x <= left && p.y >= top && p.y <= bottom) return 3;
+		if(isPointInside(p)) return 4;
+		if( p.x >= right && p.y >= top && p.y <= bottom) return 5;
+		if( p.x <= left && p.y >= bottom) return 6;
+		if( p.x >= left &&  p.x <= right && p.y >= bottom) return 7;
+		if( p.x >= right && p.y >= bottom) return 8;
+
+		System.out.println("Rect getQuadrant something is wrong" + p + " in " + toStr());
+		return -1;
 	}
 
 
-	boolean intersects(Rect otherRect) {
+	
+	//////////////////////////////////////////////////////////////////////////////////
+	// rect-rect intersection
+	//
+	
+	public boolean intersects(Rect otherRect) {
 		if((  this.left   >  otherRect.right  ) ||  (  this.right  <  otherRect.left   ) ) return false;
 		if((  this.bottom <  otherRect.top    ) ||  (  this.top    >  otherRect.bottom ) ) return false;   
 		return true;
@@ -207,8 +240,15 @@ public class Rect{
 
 	public String reportIntersection(Rect otherRect) {
 		// reports THIS rect's intersection with OTHER
-		// so, WHOLLYINSITE means THIS is WHOLLYINSIDE other, and LEFT means THIS LEFT intersects OTHER RECT
-		//System.out.println("reportIntersection: this Rect: " + this.toStr() + " Other rect "  + otherRect.toStr());
+		// so, WHOLLYINSIDE means THIS rect is WHOLLYINSIDE other, and LEFT means THIS LEFT intersects OTHER RECT
+		//System.out.println("reportIntersection: this rect: " + this.toStr() + " Other rect "  + otherRect.toStr());
+		// The report results are Strings:
+		// NONE : no intersection between THIS rect and the OTHER rect
+		// WHOLLYINSIDE : THIS rect is wholly inside the OTHER rect
+		// WHOLLYSURROUNDING : THIS rect wholly surrounds the OTHER rect
+		// LEFT : THIS rect intersects the left side of the other rect, same for TOP, RIGHT and BOTTOM
+		// However, THIS rect may intersect a combination of sides of the other rect, for instance if THIS rect may straddle the left and right edges of the other rect.
+		// In the above example the returned string would be "LEFT,RIGHT". 
 		if( intersects( otherRect) == false) return "NONE";
 		if( isWhollyInsideOther( otherRect) ) return "WHOLLYINSIDE";
 		if( otherRect.isWhollyInsideOther( this) ) return "WHOLLYSURROUNDING";
@@ -219,21 +259,31 @@ public class Rect{
 			// straddles other rect lengthwise
 			intersections = addIntersectionString( intersections,"LEFT,RIGHT");
 		}else {
-			if(this.right > otherRect.left && this.left < otherRect.left)  intersections = addIntersectionString( intersections,"LEFT");
-			if(this.left < otherRect.right && this.right > otherRect.right) intersections = addIntersectionString( intersections,"RIGHT");
+			if(this.right >= otherRect.left && this.left <= otherRect.left)  intersections = addIntersectionString( intersections,"LEFT");
+			if(this.left <= otherRect.right && this.right >= otherRect.right) intersections = addIntersectionString( intersections,"RIGHT");
 		}
 
 		if(this.top<otherRect.top && this.bottom>otherRect.bottom) {
 			// straddles other rect hieghtwise
 			intersections = addIntersectionString( intersections,"TOP,BOTTOM");
 		}else {
-			if(this.bottom > otherRect.top && this.top < otherRect.top)  intersections = addIntersectionString( intersections,"TOP");
-			if(this.top < otherRect.bottom && this.bottom > otherRect.bottom) intersections = addIntersectionString( intersections,"BOTTOM");
+			if(this.bottom >= otherRect.top && this.top <= otherRect.top)  intersections = addIntersectionString( intersections,"TOP");
+			if(this.top <= otherRect.bottom && this.bottom >= otherRect.bottom) intersections = addIntersectionString( intersections,"BOTTOM");
 		}
+		
+		
+		if(intersections.equals("")) {
+			// just in case there is a problem
+			System.out.println("Rect::reportIntersection has generated no intersections " + intersections);
+			System.out.println("this rect " + this.toStr());
+			System.out.println("other rect " + otherRect.toStr());
+		}
+		
+		
 		return intersections;
 	}
 
-	String addIntersectionString(String intersections, String intersection) {
+	private String addIntersectionString(String intersections, String intersection) {
 		if(intersections.contentEquals("")) {
 			intersections += intersection;
 			return intersections;
@@ -264,38 +314,8 @@ public class Rect{
 		return new Rect(new PVector(tx1, ty1), new PVector(tx2, ty2));
 	}
 
-	public static PVector map(PVector p, Rect inThis, Rect toThis) {
-		float px = MOMaths.map(p.x, inThis.left, inThis.right, toThis.left, toThis.right);
-		float py = MOMaths.map(p.y, inThis.top, inThis.bottom, toThis.top, toThis.bottom);
-
-		return new PVector(px,py);
-	}
-
-	int getQuadrant(PVector p){
-		// The rectange divides the space into 9 quadrants
-		// 0,1,2
-		// 3,4,5
-		// 6,7,8
-		// where quadant 4 is inside the rect.
-
-		if( p.x <= left && p.y <= top) return 0;
-		if( p.x >= left && p.x <= right && p.y <= top) return 1;
-		if( p.x >= right && p.y <= top) return 2;
-		if( p.x <= left && p.y >= top && p.y <= bottom) return 3;
-		if(isPointInside(p)) return 4;
-		if( p.x >= right && p.y >= top && p.y <= bottom) return 5;
-		if( p.x <= left && p.y >= bottom) return 6;
-		if( p.x >= left &&  p.x <= right && p.y >= bottom) return 7;
-		if( p.x >= right && p.y >= bottom) return 8;
-
-		System.out.println("Rect get quadrant something is wrong" + p + " in " + getStr());
-		return -1;
-	}
-
-	String getStr(){ 
-		return "Rect: L:" + left + " T:" + top + " R:" + right + " B:" + bottom; 
-	}
-
+	
+	
 
 
 

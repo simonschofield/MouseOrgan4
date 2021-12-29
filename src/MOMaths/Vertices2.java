@@ -140,7 +140,7 @@ public class Vertices2 {
   
   public void close() {
 	  if(isClosed()) return;
-	  PVector startP = getStartPoint();
+	  PVector startP = getStartPoint().copy();
 	  vertices.add(startP);
   }
   

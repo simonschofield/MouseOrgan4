@@ -7,8 +7,11 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 
 import MOMaths.PVector;
+import MOMaths.Rect;
+import MOMaths.Vertices2;
 
 public class VectorShapeDrawer{
   
@@ -114,9 +117,19 @@ public class VectorShapeDrawer{
   }
   
   
+  public void drawRect(Rect r) {
+	  drawRect( r.left, r.top, r.getWidth(), r.getHeight()); 
+  }
+  
   public void drawRect( float x1, float y1, float w, float h){
    Shape r = new Rectangle.Float(x1,y1,w,h);
    drawShape(r);
+  }
+  
+  
+  public void drawVertices(Vertices2 verts) {
+	  
+	  
   }
   
   public void drawText(String str, int x, int y) {
@@ -129,18 +142,17 @@ public class VectorShapeDrawer{
 
 
   
-  /*
-  void drawJavaPoly(Polyline2D poly, boolean closed){
-       // for drawing Polygon2Ds and polylines
-       Path2D pth = makePath2D(poly, closed);
-       drawJavaShape(pth);
+  
+  public void drawVertices2(Vertices2 v){
+       Path2D pth = makePath2D(v, v.isClosed());
+       drawShape(pth);
   }
   
-  public Path2D makePath2D(Polyline2D poly, boolean closed) {
+  private Path2D makePath2D(Vertices2 v, boolean closed) {
     Path2D path = new Path2D.Float();
-    int numPoints = poly.getNumPoints();
+    int numPoints = v.size();
     for (int i = 0; i < numPoints; i++) {
-      PVector p = poly.getPoint(i);
+      PVector p = v.get(i);
       
       if (i == 0) {
         path.moveTo(p.x, p.y);
@@ -152,7 +164,7 @@ public class VectorShapeDrawer{
     if(closed) path.closePath();
     return path;
    }
-  */
+  
   
   //////////////////////////////////////////////////////////
   //

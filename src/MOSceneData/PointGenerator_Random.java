@@ -45,6 +45,7 @@ public class PointGenerator_Random extends CollectionIterator{
 		float w = MOUtilGlobals.getTheDocumentCoordSystem().getDocumentWidth();
 		float h = MOUtilGlobals.getTheDocumentCoordSystem().getDocumentHeight();
 		setGenerationArea(new Rect(0,0,w,h));
+		System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
 	}
 	
 
@@ -85,7 +86,7 @@ public class PointGenerator_Random extends CollectionIterator{
 		points.clear();
 	}
 
-	void setMaskImage(BufferedImage mask) {
+	public void setMaskImage(BufferedImage mask) {
 		maskKeyImageSampler = new KeyImageSampler(mask);
 	}
 	

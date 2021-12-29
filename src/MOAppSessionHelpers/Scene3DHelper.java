@@ -6,11 +6,14 @@ import MOApplication.Surface;
 import MOCompositing.ImageSprite;
 import MOImage.ConvolutionFilter;
 import MOImage.ImageProcessing;
+import MOImage.RenderTarget;
 import MOImageCollections.ImageSampleGroupManager;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
+import MOMaths.Rect;
 import MOMaths.SNum;
+import MOMaths.Vertices2;
 import MOSceneData.SceneData3D;
 import MOSimpleUI.Slider;
 import MOSimpleUI.TextInputBox;
@@ -18,104 +21,9 @@ import MOSimpleUI.TextInputBox;
 //import MOSimpleUI.TextInputBox;
 import MOSimpleUI.UIEventData;
 
-class SceneHelper {
-	
-	
-	
-	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount) {
-		randomRotateScaleSprite( sprite,  scaleAmt,  rotAmount, true);
-	}
-	
-	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount, boolean flipInRotationDirection) {
-		QRandomStream ranStream = sprite.getRandomStream();
-		float rscale = ranStream.randRangeF(1-scaleAmt,1+scaleAmt);
-		
-		float rrot = ranStream.randRangeF(-rotAmount,rotAmount);
-		
-		if(flipInRotationDirection && rrot > 0) sprite.mirror(true);
-		sprite.rotate(rrot);
-		sprite.scale(rscale,rscale);
-	}
-	
-	static void randomMirrorSprite(ImageSprite sprite, boolean inX, boolean inY) {
-		QRandomStream ranStream = sprite.getRandomStream();
-		boolean coinTossX = ranStream.randomEvent(0.5f);
-		boolean coinTossY = ranStream.randomEvent(0.5f);
-		if(coinTossX && inX) {
-			sprite.mirror(true);
-		}
-		if(coinTossY && inY) {
-			sprite.mirror(false);
-		}
-		
-		
-	}
-	
-	
-	static void addLighting(ImageSprite sprite, float brightness) {
-		// when the brightness is low, so is the contrast
-		//sprite.image = ImageProcessing.adjustContrast(sprite.image, brightness);
-		
-		sprite.image = ImageProcessing.adjustBrightness(sprite.image, brightness);
-		//sprite.image = ImageProcessing.adjustBrightnessNoClip(sprite.image, brightness);
-
-	}
-	
-	static void addContrast(ImageSprite sprite, float contrast) {
-		// when the brightness is low, so is the contrast
-		sprite.image = ImageProcessing.adjustContrast(sprite.image, contrast);
-		
-		
-	}
-	
-	static void addRandomHSV(ImageSprite sprite, float rH, float rS, float rV) {
-		QRandomStream ranStream = sprite.getRandomStream();
-		float randH = ranStream.randRangeF(-rH, rH);
-		float randS = ranStream.randRangeF(-rS, rS);
-		float randV = ranStream.randRangeF(-rV, rV);
-		
-		
-		sprite.image = ImageProcessing.adjustHSV(sprite.image, randH, randS, randV);
-	}
-	
-	
-	
-	
-	static void addClump(ImageSprite sprite, float scaleAmt, float rotAmount){
-		
-		
-	}
-	
-
-	ImageSprite createImageSprite(PVector docPos, String imageContentGroupName, ImageSampleGroupManager contentManager) {
-		
-		ImageSprite sprite =  contentManager.getSprite(imageContentGroupName,1);
-		
-		sprite.docPoint = docPos;
-		return sprite;
-	}
-	
-}
-
-
-class StochasticMethods{
-	
-	static BufferedImage adjustHSV(BufferedImage img, SNum h, SNum s, SNum v) {
-		return ImageProcessing.adjustHSV(img, h.get(), s.get(), v.get());
-	}
-	
-	
-	
-	
-}
 
 
 
-
-	/////////////////////////////////////////////////////////////////////////////
-	// ui stuff based around 3D data
-	//
-	/////////////////////////////////////////////////////////////////////////////
 	
 public class Scene3DHelper {
 		static Surface theSurface = null;
@@ -155,7 +63,7 @@ public class Scene3DHelper {
 			if(mag>0.001) {
 				float rot = grad.heading();
 				float scaledRot = rot*mag*amt;
-				if(scaledRot > 0 && flipInDirection) sprite.image = ImageProcessing.mirrorImage(sprite.image, true, false);
+				if(scaledRot > 0 && flipInDirection) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
 				sprite.rotate((float)Math.toDegrees(scaledRot));
 				return scaledRot;
 			}
@@ -173,7 +81,7 @@ public class Scene3DHelper {
 			float rotationDegrees = MOMaths.lerp(v,-degreesLeft,degreesRight);
 			
 			//System.out.println("rotation " + v + " " + rotationDegrees);
-			if(rotationDegrees > 0) sprite.image = ImageProcessing.mirrorImage(sprite.image, true, false);
+			if(rotationDegrees > 0) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
 			sprite.rotate(rotationDegrees);
 			return rotationDegrees;
 		}
@@ -275,7 +183,7 @@ public class Scene3DHelper {
 	}
 	
 	
-	static void print3DSceneData(PVector docPt) {
+	public static void print3DSceneData(PVector docPt) {
 		float worldScale = sceneData3D.get3DScale(docPt);
 		float distance = sceneData3D.getDistance(docPt);
 		float unfilteredDistance = sceneData3D.geometryBuffer3d.getUnfilteredDistance(docPt);

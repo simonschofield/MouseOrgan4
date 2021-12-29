@@ -75,12 +75,13 @@ public class TextRenderer {
 		ImageSprite sprite = new ImageSprite();
 		
 		sprite.setImage(img);
+	
 		sprite.rotate(-90);
 		sprite.origin = new PVector(0.5f,0.0f);
 		
 		
-		
-		sprite.scaleToDocSpace(docSpaceFontHeight, line.getLength());
+		sprite.scaleToSizeInDocSpace(docSpaceFontHeight, line.getLength());
+		//sprite.scaleToDocSpace(docSpaceFontHeight, line.getLength());
 		
 		float r = line.getRotation();
 		sprite.rotate(r);

@@ -6,9 +6,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import MOCompositing.ImageSprite;
+import MOCompositing.MainDocumentRenderTarget;
+import MOImage.ImageProcessing;
+import MOImage.RenderTarget;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOSceneData.Seed;
+import MOUtils.MOStringUtils;
+import MOUtils.MOUtilGlobals;
 
 
 
@@ -30,7 +35,7 @@ public class ImageSampleGroupManager {
 	//////////////////////////////////////////////////////////////////////////////
 	//
 	//
-	ImageSampleGroup getImageSampleGroup(String name) {
+	public ImageSampleGroup getImageSampleGroup(String name) {
 		for (ImageSampleGroup cc : imageSampleGroups) {
 			if (cc.isNamed(name))
 				return cc;
@@ -149,6 +154,7 @@ public class ImageSampleGroupManager {
 
 		
 		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(targetDirectory);
+		dfns.setFileType(fileNameMustEndWith);
     	dfns.setFileNameContains(fileNameMustContain);
     	dfns.setFileListRange(from, to);
     	
@@ -233,7 +239,7 @@ public class ImageSampleGroupManager {
 	//
 	///////////////////////////////////////////////////////////////////////////// first
 
-	void scaleImageSampleGroup(String name, float inx, float iny) {
+	public void scaleImageSampleGroup(String name, float inx, float iny) {
 		ImageSampleGroup ic = getImageSampleGroup(name);
 		if (ic == null)
 			return;
@@ -252,7 +258,7 @@ public class ImageSampleGroupManager {
 	 * @param p3        third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
-	void colorTransformImageSampleGroup(String groupname, int function, float p1, float p2, float p3) {
+	public void colorTransformImageSampleGroup(String groupname, int function, float p1, float p2, float p3) {
 		ImageSampleGroup ic = getImageSampleGroup(groupname);
 		if (ic == null)
 			return;
@@ -261,11 +267,82 @@ public class ImageSampleGroupManager {
 
 	
 
-	void paradeContent(String groupName, int effect, float p1, float p2, float p3 ) {
-		ImageSampleGroup sampleGroup = this.getImageSampleGroup(groupName);
-		System.out.println("Parade contend need to to be mored to this calss");
-		//sampleGroup.paradeContent(effect, p1, p2, p3);
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	//
+	void paradeContent(String groupName, MainDocumentRenderTarget rt) {
+		paradeContent(groupName,ImageProcessing.COLORTRANSFORM_NONE, 0, 0, 0, rt);
 	}
+
+	void paradeContent(String groupName, int effect, float p1, float p2, float p3, MainDocumentRenderTarget rt) {
+		ImageSampleGroup sampleGroup = this.getImageSampleGroup(groupName);
+		//Surface parentSurface = GlobalObjects.theSurface;
+
+		int numItems = sampleGroup.getNumImages();
+		int biggestItemWidth = (int) sampleGroup.widthExtrema.getUpper();
+		int biggestItemHeight = (int) sampleGroup.heightExtrema.getUpper();
+		float itemAspect = biggestItemWidth / (float) biggestItemHeight;
+		int outImageW = rt.coordinateSystem.getBufferWidth();
+		int outImageH = rt.coordinateSystem.getBufferHeight();
+
+		// assume they are all fit into shapes biggestWidth/Biggestheight - this will be
+		// a good fit for most content of similar aspects
+		//
+		// assuming a portrait shaped item
+		// first scale the height of the outImageH by the aspect of the shaped item.
+		// Then you can deal with it as if they were all squares, which
+		// is simpler to think about
+		float outImageHScaled = outImageH * itemAspect;
+		float outImageScaledAspect = outImageW / outImageHScaled;
+		float idealNumRows = (float) Math.sqrt((double) (numItems / outImageScaledAspect));
+		int numItemsInRow = (int) Math.ceil(idealNumRows * outImageScaledAspect);
+		int numOfItemRows = numItems / numItemsInRow;
+		int remainingInLastRow = numItems - (numOfItemRows * numItemsInRow);
+
+		System.out.println("paradeContent : numItems = " + numItems + ", Num In Row " + numItemsInRow
+				+ ", actualNumWholeRows " + numOfItemRows + ", with remaining " + remainingInLastRow);
+
+		// so now we know the arrangement of the items in the larger image
+
+		// we also need to scale the image to fit into the box
+		int boxWidth = (int) (outImageW / (float) numItemsInRow);
+		int boxHeight = (int) (outImageH / (float) (numOfItemRows + 1));
+		int itemCounter = 0;
+		for (int y = 0; y <= numOfItemRows; y++) {
+			for (int x = 0; x < numItemsInRow; x++) {
+				int thisItemX = x * boxWidth;
+				int thisItemY = y * boxHeight + 20;
+				if (itemCounter < numItems) {
+					BufferedImage img = sampleGroup.getImage(itemCounter);
+
+					img = ImageProcessing.colorTransform(img, effect, p1, p2, p3);
+
+					String itemName = sampleGroup.getImageName(itemCounter);
+					int imgW = img.getWidth();
+					int imgH = img.getHeight();
+					float imgAspect = imgW / (float) imgH;
+					int scaledHeight = (int) (boxHeight * 0.75f);
+					int scaledWidth = (int) (boxHeight * imgAspect * 0.75f);
+					img = ImageProcessing.resizeTo(img, scaledWidth, scaledHeight);
+					rt.pasteImage_BufferCoordinates(img, thisItemX, thisItemY, 1.0f);
+
+					rt.drawText(itemName, thisItemX, thisItemY + scaledHeight + 50, 50,
+							Color.DARK_GRAY);
+				}
+				itemCounter++;
+			}
+		}
+
+		String userSessionPath = MOUtilGlobals.userSessionPath;
+
+		String suggestedName = MOStringUtils.getDateStampedImageFileName("Parade_" + groupName + "_");
+		System.out.println("saveRenderLayer: saving " + suggestedName);
+		rt.saveRenderToFile(userSessionPath + suggestedName);
+
+	}
+
 
 }// end of class ImageSampleGroupManager
 

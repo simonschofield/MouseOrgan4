@@ -62,7 +62,6 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	
 	
 	private Timer updateTimer;
-	private final int DELAY = 0;
 	//SecondsTimer secondsTimer;
 
 	boolean userSessionPaused = false;
@@ -87,15 +86,21 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addKeyListener(this);
-		//GlobalObjects.theSurface = this;
 		
-		setWindowSize();
 
-		initialiseUserSession();
-		theUserSessionState = UserSessionState.LOAD;
+		setWindowSize();
+		
+		//buildUI();
+		
+		// here the javax swing timer instance gets passed the ActionListener part of this Surface class
+		// This calls the actionPerformed method of the ActionListener interface
+		// This drives the automated part of the Mouse Organ
+		updateTimer = new Timer(0, this);
+		updateTimer.start();
+				
 	}
 	
-	void setWindowSize() {
+	private void setWindowSize() {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int w = (int) screenSize.getWidth();
 		int h = (int) screenSize.getHeight();
@@ -117,37 +122,33 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 	/////////////////////////////////////////////////////////////////////
 	// Initialisation methods
-	//
+	// This MUST be called from the InitialiseSession method of the UserSession
 
 	public void initialiseDocument(int dw, int dh, float sessionScale) {
+		
 		MOUtilGlobals.setSessionScale(sessionScale);
 		
 		theDocument = new MainDocumentRenderTarget();
-		//GlobalObjects.theDocument = theDocument;
 		
 		theDocument.setRenderBufferSize((int) (dw * MOUtilGlobals.getSessionScale()), (int) (dh * MOUtilGlobals.getSessionScale()));
 		
 		MOUtilGlobals.setTheDocumentCoordSystem(theDocument.getCoordinateSystem());
 		
-		//setWindowSize();
-		
-		updateTimer = new Timer(DELAY, this);
-		updateTimer.start();
-		
 		theViewControl.init(this);
-		buildUI();
 		
+		
+		buildUI();
 	}
 	
 	private void updateUserSession_All() {
 		// this is called by the Action Thread of the app via
 		// the automatically called actionPerformed method below
 		
-		//if(theUserSessionState == UserSessionState.INITIALISE) {
-		//	initialiseUserSession();
-		//	theUserSessionState = UserSessionState.LOAD;
-		//	return;
-		//}
+		if(theUserSessionState == UserSessionState.INITIALISE) {
+			initialiseUserSession();
+			theUserSessionState = UserSessionState.LOAD;
+			return;
+		}
 		//System.out.println("User session state in updateUserSession_All = " + theUserSessionState);
 		if(theUserSessionState == UserSessionState.LOAD) {
 			theUserSessionState = UserSessionState.UPDATE;
@@ -334,6 +335,8 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	}
 
 	@Override
+	//////////////////////////////////////
+	// called by the Timer daemon
 	public void actionPerformed(ActionEvent e) {
 		// this calls your session code
 		// and then updates the graphics
@@ -377,18 +380,18 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	// - i.e. YOUR CODE
 
 	
-	public abstract void initialiseUserSession();
+	protected abstract void initialiseUserSession();
 
-	public abstract void loadContentUserSession();
+	protected abstract void loadContentUserSession();
 
-	public abstract void updateUserSession();
+	protected abstract void updateUserSession();
 	
 	// optional
-	public void finaliseUserSession() {}
+	protected void finaliseUserSession() {}
 	
-	public abstract void handleCanvasMouseEvent(UIEventData uied);
+	protected abstract void handleCanvasMouseEvent(UIEventData uied);
 
-	public abstract void handleUserSessionUIEvent(UIEventData uied);
+	protected abstract void handleUserSessionUIEvent(UIEventData uied);
 
 	/////////////////////////////////////////////////////////////////////
 	// private event methods

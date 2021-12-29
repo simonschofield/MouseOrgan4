@@ -1,6 +1,7 @@
 package MOUtils;
 
 import MOMaths.PVector;
+import MOMaths.Rect;
 
 public class ImageCoordinateSystem {
 		private int bufferWidth, bufferHeight;
@@ -15,8 +16,8 @@ public class ImageCoordinateSystem {
 			aspect = bufferWidth/(float)bufferHeight;
 			longestBufferEdge = Math.max(bufferWidth, bufferHeight);
 			
-			documentWidth = bufferWidth / longestBufferEdge;
-			documentHeight = bufferHeight / longestBufferEdge;
+			documentWidth = bufferWidth / (float)longestBufferEdge;
+			documentHeight = bufferHeight / (float)longestBufferEdge;
 		}
 		
 		
@@ -35,14 +36,30 @@ public class ImageCoordinateSystem {
 		public PVector bufferSpaceToDocSpace(PVector p) {
 			return bufferSpaceToDocSpace((int) (p.x), (int) (p.y));
 		}
-
+		
 		public PVector bufferSpaceToDocSpace(int bx, int by) {
 			
 			float docX = bx / (float)longestBufferEdge;
 			float docY = by / (float)longestBufferEdge;
-			//System.out.println("bufferSpaceToDocSpace bx by " + bx + "  " + by + " longestBufferEdge " + longestBufferEdge + "docX doxY " + docX + " " + docY);
+			//System.out.println("bufferSpaceToDocSpace bx by " + bx + "  " + by + " longestBufferEdge " + longestBufferEdge + "docX docY " + docX + " " + docY);
 			return new PVector(docX, docY);
 		}
+		
+		
+		public Rect docSpaceToBufferSpace(Rect docSpaceRect) {
+			PVector topLeftBufferSapce = docSpaceToBufferSpace(docSpaceRect.getTopLeft());
+			PVector bottomRightBufferSapce = docSpaceToBufferSpace(docSpaceRect.getBottomRight());
+			return new Rect(topLeftBufferSapce, bottomRightBufferSapce);
+		}
+		
+		public Rect bufferSpaceToDocSpace(Rect bufferSpaceRect) {
+			PVector topLeftDocSapce = bufferSpaceToDocSpace(bufferSpaceRect.getTopLeft());
+			PVector bottomRightDocSapce = bufferSpaceToDocSpace(bufferSpaceRect.getBottomRight());
+			return new Rect(topLeftDocSapce, bottomRightDocSapce);
+			
+		}
+
+		
 
 		public PVector docSpaceToNormalisedSpace(PVector docPt) {
 
@@ -93,6 +110,12 @@ public class ImageCoordinateSystem {
 	        if(isInsideXDocumentSpace(p.x) && isInsideYDocumentSpace(p.y)) return true;
 	        return false;
 	    }
+		
+		public boolean intersectsDocumentRect(Rect docSpaceRect) {
+	        Rect theDocumentRect = new Rect(0,0,getDocumentWidth(), getDocumentHeight());
+	        return docSpaceRect.intersects(theDocumentRect);
+	        
+	    }
 	    
 		public boolean isInsideXDocumentSpace(float x) {
 	    	float w = getDocumentWidth();
@@ -106,6 +129,8 @@ public class ImageCoordinateSystem {
 	    	return false;
 	    	
 	    }
+		
+		
 	    
 		public boolean isLandscape() {
 	    	if(bufferWidth > bufferHeight) return true;

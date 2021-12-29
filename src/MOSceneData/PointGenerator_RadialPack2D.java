@@ -44,13 +44,13 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 		attemptsCounter = (int)	MOMaths.lerp(t, 10,600);
 	}
 	
-	void setPackingRadius(PackingInterpolationScheme is,  BufferedImage distImg) {
+	public void setPackingRadius(PackingInterpolationScheme is,  BufferedImage distImg) {
 		packingInterpolationScheme = is;
 		distributionKeyImageSampler = new KeyImageSampler(distImg);
 	}
 	
 	
-	ArrayList<PVector> generatePoints() {
+	public ArrayList<PVector> generatePoints() {
 		if(distributionKeyImageSampler == null) return generateUniformlyDistributedPoints();
 		return generateImageResponsiveDistributedPoints();
 	}

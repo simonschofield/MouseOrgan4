@@ -19,14 +19,16 @@ public class Seed {
 
 	// the name of the Seedbatch this seed is made in
 	// this enables the user to identify seeds from different batches and treat them differently
-	String batchName = " ";
+	public String batchName = "";
 
 	/////////////////////////////////////////////////////
 	// the name of the image sample group to be used by
-	// and the number of the item within that group
-	public String imageSampleGroupName = " ";
+	// the number of the item within that group
+	// The short name, which is derived usually from the file name (without extension)
+	public String imageSampleGroupName = "";
 	public int imageSampleGroupItemNumber = 0;
-
+	public String imageSampleGroupShortName= "";
+	
 	/////////////////////////////////////////////////////
 	// Geometric transforms applied
 	// the doc point of the seed
@@ -72,13 +74,34 @@ public class Seed {
 		docPointY = docpt.y;
 		depth = docpt.z;
 	}
+	
+	
+	public Seed copy() {
+		Seed cpy = new Seed();
+		cpy.batchName = this.batchName;
+
+		cpy.imageSampleGroupName = this.imageSampleGroupName;
+		cpy.imageSampleGroupItemNumber = this.imageSampleGroupItemNumber;
+		cpy.imageSampleGroupShortName= this.imageSampleGroupShortName;
+		
+		cpy.docPointX = this.docPointX;
+		cpy.docPointY = this.docPointY;
+		cpy.scale  = this.scale;
+		cpy.rotation  = this.rotation;
+		cpy.flipX  = this.flipX;
+		cpy.flipY  = this.flipY;
+		cpy.depth = this.depth;
+		cpy.id = this.id;
+		return cpy;
+		
+	}
 
 	public PVector getDocPoint() {
 		return new PVector(docPointX, docPointY, 0);
 	}
 
 
-	void setDocPoint(PVector p) {
+	public void setDocPoint(PVector p) {
 		docPointX = p.x;
 		docPointY = p.y;
 	}
@@ -91,13 +114,13 @@ public class Seed {
 		return depth;
 	}
 
-	void setDepth(float d) {
+	public void setDepth(float d) {
 		depth = d;
 	}
 
 
 
-	String getAsCSVStr() {
+	public String getAsCSVStr() {
 		// in the processing side of things
 		// seeds are always set using normalised x,y location
 		// in the createSeeds() method
@@ -111,7 +134,8 @@ public class Seed {
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.addKeyValue("BatchName", batchName);
 		kvlist.addKeyValue("ImageSampleGroup", imageSampleGroupName);
-		kvlist.addKeyValue("imageSampleGroupItemNumber", imageSampleGroupItemNumber);
+		kvlist.addKeyValue("ImageSampleGroupItemNumber", imageSampleGroupItemNumber);
+		kvlist.addKeyValue("ImageSampleGroupShortName", imageSampleGroupShortName);
 		kvlist.addKeyValue("DocPointX", np.x);
 		kvlist.addKeyValue("DocPointY", np.y);
 		kvlist.addKeyValue("Scale", scale);
@@ -121,7 +145,7 @@ public class Seed {
 		kvlist.addKeyValue("Depth", depth);
 		kvlist.addKeyValue("Id", id);
 		String line =  kvlist.getAsCSVLine();
-		//System.out.println(line);
+		//System.out.println("made seed " + line);
 		return line;
 
 	}
@@ -135,7 +159,12 @@ public class Seed {
 		kvlist.ingestCSVLine(csvStr);
 		batchName = kvlist.getString("BatchName");
 		imageSampleGroupName = kvlist.getString("ImageSampleGroup");
-		imageSampleGroupItemNumber = kvlist.getInt("imageSampleGroupItemNumber");
+		imageSampleGroupItemNumber = kvlist.getInt("ImageSampleGroupItemNumber");
+		//System.out.println("Loading seed: imageSampleGroupItemNumber " + imageSampleGroupItemNumber);
+		
+		
+		
+		imageSampleGroupShortName = kvlist.getString("ImageSampleGroupShortName");
 		float npX = kvlist.getFloat("DocPointX");
 		float npY = kvlist.getFloat("DocPointY");
 
@@ -153,7 +182,7 @@ public class Seed {
 
 		setDocPoint(dpt);
 
-
+		//System.out.println("Loading seed: " + this.getAsCSVStr());
 
 	}
 

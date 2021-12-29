@@ -9,7 +9,7 @@ import MOMaths.MOMaths;
 //getRadius() always returns a the packing radius, as this is used to calculate possible neighbouring point spacings and their "exclusion zones" by the utilising packing algorithm. 
 //The user sets the desired packing radius, and this is used to calculate the internal Interpolation Units using either RADIUS, SURFACE_AREA or VOLUME options (default is SA) .
 //
-//Explanation: If the this class just interpolated a RADIUS against tone,  the the packing would be dis-proportionally spaced against the tone as the SA (and therefore the packing) of a circle is proportional to the
+//Explanation: If the this class just interpolated a RADIUS against tone,  the the packing would be disproportionally spaced against the tone as the SA (and therefore the packing) of a circle is proportional to the
 //square of its radius. For instance, if the spacing was to increase with brightness, then small increases in image brightness would result in increasingly large spacings, . 
 //Hence the user may wish the interpolation to be in terms of resultant surface area, or volume of a point's "exclusion zone". Surface_area is the default mode.
 //

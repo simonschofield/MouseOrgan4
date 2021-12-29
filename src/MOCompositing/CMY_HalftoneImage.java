@@ -67,7 +67,7 @@ public class CMY_HalftoneImage{
 		// just two options, 
 		// not active = hard-cropping the halftone circles to the cmyRenderTarget edge
 		// active = only allowing complete halftone circles within the cmyRenderTarget image
-		cmyRenderTarget.permittedPasteArea.setActive(active);
+		cmyRenderTarget.renderBoarder.setActive(active);
 		
 	}
 	

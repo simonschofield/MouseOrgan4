@@ -27,7 +27,7 @@ public class RandomStream{
 		rstream.setSeed(rseed);
 	}
 	
-	boolean randomEvent(float prob){
+	public boolean randomEvent(float prob){
 		float r = rstream.nextFloat();
 		if( r < prob ) return true;
 		return false;

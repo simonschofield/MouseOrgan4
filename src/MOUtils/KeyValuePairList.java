@@ -50,7 +50,7 @@ public class KeyValuePairList{
     addKeyValuePair(kv);
   }
 
-  void addKeyValue(String k, int v){
+  public void addKeyValue(String k, int v){
     KeyValuePair kv = new KeyValuePair();
     kv.set(k,v);
     addKeyValuePair(kv);
