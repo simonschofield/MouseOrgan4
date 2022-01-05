@@ -2,11 +2,10 @@ package MOCompositing;
 
 import java.awt.Color;
 
-import MOImage.RenderTarget;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Vertices2;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 //////////////////////////////////////////////////////////////////////
 //Enables the tracking of arbitrary points within a sprite after multiple transforms to the sprite
@@ -82,11 +81,11 @@ public class ImageQuad{
 		//System.out.println("Pixel Loc in sprite of Enquiry Nom Point " + normX + " " + normY + " is " + pixelLocOfEnquiryPtInQuad.toStr());
 		//PVector spriteOriginPixelLoc = new PVector(theSprite.origin.x * getImageWidth(), theSprite.origin.y * getImageHeight());
 		PVector spriteOriginPixelLoc = theSprite.getOriginInSpriteBufferSpace();
-		PVector pixCoordOfDocumentPastePoint = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(pastePoint);
+		PVector pixCoordOfDocumentPastePoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(pastePoint);
 
 		PVector pixelOffsetEnquryPointFomSpriteOrigin = new PVector(pixelLocOfEnquiryPtInQuad.x - spriteOriginPixelLoc.x, pixelLocOfEnquiryPtInQuad.y - spriteOriginPixelLoc.y);
 		PVector pixelCoordinateInDocument = pixCoordOfDocumentPastePoint.add(pixelOffsetEnquryPointFomSpriteOrigin);
-		return MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace(pixelCoordinateInDocument);
+		return GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(pixelCoordinateInDocument);
 	}
 
 

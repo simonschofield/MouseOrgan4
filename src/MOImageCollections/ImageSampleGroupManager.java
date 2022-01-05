@@ -6,14 +6,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import MOCompositing.ImageSprite;
-import MOCompositing.MainDocumentRenderTarget;
+//import MOCompositing.MainDocumentRenderTarget;
+import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
-import MOImage.RenderTarget;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOSceneData.Seed;
 import MOUtils.MOStringUtils;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 
 
@@ -272,11 +272,11 @@ public class ImageSampleGroupManager {
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	//
-	void paradeContent(String groupName, MainDocumentRenderTarget rt) {
+	void paradeContent(String groupName, RenderTarget rt) {
 		paradeContent(groupName,ImageProcessing.COLORTRANSFORM_NONE, 0, 0, 0, rt);
 	}
 
-	void paradeContent(String groupName, int effect, float p1, float p2, float p3, MainDocumentRenderTarget rt) {
+	void paradeContent(String groupName, int effect, float p1, float p2, float p3, RenderTarget rt) {
 		ImageSampleGroup sampleGroup = this.getImageSampleGroup(groupName);
 		//Surface parentSurface = GlobalObjects.theSurface;
 
@@ -335,7 +335,7 @@ public class ImageSampleGroupManager {
 			}
 		}
 
-		String userSessionPath = MOUtilGlobals.userSessionPath;
+		String userSessionPath = GlobalSettings.getUserSessionPath();
 
 		String suggestedName = MOStringUtils.getDateStampedImageFileName("Parade_" + groupName + "_");
 		System.out.println("saveRenderLayer: saving " + suggestedName);

@@ -150,6 +150,7 @@ public class DirectoryFileNameScanner  {
 	}
 	
 	
+	
 
 	private void collectFilesNamesWithFilters() {
 		if(directoryPath.equals("")) {

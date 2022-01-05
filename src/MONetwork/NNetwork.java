@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOUtils.KeyValuePairList;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 import MOUtils.UniqueID;
 
 import java.io.BufferedReader;
@@ -140,7 +140,7 @@ public class NNetwork {
 	  for (NPoint np : points) {
 		  	PVector p = np.getPt();
 	        PVector nomPoint = roi.norm(p);
-	        PVector docSpcPt = MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(nomPoint);
+	        PVector docSpcPt = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(nomPoint);
 	        np.setPt(docSpcPt);
 	      }
   }

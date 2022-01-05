@@ -8,7 +8,7 @@ import MOImage.ImageProcessing;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 import MOUtils.GenericArrayListUtils;
 import MOUtils.MOStringUtils;
 
@@ -47,7 +47,7 @@ public class ImageSampleGroup extends ImageItemGroup{
 	PVector groupImageOrigins = new PVector(0.5f, 0.5f);
 	
 	public ImageSampleGroup(String name) {
-		sessionScale = MOUtilGlobals.getSessionScale();
+		sessionScale = GlobalSettings.getSessionScale();
 		groupName = name;
 	}
 	
@@ -290,9 +290,9 @@ public class ImageSampleGroup extends ImageItemGroup{
 	////////////
 	private String getCachedScaledImagesFolderName() {
 		int scalePercentile = (int) (sessionScale * 100);
-		String cachFolderRoot = MOUtilGlobals.mouseOrganImageCachePath;
+		String cachFolderRoot = GlobalSettings.getMouseOrganImageCachePath();
 		String originalTargetDirectory = directoryFileNameScanner.getTargetDirectory();
-		String strippedDirectoryPath = originalTargetDirectory.replace(MOUtilGlobals.sampleLibPath, "");
+		String strippedDirectoryPath = originalTargetDirectory.replace(GlobalSettings.getSampleLibPath(), "");
 		// System.out.println("directoryPath ..." + directoryPath);
 		// System.out.println("strippedDirectoryPath ..." + strippedDirectoryPath);
 		String cachedFolderName = cachFolderRoot + strippedDirectoryPath + "\\cached_scaled_" + scalePercentile + "\\";

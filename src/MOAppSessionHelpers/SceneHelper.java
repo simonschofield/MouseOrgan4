@@ -4,18 +4,46 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 import MOCompositing.ImageSprite;
+import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
-import MOImage.RenderTarget;
 import MOImageCollections.ImageSampleGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
+import MOUtils.GlobalSettings;
+import MOUtils.ImageDimensions;
 
 public class SceneHelper {
 	
+	public static float millimeterToDocspace(float mm) {
+		// you give it a dimension in the printed version (e.g. 5mm)
+		// and it returns the doc space dimension that is that size when printed at full size. Gives the same answer at all
+		// draft resolutions.
+		ImageDimensions dims = GlobalSettings.getFullScaleDocumentDimentsion();
+		// Assumes print resolution is 300dpi, (or 11.811 pixels per mm)
+		
+		if(dims.width > dims.height) {
+			// use width
+			float numMMAcrossLongestEdgeOfImage = dims.width/11.811f; // this is the number of MM (at full size res) that are equal to a doc space of 1,
+			// Therefore 1/numMMAcrossLongestEdgeOfImage equals the doc space occupied by 1mm
+			return mm/numMMAcrossLongestEdgeOfImage;
+		}else {
+			float numMMAcrossLongestEdgeOfImage = dims.height/11.811f;
+			return mm/numMMAcrossLongestEdgeOfImage;
+		}
+	}
 	
+	public float fullScalePixelsToDocSpace(float pixels) {
+		// Allows the user to get the doc space measurement
+		// for a number of pixels in the full scale image. This is useful for defining 
+		// certain drawing operations, such as defining line thickness and circle radius. 
+		// To be resolution independent, these operations take measurement in document space.
+		// But the user may wish to think in pixel size in the final 100% scale image.
+		float pixelsScaled = pixels*GlobalSettings.getSessionScale();
+		return (pixelsScaled/GlobalSettings.getTheDocumentCoordSystem().getLongestBufferEdge());
+	}
 	
 	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount) {
 		randomRotateScaleSprite( sprite,  scaleAmt,  rotAmount, true);

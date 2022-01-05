@@ -2,7 +2,7 @@ package MOImage;
 import java.awt.image.BufferedImage;
 
 import MOMaths.PVector;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 public class SolidTexture3D {
 	
@@ -17,7 +17,7 @@ public class SolidTexture3D {
 	
 	float getValue01(PVector docPt, float normalizedDepth) {
 		
-		PVector normalizedPt = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docPt);
+		PVector normalizedPt = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docPt);
 		int bx = (int)( normalizedPt.x * textureImage.getWidth());
 		int by = (int)( (1-normalizedDepth) * textureImage.getHeight());
 		

@@ -4,19 +4,18 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 import MOImage.ImageProcessing;
-import MOImage.RenderTarget;
 import MOMaths.PVector;
 import MOUtils.MOStringUtils;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
-public class MainDocumentMaskImage extends RenderTarget{
+public class oldMainDocumentMaskImage extends RenderTarget{
 	
 	// this is the name of the seedBatch or imageSampleGroup items to create a mask for
 	String itemToMaskIdentifier = "";
 	
-	public MainDocumentMaskImage(String itemIdentifierToMask) {
-		int w = MOUtilGlobals.getTheDocumentCoordSystem().getBufferWidth();
-		int h = MOUtilGlobals.getTheDocumentCoordSystem().getBufferHeight();
+	public oldMainDocumentMaskImage(String itemIdentifierToMask) {
+		int w = GlobalSettings.getTheDocumentCoordSystem().getBufferWidth();
+		int h = GlobalSettings.getTheDocumentCoordSystem().getBufferHeight();
 		setRenderBuffer(w,h,BufferedImage.TYPE_INT_ARGB);
 		this.fillBackground(Color.BLACK);;
 		this.itemToMaskIdentifier = itemIdentifierToMask;
@@ -52,7 +51,22 @@ public class MainDocumentMaskImage extends RenderTarget{
 		
 
 	}
-	
+
+
+	@Override
+	public void pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void pasteSprite(ImageSprite sprite) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 	
 
 }

@@ -15,13 +15,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import MOImage.ImageProcessing;
-import MOImage.RenderTarget;
 import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 import MOUtils.WordBank;
 
 public class TextRenderer {
@@ -54,7 +53,7 @@ public class TextRenderer {
 	public void setFont(String name, int style, int size, Color col) {
 		
 		fontStyle = style;
-		fontSize = (int)(size * MOUtilGlobals.getSessionScale());
+		fontSize = (int)(size * GlobalSettings.getSessionScale());
 		outlineColor = col;
 		if(  checkFontExists(name)==false ) {
 			return;
@@ -132,7 +131,7 @@ public class TextRenderer {
 	 
 	 Rect getStringBoundsDocSpace(String s) {
 		 Rect textBoundsBufferSpace =  getStringBoundsBufferSpace(s, getGraphics2D());
-		 PVector docSpaceExtents = MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace((int)textBoundsBufferSpace.getWidth(), (int)textBoundsBufferSpace.getHeight());
+		 PVector docSpaceExtents = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace((int)textBoundsBufferSpace.getWidth(), (int)textBoundsBufferSpace.getHeight());
 		 return new Rect(0,0,docSpaceExtents.x,docSpaceExtents.y);
 	 }
 	 

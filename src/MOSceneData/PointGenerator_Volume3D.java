@@ -4,15 +4,15 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
-import MOImage.RenderTarget;
 import MOMaths.AABox3D;
 import MOMaths.EyeSpaceVolume3D;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.RandomStream;
 import MOUtils.CollectionIterator;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 ////////////////////////////////////////////////////////////////////////////
 //Generates a set of randomly scattered points in 3D
@@ -34,7 +34,7 @@ public class PointGenerator_Volume3D extends CollectionIterator {
 
 	public PointGenerator_Volume3D(int rseed, float vfov) {
 		randomStream = new RandomStream(rseed);
-		eyeSpaceVolume = new EyeSpaceVolume3D(MOUtilGlobals.getTheDocumentCoordSystem().getDocumentAspect(),vfov);
+		eyeSpaceVolume = new EyeSpaceVolume3D(GlobalSettings.getTheDocumentCoordSystem().getDocumentAspect(),vfov);
 	}
 
 	void generateRandomPoints(int numPoints3D, float nearZ, float farZ) {

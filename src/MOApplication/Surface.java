@@ -12,21 +12,20 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import MOCompositing.MainDocumentRenderTarget;
+
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOSimpleUI.SimpleUI;
 import MOSimpleUI.UIEventData;
-import MOUtils.ImageCoordinateSystem;
+
 import MOUtils.KeepAwake;
-import MOUtils.MOStringUtils;
-import MOUtils.MOUtilGlobals;
+
+import MOUtils.GlobalSettings;
 
 
 
@@ -49,7 +48,8 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 	//private float globalSessionScale = 1.0f;
 
-	protected MainDocumentRenderTarget theDocument;
+	//protected MainDocumentRenderTarget theDocument;
+	protected MainDocument theDocument;
 	public ViewController theViewControl = new ViewController();
 	public SimpleUI theUI;
 
@@ -58,24 +58,20 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	int windowHeight;
 
 	// the fixed UI rectangle for the view onto the document image
-	private Rect viewDisplayRect;
+	private Rect canvasWindowRect;
 	
-	
+	// the object that drives the main loop
 	private Timer updateTimer;
-	//SecondsTimer secondsTimer;
+	
 
 	boolean userSessionPaused = false;
 	private int userSessionUpdateCount = 0;
-	// this is the path to the user's session folder
-	private String userSessionPath = "";
-
+	
 	// this is the frequency with which the canvas is updated
 	// in respect to userSessionUpdates. 50 has been arrived at through trial and
 	// error
 	// but the number can be dropped during interactions for a smoother update rate.
 	private int canvasUpdateFrequency = 50;
-
-	
 
 	KeepAwake keepAwake = new KeepAwake();
 
@@ -116,36 +112,40 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		parentApp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setFocusable(true);
 		
-		viewDisplayRect = new Rect(new PVector(100, 5), new PVector(windowWidth - 20,  windowHeight - 45));
+		canvasWindowRect = new Rect(new PVector(100, 5), new PVector(windowWidth - 20,  windowHeight - 45));
 	}
 
 
 	/////////////////////////////////////////////////////////////////////
 	// Initialisation methods
 	// This MUST be called from the InitialiseSession method of the UserSession
-
-	public void initialiseDocument(int dw, int dh, float sessionScale) {
+	// After this has been called the GlobalSettings are fully initialised, and
+	// the user can use theDocument as a reference to he MainDocument
+	public void initialiseSystem(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, int mainDocumentRenderType) {
+		// this is the only place this method is called
+		GlobalSettings.init(userSessionPth, fullScaleRenderW, fullScaleRenderH, sessionScl);
 		
-		MOUtilGlobals.setSessionScale(sessionScale);
-		
-		theDocument = new MainDocumentRenderTarget();
-		
-		theDocument.setRenderBufferSize((int) (dw * MOUtilGlobals.getSessionScale()), (int) (dh * MOUtilGlobals.getSessionScale()));
-		
-		MOUtilGlobals.setTheDocumentCoordSystem(theDocument.getCoordinateSystem());
-		
+		theDocument = new MainDocument((int)(fullScaleRenderW * GlobalSettings.getSessionScale()), (int) (fullScaleRenderH * GlobalSettings.getSessionScale()), mainDocumentRenderType);
+		GlobalSettings.setTheDocumentCoordSystem(theDocument);
+		// ok to do these now
 		theViewControl.init(this);
-		
-		
 		buildUI();
 	}
 	
+	
+	/////////////////////////////////////////////////////////////////////
+	// The main loop called by actionPerformed(ActionEvent e)
+	//
 	private void updateUserSession_All() {
 		// this is called by the Action Thread of the app via
 		// the automatically called actionPerformed method below
 		
 		if(theUserSessionState == UserSessionState.INITIALISE) {
 			initialiseUserSession();
+			if(theDocument == null) {
+				System.out.println("Fatal::You must initilase the session with initialiseSession() in initialiseUserSession");
+				System.exit(0);
+			}
 			theUserSessionState = UserSessionState.LOAD;
 			return;
 		}
@@ -185,13 +185,14 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	}
 	
 
-	Rect getViewDisplayRegion() {
-		return viewDisplayRect.copy();
+	Rect getCanvasWindowRect() {
+		return canvasWindowRect.copy();
 	}
 	
-	Rect getViewPortDocSpace() {
-		return theViewControl.getCurrentViewPortDocSpace();
-	}
+	//Rect getViewPortDocSpace() {
+	//	return theViewControl.getCurrentViewPortDocSpace();
+	//}
+	
 	
 	
 
@@ -205,9 +206,11 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		String[] itemList = { "save render", "quit" };
 		
 		theUI.addToggleButton("Pause", 0, 200);
+		theUI.addPlainButton("End", 0, 230);
 		theUI.addMenu("File", 0, 2, itemList);
-		theUI.addCanvas((int) viewDisplayRect.left, (int) viewDisplayRect.top, (int) viewDisplayRect.getWidth(), (int) viewDisplayRect.getHeight());
-
+		theUI.addCanvas((int) canvasWindowRect.left, (int) canvasWindowRect.top, (int) canvasWindowRect.getWidth(), (int) canvasWindowRect.getHeight());
+		theUI.setFileDialogTargetDirectory(GlobalSettings.getUserSessionPath());
+		
 	}
 
 	public void handleUIEvent(UIEventData uied) {
@@ -224,7 +227,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		}
 
 		if (uied.eventIsFromWidget("fileSaveDialog")) {
-			theDocument.saveRenderToFile(uied.fileSelection);
+			theDocument.saveRenderToFile("main",uied.fileSelection);
 		}
 		
 		if (uied.menuItem.contentEquals("quit")) {
@@ -233,6 +236,10 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 		if (uied.eventIsFromWidget("Pause")) {
 			userSessionPaused = uied.toggleSelectState;
+		}
+		
+		if (uied.eventIsFromWidget("End")) {
+			endUserSession();
 		}
 
 		
@@ -254,6 +261,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		theViewControl.setViewDisplayRectBackgroundColor(c);
 	}
 	
+	// only draws behind the image, not to the document
 	public void setCanvasBackgroundImage(BufferedImage img) {
 		theViewControl.setBackgroundImage(img);
 	}
@@ -266,10 +274,6 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		return windowHeight;
 	}
 
-	public float getSessionScale() {
-		return MOUtilGlobals.getSessionScale();
-	}
-	
 	public int getCanvasUpdateFrequency() {
 		return canvasUpdateFrequency;
 	}
@@ -277,20 +281,8 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	protected void setCanvasUpdateFrequency(int cuf) {
 		canvasUpdateFrequency = cuf;
 	}
-	
-	
-	
-	float fullScalePixelsToDocSpace(float pixels) {
-		// Allows the user to get the doc space measurement
-		// for a number of pixels in the full scale image. This is useful for defining 
-		// certain drawing operations, such as defining line thickness and circle radius. 
-		// To be resolution independent, these operations take measurement in document space.
-		// But the user may wish to think in pixel size in the final 100% scale image.
-		float pixelsScaled = pixels*MOUtilGlobals.getSessionScale();
-		return (pixelsScaled/theDocument.coordinateSystem.getLongestBufferEdge());
-	}
 
-	SimpleUI getSimpleUI() {
+	public SimpleUI getSimpleUI() {
 		return theUI;
 	}
 
@@ -301,11 +293,8 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	private void updateCanvasDisplay(Graphics g) {
 
 		Graphics2D g2d = (Graphics2D) g.create();
-
 		if(theViewControl!=null) theViewControl.updateDisplay(g2d);
-		
 		g2d.dispose();
-
 	}
 	
 
@@ -320,61 +309,33 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		}
 
 		// update the ui
-		
-		Graphics2D g2d = (Graphics2D) g.create();
-		
 		if(theUI!=null) {
-			theUI.setGraphicsContext(g2d);
+			if(theUI.isGraphicsContextSet()==false) {
+				Graphics2D g2d = (Graphics2D) g.create();
+				theUI.setGraphicsContext(g2d);
+			}
 			theUI.update();
 		}
 		
 		
-		g2d.dispose();
+		//g2d.dispose();
 		
 		this.setFocusable(true);
 	}
 
 	@Override
-	//////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////
 	// called by the Timer daemon
+	// This drives the whole main loop
 	public void actionPerformed(ActionEvent e) {
-		// this calls your session code
-		// and then updates the graphics
 		updateUserSession_All();
 		repaint();
 	}
 
-
-	////////////////////////////////////////////////////////////////////////
-	// user-session related methods
-	// -
-	public void setUserSessionPath(String dir) {
-		
-		userSessionPath = dir;
-		MOUtilGlobals.userSessionPath = userSessionPath;
-		theUI.setFileDialogTargetDirectory(userSessionPath);
-		
-	}
-
-	public String getUserSessionPath() {
-		return MOUtilGlobals.userSessionPath;
-	}
 	
-	public String getUserSessionDirectoryName() {
-		// returns the final part of the path, so if
-		// C://aaa///bbb//ccc is the user session path,
-		// it returns "ccc"
-		File file = new File(userSessionPath);
-		return file.getName().toString();
-		
-	}
 	
-	public String getSessionTimeStampedFileName(String enhancement) {
-		String sessionName = getUserSessionDirectoryName();
-		String fullPathAndFileName = userSessionPath + sessionName;
-		return MOStringUtils.getDateStampedImageFileName(fullPathAndFileName + enhancement);
-	}
-
+	
+	
 	////////////////////////////////////////////////////////////////////////
 	// overridden functions in the user's project
 	// - i.e. YOUR CODE

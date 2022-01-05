@@ -2,7 +2,7 @@ package MOMaths;
 
 import java.util.Collections;
 
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 import java.awt.Shape;
 import java.awt.geom.Path2D;
@@ -312,7 +312,7 @@ public class Vertices2 {
 	    	  p = p.sub(topleft);
 	      }
 
-	      p = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(p);
+	      p = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(p);
 	      bufferSpaceVerts.add(p);
 	    }
 	    
@@ -339,7 +339,7 @@ public class Vertices2 {
 	      
 	      
 	      if(convertToBufferSpace) {
-	    	  p = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(p);
+	    	  p = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(p);
 	      }
 
 	      path.lineTo(p.x, p.y);

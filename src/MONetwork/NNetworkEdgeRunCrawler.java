@@ -5,8 +5,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import MOCompositing.RenderTarget;
 import MOImage.KeyImageSampler;
-import MOImage.RenderTarget;
 import MOMaths.Line2;
 import MOMaths.MOMaths;
 import MOMaths.PVector;

@@ -88,6 +88,10 @@ public class ImageCoordinateSystem {
 			return bufferHeight;
 		}
 		
+		public Rect getBufferRect() {
+			return new Rect(0,0,bufferWidth,bufferHeight);
+		}
+		
 		public int getLongestBufferEdge() {
 			return Math.max(bufferWidth, bufferHeight);
 		}

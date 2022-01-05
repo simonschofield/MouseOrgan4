@@ -60,9 +60,10 @@ public class SimpleUI {
 	Color backgroundRectColor;
 
 	String fileDialogPrompt = "";
-	String filaDialogTargetDirectory = "c:\\Users\\cmp3schofs\\Desktop";
+	String filaDialogTargetDirectory = "";
 	VectorShapeDrawer drawer;
 	ArrayList<VectorShape> canvasOverlayShapes = new ArrayList<VectorShape>();
+	boolean graphicsContextSet = false;
 	
 	public SimpleUI(Surface surface) {
 		UIManagerName = "";
@@ -80,6 +81,11 @@ public class SimpleUI {
 		
 		drawer = new VectorShapeDrawer(g2d);
 		Widget.setParent(this);
+		graphicsContextSet = true;
+	}
+	
+	public boolean isGraphicsContextSet() {
+		return graphicsContextSet;
 	}
 
 	public void handleMouseEvent(MouseEvent me, String mouseEventType) {
@@ -129,6 +135,8 @@ public class SimpleUI {
 	
 	public void openFileSaveDialog(String prompt) {
 
+		
+		
 		final JFileChooser fc = new JFileChooser(filaDialogTargetDirectory);
 		String suggestedName = MOStringUtils.getDateStampedImageFileName("savedImage");
 		fc.setSelectedFile(new File(suggestedName));

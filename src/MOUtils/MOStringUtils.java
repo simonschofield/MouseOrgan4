@@ -79,7 +79,7 @@ public class MOStringUtils {
 		return directory;
 	}
 	
-	static String getPaddedNumberString(Integer num, int lengthOfString) {
+	public static String getPaddedNumberString(Integer num, int lengthOfString) {
 		String  inputString =  num.toString();
 	    if (inputString.length() >= lengthOfString) {
 	        return inputString;
@@ -95,7 +95,7 @@ public class MOStringUtils {
 		
 	}
 	
-	static String addCommaSeparatedString(String exisitingString, String toAdd) {
+	public static String addCommaSeparatedString(String exisitingString, String toAdd) {
 		if(exisitingString.contentEquals("")) {
 			exisitingString += toAdd;
 			return exisitingString;

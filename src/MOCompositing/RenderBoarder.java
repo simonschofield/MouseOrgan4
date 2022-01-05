@@ -10,7 +10,7 @@ import MOImageCollections.ImageSampleGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // RenderBoarder determines what happens to sprites pasted on the boarder of an image
@@ -58,7 +58,7 @@ public class RenderBoarder {
 	QRandomStream qRandomStream = new QRandomStream(1);
 	
 	public RenderBoarder(){
-		setBoarders(0, 0, 1, 1, CROP_ACTION_RECT);
+		//setBoarders(0, 0, 1, 1, CROP_ACTION_RECT);
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ public class RenderBoarder {
 		bespokeCropImages = new ImageSampleGroup("cropImages");
 		bespokeCropImages.setDirectoryFileNameScanner(cropdfns);
 		bespokeCropImages.loadImages();
-		float sessionScale = MOUtilGlobals.getSessionScale();
+		float sessionScale = GlobalSettings.getSessionScale();
 		bespokeCropImages.resizeToAll((int)(unscaledWidth*sessionScale), (int)(unscaledHeight*sessionScale));
 	}
 	
@@ -149,8 +149,8 @@ public class RenderBoarder {
 		croppedSpriteRect.translate(-uncroppedLeft, -uncroppedTop);
 
 		// work out the buffer space coords in the sprite image
-		PVector bTopLeft = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(croppedSpriteRect.getTopLeft());
-		PVector bBottomRight = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(croppedSpriteRect.getBottomRight());
+		PVector bTopLeft = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(croppedSpriteRect.getTopLeft());
+		PVector bBottomRight = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(croppedSpriteRect.getBottomRight());
 
 
 		Rect croppedRectBufferSpace = new Rect(bTopLeft,bBottomRight);
@@ -336,8 +336,8 @@ public class RenderBoarder {
 	private void setBoarderRectWithNomalisedCoords(float left, float top, float right, float bottom) {
 		PVector topLeftNormSpace = new PVector(left,top);
 		PVector bottomRightNormSpace = new PVector(right,bottom);
-		PVector topLeft = MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(topLeftNormSpace);
-		PVector bottomRight = MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(bottomRightNormSpace);
+		PVector topLeft = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(topLeftNormSpace);
+		PVector bottomRight = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(bottomRightNormSpace);
 		
 		boarderRect = new Rect(topLeft, bottomRight);
 	}

@@ -1,4 +1,4 @@
-package MOImage;
+package MOCompositing;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Render target class
@@ -16,27 +16,28 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import MOImage.ImageProcessing;
 import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.MOStringUtils;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 import MOVectorGraphics.VectorShape;
 import MOVectorGraphics.VectorShapeDrawer;
 
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Generic RenderTarget
-//
-//
-//
+// BufferdImage RenderTarget
+// It has also been set up to be a MainDocumentRenderTarget
 //
 
 
-public class RenderTarget{
+public class RenderTarget implements MainDocumentRenderTarget{
 	private Graphics2D graphics2D;
-	protected BufferedImage bufferedImage;
+	protected BufferedImage targetRenderImage;
 	
 	
 	public ImageCoordinateSystem coordinateSystem;
@@ -44,6 +45,7 @@ public class RenderTarget{
 
 	VectorShapeDrawer shapeDrawer;
 	
+	String renderTargetName = "";
 	
 	public RenderTarget() {
 
@@ -53,14 +55,23 @@ public class RenderTarget{
 		setRenderBuffer( w,  h,  imgType);
 	}
 	
+	
+	public void setName(String name) {
+		renderTargetName = name;
+	}
+	
+	public String getName() {
+		return renderTargetName;
+	}
+	
 	protected void setRenderBuffer(int w, int h, int imgType) {
 		
-		// BufferedImage.TYPE_INT_ARGB
+		
 		coordinateSystem = new ImageCoordinateSystem(w,h);
-		bufferedImage = new BufferedImage(w, h, imgType);
+		targetRenderImage = new BufferedImage(w, h, imgType);
 		
 		
-		setGraphics2D(bufferedImage.createGraphics());
+		setGraphics2D(targetRenderImage.createGraphics());
 		getGraphics2D().setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		
@@ -70,11 +81,11 @@ public class RenderTarget{
 	
 	
 	public BufferedImage getImage() {
-		return bufferedImage;
+		return targetRenderImage;
 	}
 	
 	public BufferedImage copyImage() {
-		return ImageProcessing.copyImage(bufferedImage);
+		return ImageProcessing.copyImage(targetRenderImage);
 	}
 	
 	
@@ -100,32 +111,65 @@ public class RenderTarget{
 	
 	
 	
+	
+
+	
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////
+	// Generic sprite paste used by all sub-classes. Pastes the pixel values of the image
+	// into the receiving render-image
+	// All subclasses must implement pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha);
+	//
+	//
+	//
+	public void pasteSprite(ImageSprite sprite) {
+		pasteImage(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
+	}
+	
 	////////////////////////////////////////////////////////////////////////////////////
 	// pastes the topleft of the image at docSpacePoint
 	// 
 	public void pasteImage(BufferedImage img, PVector docSpacePoint, float alpha) {
-
 		Rect r = getPasteRectDocSpace(img, docSpacePoint);
 		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(docSpacePoint);
 		pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
-
-	// this is where we need to add the mask images if any
-	
-	// documentMaskImages.pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
-	// where the sprite contains information about the mask image it is
-
 	}
-
+	
 	////////////////////////////////////////////////////////////////////////////////////
-	// This is the method that actually does the compositing of the sprite with the
+	// This is the method that actually does the compositing of the image within the
 	// document image
+	//
+	// This will work with all Java pre-defined image types!
+	//
+	//
 	public void pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha) {
 		//System.out.println("compositing " + x + " " + y);
 		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
 		getGraphics2D().setComposite(ac);
 		getGraphics2D().drawImage(img, x, y, null);
 	}
-
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////
+	// Generic sprite mask-paste used by all sub-classes. Pastes the Color C through the sprite's alpha channel.
+	// I.e. alters a pixel in the targetRenderImage where the alpha in the sprite image is > 0
+	// All subclasses must implement pasteImageMask_BufferCoordinates(BufferedImage img, int x, int y, float alpha);
+	//
+	//
+	//
+	public void pasteSpriteMask(ImageSprite sprite, Color c) {
+		pasteImageMask(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha, c);
+	}
+	
+	
+	public void pasteImageMask(BufferedImage img, PVector docSpacePoint, float alpha, Color c) {
+		BufferedImage spriteMaskImage = ImageProcessing.replaceColor(img, c);
+		pasteImage(spriteMaskImage, docSpacePoint, alpha);
+	}
+	
+	
+	
 	public Rect getPasteRectDocSpace(BufferedImage img, PVector docSpacePoint) {
 		// Final pasting always by defining the top left of the image in doc space
 		// give an image and its upperleft at docSpacePoint
@@ -147,10 +191,10 @@ public class RenderTarget{
 	}
 
 	public BufferedImage getCropBufferSpace(Rect bufferSpaceRect) {
-		return ImageProcessing.cropImage(bufferedImage, bufferSpaceRect);
+		return ImageProcessing.cropImage(targetRenderImage, bufferSpaceRect);
 	}
 
-	protected void saveRenderToFile(String pathAndFilename) {
+	public void saveRenderToFile(String pathAndFilename) {
 		System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename);
 		// check to see if extension exists
 		String ext = MOStringUtils.getFileExtension(pathAndFilename);
@@ -171,7 +215,7 @@ public class RenderTarget{
 		try {
 			// retrieve image
 			File outputfile = new File(extensionChecked);
-			ImageIO.write(bufferedImage, "png", outputfile);
+			ImageIO.write(targetRenderImage, "png", outputfile);
 		} catch (IOException e) {
 			System.out.println("RenderTarget:saveRenderToFile could not save file - " + extensionChecked + " " + e);
 		}
@@ -216,7 +260,7 @@ public class RenderTarget{
 	// debug drawing operations other than paste
 	// these do not scale the drawing to the document
 	public void drawPoints(ArrayList<PVector> docSpacePoints, Color c, float pixelRadius) {
-		float r = pixelRadius * MOUtilGlobals.getSessionScale();
+		float r = pixelRadius * GlobalSettings.getSessionScale();
 		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		shapeDrawer.setDrawingStyle(ca, ca, 2);
 

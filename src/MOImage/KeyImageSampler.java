@@ -7,7 +7,7 @@ import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOUtils.ImageCoordinateSystem;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 ////////////////////////////////////////////////////////////////////////////////
 // simple wrapper round an image, so you can use document space (of the HOST application, longest edge 0..1, shortest edge 0..1/aspect) and 
@@ -62,7 +62,7 @@ public class KeyImageSampler{
 	
 	public Color getPixelDocSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
-		PVector np = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
+		PVector np = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
 		return getPixelNormalisedSpace(np);
 	}
 	
@@ -123,14 +123,14 @@ public class KeyImageSampler{
 	
 	public PVector docSpaceToBufferSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
-		PVector np = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
+		PVector np = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
 		return normalisedSpaceToBufferSpace(np);
 	}
 	
 	
 	public PVector bufferSpaceToDocSpace(PVector p) {
 		PVector normPt = bufferSpaceToNormalisedSpace(p);
-		return MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(normPt);
+		return GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(normPt);
 	}
 	
 	

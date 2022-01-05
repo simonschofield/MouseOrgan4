@@ -12,7 +12,7 @@ import MOMaths.PVector;
 import MOMaths.RandomStream;
 import MOMaths.Rect;
 import MOUtils.CollectionIterator;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 import MOUtils.CollectionIterator;
 
 public class PointGenerator_Random extends CollectionIterator{
@@ -40,10 +40,10 @@ public class PointGenerator_Random extends CollectionIterator{
 	
 
 	public PointGenerator_Random(int rseed) {
-		aspect = MOUtilGlobals.getTheDocumentCoordSystem().getDocumentAspect();
+		aspect = GlobalSettings.getTheDocumentCoordSystem().getDocumentAspect();
 		randomStream = new RandomStream(rseed);
-		float w = MOUtilGlobals.getTheDocumentCoordSystem().getDocumentWidth();
-		float h = MOUtilGlobals.getTheDocumentCoordSystem().getDocumentHeight();
+		float w = GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth();
+		float h = GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight();
 		setGenerationArea(new Rect(0,0,w,h));
 		System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
 	}

@@ -14,7 +14,7 @@ import MOSceneData.SceneData3D;
 import MOSceneData.Seed;
 import MOSceneData.SeedBatch;
 import MOUtils.MOStringUtils;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Bundles together any SeedBatch making/altering operations that are to do with a 3D scene
@@ -35,7 +35,7 @@ public class SeedBatchHelper_Scene3D {
 	public SeedBatchHelper_Scene3D( SceneData3D sd3d, ImageSampleGroupManager isgm, int sampleSelectorRSeed) {
 		imageSampleSelector = new ImageSampleSelector(isgm, sampleSelectorRSeed);
 		sceneData3D = sd3d;
-		ensureSeedsDirectoryExists(MOUtilGlobals.userSessionPath);
+		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
 	}
 	
 	
@@ -81,7 +81,7 @@ public class SeedBatchHelper_Scene3D {
 		
 		SeedBatch seedbatch = new SeedBatch();
 		
-		String pathAndFileName = MOUtilGlobals.userSessionPath + "seeds\\" + batchName + ".sds";
+		String pathAndFileName = GlobalSettings.getUserSessionPath() + "seeds\\" + batchName + ".sds";
 		
 		
 		ArrayList<PVector> points = pointGenerator.generatePoints();
@@ -146,11 +146,11 @@ public class SeedBatchHelper_Scene3D {
 			
 			Seed s = seedbatch.getNextSeed().copy();
 			PVector newSceneDocPoint = s.getDocPoint();
-			PVector normalisedPoint = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(newSceneDocPoint);
+			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(newSceneDocPoint);
 			//if(theROI.isPointInside(normalisedPoint)==false) continue;
 
 			PVector newROIPoint = theROI.norm(normalisedPoint); // convert to normalised space within the roi
-			PVector newDocSpacePt = MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(newROIPoint);
+			PVector newDocSpacePt = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(newROIPoint);
 			
 			if(n%100==0) {
 				//System.out.println("original norm seed point" + normalisedPoint.toStr() + " point within ROI " + newROIPoint.toStr());

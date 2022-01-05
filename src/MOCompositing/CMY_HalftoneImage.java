@@ -8,7 +8,7 @@ import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
 import MOMaths.PVector;
 import MOMaths.Rect;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
  
 
@@ -21,7 +21,7 @@ import MOUtils.MOUtilGlobals;
 //To do this the class generates three temporary images, which are initialised as copies of the render target.
 //
 public class CMY_HalftoneImage{
-	MainDocumentRenderTarget cmyRenderTarget;
+	RenderTarget cmyRenderTarget;
 	
 	ArrayList<PVector> gridPoints = new ArrayList<PVector>();
 	Color cyan_rgb = new Color(0,211,255);
@@ -56,10 +56,10 @@ public class CMY_HalftoneImage{
 		
 		
 		documentTargetRect = targetArea;
-		cmyRenderTarget = new MainDocumentRenderTarget();
-		int newWidth = (int) (documentTargetRect.getWidth()* MOUtilGlobals.getTheDocumentCoordSystem().getBufferWidth());
-		int newHeight = (int) (documentTargetRect.getHeight()* MOUtilGlobals.getTheDocumentCoordSystem().getBufferHeight());
-		cmyRenderTarget.setRenderBufferSize(newWidth, newHeight);
+		
+		int newWidth = (int) (documentTargetRect.getWidth()* GlobalSettings.getTheDocumentCoordSystem().getBufferWidth());
+		int newHeight = (int) (documentTargetRect.getHeight()* GlobalSettings.getTheDocumentCoordSystem().getBufferHeight());
+		cmyRenderTarget = new RenderTarget(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
 
 	}
 	
@@ -67,19 +67,19 @@ public class CMY_HalftoneImage{
 		// just two options, 
 		// not active = hard-cropping the halftone circles to the cmyRenderTarget edge
 		// active = only allowing complete halftone circles within the cmyRenderTarget image
-		cmyRenderTarget.renderBoarder.setActive(active);
+		//cmyRenderTarget.renderBoarder.setActive(active);
 		
 	}
 	
 	
-	public void makeCMYhalftoneComposite(int dotSpacingPixels, boolean saveOutImages, MainDocumentRenderTarget mainDocRenderTarget) {
+	public void makeCMYhalftoneComposite(int dotSpacingPixels, boolean saveOutImages, RenderTarget mainDocRenderTarget) {
 		// dotSpacingPixels is the number of pixels you want the dot spacing to be at in pixels in 100% scale output image
 		// i.e. when the session scale is at 100%
-		float dotSpacingNomalisedSpace = (dotSpacingPixels / (float)cmyRenderTarget.coordinateSystem.getLongestBufferEdge())*MOUtilGlobals.getSessionScale();
+		float dotSpacingNomalisedSpace = (dotSpacingPixels / (float)cmyRenderTarget.coordinateSystem.getLongestBufferEdge())*GlobalSettings.getSessionScale();
 		makeCMYhalftoneComposite( dotSpacingNomalisedSpace,  saveOutImages,  mainDocRenderTarget);
 	}
 	
-	public void makeCMYhalftoneComposite(float dotSpacingNomalisedSpace, boolean saveOutImages, MainDocumentRenderTarget mainDocRenderTarget) {
+	public void makeCMYhalftoneComposite(float dotSpacingNomalisedSpace, boolean saveOutImages, RenderTarget mainDocRenderTarget) {
 		// spacingNomalisedSpace is with regard to THIS render target
 		cmyRenderTarget.fillBackground(Color.WHITE);
 		
@@ -107,11 +107,11 @@ public class CMY_HalftoneImage{
 		
 		// need to convert the topleft of the documentTargetRect, which is in normalised space,
 		// into document space
-		PVector docSpaceTopLeft = MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
+		PVector docSpaceTopLeft = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
 		mainDocRenderTarget.pasteImage(composite, docSpaceTopLeft, 1);
 		
 		if(saveOutImages) {
-			String pathAndName = MOUtilGlobals.userSessionPath + "cmyComposite.png";
+			String pathAndName = GlobalSettings.getUserSessionPath() + "cmyComposite.png";
 			ImageProcessing.saveImage(pathAndName, composite);
 			}
 		
@@ -141,7 +141,7 @@ public class CMY_HalftoneImage{
 		makeHalftone( spacingDocSpace,  degrees, CMYindex, dotColor); 
 		
 		if(saveOutImages) {
-			String pathAndName = MOUtilGlobals.userSessionPath + filename;
+			String pathAndName = GlobalSettings.getUserSessionPath() + filename;
 			ImageProcessing.saveImage(pathAndName, cmyRenderTarget.copyImage());
 			}
 		

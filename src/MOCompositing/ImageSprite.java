@@ -15,7 +15,7 @@ import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOSceneData.SceneData3D;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 //////////////////////////////////////////////////////////////////////
 // 
@@ -62,7 +62,7 @@ public class ImageSprite{
 	
 	private QRandomStream qRandomStream;
 	
-	
+	public float alpha = 1;
 	
 	public ImageSprite(){
 		
@@ -191,7 +191,7 @@ public class ImageSprite{
 		PVector spriteBufferPoint = spriteNormalisedSpaceToSpriteBufferSpace( spriteNormSpace);
 		PVector docBufferPoint = spriteBufferSpaceToDocumentBufferSpace( spriteBufferPoint);
 		
-		return MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace(docBufferPoint);
+		return GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(docBufferPoint);
 	}
 	
 	
@@ -204,7 +204,7 @@ public class ImageSprite{
 	public PVector spriteBufferSpaceToDocumentBufferSpace(PVector spriteBufferSpace) {
 		
 		// work out where the top left of the sprite buffer is in relation to the document
-		PVector bufferSpacePastePoint = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(this.getDocPoint());
+		PVector bufferSpacePastePoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(this.getDocPoint());
 		PVector spriteOffsetBufferSpace = getSpriteOriginOffsetBufferSpace();
 		PVector topLeftOfSpriteImageInDocBufferSpace = PVector.add(bufferSpacePastePoint, spriteOffsetBufferSpace);
 		
@@ -243,7 +243,7 @@ public class ImageSprite{
 	
 	public Rect getDocSpaceRect() {
 		Rect docBufferRect = getDocumentBufferSpaceRect();
-		return MOUtilGlobals.getTheDocumentCoordSystem().bufferSpaceToDocSpace(docBufferRect);
+		return GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(docBufferRect);
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -437,7 +437,7 @@ public class ImageSprite{
 	float docSizeToRenderTargetPixels2D(float size) {
 
 		PVector heightDocSpaceVector = new PVector(0, size);
-		PVector heightInPixelsVector = MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToBufferSpace(heightDocSpaceVector);
+		PVector heightInPixelsVector = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(heightDocSpaceVector);
 		return (float) Math.abs(heightInPixelsVector.y);
 
 	}

@@ -3,7 +3,7 @@ package MONetwork;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import MOImage.RenderTarget;
+import MOCompositing.RenderTarget;
 import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.Rect;

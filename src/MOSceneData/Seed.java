@@ -2,7 +2,7 @@ package MOSceneData;
 
 import MOMaths.PVector;
 import MOUtils.KeyValuePairList;
-import MOUtils.MOUtilGlobals;
+import MOUtils.GlobalSettings;
 
 //////////////////////////////////////////////////////////////////////////
 //A seed is a light-weight data object that can be generated in large numbers
@@ -187,11 +187,11 @@ public class Seed {
 	}
 
 	PVector normalisedSpaceToDocSpace(PVector normPt) {
-		return MOUtilGlobals.getTheDocumentCoordSystem().normalisedSpaceToDocSpace( normPt);
+		return GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace( normPt);
 	}
 
 	PVector docSpaceToNormalisedSpace(PVector docPt) {
-		return MOUtilGlobals.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(getDocPoint());
+		return GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(getDocPoint());
 	}
 }
 
