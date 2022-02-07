@@ -4,166 +4,196 @@ import java.util.ArrayList;
 
 import MOApplication.MainDocument;
 //import MOCompositing.MainDocumentRenderTarget;
-
+import MOCompositing.RenderTarget;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
 //////////////////////////////////////////////////////////////////////////////////
-// Helps manage the saving process for renders, either as single images or as collections of images through the creation of a sub-directory.
-// The user decides if images and directories from subsequent sessions are overwritten, or saved as new (differently named) files/directories. 
+// Helps manage the saving process for renders, either directly to the userSession directory, or in a specially created sub-directory
+// The user decides if images and directories from subsequent sessions are overwritten, or saved as new (automatically enumerated) files/directories by
+// setting the mode to either RenderSaver.FILENAME_OVERWRITE or RenderSaver.FILENAME_INCREMENT
 //
-// The baseName is derived from the MainDocument and defines the general name for this set of renders. It prefixes all individually saved images, and the name of the directory if created.
-//
-// If using SESSION_DIFFERENTIATOR_INCREMENT, each session is saved with an incremented number in the name in the form "_sessionXXXX" (where XXXX is always a 4-character leading-zero-padded integer).
+// If using FILENAME_INCREMENT, each session is saved with an incremented number in the name in the form "_sessionXXXX" (where XXXX is always a 4-character leading-zero-padded integer).
 // The process is based on scanning the userSessionPath for files/folders containing such a string. The highest previously saved session number in the userSessionPath is identified and  the new incremented number is found.
 //
-// If using SESSION_DIFFERENTIATOR_OVERWRITE, this will overwrite previously saved files/directories saved. The action is sensitive to previously saved SESSION_DIFFERENTIATOR_INCREMENT sessions, and will target the highest 
+// If using FILENAME_OVERWRITE, this will overwrite previously saved files/directories saved. The action is sensitive to previously saved SESSION_DIFFERENTIATOR_INCREMENT sessions, and will target the highest 
 // numerical session files/directories it finds on the UserSessionPath. If no previous SESSION_DIFFERENTIATOR_NUMERICAL is found, then the differentiating file string is 0000
 //
-
+// calling saveDocumentImages() causes the main render target and all suplemetary render targets to be saved with the following naimg conventions.
 //
+// NOT USING A SUB DIRECTORY
+// Files are saved to the userSessionDirectory with the following convention
+//		GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + enumerator + fileExtension
+//
+// USING A SUB DIRECTORY
+// The naming convention for the directory is 
+// userSessionPath/ GlobalSettings.mainSessionName + enumerator
+// Within this renders are files saved with the following convention 
+// 		GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + fileExtension
+//
+// SAVING LAYERS
+// Layers can only be generated from the Document's Main() render. Layers are always saved in an assigned sub-directory.
+// calling saveLayer(finalLayerBoolean) causes the following
 // 
-//
-//
-//
-//
-//
-// Individual images, no sub directory
-// UserSessionPath/baseName_sessionXXXX.png
-//
-// If a session saves out multiple images, then using a sub-directory is recommended . When a directory is made for multiple images, the directory is created with the "_sessionXXXX" string, not the files within.
-//
-// Using sub directory
-// this is probably done when generating images with  masks or saving an image in layers
-// UserSessionPath/baseName_sessionXXXX/basename_main.png and UserSessionPath/baseName_SESSION_DIFFERENTIATOR/basename_mask1.png, where#
-// main and mask1 strings are got from the MainDocument
-//
-// Using Layers always creates a sub directory
-// Using sub directory without Photoshop layering convention
-// UserSessionPath/baseName_SESSION_DIFFERENTIATOR/img_MOLayer_(num increasing).png
-// Using sub directory with Photoshop layering convention
-// UserSessionPath/baseName_SESSION_DIFFERENTIATOR/img_MOLayer_(num increasing)_PSLayer_(num decreasing from 99).png
-//
-// subdirectory
+// the Layer filename follows the convention 
+// GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + "_Layer_" + (num increasing or decreasing) + ".png"
+// 
+// Once saved, the render is cleared, unless it is the final one. Upon saving the final layer, any other supplementary renders from the Document are saved as whole images following the 
+// USING A SUB DIRECTORY protocol
+// Utilising reverse layer naming enable the correctly ordered import of layers using Photoshop's File->Scripts->Load Files into Stack for depth sorted layers
 public class RenderSaver {
 	
 	
 	MainDocument theDocument;
 	
-	
-	int currentSessionNumber = 0;
+	int currentSessionEnumerator = 0;
 	boolean useSubDirectory = false;
-	boolean useLayers = false;
-	String subDirectory;
-	int imageNumCounter = 0;
 	
-	boolean overwriteDirectoryContents = false;
-	boolean photoshopLayerOrderNumbering = false;
-	int photoshopLayerNumberMaxNum = 99;
-
-	final public static int SESSION_FILENAME_OVERWRITE = 0;
-	final public static int SESSION_FILENAME_INCREMENT = 1;
+	String subDirectoryPath;
+	
+	int layerCounter = 0;
+	boolean useReverseLayerNumbering = false;
+	
+	final public static int FILENAME_OVERWRITE = 0;
+	final public static int FILENAME_INCREMENT = 1;
 	
 	
-	int session_filename_mode = SESSION_FILENAME_INCREMENT; // this is the default as it's safer
+	int session_filename_mode = FILENAME_INCREMENT; // this is the default as it's safer
 	String session_differentiator_string = "0000";
 	
-	public RenderSaver(int mode, MainDocument rt) {
+	public RenderSaver(int mode, boolean useSubdirectory, MainDocument doc) {
 		
-		this.theDocument = rt;
+		this.theDocument = doc;
 		this.session_filename_mode = mode;
-		updateCurrentSessionNumber();
-	}
-	
-	
-
-	//
-	// if the session_differentiator is set  to NUMERICAL or DATE_TIME then the system will always crate a new directory every session
-	// and save all renders within this directory.
-	// If it is not time stamped, then a new directory will be created on the first run, and files within will be
-	// over-written on subsequent runs, which is sometimes desirable on long test cycles.
-	//
-	public void createSubDirectory(boolean usinglayers) {
-		useLayers = usinglayers;
-		useSubDirectory = true;
-		updateCurrentSessionNumber();
-		subDirectory = MOStringUtils.createDirectory(GlobalSettings.getUserSessionPath(), GlobalSettings.getDocumentName() + getCurrentSessionString(), false);
 		
+		useSubDirectory = useSubdirectory;
+		
+		layerCounter = 0;
+		
+		updateCurrentSessionEnumerator();
+		if(useSubDirectory) {
+			subDirectoryPath = MOStringUtils.createDirectory(GlobalSettings.getUserSessionPath(), GlobalSettings.getDocumentName() + getSessionEnumeratorString() + "\\", false);
+		}
 	}
 	
-	private void updateCurrentSessionNumber() {
-		int i = searchDirectoryForHighestSessionNumber();
-		if(session_filename_mode == SESSION_FILENAME_OVERWRITE) currentSessionNumber = i;
-		if(session_filename_mode == SESSION_FILENAME_INCREMENT) currentSessionNumber = i + 1;
+	public void useReverseLayerNumbering(int startNum) {
+		useReverseLayerNumbering = true;
+		layerCounter = startNum;
 	}
 	
-	private String getCurrentSessionString() {
-		String sessionNumberString = MOStringUtils.getPaddedNumberString(currentSessionNumber,4);
-		String fullString = "_session" + sessionNumberString;
-		System.out.println("getCurrentSessionString()::  " + fullString);
-		return fullString;
-	}
 
-	void usePhotoshopLayerOrderNumbering(int maxNum) {
-	// Can only be set with sub directory mode
-	// when this is set to true the naming convention is altered to
-	// load the images as photoshop layers via the photoshop
-	// load image layers as stack script
 	
+	
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	// saveDocumentImages This is called by the user, probably in UserSession.finaliseUserSession
+	// 
+	// 
+	// 
+	// 
+	public void saveDocumentImages() {
+		if (useSubDirectory) {
+			// if useSubDirectory==true assume : 
+			// if FILENAME_INCREMENT an new enumerated directory has been created at instantiation of this object and subDirectoryPath set to this
+			// if FILENAME_OVERWRITE then the previously-saved highest-numbered session directory has been set as the subDirectoryPath, so the files within are overwritten
+			saveDocumentMainImage(subDirectoryPath,"");
+			saveDocumentSupplementaryImages(subDirectoryPath,"");
+			
+		} else {
+			// if FILENAME_INCREMENT the filename generated will use the highest existing + 1 as the enumerator
+			// if FILENAME_OVERWRITE the filename generated will use the highest existing so will overwrite this file
+			
+			String numerator = getSessionEnumeratorString();
+			saveDocumentMainImage(GlobalSettings.getUserSessionPath(),numerator);
+			saveDocumentSupplementaryImages(GlobalSettings.getUserSessionPath(),numerator);
+		}
+
+	}
+	
+	
+	
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	// Saving layers assumes this: The layers saved are derived from the main Document Render
+	// and these are cleared after each save.
+	// The final layer is not cleared, and when the final layer is saved, any supplementary Document RenderTarget
+	// images are also saved to the directory.
+	// The calling of saveLayer is going to be managed by the user
+	public void saveLayer(boolean finalLayer) {
 		if(useSubDirectory==false) {
-			System.out.println("RenderSaver: cannot set Photoshop Layer Ordering Mode without setting a sub directory first - use createSubDirectory(true)");
+			System.out.println("RenderSaver: saveLayer - cannot save layers without setting a sub directory first - set third argument of constructor to true");
 			return;
 		}
-		photoshopLayerOrderNumbering = true;
-		photoshopLayerNumberMaxNum = maxNum;
-	}
-	
-	
-
-	public void saveImageFile() {
-		if (useSubDirectory) {
-			if(useLayers) {
-				saveLayer(false);
-				return;
-			} else {
-				
-				String fullPathAndName = subDirectory + "\\" + GlobalSettings.getDocumentName() + ".png";
-				System.out.println("saveRender and masks to folder: saving " + fullPathAndName);
-				theDocument.getRenderTarget("main").saveRenderToFile(fullPathAndName);
-			}
-		} else {
-
-			String path = GlobalSettings.getUserSessionPath();
-			String timeStamp = MOStringUtils.getDateStamp();
-			String fullPathAndName = path + GlobalSettings.getDocumentName() + "_" + timeStamp + ".png";
-			System.out.println("saveRender: saving " + fullPathAndName);
-			theDocument.getRenderTarget("main").saveRenderToFile(fullPathAndName);
-		}
-
-	}
-	
-	void saveLayer(boolean clearImage) {
-		String name = "img";
 		
-		if (photoshopLayerOrderNumbering) {
-			int thisPhotoshopLayerNum = photoshopLayerNumberMaxNum - imageNumCounter;
-			name = name + "_PSLayer_" + thisPhotoshopLayerNum;
-		}
+		String name = theDocument.getMain().getFullSessionName();
+		
+		String layerCounterString = MOStringUtils.getPaddedNumberString(layerCounter,2);
+		String layerString = "_Layer_" + layerCounterString;
+		
+		name = name + layerString;
 
-		name = name + "_MOLayer_" + imageNumCounter;
-
-		String fullPathAndName = subDirectory + "\\" + name + ".png";
+		String fullPathAndName = subDirectoryPath + "\\" + name + ".png";
 		System.out.println("saveRenderLayers to folder: saving " + fullPathAndName);
 		theDocument.getRenderTarget("main").saveRenderToFile(fullPathAndName);
 
-		imageNumCounter++;
+		if (useReverseLayerNumbering) {
+			layerCounter--;
+		} else {
+			layerCounter++;
+		}
 		
-		if(clearImage) theDocument.getRenderTarget("main").clearImage();
+		if(!finalLayer) theDocument.getRenderTarget("main").clearImage();
+		
+		if(finalLayer) {
+			saveDocumentSupplementaryImages(subDirectoryPath, "");
+		}
+	}
+
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	// private methods
+	// 
+	// 
+	
+	private void updateCurrentSessionEnumerator() {
+		int i = searchDirectoryForHighestSessionEnumerator();
+		if(session_filename_mode == FILENAME_OVERWRITE) currentSessionEnumerator = i;
+		if(session_filename_mode == FILENAME_INCREMENT) currentSessionEnumerator = i + 1;
 	}
 	
+	private String getSessionEnumeratorString() {
+		// turns the integer value currentSessionEnumerator into a String of 
+		// of the following format "_sessionXXXX" where XXXX is the 4 figure zero-padded number.
+		String sessionNumberString = MOStringUtils.getPaddedNumberString(currentSessionEnumerator,4);
+		String fullString = "_session" + sessionNumberString;
+		//System.out.println("getCurrentSessionString()::  " + fullString);
+		return fullString;
+	}
+	
+	private void saveDocumentMainImage(String fullPath, String enumerator) {
+		// this is where the document needs to have its own name and schemaName
+		
+			String fullSessionName = theDocument.getMain().getFullSessionName();
+			String ext = theDocument.getMain().getFileExtension();
+			String fullPathAndName = fullPath + fullSessionName + enumerator + ext;
+			theDocument.getMain().saveRenderToFile(fullPathAndName);
+		
+		//theDocument.getRenderTarget("main").saveRenderToFile(fullPathAndName  + ".png" );
+		
+	}
+	
+	private void saveDocumentSupplementaryImages(String fullPath, String enumerator) {
+		if(theDocument.getNumRenderTargets()==1) return;
+		for(int n = 1; n < theDocument.getNumRenderTargets(); n++) {
+			RenderTarget rt = theDocument.getRenderTarget(n);
+			String fullSessionName = rt.getFullSessionName();
+			String ext = rt.getFileExtension();
+			String fullPathAndName =  fullPath + fullSessionName + enumerator + ext;
+			theDocument.getRenderTarget(n).saveRenderToFile(fullPathAndName);
+		}
+	}
 
-
-	private int searchDirectoryForHighestSessionNumber() {
+	private int searchDirectoryForHighestSessionEnumerator() {
 		// if NOT using folders, look for the highest file name containing the session string
 		// if using folders, look for the highest folder name containing the session string
 

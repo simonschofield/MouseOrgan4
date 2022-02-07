@@ -13,6 +13,10 @@ public interface MainDocumentRenderTarget {
 	
 	public String getName();
 	
+	public String getFullSessionName();
+	
+	public String getFileExtension();
+	
 	public void clearImage();
 	
 	public void pasteSprite(ImageSprite sprite);

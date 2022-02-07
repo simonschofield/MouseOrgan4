@@ -39,13 +39,15 @@ public class SeedBatchHelper_Scene3D {
 	}
 	
 	
-	public PointGenerator_RadialPackSurface3D definePointPacking(String namePointDisImage, PackingInterpolationScheme is, int pointDistRSeed) {
+	public PointGenerator_RadialPackSurface3D definePointPacking(String namePointDisImage, PackingInterpolationScheme packingInterpolationScheme, int pointDistRSeed) {
+		// sets up the pontGenerator for this seed batch
+		// optionally returns the point generator if you need it
 		sceneData3D.setCurrentRenderImage(namePointDisImage);
 		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage();
 		PointGenerator_RadialPackSurface3D pointField = new PointGenerator_RadialPackSurface3D(pointDistRSeed, sceneData3D);
 
 		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage());
-		pointField.setPackingRadius(is, pointDistributionImage);
+		pointField.setPackingInterpolationScheme(packingInterpolationScheme, pointDistributionImage);
 		pointGenerator = pointField;
 		return pointField;
 	}
@@ -127,7 +129,7 @@ public class SeedBatchHelper_Scene3D {
 		// to a specific ROI within that scene by mapping the original doc points into the nw
 		// doc space represented by the ROI
 		
-		// as this is quite destructive (it culls seeds outside the roi) this method returns a new SeedBatch
+		// as this is quite destructive this method returns a new SeedBatch
 		
 		// when seeds are saved the locations are saved in normalised form
 		// This is converted to the doc space of the host session upon loading
@@ -139,7 +141,7 @@ public class SeedBatchHelper_Scene3D {
 		
 		Rect theROI = sceneData3D.getROIRect();
 		
-		int n = 0;
+		
 		SeedBatch seedbatchOut = new SeedBatch();
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
@@ -151,17 +153,11 @@ public class SeedBatchHelper_Scene3D {
 
 			PVector newROIPoint = theROI.norm(normalisedPoint); // convert to normalised space within the roi
 			PVector newDocSpacePt = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(newROIPoint);
-			
-			if(n%100==0) {
-				//System.out.println("original norm seed point" + normalisedPoint.toStr() + " point within ROI " + newROIPoint.toStr());
-				//System.out.println("old Doc space in " + oldDocPoint.toStr() + " new doc space point out " + newDocSpacePt.toStr());
-				//System.out.println();
-			}
-			
+			//System.out.println("applyROIToSeeds: seeds docpoint before appplication of ROI " + newSceneDocPoint.toString() + ". Adjusted by ROI " + newDocSpacePt.toString());
 			s.setDocPoint(newDocSpacePt);
 			
 			seedbatchOut.addSeed(s);
-			n++;
+			
 		}
 		
 		

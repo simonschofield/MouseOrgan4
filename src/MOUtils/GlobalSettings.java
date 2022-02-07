@@ -53,7 +53,7 @@ public class GlobalSettings {
 	public static String currentSchemea = "";
 	
 	
-	
+	public static boolean printOn = false;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// Initialisation	

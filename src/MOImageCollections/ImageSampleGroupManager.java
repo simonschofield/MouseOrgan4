@@ -13,7 +13,7 @@ import MOMaths.PVector;
 import MOMaths.Rect;
 import MOSceneData.Seed;
 import MOUtils.MOStringUtils;
-import MOUtils.GlobalSettings;
+//import MOUtils.GlobalSettings;
 
 
 
@@ -30,6 +30,7 @@ public class ImageSampleGroupManager {
 
 	public ImageSampleGroupManager() {
 		//parentSurface = GlobalObjects.theSurface;
+		new ImageSampleGroup(this);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -335,11 +336,11 @@ public class ImageSampleGroupManager {
 			}
 		}
 
-		String userSessionPath = GlobalSettings.getUserSessionPath();
+		//String userSessionPath = GlobalSettings.getUserSessionPath();
 
-		String suggestedName = MOStringUtils.getDateStampedImageFileName("Parade_" + groupName + "_");
-		System.out.println("saveRenderLayer: saving " + suggestedName);
-		rt.saveRenderToFile(userSessionPath + suggestedName);
+		//String suggestedName = MOStringUtils.getDateStampedImageFileName("Parade_" + groupName + "_");
+		//System.out.println("saveRenderLayer: saving " + suggestedName);
+		//rt.saveRenderToFile(userSessionPath + suggestedName);
 
 	}
 

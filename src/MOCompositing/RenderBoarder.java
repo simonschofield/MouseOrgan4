@@ -45,7 +45,7 @@ public class RenderBoarder {
 	
 	boolean isActive = false;
 
-	private Rect boarderRect;
+	private Rect boarderRect = new Rect();
 
 	int leftEdgeAction = CROP_ACTION_NONE;
 	int topEdgeAction = CROP_ACTION_NONE;
@@ -58,7 +58,9 @@ public class RenderBoarder {
 	QRandomStream qRandomStream = new QRandomStream(1);
 	
 	public RenderBoarder(){
-		//setBoarders(0, 0, 1, 1, CROP_ACTION_RECT);
+		
+		boarderRect = new Rect(0,0,GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth(), GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight());
+		
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////

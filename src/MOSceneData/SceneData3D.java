@@ -295,7 +295,10 @@ public class SceneData3D {
 			relativeAssetScale = 1/verticalCropProportion;
 		}
 		
-		return geometryBuffer3d.get3DScale(roiSpace) * relativeAssetScale;
+		float geomScale3D =  geometryBuffer3d.get3DScale(roiSpace) * relativeAssetScale;
+		//System.out.println("get3DScale: docSpace " + docSpace.toString() + " roiPoint point " + roiSpace.toString() + " relativeAssetScale = " + relativeAssetScale + "geom svcale 3d " + geomScale3D);
+		
+		return geomScale3D;
 	}
 	
 	

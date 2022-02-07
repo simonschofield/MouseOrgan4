@@ -5,7 +5,6 @@ import MOMaths.Rect;
 
 public class ImageCoordinateSystem {
 		private int bufferWidth, bufferHeight;
-		private float aspect = 1;
 		private int longestBufferEdge;
 		private float documentWidth, documentHeight;
 		
@@ -13,17 +12,13 @@ public class ImageCoordinateSystem {
 			
 			bufferWidth = targetBufferWidth;
 			bufferHeight = targetBufferHeight;
-			aspect = bufferWidth/(float)bufferHeight;
+			
 			longestBufferEdge = Math.max(bufferWidth, bufferHeight);
 			
 			documentWidth = bufferWidth / (float)longestBufferEdge;
 			documentHeight = bufferHeight / (float)longestBufferEdge;
 		}
 		
-		
-		// GlobalObjects.theDocument.docSpaceToNormalisedSpace(docSpace);
-		// GlobalObjects.theDocument.docSpaceToNormalisedSpace(docSpace);
-		// GlobalObjects.theDocument.normalisedSpaceToDocSpace(normPt);
 		
 		
 		public PVector docSpaceToBufferSpace(PVector docPt) {

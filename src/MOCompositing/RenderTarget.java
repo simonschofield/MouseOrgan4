@@ -64,10 +64,23 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		return renderTargetName;
 	}
 	
+	public String getFullSessionName() {
+		String sessname = GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName;
+		return sessname;
+	}
+	
+	public String getFileExtension() {
+		return ".png";
+	}
+	
 	protected void setRenderBuffer(int w, int h, int imgType) {
 		
 		
 		coordinateSystem = new ImageCoordinateSystem(w,h);
+		
+		
+		
+		
 		targetRenderImage = new BufferedImage(w, h, imgType);
 		
 		

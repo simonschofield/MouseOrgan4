@@ -126,7 +126,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		GlobalSettings.init(userSessionPth, fullScaleRenderW, fullScaleRenderH, sessionScl);
 		
 		theDocument = new MainDocument((int)(fullScaleRenderW * GlobalSettings.getSessionScale()), (int) (fullScaleRenderH * GlobalSettings.getSessionScale()), mainDocumentRenderType);
-		GlobalSettings.setTheDocumentCoordSystem(theDocument);
+		//GlobalSettings.setTheDocumentCoordSystem(theDocument);
 		// ok to do these now
 		theViewControl.init(this);
 		buildUI();
@@ -280,6 +280,11 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	
 	protected void setCanvasUpdateFrequency(int cuf) {
 		canvasUpdateFrequency = cuf;
+	}
+	
+	public int getUserSessionUpdateCount() {
+		
+		return userSessionUpdateCount;
 	}
 
 	public SimpleUI getSimpleUI() {

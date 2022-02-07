@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
+import MOUtils.GlobalSettings;
 
 
 //GeometryBuffer3D is initialised with a "distance image" and a vertical FOV
@@ -158,6 +159,7 @@ public class GeometryBuffer3D{
 		
 		unitDistance.y = unitDistance.y + 1;// move the point by a distance of 1 unit
 		PVector shiftedDocPt = world3DToDocSpace(unitDistance);
+		
 		return docPt.dist(shiftedDocPt);
 		
 	}
@@ -167,11 +169,13 @@ public class GeometryBuffer3D{
 		// returns the 3D point at a point in the scene using the original
 		// distance values
 		float distance = getDistance(docSpace);
+		//System.out.println(" Geom Buffer docSpaceToWorld3D distance " + distance);
 		return docSpaceToWorld3D( docSpace,  distance);
 	}
 	
 	public PVector docSpaceToWorld3D(PVector docSpace, float distance) {
 		PVector vIntoScene = getVectorIntoScene(docSpace);
+		
 		vIntoScene.normalize();
 		return  PVector.mult(vIntoScene, distance);
 	}
@@ -189,7 +193,10 @@ public class GeometryBuffer3D{
 	public float getDistance(PVector docSpace) {
 		// returns the filtered distance
 		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
-		return filteredDistanceBuffer.getPixelBilin(coord.x, coord.y); 
+		
+		float filteredDistance =  filteredDistanceBuffer.getPixelBilin(coord.x, coord.y); 
+		//if(GlobalSettings.printOn) System.out.println(" Geom Buffer getDistance docspace in" + docSpace.toString() + " coord " + coord.toString() + " filteredDistance " + filteredDistance);
+		return filteredDistance;
 	}
 	
 	

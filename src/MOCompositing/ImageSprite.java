@@ -49,7 +49,7 @@ public class ImageSprite{
 	public String imageSampleGroupName = "";
 	public String shortImageFileName = "";
 	String seedBatchName = "";
-	int id = 0;
+	public int id = 0;
 	
 		
 		
@@ -71,7 +71,7 @@ public class ImageSprite{
 	
 	
 	public ImageSprite(BufferedImage img, PVector orig, float sizeInScn, int id ){
-
+		img.setAccelerationPriority(1);
 		setImage(img); 
 		
 		this.sizeInScene = sizeInScn;
@@ -469,7 +469,7 @@ public class ImageSprite{
 	// The sizeInScene value becomes the size of the sprite within the scene using the scenes 3D units. This is claculated from the 
 	// depth at the paste-point of the sprite using the geometry-buffers 3D methods.
 	//
-	public void scaleToSizeInScene(SceneData3D sceneData, float scaleModifier) {
+	public float scaleToSizeInScene(SceneData3D sceneData, float scaleModifier) {
 		// scales the image to the correct size using  sizeInScene to represent the
 		// items's size in the 3D scene in world units.
 
@@ -483,13 +483,18 @@ public class ImageSprite{
 
 		scale(scale, scale);
 		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
+		return scale;
 	}
 
 	float getHeightInRenderTargetPixels3D(SceneData3D sceneData) {
-
-		float heightDocSpace = sizeInScene * sceneData.get3DScale(docPoint);
-		return docSizeToRenderTargetPixels2D(heightDocSpace);
-
+		float scale3D = sceneData.get3DScale(docPoint);
+		float heightDocSpace = sizeInScene * scale3D;
+		
+				//System.out.println("getHeightInRenderTargetPixels3D: scale3D " + scale3D );
+		float docSizeInPixels =  docSizeToRenderTargetPixels2D(heightDocSpace);
+		//System.out.println("sprite id " + this.id + " doc point " + docPoint.toString() + " height doc space = " + heightDocSpace + "  size pixels " + docSizeInPixels);
+		//System.out.println();
+		return docSizeInPixels;
 	}
 
 

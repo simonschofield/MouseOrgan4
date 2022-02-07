@@ -27,12 +27,7 @@ import MOUtils.GlobalSettings;
 // The type of image-buffer class contained is defined by the interface MainDocumentRenderTarget. This allows the addition of bespoke image-classes, such as floating point (for depth information) and integer for 
 // item-id that can all handle the pasting of ImageSprites in various ways to create images and mask-type images.
 //
-// The UserSessionSettings and the MainDocument are closely bound
-//
-//
-//
-//
-//
+
 
 public class MainDocument{
 	//public SessionSettings sessionSettings;
@@ -47,6 +42,7 @@ public class MainDocument{
 		width = wdth;
 		height = hght;
 		addRenderTarget("main", mainRenderType);
+		GlobalSettings.setTheDocumentCoordSystem(this);
 		renderBoarder = new RenderBoarder();
 		
 	}
@@ -69,6 +65,19 @@ public class MainDocument{
 		return (RenderTarget) renderTargets.get(0);
 	}
 	
+	public int getNumRenderTargets() {
+		return renderTargets.size();
+	}
+	
+	public RenderTarget getRenderTarget(int n) {
+		if( n >= getNumRenderTargets() || n < 0) {
+			System.out.println("MainRenderDocument::getRenderTarget - illegal index " + n);
+			return null;
+		}
+		return (RenderTarget) renderTargets.get(n);
+		
+	}
+	
 	public RenderTarget getRenderTarget(String name) {
 		for(MainDocumentRenderTarget rt: renderTargets) {
 			if( rt.getName().equals(name)) return (RenderTarget) rt;
@@ -76,6 +85,9 @@ public class MainDocument{
 		System.out.println("MainRenderDocument::getRenderTarget - cannot find render target called " + name);
 		return null;
 	}
+	
+	
+	
 	
 	
 	public void saveRenderToFile(String renderTargetName, String pathAndFilename) {

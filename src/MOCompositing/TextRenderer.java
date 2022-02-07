@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import MOApplication.MainDocument;
 import MOImage.ImageProcessing;
 import MOMaths.Line2;
 import MOMaths.PVector;
@@ -299,11 +300,11 @@ public class TextRenderer {
 		
 	}
 	
-	public void paradeFonts(int size, RenderTarget rt) {
+	public void paradeFonts(int size, MainDocument theDocument) {
 		int numFonts =  fontFamilies.size();
 		
 		float currentY = 0;
-		Graphics2D documentGraphicsContext = rt.getGraphics2D();
+		Graphics2D documentGraphicsContext = theDocument.getMain().getGraphics2D();
 		for(int n = 0; n < numFonts; n++) {
 			String fnm = fontFamilies.get(n);
 			Font thisFont = new Font(fnm, 0, size);

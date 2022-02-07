@@ -117,6 +117,12 @@ public class ImageSampleGroup extends ImageItemGroup{
 
 	}
 	
+	public float getRelativeSize(int num) {
+		int imgHght = getImage(num).getHeight();
+		float heightMaxItem = heightExtrema.getUpper();
+		return  imgHght / heightMaxItem;
+	}
+	
 	public void setGroupOrigins(PVector orig) {
 		groupImageOrigins = orig;
 	}
