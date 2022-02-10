@@ -11,7 +11,7 @@ public class SpriteSeed {
 
 
 	// hello this is an update to check the repository
-	int testVariable = 42;
+	int testVariable = 52;
 
 
 	/////////////////////////////////////////////////////
