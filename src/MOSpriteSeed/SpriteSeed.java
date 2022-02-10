@@ -10,7 +10,8 @@ public class SpriteSeed {
 	// Can be saved as seedbatches
 
 
-
+	// hello this is an update to check the repository
+	int testVariable = 42;
 
 
 	/////////////////////////////////////////////////////
