@@ -30,7 +30,7 @@ public class ImageSampleGroupManager {
 
 	public ImageSampleGroupManager() {
 		//parentSurface = GlobalObjects.theSurface;
-		new ImageSampleGroup(this);
+		
 	}
 
 	//////////////////////////////////////////////////////////////////////////////

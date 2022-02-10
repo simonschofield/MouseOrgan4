@@ -96,7 +96,7 @@ public class SeedBatchHelper_Scene3D {
 			Seed s = new Seed();
 			//System.out.println("new seed at " + p.toString());
 			s.setDocPoint(p);
-			s.batchName = batchName;
+			s.seedFontName = batchName;
 			s.imageSampleGroupName = isd.imageSampleGroupName;
 			s.imageSampleGroupShortName = isd.shortName;
 			s.imageSampleGroupItemNumber = isd.itemNumber;

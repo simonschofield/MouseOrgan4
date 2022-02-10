@@ -1,88 +1,80 @@
-package MOSceneData;
+package MOSpriteSeed;
 
 import MOMaths.PVector;
-import MOUtils.KeyValuePairList;
+import MOSceneData.Seed;
 import MOUtils.GlobalSettings;
+import MOUtils.KeyValuePairList;
 
-//////////////////////////////////////////////////////////////////////////
-//A seed is a light-weight data object that can be generated in large numbers
-//to pre-calculated the population of an image by a pre-render process.
-//
-//When saving/loading seeds between different sessions/systems, the saved coordinates are
-//in NORMALISED space, so that different aspects in the source & destination systems is not an issue
-//They contain enough data to recreate the rendered sprite identically each render session
+public class SpriteSeed {
+	// A lightweight representation of everything you need to make a Sprite
+	// Can be saved as seedbatches
 
-//
-//
 
-public class Seed {
 
-	// the name of the SeedFont this seed is made in
-	// this enables the user to identify seeds from different SeedFonts and treat them differently
+
+
+	/////////////////////////////////////////////////////
+	// This part: Sprite "Font" data, all instances are set with  this data from a specific SpriteSeedMaker
+	//
+	//
+	// this enables the user to identify seeds from different batches (biomes) and treat them differently
 	public String seedFontName = "";
+	public String imageSampleGroupName;
+	public float sizeInScene = 1;
+	public boolean useRelativeSizes = false;
+	public PVector origin = new PVector(0.5f, 0.5f);
 
+	/////////////////////////////////////////////////////
+	// Below here : SpriteSeed instance data, different for each seed
 	/////////////////////////////////////////////////////
 	// the name of the image sample group to be used by
 	// the number of the item within that group
 	// The short name, which is derived usually from the file name (without extension)
-	public String imageSampleGroupName = "";
 	public int imageSampleGroupItemNumber = 0;
-	public String imageSampleGroupShortName= "";
-	
+	public String imageSampleGroupItemShortName= "";
+
 	/////////////////////////////////////////////////////
 	// Geometric transforms applied
 	// the doc point of the seed
 	// used to position (translate) the item
-	float docPointX;
-	float docPointY;
+	public float docPointX;
+	public float docPointY;
 
 	// scale
-	float scale = 1;
+	public float scale = 1;
 
 	//Rotation, in degrees clockwise
 	//where 0 represent the "up" of the image
-	float rotation = 0;
+	public float rotation = 0;
 
 	// flip in x and y
-	boolean flipX = false;
-	boolean flipY = false;
+	public boolean flipX = false;
+	public boolean flipY = false;
 
 	/////////////////////////////////////////////////////
 	// the depth is set to the normalised depth in the 3D scene, 
 	// usually used to sort the render order of the seeds
 	// 
-	float depth;
+	public float depth;
 
 	// the id is a unique integer
 	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
 	// regardless of previous random events
 	public int id;
-
-	public Seed() {
-	}
-
-	public Seed(PVector docpt, String imageSampleGroupNm, int imageSampleGroupItemNum) {
-		docPointX = docpt.x;
-		docPointY = docpt.y;
-		depth = docpt.z;
-		imageSampleGroupName = imageSampleGroupNm;
-		imageSampleGroupItemNumber = imageSampleGroupItemNum;
-	}
-
-	public Seed(PVector docpt) {
-		docPointX = docpt.x;
-		docPointY = docpt.y;
-		depth = docpt.z;
-	}
 	
 	
-	public Seed copy() {
-		Seed cpy = new Seed();
+	//public SpriteSeed() {}
+	
+	public SpriteSeed copy() {
+		SpriteSeed cpy = new SpriteSeed();
 		cpy.seedFontName = this.seedFontName;
-
 		cpy.imageSampleGroupName = this.imageSampleGroupName;
+		cpy.sizeInScene = this.sizeInScene;
+		cpy.useRelativeSizes = this.useRelativeSizes;
+		cpy.origin = this.origin.copy();
+		
 		cpy.imageSampleGroupItemNumber = this.imageSampleGroupItemNumber;
-		cpy.imageSampleGroupShortName= this.imageSampleGroupShortName;
+		cpy.imageSampleGroupItemShortName= this.imageSampleGroupItemShortName;
 		
 		cpy.docPointX = this.docPointX;
 		cpy.docPointY = this.docPointY;
@@ -133,9 +125,14 @@ public class Seed {
 
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.addKeyValue("SeedFontName", seedFontName);
-		kvlist.addKeyValue("ImageSampleGroup", imageSampleGroupName);
+		kvlist.addKeyValue("ImageSampleGroupName", imageSampleGroupName);
+		
+		kvlist.addKeyValue("SizeInScene",sizeInScene);
+		kvlist.addKeyValue("UseRelativeSizes",useRelativeSizes);
+		kvlist.addKeyValue("OriginX",origin.x);
+		kvlist.addKeyValue("OriginY",origin.y);
 		kvlist.addKeyValue("ImageSampleGroupItemNumber", imageSampleGroupItemNumber);
-		kvlist.addKeyValue("ImageSampleGroupShortName", imageSampleGroupShortName);
+		kvlist.addKeyValue("ImageSampleGroupItemShortName", imageSampleGroupItemShortName);
 		kvlist.addKeyValue("DocPointX", np.x);
 		kvlist.addKeyValue("DocPointY", np.y);
 		kvlist.addKeyValue("Scale", scale);
@@ -158,13 +155,21 @@ public class Seed {
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.ingestCSVLine(csvStr);
 		seedFontName = kvlist.getString("SeedFontName");
-		imageSampleGroupName = kvlist.getString("ImageSampleGroup");
+		imageSampleGroupName = kvlist.getString("ImageSampleGroupName");
+		
+		sizeInScene = kvlist.getFloat("SizeInScene");
+		useRelativeSizes = kvlist.getBoolean("UseRelativeSizes");
+		origin.x = kvlist.getFloat("OriginX");
+		origin.y = kvlist.getFloat("OriginY");
+		
+		
+		
 		imageSampleGroupItemNumber = kvlist.getInt("ImageSampleGroupItemNumber");
 		//System.out.println("Loading seed: imageSampleGroupItemNumber " + imageSampleGroupItemNumber);
 		
 		
 		
-		imageSampleGroupShortName = kvlist.getString("ImageSampleGroupShortName");
+		imageSampleGroupItemShortName = kvlist.getString("ImageSampleGroupItemShortName");
 		float npX = kvlist.getFloat("DocPointX");
 		float npY = kvlist.getFloat("DocPointY");
 
@@ -193,5 +198,6 @@ public class Seed {
 	PVector docSpaceToNormalisedSpace(PVector docPt) {
 		return GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(getDocPoint());
 	}
-}
+	
 
+}
