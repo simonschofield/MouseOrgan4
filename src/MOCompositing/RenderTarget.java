@@ -136,9 +136,11 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	//
 	//
 	//
-	public void pasteSprite(ImageSprite sprite) {
+	public void pasteSprite(Sprite sprite) {
 		pasteImage(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
 	}
+	
+	
 	
 	////////////////////////////////////////////////////////////////////////////////////
 	// pastes the topleft of the image at docSpacePoint
@@ -171,7 +173,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	//
 	//
 	//
-	public void pasteSpriteMask(ImageSprite sprite, Color c) {
+	public void pasteSpriteMask(Sprite sprite, Color c) {
 		pasteImageMask(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha, c);
 	}
 	

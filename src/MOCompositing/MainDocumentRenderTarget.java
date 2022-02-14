@@ -19,7 +19,7 @@ public interface MainDocumentRenderTarget {
 	
 	public void clearImage();
 	
-	public void pasteSprite(ImageSprite sprite);
+	public void pasteSprite(Sprite sprite);
 	
 	public void saveRenderToFile(String pathAndFilename);
 

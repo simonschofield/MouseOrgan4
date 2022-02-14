@@ -22,15 +22,15 @@ import MOUtils.MOStringUtils;
 // or copied from another group.
 
 
-public class ImageItemGroup {
+public class NamedImageGroup {
 
 	protected DirectoryFileNameScanner directoryFileNameScanner;
 	
-	protected ArrayList<ImageItem> imageList = new ArrayList<ImageItem>();
+	protected ArrayList<NamedImage> imageList = new ArrayList<NamedImage>();
 	
 	
-	Range widthExtrema = new Range();
-	Range heightExtrema = new Range();
+	protected Range widthExtrema = new Range();
+	protected Range heightExtrema = new Range();
 
 	
 	Rect cropRect = new Rect();
@@ -38,7 +38,7 @@ public class ImageItemGroup {
 	
 	
 
-	public ImageItemGroup() {
+	public NamedImageGroup() {
 		
 	}
 	
@@ -60,7 +60,7 @@ public class ImageItemGroup {
 	
 	
 	void clearImages() {
-		imageList = new ArrayList<ImageItem>();
+		imageList = new ArrayList<NamedImage>();
 		
 		
 	}
@@ -118,7 +118,7 @@ public class ImageItemGroup {
 		img = applyPreScaleAndCrop(img);
 
 		String thisShortFileName = MOStringUtils.getShortFileNameFromFullPathAndFileName(pathAndName);
-		addImage(img, thisShortFileName);
+		addNamedImage(img, thisShortFileName);
 	}
 	
 	
@@ -141,11 +141,11 @@ public class ImageItemGroup {
 	// Adds a single image with a name
 	// only add images to the images list through this method
 	//
-	public void addImage(BufferedImage img, String shortName) {
+	public void addNamedImage(BufferedImage img, String shortName) {
 		
 		if(checkUniqueName(shortName)==false) return;
 		
-		ImageItem namedImage = new ImageItem();
+		NamedImage namedImage = new NamedImage();
 		namedImage.image = img;
 		namedImage.name = shortName;
 		
@@ -161,21 +161,21 @@ public class ImageItemGroup {
 	// copying from another image group
 	// Makes a deep copy of the images so will increase memory footprint
 	//
-	public void copyImagesFromOtherGroup(ImageItemGroup otherGroup) {
+	public void copyNamedImagesFromOtherGroup(NamedImageGroup otherGroup) {
 		int i = otherGroup.getNumImages();
 		for(int n = 0; n < i; n++) {
-			copyImageFromOtherGroup( n,  otherGroup);
+			copyNamedImageFromOtherGroup( n,  otherGroup);
 		}
 		
 	}
 	
 	
-	public void copyImageFromOtherGroup(int n, ImageItemGroup otherGroup) {
+	public void copyNamedImageFromOtherGroup(int n, NamedImageGroup otherGroup) {
 		// makes a new independent copy
 		BufferedImage img = otherGroup.getImage(n);
 		String imageName = otherGroup.getImageName(n);
 		BufferedImage copyOfImage = ImageProcessing.copyImage(img);
-		addImage(copyOfImage, imageName);
+		addNamedImage(copyOfImage, imageName);
 	}
 
 	
@@ -200,7 +200,7 @@ public class ImageItemGroup {
 
 	public BufferedImage getImage(String shortName) {
 		int n = 0;
-		for (ImageItem thisImage : imageList) {
+		for (NamedImage thisImage : imageList) {
 			if (thisImage.name.contentEquals(shortName))
 				return thisImage.image;
 			n++;
@@ -216,9 +216,9 @@ public class ImageItemGroup {
 		
 	}
 
-	public int getIndexOfImageShortName(String shortName) {
+	public int getIndexOfNamedImage(String shortName) {
 		int n = 0;
-		for (ImageItem thisImage : imageList) {
+		for (NamedImage thisImage : imageList) {
 			if (thisImage.name.contentEquals(shortName))
 				return n;
 			n++;
@@ -229,7 +229,7 @@ public class ImageItemGroup {
 	
 	public ArrayList<String> getImageNameList() {
 		ArrayList<String> imageNames = new ArrayList<String>();
-		for (ImageItem thisImage : imageList) {
+		for (NamedImage thisImage : imageList) {
 			imageNames.add(thisImage.name);
 		}
 		return imageNames;
@@ -259,7 +259,7 @@ public class ImageItemGroup {
 
 	private boolean checkUniqueName(String newName) {
 
-		for (ImageItem thisImage : imageList) {
+		for (NamedImage thisImage : imageList) {
 			if (thisImage.name.contentEquals(newName))
 			{
 				System.out.println("ImageGroup:checkUniqueName- attempting to add duplicate named image " + newName);

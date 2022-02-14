@@ -1,7 +1,6 @@
 package MOSpriteSeed;
 
 import MOMaths.PVector;
-import MOSceneData.Seed;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
 
@@ -10,17 +9,13 @@ public class SpriteSeed {
 	// Can be saved as seedbatches
 
 
-	// hello this is an update to check the repository
-	int testVariable = 52;
-
-
 	/////////////////////////////////////////////////////
 	// This part: Sprite "Font" data, all instances are set with  this data from a specific SpriteSeedMaker
 	//
 	//
 	// this enables the user to identify seeds from different batches (biomes) and treat them differently
 	public String seedFontName = "";
-	public String imageSampleGroupName;
+	public String spriteImageGroupName = "";
 	public float sizeInScene = 1;
 	public boolean useRelativeSizes = false;
 	public PVector origin = new PVector(0.5f, 0.5f);
@@ -31,15 +26,15 @@ public class SpriteSeed {
 	// the name of the image sample group to be used by
 	// the number of the item within that group
 	// The short name, which is derived usually from the file name (without extension)
-	public int imageSampleGroupItemNumber = 0;
-	public String imageSampleGroupItemShortName= "";
+	public int spriteImageGroupItemNumber = 0;
+	public String spriteImageGroupItemShortName= "";
 
 	/////////////////////////////////////////////////////
 	// Geometric transforms applied
 	// the doc point of the seed
 	// used to position (translate) the item
-	public float docPointX;
-	public float docPointY;
+	public float docPointX = 0;
+	public float docPointY = 0;
 
 	// scale
 	public float scale = 1;
@@ -56,26 +51,26 @@ public class SpriteSeed {
 	// the depth is set to the normalised depth in the 3D scene, 
 	// usually used to sort the render order of the seeds
 	// 
-	public float depth;
+	public float depth = 1;
 
 	// the id is a unique integer
 	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
 	// regardless of previous random events
-	public int id;
+	public int id = 0;
 	
 	
-	//public SpriteSeed() {}
+	public SpriteSeed() {}
 	
 	public SpriteSeed copy() {
 		SpriteSeed cpy = new SpriteSeed();
 		cpy.seedFontName = this.seedFontName;
-		cpy.imageSampleGroupName = this.imageSampleGroupName;
+		cpy.spriteImageGroupName = this.spriteImageGroupName;
 		cpy.sizeInScene = this.sizeInScene;
 		cpy.useRelativeSizes = this.useRelativeSizes;
 		cpy.origin = this.origin.copy();
 		
-		cpy.imageSampleGroupItemNumber = this.imageSampleGroupItemNumber;
-		cpy.imageSampleGroupItemShortName= this.imageSampleGroupItemShortName;
+		cpy.spriteImageGroupItemNumber = this.spriteImageGroupItemNumber;
+		cpy.spriteImageGroupItemShortName= this.spriteImageGroupItemShortName;
 		
 		cpy.docPointX = this.docPointX;
 		cpy.docPointY = this.docPointY;
@@ -126,14 +121,14 @@ public class SpriteSeed {
 
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.addKeyValue("SeedFontName", seedFontName);
-		kvlist.addKeyValue("ImageSampleGroupName", imageSampleGroupName);
+		kvlist.addKeyValue("spriteImageGroupName", spriteImageGroupName);
 		
 		kvlist.addKeyValue("SizeInScene",sizeInScene);
 		kvlist.addKeyValue("UseRelativeSizes",useRelativeSizes);
 		kvlist.addKeyValue("OriginX",origin.x);
 		kvlist.addKeyValue("OriginY",origin.y);
-		kvlist.addKeyValue("ImageSampleGroupItemNumber", imageSampleGroupItemNumber);
-		kvlist.addKeyValue("ImageSampleGroupItemShortName", imageSampleGroupItemShortName);
+		kvlist.addKeyValue("spriteImageGroupItemNumber", spriteImageGroupItemNumber);
+		kvlist.addKeyValue("spriteImageGroupItemShortName", spriteImageGroupItemShortName);
 		kvlist.addKeyValue("DocPointX", np.x);
 		kvlist.addKeyValue("DocPointY", np.y);
 		kvlist.addKeyValue("Scale", scale);
@@ -156,7 +151,7 @@ public class SpriteSeed {
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.ingestCSVLine(csvStr);
 		seedFontName = kvlist.getString("SeedFontName");
-		imageSampleGroupName = kvlist.getString("ImageSampleGroupName");
+		spriteImageGroupName = kvlist.getString("spriteImageGroupName");
 		
 		sizeInScene = kvlist.getFloat("SizeInScene");
 		useRelativeSizes = kvlist.getBoolean("UseRelativeSizes");
@@ -165,12 +160,12 @@ public class SpriteSeed {
 		
 		
 		
-		imageSampleGroupItemNumber = kvlist.getInt("ImageSampleGroupItemNumber");
-		//System.out.println("Loading seed: imageSampleGroupItemNumber " + imageSampleGroupItemNumber);
+		spriteImageGroupItemNumber = kvlist.getInt("spriteImageGroupItemNumber");
+		//System.out.println("Loading seed: spriteImageGroupItemNumber " + spriteImageGroupItemNumber);
 		
 		
 		
-		imageSampleGroupItemShortName = kvlist.getString("ImageSampleGroupItemShortName");
+		spriteImageGroupItemShortName = kvlist.getString("spriteImageGroupItemShortName");
 		float npX = kvlist.getFloat("DocPointX");
 		float npY = kvlist.getFloat("DocPointY");
 

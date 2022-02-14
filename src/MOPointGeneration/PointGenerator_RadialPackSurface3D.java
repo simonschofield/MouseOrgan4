@@ -1,7 +1,8 @@
-package MOSceneData;
+package MOPointGeneration;
 
 import java.util.ArrayList;
 
+import MOImage.SceneData3D;
 import MOMaths.AABox3D;
 import MOMaths.PVector;
 

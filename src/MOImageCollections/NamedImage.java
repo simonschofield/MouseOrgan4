@@ -4,7 +4,7 @@ import java.awt.image.BufferedImage;
 
 import MOMaths.PVector;
 
-class ImageItem{
+class NamedImage{
 	BufferedImage image;
 	String name = "";
 }

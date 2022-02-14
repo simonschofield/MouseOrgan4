@@ -3,18 +3,19 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import MOApplication.Surface;
-import MOCompositing.ImageSprite;
+
 import MOCompositing.RenderTarget;
+import MOCompositing.Sprite;
 import MOImage.ConvolutionFilter;
 import MOImage.ImageProcessing;
-import MOImageCollections.ImageSampleGroupManager;
+import MOImage.SceneData3D;
+
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
-import MOSceneData.SceneData3D;
 import MOSimpleUI.Slider;
 import MOSimpleUI.TextInputBox;
 //import MOSimpleUI.Slider;
@@ -36,13 +37,13 @@ public class Scene3DHelper {
 			makeRenderImageMenu();
 		}
 		
-		static float getLerpDistanceEffect(ImageSprite sprite, float distMinEffect, float distMaxEffect) {
+		static float getLerpDistanceEffect(Sprite sprite, float distMinEffect, float distMaxEffect) {
 			float dist = sceneData3D.getDistance(sprite.getDocPoint());
 			float val = MOMaths.norm(dist, distMinEffect, distMaxEffect);
 			return MOMaths.constrain(val, 0, 1);
 		}
 		
-		static float getRampedDistanceEffect(ImageSprite sprite, float distMinEffectNear, float distMaxEffect, float distMinEffectFar) {
+		static float getRampedDistanceEffect(Sprite sprite, float distMinEffectNear, float distMaxEffect, float distMinEffectFar) {
 			float dist = sceneData3D.getDistance(sprite.getDocPoint());
 			if(dist < distMaxEffect) {
 				return getLerpDistanceEffect( sprite,  distMinEffectNear,  distMaxEffect);
@@ -53,7 +54,7 @@ public class Scene3DHelper {
 		}
 		
 		
-		public static float addWave(ImageSprite sprite, String waveImageName, float amt, boolean flipInDirection) {
+		public static float addWave(Sprite sprite, String waveImageName, float amt, boolean flipInDirection) {
 			
 			ConvolutionFilter cf = new ConvolutionFilter();
 			BufferedImage gritty = sceneData3D.getRenderImage(waveImageName);
@@ -70,7 +71,7 @@ public class Scene3DHelper {
 			return 0;
 		}
 		
-		static float addWave(ImageSprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise) {
+		static float addWave(Sprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise) {
 			sceneData3D.setCurrentRenderImage(waveImageName);
 			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
 			
@@ -87,7 +88,7 @@ public class Scene3DHelper {
 		}
 		
 		////
-		static float addLighting(ImageSprite sprite, String lightingImage, float dark, float bright, float noise) {
+		static float addLighting(Sprite sprite, String lightingImage, float dark, float bright, float noise) {
 			sceneData3D.setCurrentRenderImage(lightingImage);
 			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
 			

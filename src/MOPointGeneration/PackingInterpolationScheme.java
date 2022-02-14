@@ -1,4 +1,4 @@
-package MOSceneData;
+package MOPointGeneration;
 
 import MOMaths.MOMaths;
 

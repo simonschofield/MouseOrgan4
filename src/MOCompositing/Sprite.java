@@ -1,103 +1,73 @@
 package MOCompositing;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 import MOImage.BendImage;
 import MOImage.ImageProcessing;
-//import GlobalObjects;
-//import MainDocumentRenderTarget;
+import MOImage.SceneData3D;
+import MOImageCollections.SpriteImageGroup;
+import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.Line2;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
-import MOSceneData.SceneData3D;
+import MOSpriteSeed.SpriteSeed;
 import MOUtils.GlobalSettings;
 
-//////////////////////////////////////////////////////////////////////
-// 
-// ImageSprite combines with a BufferedImage
-// and other data (origin (pivot point), docPoint (also in seed), sizeInScene
-// ImageQuad, it's own random stream
-//
-// Mouse organ only really considers one imageSprite at a time, after most decisions
-// have been made about what goes where (e.g. using seeds)
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-// coordinate system nomenclature
-// SpriteNormalisedSpace - where the point within the sprite is expressed as a normalised x,y coordinate, both in the range 0..1
-// SpriteBufferSpace - where the point in the sprite is expressed as the pixel location in the sprite's image buffer coordinate, in range x: 0..getBufferWidth()-1, y: 0..getBufferHeight()-1
-// origin - stored natively in SpriteNormalisedSpace coordinates, representing the pivot/paste point of the sprite
-// docPoint - the location of the sprite's origin in the main render-target's document space
-
-public class ImageSprite{
+public class Sprite {
+	SpriteSeed data;
 	
-	
-	// critical (always needed) information
-	public PVector docPoint = PVector.ZERO();
-	
-	private BufferedImage image;
-	
-	PVector origin = new PVector(0.5f,0.5f);
-
-	public float sizeInScene = 1; // 
-	
-	// secondary (sometimes needed) information
-	public String imageSampleGroupName = "";
-	public String shortImageFileName = "";
-	String seedBatchName = "";
-	public int id = 0;
-	
-		
-		
 	// for internal workings
-	public ImageQuad imageQuad;
-	
-	//private int bufferWidth; 
-	//private int bufferHeight;
-	private float aspect;
-	
+	public SpriteImageQuad imageQuad;
+	private BufferedImage image;
+	private float aspect;	
 	private QRandomStream qRandomStream;
-	
+		
 	public float alpha = 1;
 	
-	public ImageSprite(){
-		
-		
+	public Sprite(BufferedImage img) {
+		data = new SpriteSeed();
+		setImage(img);
 	}
 	
-	
-	public ImageSprite(BufferedImage img, PVector orig, float sizeInScn, int id ){
-		img.setAccelerationPriority(1);
-		setImage(img); 
+	public Sprite(SpriteImageGroupManager spriteImageGroupManager, SpriteSeed sseed ){
+		data = sseed.copy();
 		
-		this.sizeInScene = sizeInScn;
-		this.origin = orig;
-		//System.out.println("ImageSprite::Get sprite origin " + this.origin.toStr());
-	    imageQuad = new ImageQuad(this);
-	    setID_RandomSeed(id);
+		//System.out.println(sseed.getAsCSVStr());
+		//System.out.println("Sprite:: spriteImageGroupName" + data.spriteImageGroupName +  "  number " +  data.spriteImageGroupItemNumber );
+		SpriteImageGroup sig = spriteImageGroupManager.getSpriteImageGroup(data.spriteImageGroupName);
+		
+		//System.out.println("Sprite constructor spriteImageGroupName " + data.spriteImageGroupName + " spriteImageGroupItemNumber " + data.spriteImageGroupItemNumber + " total num = " + sig.getNumImages());
+		BufferedImage img = sig.getImage(data.spriteImageGroupItemNumber);
+		
+		if(img==null) System.out.println("Sprite constructor NULL IMAGE");
+		
+		
+		setImage(img); 
+
+		//System.out.println("ImageSprite::Get sprite origin " + data.origin.toStr());
+	    setRandomSeed(data.id);
 	}
 	
 	public void initQuad() {
-		imageQuad = new ImageQuad(this);
+		
+		imageQuad = new SpriteImageQuad(this);
 	}
 	
-	public void setID_RandomSeed(int rseed) {
-		
+	public void setRandomSeed(int rseed) {
 		// a sprite's random stream is set by this
 		// therefore guaranteeing reproducible effects to this sprite.
 		// When is sprite created without a seed, the sprite batch manager
 		// generates a sprite using a unique ID. 
-		this.id = rseed;
 		qRandomStream = new QRandomStream(rseed);
 	}
 	
 	String toStr() {
 		//return "ImageSprite seed:" + seed.toStr() + " own doc pt:" + docPoint + " Image:" + image;
-		return "ImageSprite doc pt:" + docPoint + " Image:" + getImageName();
+		//return "ImageSprite doc pt:" + docPoint + " Image:" + getImageName();
+		return "";
 	}
 	
 	public BufferedImage getImage() {
@@ -106,9 +76,10 @@ public class ImageSprite{
 	
 	
 	public void setImage(BufferedImage img) {
+		img.setAccelerationPriority(1);
 		if(this.image == null) {
 			this.image = img;
-			imageQuad = new ImageQuad(this);
+			initQuad();
 		} else {
 			this.image = img;
 		}
@@ -127,31 +98,28 @@ public class ImageSprite{
 	}
 	
 	public PVector getDocPoint() {
-		return docPoint.copy();
+		return data.getDocPoint();
 	}
 	
 	public void setDocPoint(PVector p) {
-		docPoint = p.copy();
+		data.setDocPoint(p);
 	}
 	
 	void setOrigin(PVector p) {
-		origin = p.copy();
+		data.origin = p.copy();
 	}
 	
 	public PVector getOrigin() {
-		return origin.copy();
+		return data.origin.copy();
 	}
 	
-	boolean imageSampleGroupEquals(String s) {
-		return imageSampleGroupName.contentEquals(s);
+	boolean spriteImageGroupEquals(String s) {
+		return data.spriteImageGroupName.contentEquals(s);
 	}
 	
-	public boolean seedBatchEquals(String s) {
-		return seedBatchName.contentEquals(s);
+	public boolean seedFontEquals(String s) {
+		return data.seedFontName.contentEquals(s);
 	}
-	
-	
-	
 	
 	public QRandomStream getRandomStream() {
 		return qRandomStream;
@@ -219,7 +187,7 @@ public class ImageSprite{
 	// needed by the RenderTarget to paste
 	PVector getOriginInSpriteBufferSpace() {
 			
-		return new PVector( (origin.x * getImageWidth()), (origin.y * getImageHeight()) );
+		return new PVector( (data.origin.x * getImageWidth()), (data.origin.y * getImageHeight()) );
 	}
 		
 	
@@ -227,8 +195,8 @@ public class ImageSprite{
 	PVector getSpriteOriginOffsetBufferSpace() {
 		// this is the amount you add in pixels to shift the sprite according to its normalised origin
 		// so an origin of (1,1) (bottom right hand corner) would result in a subtraction of the whole width and height of sprite pos.
-		int offsetX = (int) - ( origin.x * getImageWidth() );
-		int offsetY = (int) - ( origin.y * getImageHeight() );
+		int offsetX = (int) - ( data.origin.x * getImageWidth() );
+		int offsetY = (int) - ( data.origin.y * getImageHeight() );
 		
 		return new PVector(offsetX, offsetY);
 	}
@@ -268,12 +236,12 @@ public class ImageSprite{
 	}
 	
 	String getImageName() {
-		return shortImageFileName;
+		return data.spriteImageGroupItemShortName;
 	}
 	
 	
 	boolean imageNameContains(String s) {
-		return shortImageFileName.contains(s);
+		return data.spriteImageGroupItemShortName.contains(s);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -310,16 +278,16 @@ public class ImageSprite{
 	
 		// the rest is about rotating the origin point.
 		// Rotate rotation point around (0,0) in image-pixel space
-		float rx = oldBufferWidth * (origin.x - 0.5f);
-		float ry = oldBufferHeight * (origin.y - 0.5f);
+		float rx = oldBufferWidth * (data.origin.x - 0.5f);
+		float ry = oldBufferHeight * (data.origin.y - 0.5f);
 
 		float newX = (float) (rx * Math.cos(toRad) - ry * Math.sin(toRad));
 		float newY = (float) (ry * Math.cos(toRad) + rx * Math.sin(toRad));
 
 		
 
-		origin.x = (newX / getImageWidth()) + 0.5f;
-		origin.y = (newY / getImageHeight()) + 0.5f;
+		data.origin.x = (newX / getImageWidth()) + 0.5f;
+		data.origin.y = (newY / getImageHeight()) + 0.5f;
 		
 		imageQuad.applyRotation(degrees, oldCentre);
 		
@@ -330,11 +298,11 @@ public class ImageSprite{
 	public void mirror(boolean inX) {
 		if (inX) {
 			setImage(ImageProcessing.mirrorImage(getImage(), true, false));
-			origin.x = 1.0f - origin.x;
+			data.origin.x = 1.0f - data.origin.x;
 		} else {
 			// in Y
 			setImage(ImageProcessing.mirrorImage(getImage(), false, true));
-			origin.y = 1.0f - origin.y;
+			data.origin.y = 1.0f - data.origin.y;
 		}
 		imageQuad.applyMirror(inX);
 	}
@@ -351,11 +319,11 @@ public class ImageSprite{
 		float shift = ((getImageWidth() - oldWidth) * MOMaths.getUnitSign(bendAmt));
 		imageQuad.applyHorizontalTopShear(Math.abs(shift));
 		
-		// have to recalculate the origin.x to compensate for the image width getting larger
-		origin.x = origin.x * (oldWidth/getImageWidth());
+		// have to recalculate the origin.x to compensate for the image width getting wider
+		data.origin.x = data.origin.x * (oldWidth/getImageWidth());
 		if(bendAmt < 0) {
 			// flip the origin
-			origin.x = 1 - origin.x;
+			data.origin.x = 1 - data.origin.x;
 			imageQuad.applyMirror(true);
 		}
 		
@@ -374,7 +342,7 @@ public class ImageSprite{
 	void scaleToSizeInScene(float scaleModifier) {
 		// The height of the sample image is set using pre-set sizeInScene member variable as a documentSpace measurement.
 		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
-		float scale = scaleModifier * sizeInScene;
+		float scale = scaleModifier * data.sizeInScene;
 		//System.out.println("scaleToSizeInScene  scaleModifier " + scaleModifier + "  sizeInScene " + sizeInScene + " result " + scale);
 		scaleToSizeInDocSpace(null, scale);
 	}
@@ -397,7 +365,7 @@ public class ImageSprite{
 			
 			if (scaleX > 2) {
 				System.out.println(
-						imageSampleGroupName + "/" + shortImageFileName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
+						data.spriteImageGroupName + "/" + data.spriteImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
 								+ getImageWidth() + " to be scale to " + widthInPixels + " scale " + scaleX);
 			}
 		}
@@ -409,7 +377,7 @@ public class ImageSprite{
 
 			if (scaleY > 2) {
 				System.out.println(
-						imageSampleGroupName + "/" + shortImageFileName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
+						data.spriteImageGroupName + "/" + data.spriteImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
 								+ getImageHeight() + " to be scale to " + heightInPixels + " scale " + scaleY);
 			}
 			
@@ -451,7 +419,7 @@ public class ImageSprite{
 	// The other end gets mapped to line.p2  . The sprite is scaled so that it is as high as the line p1->p2
 	// The sprite is rotated into the same direction as the line p1-p2
 	void mapToLine2(Line2 line, float overlap) {
-		origin = new PVector(0.5f, 1.0f);
+		data.origin = new PVector(0.5f, 1.0f);
 		float r = line.getRotation();
 		float len = line.getLength()*overlap;
 		//System.out.println( "BEFORE SCALE sprite width " + this.getImageBufferWidth() + " sprite height " + this.getImageBufferHeight() + " aspect = " + getAspect());
@@ -477,7 +445,7 @@ public class ImageSprite{
 		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
 		float scale = (heightInPixels / getImageHeight()) * scaleModifier;
 		if (scale > 1) {
-			System.out.println(imageSampleGroupName + " overscaled, original size in pixels " + getImageHeight()
+			System.out.println(data.spriteImageGroupItemShortName + " overscaled, original size in pixels " + getImageHeight()
 			+ " to be scale to " + heightInPixels + " scale " + scale);
 		}
 
@@ -487,8 +455,8 @@ public class ImageSprite{
 	}
 
 	float getHeightInRenderTargetPixels3D(SceneData3D sceneData) {
-		float scale3D = sceneData.get3DScale(docPoint);
-		float heightDocSpace = sizeInScene * scale3D;
+		float scale3D = sceneData.get3DScale(data.getDocPoint());
+		float heightDocSpace = data.sizeInScene * scale3D;
 		
 				//System.out.println("getHeightInRenderTargetPixels3D: scale3D " + scale3D );
 		float docSizeInPixels =  docSizeToRenderTargetPixels2D(heightDocSpace);
@@ -554,7 +522,4 @@ public class ImageSprite{
 		
 	}
 	
-	
 }
-
-

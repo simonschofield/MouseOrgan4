@@ -1,43 +1,39 @@
 package MOImageCollections;
+
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.Serializable;
+
 import java.util.ArrayList;
 
-import MOCompositing.ImageSprite;
-//import MOCompositing.MainDocumentRenderTarget;
 import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
 import MOMaths.PVector;
 import MOMaths.Rect;
-import MOSceneData.Seed;
-import MOUtils.MOStringUtils;
-//import MOUtils.GlobalSettings;
+
 
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-// ContentGroupManager contains many ContentItemGroup, and provides the main user-interface to them
-// via the ContentCollection's name. This same name is used to reference iterms within that collection
-// in other pars of the system
+// SpriteImageGroupManager contains many SpriteImageGroups, and provides the main user-interface to them
+// via the SpriteImageGroup's name. 
 //
-public class ImageSampleGroupManager {
+//
+public class SpriteImageGroupManager {
 
-	ArrayList<ImageSampleGroup> imageSampleGroups = new ArrayList<ImageSampleGroup>();
+	ArrayList<SpriteImageGroup> spriteImageGroups = new ArrayList<SpriteImageGroup>();
 	//Surface parentSurface;
 
-	public ImageSampleGroupManager() {
-		//parentSurface = GlobalObjects.theSurface;
+	public SpriteImageGroupManager() {
 		
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
 	//
 	//
-	public ImageSampleGroup getImageSampleGroup(String name) {
-		for (ImageSampleGroup cc : imageSampleGroups) {
+	public SpriteImageGroup getSpriteImageGroup(String name) {
+		for (SpriteImageGroup cc : spriteImageGroups) {
 			if (cc.isNamed(name))
 				return cc;
 		}
@@ -49,27 +45,18 @@ public class ImageSampleGroupManager {
 	
 
 	int getNumItems(String name) {
-		ImageSampleGroup cc = getImageSampleGroup(name);
+		SpriteImageGroup cc = getSpriteImageGroup(name);
 		if (cc == null)
 			return 0;
 		return cc.getNumImages();
 	}
 
-	// generates an ImageSprite from a seed
-	// the seed defines the ConentGroup and item within
+	
 	/*
-	ImageSprite getSprite(Seed seed) {
+	 * these are now moved to the SpriteHelper in MOApplications group
+	public SpriteImageGroup getSprite(String contentGroupName, int num) {
 		// got to get the correct contentItemGroup first
-		NewImageSampleGroup dig = getImageSampleGroup(seed.imageSampleGroupName);
-
-		if (dig == null)
-			return null;
-		return dig.getSprite(seed);
-	}*/
-
-	public ImageSprite getSprite(String contentGroupName, int num) {
-		// got to get the correct contentItemGroup first
-		ImageSampleGroup dig = getImageSampleGroup(contentGroupName);
+		SpriteImageGroup dig = getSpriteImageGroup(contentGroupName);
 
 		if (dig == null)
 			return null;
@@ -78,14 +65,14 @@ public class ImageSampleGroupManager {
 	
 	public ImageSprite getSprite(Seed seed) {
 		
-		ImageSampleGroup dig = getImageSampleGroup(seed.imageSampleGroupName);
+		SpriteImageGroup dig = getSpriteImageGroup(seed.SpriteImageGroupName);
 		if (dig == null)
 			return null;
-		// creating a sprite from a seed, the ImageSampleGroupManager has already determined
-		// to pass the seed to this ImageSampleGroup
+		// creating a sprite from a seed, the SpriteImageGroupManager has already determined
+		// to pass the seed to this SpriteImageGroup
 		//System.out.println("getSprite:: seed" + seed.getAsCSVStr());
 		//System.out.println("there are " + this.getNumItems() + " items available");
-		ImageSprite sprite = getSprite(dig, seed.imageSampleGroupItemNumber);
+		ImageSprite sprite = getSprite(dig, seed.SpriteImageGroupItemNumber);
 		sprite.setID_RandomSeed(seed.id);
 		sprite.setDocPoint(seed.getDocPoint());
 		//sprite.depthFromSeed = seed.depth;
@@ -94,7 +81,7 @@ public class ImageSampleGroupManager {
 	
 	
 
-	ImageSprite getSprite(ImageSampleGroup thisSampleGroup, int num) {
+	ImageSprite getSprite(SpriteImageGroup thisSampleGroup, int num) {
 		// creating a sprite from a simple item number within this group
 		// sets up almost everything except the document point
 		if (thisSampleGroup.getNumImages() == 0) {
@@ -114,9 +101,10 @@ public class ImageSampleGroupManager {
 		//ImageSprite sprite = new ImageSprite(img, thisSampleGroup.getGroupOrigin().copy(), sizeInScene, uniqueID.next());
 		ImageSprite sprite = new ImageSprite(img, thisSampleGroup.getGroupOrigin().copy(), sizeInScene, 1);
 		sprite.shortImageFileName = thisSampleGroup.getImageName(num);
-		sprite.imageSampleGroupName = thisSampleGroup.getGroupName();
+		sprite.SpriteImageGroupName = thisSampleGroup.getGroupName();
 		return sprite;
 	}
+	*/
 	
 
 	/**
@@ -142,16 +130,10 @@ public class ImageSampleGroupManager {
 	 *                             supplementary to the session scale.
 	 * @param cropRect,            apply a uniform crop to all items. The rect is in
 	 *                             normalised coords
-	 * @param origin,              the origin of each sprite generated from this
-	 *                             collection
-	 * @param sizeInScene,         the size in scene, if using 3d in scene-units, 
-	 *                             if using 2d, as a document-space measurement
-	 * @param useInividualSizes,   when set to true, takes the individual pixel height of the source image into consideration  
-	 * 							   relative to the tallest asset which is calculated as having the size in scene  ==  sizeInScene                        
+	                     
 	 */
-	void loadImageSampleGroup(String contentGroupName, String targetDirectory, String fileNameMustEndWith,
-			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect, PVector origin,
-			Float sizeInScene, boolean useInividualSizes) {
+	void loadSpriteImageGroup(String spriteImageGroupName, String targetDirectory, String fileNameMustEndWith,
+			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect) {
 
 		
 		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(targetDirectory);
@@ -159,89 +141,73 @@ public class ImageSampleGroupManager {
     	dfns.setFileNameContains(fileNameMustContain);
     	dfns.setFileListRange(from, to);
     	
-    	ImageSampleGroup newImageSampleGroup  = new ImageSampleGroup(contentGroupName);
+    	SpriteImageGroup newSpriteImageGroup  = new SpriteImageGroup(spriteImageGroupName);
 		
-		newImageSampleGroup.setDirectoryFileNameScanner(dfns);
-		newImageSampleGroup.setPreScale(preScale);
-		newImageSampleGroup.setCrop(cropRect);
-		newImageSampleGroup.setGroupOrigins(origin);
-		newImageSampleGroup.setGroupSizeInScene(sizeInScene);
-		newImageSampleGroup.setUseIndividuaImageSize(useInividualSizes);
-		newImageSampleGroup.loadSamples();
-		imageSampleGroups.add(newImageSampleGroup);
+		newSpriteImageGroup.setDirectoryFileNameScanner(dfns);
+		newSpriteImageGroup.setPreScale(preScale);
+		newSpriteImageGroup.setCrop(cropRect);
+		//newSpriteImageGroup.setGroupOrigins(origin);
+		//newSpriteImageGroup.setGroupSizeInScene(sizeInScene);
+		//newSpriteImageGroup.setUseIndividuaImageSize(useInividualSizes);
+		newSpriteImageGroup.loadSamples();
+		spriteImageGroups.add(newSpriteImageGroup);
 
 	}
 
 	/////////////////////////////////////////////////////////////////////////////
 	// this is the short-hand method of the above
-	public void loadImageSampleGroup(String name, String targetDirectory, Integer from, Integer to, PVector origin,
-			Float sizeInScene) {
+	public void loadSpriteImageGroup(String name, String targetDirectory, Integer from, Integer to) {
 
-		loadImageSampleGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect(), origin, sizeInScene, false);
+		loadSpriteImageGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect());
 
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////
 	// creates a completely independent copy of an already loaded sample group, 
-	// the new group has a different name, with the opportunity of making the new group a different size and origin
+	// the new group has a different name,so users can rescale or colour treat this group separately
 	///////////////////////////////////////////////////////////////////////////// first
-    public void cloneImageSampleGroup(String existingGroupname, String newGroupName, PVector orig, Float sizeInScn) {
-    	ImageSampleGroup cc = getImageSampleGroup(existingGroupname);
+    public void cloneSpriteImageGroup(String existingGroupname, String newGroupName) {
+    	SpriteImageGroup cc = getSpriteImageGroup(existingGroupname);
     	if(cc==null) {
-    		
-    		
-    		
+
     	}
-    	ImageSampleGroup newGroup = cc.copy(newGroupName);
-    	
-    	
-    	if(orig!=null) newGroup.setGroupOrigins(orig);
-    	if(sizeInScn!=null) newGroup.setGroupSizeInScene(sizeInScn);
-    	
+    	SpriteImageGroup newGroup = cc.copy(newGroupName);
+
     	System.out.println("Cloned " + existingGroupname + " with " + cc.getNumImages() + " into " + newGroupName + " with " + newGroup.getNumImages());
-    	imageSampleGroups.add(newGroup);
+    	spriteImageGroups.add(newGroup);
     }
+    
+    
 	/////////////////////////////////////////////////////////////////////////////
 	// these are the long-hand method of establishing an image-collection
 	// If you are doing it long hand - then the method below needs to be called
 	///////////////////////////////////////////////////////////////////////////// first
 
-    ImageSampleGroup addImageSampleGroupNameAndPath(String name, String targetDirectory, String filesStrEndWith, String fileStrContains) {
+    SpriteImageGroup addSpriteImageGroupNameAndPath(String name, String targetDirectory, String filesStrEndWith, String fileStrContains) {
     	DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(targetDirectory);
     	dfns.setFileNameContains(fileStrContains);
     	
     	
-    	ImageSampleGroup newImageSampleGroup  = new ImageSampleGroup(name);
+    	SpriteImageGroup newSpriteImageGroup  = new SpriteImageGroup(name);
 		
-		newImageSampleGroup.setDirectoryFileNameScanner(dfns);
-		newImageSampleGroup.loadSamples();
+		newSpriteImageGroup.setDirectoryFileNameScanner(dfns);
+		newSpriteImageGroup.loadSamples();
 		
-		imageSampleGroups.add(newImageSampleGroup);
-		return newImageSampleGroup;
+		spriteImageGroups.add(newSpriteImageGroup);
+		return newSpriteImageGroup;
 	}
 
-	void setImageSampleGroupOrigin(String name, PVector origin) {
-		ImageSampleGroup cc = getImageSampleGroup(name);
-		if (cc == null)
-			return;
-		cc.setGroupOrigins(origin);
-	}
+	
 
-	void setImageSampleGroupSizeInScene(String name, float size, boolean useIndividualSizes) {
-		ImageSampleGroup ic = getImageSampleGroup(name);
-		if (ic == null)
-			return;
-		ic.setGroupSizeInScene(size);
-		ic.setUseIndividuaImageSize(useIndividualSizes);
-	}
+	
 
 	/////////////////////////////////////////////////////////////////////////////
 	// Image Processing Effects applied to the entire content group
 	//
 	///////////////////////////////////////////////////////////////////////////// first
 
-	public void scaleImageSampleGroup(String name, float inx, float iny) {
-		ImageSampleGroup ic = getImageSampleGroup(name);
+	public void scaleSpriteImageGroup(String name, float inx, float iny) {
+		SpriteImageGroup ic = getSpriteImageGroup(name);
 		if (ic == null)
 			return;
 		ic.scaleAll(inx, iny);
@@ -259,8 +225,8 @@ public class ImageSampleGroupManager {
 	 * @param p3        third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
-	public void colorTransformImageSampleGroup(String groupname, int function, float p1, float p2, float p3) {
-		ImageSampleGroup ic = getImageSampleGroup(groupname);
+	public void colorTransformSpriteImageGroup(String groupname, int function, float p1, float p2, float p3) {
+		SpriteImageGroup ic = getSpriteImageGroup(groupname);
 		if (ic == null)
 			return;
 		ic.colorTransformAll(function, p1, p2, p3);
@@ -278,7 +244,7 @@ public class ImageSampleGroupManager {
 	}
 
 	void paradeContent(String groupName, int effect, float p1, float p2, float p3, RenderTarget rt) {
-		ImageSampleGroup sampleGroup = this.getImageSampleGroup(groupName);
+		SpriteImageGroup sampleGroup = this.getSpriteImageGroup(groupName);
 		//Surface parentSurface = GlobalObjects.theSurface;
 
 		int numItems = sampleGroup.getNumImages();
@@ -345,7 +311,8 @@ public class ImageSampleGroupManager {
 	}
 
 
-}// end of class ImageSampleGroupManager
+}// end of class SpriteImageGroupManager
+
 
 
 

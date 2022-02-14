@@ -1,4 +1,4 @@
-package MOSceneData;
+package MOSpriteSeed;
 
 import java.io.FileWriter;
 import java.io.BufferedReader;
@@ -6,64 +6,63 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import MOImageCollections.ImageSampleDescription;
-import MOImageCollections.ImageSampleSelector;
+
 import MOMaths.PVector;
 import MOUtils.CollectionIterator;
 import MOUtils.MOStringUtils;
 
 
 ///////////////////////////////////////////////////////////////////////////
-// A seed batch is a collection of seeds.
+// A SpriteSeedBatch is an iterable collection of SpriteSeed.
 // When a helper produces seeds it is this form.
 // Used when iterating through seeds in the main loop
 // Can save/load to file
 // adds a "unique ID" - this is to seed events in the Sprite, so as to secure repeatability.
 
-public class SeedBatch extends CollectionIterator{
+public class SpriteSeedBatch extends CollectionIterator{
 	
 	
-	private ArrayList<Seed> seeds = new ArrayList<Seed>();
+	private ArrayList<SpriteSeed> seeds = new ArrayList<SpriteSeed>();
 	
 
-	public SeedBatch(){
+	public SpriteSeedBatch(){
 		
 	}
 	
 	
-	public SeedBatch copy() {
-		SeedBatch cpy = new SeedBatch();
-		cpy.seeds = (ArrayList<Seed>) this.seeds.clone();
+	public SpriteSeedBatch copy() {
+		SpriteSeedBatch cpy = new SpriteSeedBatch();
+		cpy.seeds = (ArrayList<SpriteSeed>) this.seeds.clone();
 		return cpy;
 	}
 	
-	public void addSeed(Seed s) {
+	public void addSpriteSeed(SpriteSeed s) {
 		seeds.add(s);
 	}
 
 
-	ArrayList<Seed> getSeeds(){
+	ArrayList<SpriteSeed> getSpriteSeeds(){
 		return seeds;
 	}
 	
 	
-	public void append(SeedBatch otherBatch) {
-		ArrayList<Seed> otherSeeds = otherBatch.getSeeds();
-		for(Seed s : otherSeeds) {
+	public void append(SpriteSeedBatch otherBatch) {
+		ArrayList<SpriteSeed> otherSeeds = otherBatch.getSpriteSeeds();
+		for(SpriteSeed s : otherSeeds) {
 			seeds.add(s);
 		}
 		
 	}
 	
 	public void depthSort() {
-		seeds.sort(Comparator.comparing(Seed::getDepth).reversed());
+		seeds.sort(Comparator.comparing(SpriteSeed::getDepth).reversed());
 	}
 	
 	
 
 	public ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
-		for(Seed s : seeds) {
+		for(SpriteSeed s : seeds) {
 			points.add(s.getDocPoint());
 		}
 		return points;
@@ -82,7 +81,7 @@ public class SeedBatch extends CollectionIterator{
 			csvWriter = new FileWriter(fileAndPath);
 
 
-			for(Seed s: seeds){
+			for(SpriteSeed s: seeds){
 				csvWriter.append(s.getAsCSVStr());
 			}
 
@@ -107,7 +106,7 @@ public class SeedBatch extends CollectionIterator{
 			while ((row = csvReader.readLine()) != null) {
 
 				// do something with the data
-				Seed s = new Seed();
+				SpriteSeed s = new SpriteSeed();
 				s.setWithCSVStr(row);
 				seeds.add(s);
 			}
@@ -136,8 +135,8 @@ public class SeedBatch extends CollectionIterator{
 	}
 
 
-	public Seed getNextSeed() {
-		return (Seed) getNextItem();
+	public SpriteSeed getNextSeed() {
+		return (SpriteSeed) getNextItem();
 	}
 
 }

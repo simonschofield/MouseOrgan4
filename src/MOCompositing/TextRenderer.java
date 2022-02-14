@@ -70,14 +70,16 @@ public class TextRenderer {
 	}
 	
 	
-	public ImageSprite getSprite(String text, float docSpaceFontHeight, Line2 line) {
-		BufferedImage img = this.drawText(text);
-		ImageSprite sprite = new ImageSprite();
-		
-		sprite.setImage(img);
 	
+	
+	
+	public Sprite getSprite(String text, float docSpaceFontHeight, Line2 line) {
+		BufferedImage img = this.drawText(text);
+		Sprite sprite = new Sprite(img);
+		
+		
 		sprite.rotate(-90);
-		sprite.origin = new PVector(0.5f,0.0f);
+		sprite.data.origin = new PVector(0.5f,0.0f);
 		
 		
 		sprite.scaleToSizeInDocSpace(docSpaceFontHeight, line.getLength());
@@ -200,7 +202,7 @@ public class TextRenderer {
 	
 	
 	
-	public ImageSprite renderTextInPolygon(WordBank wordBank,  Vertices2 polygonIn){
+	public Sprite renderTextInPolygon(WordBank wordBank,  Vertices2 polygonIn){
 
 		QRandomStream randomStream = new QRandomStream(1);
 		PVector topLeftDocSpace = polygonIn.getExtents().getTopLeft();
@@ -278,9 +280,10 @@ public class TextRenderer {
 	    }
 
 	    
-		ImageSprite sprite = new ImageSprite();
-		sprite.setImage(bufferedImage);
-		sprite.origin = new PVector(0.0f,0.0f);
+		//ImageSprite sprite = new ImageSprite();
+		//sprite.setImage(bufferedImage);
+	    Sprite sprite = new Sprite(bufferedImage);
+		sprite.data.origin = new PVector(0.0f,0.0f);
 		sprite.setDocPoint(topLeftDocSpace);
 		
 		return sprite;

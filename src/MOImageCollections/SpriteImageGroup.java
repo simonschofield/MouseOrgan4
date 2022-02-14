@@ -14,46 +14,30 @@ import MOUtils.MOStringUtils;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-//
-//
-//
-//
-//
-//
-//ImageSampleGroup
-//A list of content items held in memory as BufferedImages
-//They are pre-scaled to the session scale at load time, and then the scaled items cached for rapid reload next time.
-//They have a shared spriteOrigin
-//and a shared world3DHeight
+// SpriteImageGroup
+// Inherits from NamedImageGroup. 
+// Contains a list of NamedImages, but SpriteImages are scaled by the global SessionScale
+// the scaled items are cached for rapid reload next time.
+// The group is also named and accessible though the SpriteImageGroupManager
+// Intended for storing images ready to be used in Sprites. i.e. session-scaled alpha cut-out images
+// A SpriteSeed + A SpriteImage = Sprite
 
-public class ImageSampleGroup extends ImageItemGroup{
+
+public class SpriteImageGroup extends NamedImageGroup{
 	// this is the global session scale as set by the userSession
 	// it cannot be different between objects, so is a static
 	static float sessionScale = 1;
 	
 	private String groupName = "";
 	
-	// groupSizeInScene defines the vertical size in the scene of all items in the group
-	// If in 2D, then the unit is in documentSpace
-	// if in 3D, then the unit is in 3D space measurements
-	float groupSizeInScene = 1.0f;
-
-	// if this is false, all items have the same size in scene
-	// if this is set to true, then the size applies only to the largest vertically dimensioned item in the group;
-	// all the other items are scaled by their relative pixel size to this item.
-	boolean useIndividuaImageSizeInScene = false;
-	
-	
-	PVector groupImageOrigins = new PVector(0.5f, 0.5f);
-	
-	public ImageSampleGroup(String name) {
+	public SpriteImageGroup(String name) {
 		sessionScale = GlobalSettings.getSessionScale();
 		groupName = name;
 	}
 	
 	
-	public ImageSampleGroup copy(String copyName) {
-		ImageSampleGroup cpy = new ImageSampleGroup(copyName);
+	public SpriteImageGroup copy(String copyName) {
+		SpriteImageGroup cpy = new SpriteImageGroup(copyName);
 		
 		
 		cpy.widthExtrema = this.widthExtrema.copy();
@@ -63,10 +47,7 @@ public class ImageSampleGroup extends ImageItemGroup{
 		cpy.cropRect = this.cropRect.copy();
 		cpy.preScale = this.preScale;
 
-		cpy.groupSizeInScene = this.getGroupSizeInScene();
-		cpy.setGroupOrigins(this.groupImageOrigins);
-		cpy.useIndividuaImageSizeInScene = this.useIndividuaImageSizeInScene;
-		cpy.copyImagesFromOtherGroup(this);
+		cpy.copyNamedImagesFromOtherGroup(this);
 		
 		return cpy;
 	}
@@ -81,52 +62,14 @@ public class ImageSampleGroup extends ImageItemGroup{
 		return groupName;
 	}
 	
-	// This is a user-defined size that is used in both 2 and 3d situations.
-	// In 2d context the units are in document space
-	// in 3d context the units are in world space size
-	// It is not until you call sprite.scaleToSizeInScene(...) that the value is used to actually scale the sprite
-	public void setUseIndividuaImageSize(boolean useInividualHeights) {
-		useIndividuaImageSizeInScene = useInividualHeights;
-	}
-	
-	public void setGroupSizeInScene(float h) {
-		groupSizeInScene = h;
-	}
-
-	public float getGroupSizeInScene() {
-		return groupSizeInScene;
-
-	}
-	
-	public PVector getGroupOrigin() {
-		return groupImageOrigins;
-	}
-	
-	public float getItemSizeInScene(int num) {
-		// returns the size of the specific item in the scene
-		// if useIndividualItemSizeInScene == true, then the group size is scaled against the relative
-		// height of this item (i.e. item num) to the largest item in the group
-		// if useIndividualItemSizeInScene == false then all the items' sizes are the same i.e. groupSizeInScene
-		if (useIndividuaImageSizeInScene) {
-			int imgHght = getImage(num).getHeight();
-			float heightMaxItem = heightExtrema.getUpper();
-			return groupSizeInScene * (imgHght / heightMaxItem);
-		} else {
-			return groupSizeInScene;
-		}
-
-	}
 	
 	public float getRelativeSize(int num) {
+		// this is used by the sprite to establish a particular 
+		// image's relative height to the others in the group
 		int imgHght = getImage(num).getHeight();
 		float heightMaxItem = heightExtrema.getUpper();
 		return  imgHght / heightMaxItem;
 	}
-	
-	public void setGroupOrigins(PVector orig) {
-		groupImageOrigins = orig;
-	}
-
 	
 	
 	public void loadSamples() {
@@ -202,21 +145,21 @@ public class ImageSampleGroup extends ImageItemGroup{
 	//
 	public void scaleAll(float x, float y) {
 		
-		for (ImageItem imageSample: imageList) {
+		for (NamedImage imageSample: imageList) {
 			imageSample.image = ImageProcessing.scaleImage(imageSample.image, x, y);
 		}
 	}
 
 	public void rotateAll(float rot) {
 		
-		for (ImageItem imageSample: imageList) {
+		for (NamedImage imageSample: imageList) {
 			imageSample.image = ImageProcessing.rotateImage(imageSample.image, rot);
 		}
 	}
 
 	public void resizeToAll(int x, int y) {
 		
-		for (ImageItem imageSample: imageList) {
+		for (NamedImage imageSample: imageList) {
 			imageSample.image = ImageProcessing.resizeTo(imageSample.image, x, y);
 		}
 	}
@@ -224,7 +167,7 @@ public class ImageSampleGroup extends ImageItemGroup{
 	public void cropAll(Rect cropRect) {
 		if (cropRect.equals(new Rect())) return;
 		
-		for (ImageItem imageSample: imageList) {
+		for (NamedImage imageSample: imageList) {
 			imageSample.image = ImageProcessing.cropImageWithNormalisedRect(imageSample.image, cropRect);
 		}
 	}
@@ -232,7 +175,7 @@ public class ImageSampleGroup extends ImageItemGroup{
 	public void addBoarderProportionAll(float left, float top, float right, float bottom) {
 		//calculates the new additions as a proportion of the existing width or height
 
-		for (ImageItem imageSample: imageList) {
+		for (NamedImage imageSample: imageList) {
 			int w = imageSample.image.getWidth();
 			int h = imageSample.image.getHeight();
 			int leftAddition = (int) (w * left);
@@ -247,7 +190,7 @@ public class ImageSampleGroup extends ImageItemGroup{
 
 	public void colorTransformAll(int function, float p1, float p2, float p3) {
 		
-		for (ImageItem imageSample: imageList) {
+		for (NamedImage imageSample: imageList) {
 			imageSample.image = ImageProcessing.colorTransform(imageSample.image, function, p1, p2, p3);
 		}
 	}
@@ -274,7 +217,7 @@ public class ImageSampleGroup extends ImageItemGroup{
 		img = applyPreScaleAndCrop(img);
 		
 		// NOW add the image to the list
-		addImage( img, thisShortFileName);
+		addNamedImage( img, thisShortFileName);
 	}
 	
 	
@@ -285,7 +228,7 @@ public class ImageSampleGroup extends ImageItemGroup{
 	private void assertImageTYPE_INT_ARGB() {
 		// all image content items should be of type INT_ARGB for all the
 		// operations to work OK. This makes sure they are.		
-		for (ImageItem imageSample : imageList) {
+		for (NamedImage imageSample : imageList) {
 			if (imageSample.image.getType() != BufferedImage.TYPE_INT_ARGB) {
 				imageSample.image = ImageProcessing.convertColorModel(imageSample.image, BufferedImage.TYPE_INT_ARGB);
 			}
@@ -336,94 +279,3 @@ public class ImageSampleGroup extends ImageItemGroup{
 
 
 
-
-
-/*
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Values set by the user in the group to establish size and origin of image when used in a sprite context
-
-	
-
-
-
-	ImageSprite getSprite(Seed seed) {
-	// creating a sprite from a seed, the ImageSampleGroupManager has already determined
-	// to pass the seed to this ImageSampleGroup
-	//System.out.println("getSprite:: seed" + seed.getAsCSVStr());
-	//System.out.println("there are " + this.getNumItems() + " items available");
-		ImageSprite sprite = getSprite(seed.imageSampleGroupItemNumber);
-		sprite.setID_RandomSeed(seed.id);
-		sprite.setDocPoint(seed.getDocPoint());
-		//sprite.depthFromSeed = seed.depth;
-		return sprite;
-	}
-
-	ImageSprite getSprite(int num) {
-		// creating a sprite from a simple item number within this group
-		// sets up almost everything except the document point
-		if (getNumItems() == 0) {
-			System.out.println("getSprite:: ImageGroup has no images ");
-			return null;
-		}
-		if (num >= getNumItems() || num < 0) {
-			System.out.println("getSprite:: index out of range - setting to uppermost available image");
-			num = getNumItems() - 1;
-		}
-
-		float sizeInScene = getItemSizeInScene(num);
-
-		BufferedImage img = getImage(num);
-
-		ImageSprite sprite = new ImageSprite(img, spriteOrigin.copy(), sizeInScene, uniqueID.next());
-		sprite.shortImageFileName = getShortNameOfItem(num);
-		sprite.imageSampleGroupName = this.groupName;
-		return sprite;
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// allows the user to get a random sprite or image from the group
-	// and apply a filter to that name; the name returned must contain the filter expression
-	// if set to null or "", allows all image to be returned
-	// Needs a reference to a rand number generator to work.
-	ImageSprite getRandomSprite(QRandomStream ranStream, String nameContainsFilter) {
-		String foundName = getRandomImageName(ranStream, nameContainsFilter);
-		int imgNum = getNumOfImageShortName(foundName);
-		return getSprite(imgNum);
-	}
-
-	BufferedImage getRandomImage(QRandomStream ranStream, String nameContainsFilter) {
-
-		String foundName = getRandomImageName(ranStream, nameContainsFilter);
-		return getImage(foundName);
-	}
-
-	private String getRandomImageName(QRandomStream ranStream, String nameContainsFilter) {
-
-		if (nameContainsFilter == null)
-			nameContainsFilter = "";
-		if (nameContainsFilter == "") {
-			int rnum = ranStream.randRangeInt(0, this.getNumItems() - 1);
-			return getShortNameOfItem(rnum);
-		}
-
-		ArrayList<String> filteredNamesFound = new ArrayList<String>();
-		for (String thisName : directoryContentShortNameList) {
-			if (thisName.contains(nameContainsFilter))
-				filteredNamesFound.add(thisName);
-		}
-
-		int rnum = ranStream.randRangeInt(0, filteredNamesFound.size() - 1);
-		String foundName = filteredNamesFound.get(rnum);
-		return foundName;
-	}
-
-	
-}
-
-*/

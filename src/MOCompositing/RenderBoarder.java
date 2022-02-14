@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.ImageSampleGroup;
+import MOImageCollections.SpriteImageGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
@@ -52,7 +52,7 @@ public class RenderBoarder {
 	int rightEdgeAction = CROP_ACTION_NONE;
 	int bottomEdgeAction = CROP_ACTION_NONE;
 
-	ImageSampleGroup bespokeCropImages;
+	SpriteImageGroup bespokeCropImages;
 	
 	// this is for selecting the particular edge-mask
 	QRandomStream qRandomStream = new QRandomStream(1);
@@ -83,7 +83,7 @@ public class RenderBoarder {
 	
 	public void setBespokeCropImageSampleGroup(String pathandfilename, int unscaledWidth, int unscaledHeight) {
 		DirectoryFileNameScanner cropdfns = new DirectoryFileNameScanner(pathandfilename, "png");
-		bespokeCropImages = new ImageSampleGroup("cropImages");
+		bespokeCropImages = new SpriteImageGroup("cropImages");
 		bespokeCropImages.setDirectoryFileNameScanner(cropdfns);
 		bespokeCropImages.loadImages();
 		float sessionScale = GlobalSettings.getSessionScale();
@@ -127,7 +127,7 @@ public class RenderBoarder {
 	// it makes cropped pixels blank (alpha of zero).
 	// The return value is whether or not to continue with the sprite after crop; if false, then the sprite has been completely excluded or
 	// obliterated by the crop action.
-	public boolean cropSprite(ImageSprite sprite) {
+	public boolean cropSprite(Sprite sprite) {
 		
 		if(isActive()==false) return true;
 		
@@ -166,7 +166,7 @@ public class RenderBoarder {
 
 		if( checkBespokeCropOK() ){
 			// add the bespoke crop to the cropping image set
-			qRandomStream = new QRandomStream(sprite.id);
+			qRandomStream = new QRandomStream(sprite.data.id);
 			boolean result = doBespokeCrop(preCroppedImage, overlapReport );
 			if(result == false) {
 				// the bespoke crop obliterated the image
@@ -182,6 +182,8 @@ public class RenderBoarder {
 	    // image has been cropped OK
 		return true;
 	}
+	
+	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

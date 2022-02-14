@@ -1,5 +1,9 @@
 package MOCompositing;
 
+
+
+
+
 import java.awt.Color;
 
 import MOMaths.MOMaths;
@@ -23,8 +27,8 @@ import MOUtils.GlobalSettings;
 //depend on the new BufferedImage Size
 //
 
-public class ImageQuad{
-	ImageSprite theSprite;
+public class SpriteImageQuad{
+	Sprite theSprite;
 
 
 	// these are the points in BUFFER SPACE of the Sprite Image which are transformed
@@ -34,7 +38,7 @@ public class ImageQuad{
 	// and represent the bounding area for the sprite image under scale, rotation and shear
 	PVector VertA, VertB, VertC, VertD;
 
-	ImageQuad(ImageSprite sprite){
+	SpriteImageQuad(Sprite sprite){
 		theSprite = sprite;
 
 
@@ -214,6 +218,7 @@ public class ImageQuad{
 
 
 }
+
 
 
 

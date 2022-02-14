@@ -5,12 +5,11 @@ package MOApplication;
 import java.io.File;
 import java.util.ArrayList;
 
-import MOCompositing.ImageSprite;
+
 import MOCompositing.MainDocumentRenderTarget;
 import MOCompositing.RenderBoarder;
 import MOCompositing.RenderTarget;
-
-
+import MOCompositing.Sprite;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.GlobalSettings;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,11 +99,13 @@ public class MainDocument{
 		renderBoarder = rb;
 	}
 	
-	public boolean cropSpriteToBoarder(ImageSprite sprite) {
+	public boolean cropSpriteToBoarder(Sprite sprite) {
 		return renderBoarder.cropSprite(sprite);
 	}
 	
-	public void pasteSprite(String renderTargetName, ImageSprite sprite) {
+	
+	
+	public void pasteSprite(String renderTargetName, Sprite sprite) {
 		RenderTarget rt = getRenderTarget(renderTargetName);
 		rt.pasteSprite(sprite);
 	}

@@ -3,16 +3,18 @@ package MOAppSessionHelpers;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOImageCollections.ImageSampleDescription;
-import MOImageCollections.ImageSampleGroupManager;
-import MOImageCollections.ImageSampleSelector;
+import MOImage.SceneData3D;
+
+import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.Rect;
-import MOSceneData.PackingInterpolationScheme;
-import MOSceneData.PointGenerator_RadialPackSurface3D;
-import MOSceneData.SceneData3D;
-import MOSceneData.Seed;
-import MOSceneData.SeedBatch;
+import MOPointGeneration.PackingInterpolationScheme;
+import MOPointGeneration.PointGenerator_RadialPackSurface3D;
+
+import MOSpriteSeed.SpriteSeed;
+import MOSpriteSeed.SpriteSeedBatch;
+import MOSpriteSeed.SpriteSeedFont;
+import MOSpriteSeed.SpriteSeedFontBiome;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
@@ -22,18 +24,18 @@ import MOUtils.GlobalSettings;
 
 
 
-public class SeedBatchHelper_Scene3D {
+public class SpriteSeedBatchHelper_Scene3D {
 
 
 	SceneData3D sceneData3D;
 	
 	PointGenerator_RadialPackSurface3D pointGenerator;
-	ImageSampleSelector imageSampleSelector;
+	SpriteSeedFontBiome imageSampleSelector;
 	
 	
 
-	public SeedBatchHelper_Scene3D( SceneData3D sd3d, ImageSampleGroupManager isgm, int sampleSelectorRSeed) {
-		imageSampleSelector = new ImageSampleSelector(isgm, sampleSelectorRSeed);
+	public SpriteSeedBatchHelper_Scene3D( SceneData3D sd3d, SpriteImageGroupManager isgm, int sampleSelectorRSeed) {
+		imageSampleSelector = new SpriteSeedFontBiome(isgm, sampleSelectorRSeed);
 		sceneData3D = sd3d;
 		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
 	}
@@ -54,55 +56,46 @@ public class SeedBatchHelper_Scene3D {
 	
 	
 	
-	public ImageSampleSelector getImageSampleSelector() {
+	public SpriteSeedFontBiome getImageSampleSelector() {
 		return imageSampleSelector;
 	}
 	
-	public void addImageSampleGroupCandidate(String imageSampleGroupName, float probablity) {
 	
-		imageSampleSelector.addContentItemProbability(imageSampleGroupName, probablity);
+	public void addSpriteSeedFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, float probability) {
+	
+		imageSampleSelector.addSpriteSeedFont(sdFontName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, probability);
 	
 	}
 	
-	public void clearSampleGroupCandidates() {
-		imageSampleSelector.clearContentItemProbabilities();
-	}
+	//public void clearSampleGroupCandidates() {
+	//	imageSampleSelector.clearContentItemProbabilities();
+	//}
 	
 	
-	public SeedBatch generateSeedBatch(String batchName) {
+	public SpriteSeedBatch generateSpriteSeedBatch(String batchName) {
 		if(pointGenerator == null) {
 			System.out.println("SeedBatchFactory_Scene3D::generateSeedBatch -  point packing is undefined , please call definePointPacking before using this method");
 			return null;
 		}
 		
-		int candidates = imageSampleSelector.getNumCandidateSampleGroups();
-		if(candidates == 0) {
-			System.out.println("SeedBatchFactory_Scene3D::generateSeedBatch -  no image sample candidates added , please call addImageSampleGroupCandidate before using this method");
-			return null;
-		}
+		//SpriteSeedFont seedFont = imageSampleSelector.getSpriteSeedFontInstance();
 		
-		SeedBatch seedbatch = new SeedBatch();
+		
+		SpriteSeedBatch seedbatch = new SpriteSeedBatch();
 		
 		String pathAndFileName = GlobalSettings.getUserSessionPath() + "seeds\\" + batchName + ".sds";
 		
 		
 		ArrayList<PVector> points = pointGenerator.generatePoints();
-		//PointGenerator_RadialPackSurface3D pointField = getPointGenerator3D(namePointDisImage, is, pointDistRSeed);
-		//seedBatchBiome1.generateSeeds(cis, pointField);
+		
 		int n=0;
 		for(PVector p: points) {
-			ImageSampleDescription isd = imageSampleSelector.selectImageSampleDescription();
 			
-			Seed s = new Seed();
-			//System.out.println("new seed at " + p.toString());
-			s.setDocPoint(p);
-			s.seedFontName = batchName;
-			s.imageSampleGroupName = isd.imageSampleGroupName;
-			s.imageSampleGroupShortName = isd.shortName;
-			s.imageSampleGroupItemNumber = isd.itemNumber;
-			s.setDepth(p.z);
-			s.id = n;
-			seedbatch.addSeed(s);
+			SpriteSeed seedInstance = imageSampleSelector.getSpriteSeedInstance();
+			seedInstance.setDocPoint(p);
+			seedInstance.seedFontName = batchName;
+			seedInstance.setDepth(p.z);
+			seedbatch.addSpriteSeed(seedInstance);
 			n++;
 		}
 		System.out.println("generateSeedBatch::has made a batch called " + batchName + " of " + seedbatch.getNumItems() + " seeds ");
@@ -124,7 +117,7 @@ public class SeedBatchHelper_Scene3D {
 	// This is sort-of stand alone method that used to belong to an overcomplex class called SeedBatchManager
 	// It is used to adjust the sees locations into the ROI space defined in the SceneData3D
 	//
-	public SeedBatch applyROIToSeeds(SeedBatch seedbatch) {
+	public SpriteSeedBatch applyROIToSeeds(SpriteSeedBatch seedbatch) {
 		// adjusts the document point of seeds from a seed batch of a whole scene (no ROI)
 		// to a specific ROI within that scene by mapping the original doc points into the nw
 		// doc space represented by the ROI
@@ -142,11 +135,11 @@ public class SeedBatchHelper_Scene3D {
 		Rect theROI = sceneData3D.getROIRect();
 		
 		
-		SeedBatch seedbatchOut = new SeedBatch();
+		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch();
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
 			
-			Seed s = seedbatch.getNextSeed().copy();
+			SpriteSeed s = seedbatch.getNextSeed().copy();
 			PVector newSceneDocPoint = s.getDocPoint();
 			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(newSceneDocPoint);
 			//if(theROI.isPointInside(normalisedPoint)==false) continue;
@@ -156,7 +149,7 @@ public class SeedBatchHelper_Scene3D {
 			//System.out.println("applyROIToSeeds: seeds docpoint before appplication of ROI " + newSceneDocPoint.toString() + ". Adjusted by ROI " + newDocSpacePt.toString());
 			s.setDocPoint(newDocSpacePt);
 			
-			seedbatchOut.addSeed(s);
+			seedbatchOut.addSpriteSeed(s);
 			
 		}
 		
@@ -171,13 +164,13 @@ public class SeedBatchHelper_Scene3D {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// call this if you alter the depth-gamma of the scene after the seeds have been made
 	//
-	public void updateSeedDepthsAgainstScene(SeedBatch seedbatch) {
+	public void updateSeedDepthsAgainstScene(SpriteSeedBatch seedbatch) {
 		
 		// call this if you are changing to a different depth filter
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
 			
-			Seed s = seedbatch.getNextSeed();
+			SpriteSeed s = seedbatch.getNextSeed();
 			float d = sceneData3D.getDepthNormalised(s.getDocPoint());
 			s.setDepth(d);
 		}
@@ -189,3 +182,4 @@ public class SeedBatchHelper_Scene3D {
 	
 	
 }
+

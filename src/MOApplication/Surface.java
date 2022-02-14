@@ -120,7 +120,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	// Initialisation methods
 	// This MUST be called from the InitialiseSession method of the UserSession
 	// After this has been called the GlobalSettings are fully initialised, and
-	// the user can use theDocument as a reference to he MainDocument
+	// the user can use theDocument as a reference to the MainDocument
 	public void initialiseSystem(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, int mainDocumentRenderType) {
 		// this is the only place this method is called
 		GlobalSettings.init(userSessionPth, fullScaleRenderW, fullScaleRenderH, sessionScl);

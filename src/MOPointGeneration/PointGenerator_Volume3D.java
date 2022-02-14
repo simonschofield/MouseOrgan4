@@ -1,4 +1,4 @@
-package MOSceneData;
+package MOPointGeneration;
 
 import java.awt.Color;
 import java.util.ArrayList;

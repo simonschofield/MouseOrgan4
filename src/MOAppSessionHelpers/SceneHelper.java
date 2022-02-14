@@ -3,10 +3,13 @@ package MOAppSessionHelpers;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import MOCompositing.ImageSprite;
+
 import MOCompositing.RenderTarget;
+import MOCompositing.Sprite;
 import MOImage.ImageProcessing;
-import MOImageCollections.ImageSampleGroupManager;
+
+import MOImageCollections.SpriteImageGroup;
+import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
@@ -45,11 +48,11 @@ public class SceneHelper {
 		return (pixelsScaled/GlobalSettings.getTheDocumentCoordSystem().getLongestBufferEdge());
 	}
 	
-	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount) {
+	static void randomRotateScaleSprite(Sprite sprite, float scaleAmt, float rotAmount) {
 		randomRotateScaleSprite( sprite,  scaleAmt,  rotAmount, true);
 	}
 	
-	public static void drawSpriteRect(ImageSprite sprite, Color c, RenderTarget rt) {
+	public static void drawSpriteRect(Sprite sprite, Color c, RenderTarget rt) {
 		Rect spriteRectBufferSpace = sprite.getDocumentBufferSpaceRect();
 		
 		rt.getVectorShapeDrawer().setDrawingStyle(new Color(255,255,255,0), c, 4);
@@ -58,7 +61,7 @@ public class SceneHelper {
 	}
 	
 	
-	public static void drawQuad(ImageSprite sprite, Color c, RenderTarget rt) {
+	public static void drawQuad(Sprite sprite, Color c, RenderTarget rt) {
 		Vertices2 verts = sprite.imageQuad.getSpriteBufferSpaceQuadVertices();
 		PVector shift = sprite.spriteBufferSpaceToDocumentBufferSpace(PVector.ZERO());
 		verts.translate(shift.x, shift.y);
@@ -76,7 +79,7 @@ public class SceneHelper {
 		 
 	}
 	
-	static void randomRotateScaleSprite(ImageSprite sprite, float scaleAmt, float rotAmount, boolean flipInRotationDirection) {
+	static void randomRotateScaleSprite(Sprite sprite, float scaleAmt, float rotAmount, boolean flipInRotationDirection) {
 		QRandomStream ranStream = sprite.getRandomStream();
 		float rscale = ranStream.randRangeF(1-scaleAmt,1+scaleAmt);
 		
@@ -87,7 +90,7 @@ public class SceneHelper {
 		sprite.scale(rscale,rscale);
 	}
 	
-	static void randomMirrorSprite(ImageSprite sprite, boolean inX, boolean inY) {
+	static void randomMirrorSprite(Sprite sprite, boolean inX, boolean inY) {
 		QRandomStream ranStream = sprite.getRandomStream();
 		boolean coinTossX = ranStream.randomEvent(0.5f);
 		boolean coinTossY = ranStream.randomEvent(0.5f);
@@ -102,7 +105,7 @@ public class SceneHelper {
 	}
 	
 	
-	static void addLighting(ImageSprite sprite, float brightness) {
+	static void addLighting(Sprite sprite, float brightness) {
 		// when the brightness is low, so is the contrast
 		//sprite.image = ImageProcessing.adjustContrast(sprite.image, brightness);
 		
@@ -111,14 +114,14 @@ public class SceneHelper {
 
 	}
 	
-	static void addContrast(ImageSprite sprite, float contrast) {
+	static void addContrast(Sprite sprite, float contrast) {
 		// when the brightness is low, so is the contrast
 		sprite.setImage(ImageProcessing.adjustContrast(sprite.getImage(), contrast));
 		
 		
 	}
 	
-	static void addRandomHSV(ImageSprite sprite, float rH, float rS, float rV) {
+	static void addRandomHSV(Sprite sprite, float rH, float rS, float rV) {
 		QRandomStream ranStream = sprite.getRandomStream();
 		float randH = ranStream.randRangeF(-rH, rH);
 		float randS = ranStream.randRangeF(-rS, rS);
@@ -131,17 +134,23 @@ public class SceneHelper {
 	
 	
 	
-	static void addClump(ImageSprite sprite, float scaleAmt, float rotAmount){
+	static void addClump(Sprite sprite, float scaleAmt, float rotAmount){
 		
 		
 	}
 	
 
-	ImageSprite createImageSprite(PVector docPos, String imageContentGroupName, ImageSampleGroupManager contentManager) {
+	Sprite createImageSprite(PVector docPos, String imageContentGroupName, SpriteImageGroupManager contentManager) {
 		
-		ImageSprite sprite =  contentManager.getSprite(imageContentGroupName,1);
+		QRandomStream qrs = new QRandomStream(1);
+		SpriteImageGroup sig = contentManager.getSpriteImageGroup(imageContentGroupName);
+		int maxNum = sig.getNumImages()-1;
+		int n = qrs.randRangeInt(0, maxNum);
+		BufferedImage img = sig.getImage(n);
 		
-		sprite.docPoint = docPos;
+		Sprite sprite =  new Sprite(img);
+		
+		sprite.setDocPoint( docPos);
 		return sprite;
 	}
 	

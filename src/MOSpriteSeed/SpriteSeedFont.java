@@ -1,7 +1,8 @@
 package MOSpriteSeed;
 
-import MOImageCollections.ImageSampleGroup;
-import MOImageCollections.ImageSampleGroupManager;
+
+import MOImageCollections.SpriteImageGroup;
+import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 
@@ -14,10 +15,13 @@ import MOMaths.QRandomStream;
 // TBD impose constraints on the item chosen via regex
 //
 //
+// whether its a biome or a singel SeedFont, the seedFontName is valid for this type of seed, the name extends to seedbatches as they have come from this font.
+
+
 public class SpriteSeedFont {
 	
 
-	ImageSampleGroupManager isgManager;
+	SpriteImageGroupManager isgManager;
 	QRandomStream randomStream;
 	
 	// font data
@@ -29,7 +33,7 @@ public class SpriteSeedFont {
 	
 	public float spriteSeedFontBiomeProbability = 1f;
 	
-	public SpriteSeedFont(ImageSampleGroupManager isgManager, String sdFontName, String imageSampleGroupName,
+	public SpriteSeedFont(SpriteImageGroupManager isgManager, String sdFontName, String imageSampleGroupName,
 			float sizeInScene, boolean useRelativeSizes, PVector origin) {
 		
 		randomStream = new QRandomStream(1);
@@ -42,33 +46,35 @@ public class SpriteSeedFont {
 	}
 	
 	SpriteSeed getRandomSpriteSeedInstance() {
-		int n = getRandomImageSampleGroupItemNumber();
+		int n = getRandomSpriteImageGroupItemNumber();
+		//System.out.println("getRandomSpriteSeedInstance - n " + n);
 		return getSpriteSeedInstance(n);
 	}
 	
 	SpriteSeed getSpriteSeedInstance(int n) {
 		SpriteSeed spriteSeed = new SpriteSeed();
 		spriteSeed.seedFontName = seedFontName;
-		spriteSeed.imageSampleGroupName = imageSampleGroupName;
+		spriteSeed.spriteImageGroupName = imageSampleGroupName;
 		spriteSeed.sizeInScene = sizeInScene;
 		spriteSeed.useRelativeSizes = useRelativeSizes;
 		spriteSeed.origin = origin.copy();
 		
-		spriteSeed.imageSampleGroupItemNumber = n;
-		spriteSeed.imageSampleGroupItemShortName = getImageSampleGroup().getImageName(n);
+		spriteSeed.spriteImageGroupItemNumber = n;
+		spriteSeed.spriteImageGroupItemShortName = getSpriteImageGroup().getImageName(n);
 		return spriteSeed;
 	}
 	
 	
-	private ImageSampleGroup getImageSampleGroup() {
-		return isgManager.getImageSampleGroup(imageSampleGroupName);
+	private SpriteImageGroup getSpriteImageGroup() {
+		//System.out.println("getSpriteImageGroup SprietImage group is " + imageSampleGroupName );
+		return isgManager.getSpriteImageGroup(imageSampleGroupName);
 	}
 	
 	
 	
-	private int getRandomImageSampleGroupItemNumber() {
-		int numItems = getImageSampleGroup().getNumImages();
-		//System.out.println("getImageSampleDescriptionFromGroup - numItemsInContentGroup " + groupName + " is " + numItemsInContentGroup);
+	private int getRandomSpriteImageGroupItemNumber() {
+		int numItems = getSpriteImageGroup().getNumImages();
+		//System.out.println("getRandomSpriteImageGroupItemNumber - numItems in group " + imageSampleGroupName +  " is "  +   numItems);
 		return randomStream.randRangeInt(0, numItems - 1);
 	}
 }

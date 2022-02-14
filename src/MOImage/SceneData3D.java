@@ -1,15 +1,10 @@
-package MOSceneData;
+package MOImage;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOImage.DistanceBufferFilter;
-import MOImage.FloatImage;
-import MOImage.GeometryBuffer3D;
-import MOImage.ImageProcessing;
-import MOImage.KeyImageSampler;
 import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.ImageItemGroup;
+import MOImageCollections.NamedImageGroup;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
@@ -59,7 +54,7 @@ public class SceneData3D {
 	
 	
 	// this reads in and contains all the png files within the input folder
-	ImageItemGroup renderImages;
+	NamedImageGroup renderImages;
 	BufferedImage currentRenderKeyImage;
 	boolean currentRenderKeyImageHasAlpha;
 	
@@ -96,7 +91,7 @@ public class SceneData3D {
 		
     public void load(){
     	DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(directoryPath, "png");
-    	renderImages = new ImageItemGroup();
+    	renderImages = new NamedImageGroup();
     	renderImages.setDirectoryFileNameScanner(dfns);
 		renderImages.loadImages();
 		

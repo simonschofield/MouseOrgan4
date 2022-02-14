@@ -2,9 +2,8 @@ package MOSpriteSeed;
 
 import java.util.ArrayList;
 
-import MOCompositing.ImageSprite;
-import MOImageCollections.ImageSampleGroup;
-import MOImageCollections.ImageSampleGroupManager;
+
+import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 
@@ -12,12 +11,17 @@ import MOMaths.QRandomStream;
 public class SpriteSeedFontBiome {
 
 	
-	ImageSampleGroupManager theImageSampleGroupManager;
+	SpriteImageGroupManager theImageSampleGroupManager;
 	ArrayList<SpriteSeedFont> biomeItems = new ArrayList<SpriteSeedFont>();
 	boolean probabilitiesNormalised = false;
 	QRandomStream randomStream;
 	
 	
+	public SpriteSeedFontBiome(SpriteImageGroupManager isgm, int sampleSelectorRSeed) {
+		theImageSampleGroupManager = isgm;
+		randomStream = new QRandomStream(sampleSelectorRSeed);
+	}
+
 	public void addSpriteSeedFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, float probability) {
 		
 		SpriteSeedFont seedFont = new SpriteSeedFont(theImageSampleGroupManager, sdFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  origin);
@@ -27,7 +31,7 @@ public class SpriteSeedFontBiome {
 	}
 	
 	// uses stochastics to select a particular SpriteSeed
-	SpriteSeed getSpriteSeedInstance() {
+	public SpriteSeed getSpriteSeedInstance() {
 		SpriteSeedFont ssf = getSpriteSeedFontInstance();
 		return ssf.getRandomSpriteSeedInstance();
 	}
