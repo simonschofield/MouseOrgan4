@@ -6,7 +6,11 @@ import java.util.ArrayList;
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
-
+//
+//
+// contains a number of seed fonts in a probability stack (may also contain only one). The individual seed fonts within 
+//  can be named individually, so as to identify sprites from  and treat different fonts
+//
 
 public class SpriteSeedFontBiome {
 
@@ -18,11 +22,12 @@ public class SpriteSeedFontBiome {
 	
 	
 	public SpriteSeedFontBiome(SpriteImageGroupManager isgm, int sampleSelectorRSeed) {
+		
 		theImageSampleGroupManager = isgm;
 		randomStream = new QRandomStream(sampleSelectorRSeed);
 	}
 
-	public void addSpriteSeedFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, float probability) {
+	public void addSpriteSeedFont( String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, float probability) {
 		
 		SpriteSeedFont seedFont = new SpriteSeedFont(theImageSampleGroupManager, sdFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  origin);
 		seedFont.spriteSeedFontBiomeProbability = probability;

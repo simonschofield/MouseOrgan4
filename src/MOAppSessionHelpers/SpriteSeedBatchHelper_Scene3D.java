@@ -19,10 +19,10 @@ import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Bundles together any SeedBatch making/altering operations that are to do with a 3D scene
+// Bundles and single seed font biome with a 3D point generator
+// This can then generate a seed batch from the biome, that can be used directly or saved and reloaded by this class
 //
-
-
+//
 
 public class SpriteSeedBatchHelper_Scene3D {
 
@@ -30,12 +30,12 @@ public class SpriteSeedBatchHelper_Scene3D {
 	SceneData3D sceneData3D;
 	
 	PointGenerator_RadialPackSurface3D pointGenerator;
-	SpriteSeedFontBiome imageSampleSelector;
+	SpriteSeedFontBiome seedFontBiome;
 	
 	
 
 	public SpriteSeedBatchHelper_Scene3D( SceneData3D sd3d, SpriteImageGroupManager isgm, int sampleSelectorRSeed) {
-		imageSampleSelector = new SpriteSeedFontBiome(isgm, sampleSelectorRSeed);
+		seedFontBiome = new SpriteSeedFontBiome(isgm, sampleSelectorRSeed);
 		sceneData3D = sd3d;
 		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
 	}
@@ -56,14 +56,14 @@ public class SpriteSeedBatchHelper_Scene3D {
 	
 	
 	
-	public SpriteSeedFontBiome getImageSampleSelector() {
-		return imageSampleSelector;
+	public SpriteSeedFontBiome getSeedFontBiome() {
+		return seedFontBiome;
 	}
 	
 	
 	public void addSpriteSeedFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, float probability) {
 	
-		imageSampleSelector.addSpriteSeedFont(sdFontName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, probability);
+		seedFontBiome.addSpriteSeedFont(sdFontName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, probability);
 	
 	}
 	
@@ -91,7 +91,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		int n=0;
 		for(PVector p: points) {
 			
-			SpriteSeed seedInstance = imageSampleSelector.getSpriteSeedInstance();
+			SpriteSeed seedInstance = seedFontBiome.getSpriteSeedInstance();
 			seedInstance.setDocPoint(p);
 			seedInstance.seedFontName = batchName;
 			seedInstance.setDepth(p.z);
