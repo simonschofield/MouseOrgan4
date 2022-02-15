@@ -198,7 +198,10 @@ public class SpriteImageGroupManager {
 	}
 
 	
-
+     public void addSpriteImageGroup(SpriteImageGroup sig) {
+    	 // TBD check unique name
+    	 spriteImageGroups.add(sig);
+     }
 	
 
 	/////////////////////////////////////////////////////////////////////////////

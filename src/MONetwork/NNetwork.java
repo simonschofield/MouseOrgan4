@@ -281,7 +281,7 @@ public class NNetwork {
     
   
 
-  ArrayList<NEdge> getEdges() {
+  public ArrayList<NEdge> getEdges() {
     return edges;
   }
 

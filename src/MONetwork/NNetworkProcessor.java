@@ -267,7 +267,7 @@ public class NNetworkProcessor{
 		rt.drawLine(p1, p2, c, width);
 	}
 	
-	void drawEdges(ArrayList<NEdge> edges, Color c, int width, RenderTarget rt) {
+	public void drawEdges(ArrayList<NEdge> edges, Color c, int width, RenderTarget rt) {
 		//System.out.println("drawing num edges " + edges.size());
 		for(NEdge e: edges) {
 			//System.out.println(e.toStr());

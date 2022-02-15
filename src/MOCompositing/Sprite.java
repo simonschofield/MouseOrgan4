@@ -17,7 +17,7 @@ import MOSpriteSeed.SpriteSeed;
 import MOUtils.GlobalSettings;
 
 public class Sprite {
-	SpriteSeed data;
+	public SpriteSeed data;
 	
 	// for internal workings
 	public SpriteImageQuad imageQuad;
@@ -339,7 +339,7 @@ public class Sprite {
 	// i.e. size of 1 means that the height of image is scaled to be the same as the longest edge of the document
 	// scaling to 2D scene
 	//
-	void scaleToSizeInScene(float scaleModifier) {
+	public void scaleToSizeInScene(float scaleModifier) {
 		// The height of the sample image is set using pre-set sizeInScene member variable as a documentSpace measurement.
 		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
 		float scale = scaleModifier * data.sizeInScene;
@@ -418,7 +418,7 @@ public class Sprite {
 	// The origin is set to be the bottom centre of the sprite. This gets mapped to line.p1
 	// The other end gets mapped to line.p2  . The sprite is scaled so that it is as high as the line p1->p2
 	// The sprite is rotated into the same direction as the line p1-p2
-	void mapToLine2(Line2 line, float overlap) {
+	public void mapToLine2(Line2 line, float overlap) {
 		data.origin = new PVector(0.5f, 1.0f);
 		float r = line.getRotation();
 		float len = line.getLength()*overlap;
@@ -472,7 +472,7 @@ public class Sprite {
 	/// end of geometric transforms
 	///////////////////////////////////////////////////////////////////////////////////////////
 	
-	void  colorTransform(int function, float p1, float p2, float p3) {
+	public void  colorTransform(int function, float p1, float p2, float p3) {
 		setImage(ImageProcessing.colorTransform( getImage(),  function,  p1,  p2,  p3));
 	}
 

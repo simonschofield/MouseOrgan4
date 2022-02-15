@@ -51,7 +51,7 @@ public class NRegion  extends NAttributes {
 		return edgeReferences.contains(e);
 	}
 
-	boolean isPointInside(PVector p){
+	public boolean isPointInside(PVector p){
 		if(vertices == null) return false;
 		if(extents.isPointInside(p)==false) return false;
 		if( vertices.isClosed()==false ) vertices.close();

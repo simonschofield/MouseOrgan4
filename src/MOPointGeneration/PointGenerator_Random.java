@@ -62,7 +62,7 @@ public class PointGenerator_Random extends CollectionIterator{
 		return generatePoints(numberOfPointsRequest);
 	}
 	
-	ArrayList<PVector> generatePoints(int num){
+	public ArrayList<PVector> generatePoints(int num){
 		for(int n = 0; n < num; n++) {
 			PVector p = getRandomDocSpacePoint();
 			points.add(p);
@@ -155,7 +155,7 @@ public class PointGenerator_Random extends CollectionIterator{
 	}
 	
 	
-	PVector getNextPoint() {
+	public PVector getNextPoint() {
 		return (PVector)(super.getNextItem());
 	}
 	

@@ -45,13 +45,13 @@ public class SpriteSeedFont {
 		this.origin = origin;
 	}
 	
-	SpriteSeed getRandomSpriteSeedInstance() {
+	public SpriteSeed getRandomSpriteSeedInstance() {
 		int n = getRandomSpriteImageGroupItemNumber();
 		//System.out.println("getRandomSpriteSeedInstance - n " + n);
 		return getSpriteSeedInstance(n);
 	}
 	
-	SpriteSeed getSpriteSeedInstance(int n) {
+	public SpriteSeed getSpriteSeedInstance(int n) {
 		SpriteSeed spriteSeed = new SpriteSeed();
 		spriteSeed.seedFontName = seedFontName;
 		spriteSeed.spriteImageGroupName = imageSampleGroupName;

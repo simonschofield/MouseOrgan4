@@ -6,7 +6,7 @@ import javax.swing.JFrame;
 
 //////////////////////////////////////////////////////////////////
 //
-@SuppressWarnings({ "serial" })
+
 public class ApplicationMain extends JFrame {
 
     public ApplicationMain() {

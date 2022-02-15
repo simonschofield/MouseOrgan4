@@ -13,11 +13,11 @@ package MOMaths;
 public class SNum{
 	
 	
-	static final int	FIXED = 0;
-	static final int	UNIFORM_RANGE=1;
-	static final int	NORMALISED_RANGE=2;
-	static final int	SKEWED_NORMALISED_RANGE=3;
-	static final int	INTEGER_RANGE = 4;
+	public static final int	FIXED = 0;
+	public static final int	UNIFORM_RANGE=1;
+	public static final int	NORMALISED_RANGE=2;
+	public static final int	SKEWED_NORMALISED_RANGE=3;
+	public static final int	INTEGER_RANGE = 4;
 	
 	
 	private QRandomStream qRandomStream;
@@ -125,7 +125,7 @@ public class SNum{
 	
 	
 	
-	void setMethod(int m, float lo, float hi) {
+	public void setMethod(int m, float lo, float hi) {
 		method = m;
 		lowerLimit = lo;
 		centerOfDistribution = (hi-lo)/2;

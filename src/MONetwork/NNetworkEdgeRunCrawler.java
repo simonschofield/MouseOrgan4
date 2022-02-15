@@ -231,7 +231,7 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	}
 
 
-	void displaceExtractedEdgeRuns(int pointdoubling, float wobble, BufferedImage displacementImage) {
+	public void displaceExtractedEdgeRuns(int pointdoubling, float wobble, BufferedImage displacementImage) {
 		KeyImageSampler kis = new KeyImageSampler(displacementImage);
 		int numEdgeRuns  = preExtractedEdgeRuns.size();
 		for(int n = 0; n < numEdgeRuns; n++) {
