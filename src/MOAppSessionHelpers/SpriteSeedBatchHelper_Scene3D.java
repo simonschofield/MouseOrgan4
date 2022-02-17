@@ -34,8 +34,8 @@ public class SpriteSeedBatchHelper_Scene3D {
 	
 	
 
-	public SpriteSeedBatchHelper_Scene3D( SceneData3D sd3d, SpriteImageGroupManager isgm, int sampleSelectorRSeed) {
-		seedFontBiome = new SpriteSeedFontBiome(isgm, sampleSelectorRSeed);
+	public SpriteSeedBatchHelper_Scene3D( SceneData3D sd3d, int biomeRanSeed) {
+		seedFontBiome = new SpriteSeedFontBiome(biomeRanSeed);
 		sceneData3D = sd3d;
 		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
 	}
@@ -61,9 +61,15 @@ public class SpriteSeedBatchHelper_Scene3D {
 	}
 	
 	
-	public void addSpriteSeedFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, float probability) {
+	public void addSpriteSeedFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
 	
-		seedFontBiome.addSpriteSeedFont(sdFontName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, probability);
+		seedFontBiome.addSpriteSeedFont(sdFontName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, fontRanSeed, probability);
+	
+	}
+	
+	public void addSpriteSeedFont(SpriteSeedFont ssf) {
+		
+		seedFontBiome.addSpriteSeedFont(ssf);
 	
 	}
 	

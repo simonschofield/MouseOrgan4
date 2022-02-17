@@ -21,18 +21,21 @@ public class SpriteSeedFontBiome {
 	QRandomStream randomStream;
 	
 	
-	public SpriteSeedFontBiome(SpriteImageGroupManager isgm, int sampleSelectorRSeed) {
+	public SpriteSeedFontBiome(int biomeRanSeed) {
 		
-		theImageSampleGroupManager = isgm;
-		randomStream = new QRandomStream(sampleSelectorRSeed);
+		
+		randomStream = new QRandomStream(biomeRanSeed);
 	}
 
-	public void addSpriteSeedFont( String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, float probability) {
-		
-		SpriteSeedFont seedFont = new SpriteSeedFont(theImageSampleGroupManager, sdFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  origin);
+	public void addSpriteSeedFont( String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
+		SpriteSeedFont seedFont = new SpriteSeedFont(sdFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  origin, fontRanSeed);
 		seedFont.spriteSeedFontBiomeProbability = probability;
 		biomeItems.add(seedFont);
 		probabilitiesNormalised = false;
+	}
+	
+	public void addSpriteSeedFont(SpriteSeedFont ssf) {
+		biomeItems.add(ssf);
 	}
 	
 	// uses stochastics to select a particular SpriteSeed

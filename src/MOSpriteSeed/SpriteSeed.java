@@ -1,13 +1,22 @@
 package MOSpriteSeed;
 
+import java.awt.image.BufferedImage;
+
+import MOImageCollections.SpriteImageGroup;
+import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
+//////////////////////////////////////////////////////////////////////////////////
+//A lightweight representation of everything you need to make a Sprite
+// The strite has a SpriteSeed in it to store the "live sprite" data
+// Can be saved as seedbatches
+//
 
 public class SpriteSeed {
-	// A lightweight representation of everything you need to make a Sprite
-	// Can be saved as seedbatches
-
+	
+	
+	
 
 	/////////////////////////////////////////////////////
 	// This part: Sprite "Font" data, all instances are set with  this data from a specific SpriteSeedMaker
@@ -83,7 +92,8 @@ public class SpriteSeed {
 		return cpy;
 		
 	}
-
+	
+	
 	public PVector getDocPoint() {
 		return new PVector(docPointX, docPointY, 0);
 	}

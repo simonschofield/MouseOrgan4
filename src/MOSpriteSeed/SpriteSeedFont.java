@@ -5,6 +5,7 @@ import MOImageCollections.SpriteImageGroup;
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
+import MOUtils.GlobalSettings;
 
 ////////////////////////////////////////////////////////////////////
 // Can generate an instance of a SpriteSeed from the association of
@@ -21,7 +22,7 @@ import MOMaths.QRandomStream;
 public class SpriteSeedFont {
 	
 
-	SpriteImageGroupManager isgManager;
+	
 	QRandomStream randomStream;
 	
 	// font data
@@ -31,13 +32,13 @@ public class SpriteSeedFont {
 	public boolean useRelativeSizes = false;
 	public PVector origin = new PVector(0.5f, 0.5f);
 	
+	// only used when this SpriteSeedFont is within a SpriteSeedFontBiome
 	public float spriteSeedFontBiomeProbability = 1f;
 	
-	public SpriteSeedFont(SpriteImageGroupManager isgManager, String sdFontName, String imageSampleGroupName,
-			float sizeInScene, boolean useRelativeSizes, PVector origin) {
+	public SpriteSeedFont(String sdFontName, String imageSampleGroupName,
+			float sizeInScene, boolean useRelativeSizes, PVector origin, int rseed) {
 		
-		randomStream = new QRandomStream(1);
-		this.isgManager = isgManager;
+		randomStream = new QRandomStream(rseed);
 		this.seedFontName = sdFontName;
 		this.imageSampleGroupName = imageSampleGroupName;
 		this.sizeInScene = sizeInScene;
@@ -67,7 +68,7 @@ public class SpriteSeedFont {
 	
 	private SpriteImageGroup getSpriteImageGroup() {
 		//System.out.println("getSpriteImageGroup SprietImage group is " + imageSampleGroupName );
-		return isgManager.getSpriteImageGroup(imageSampleGroupName);
+		return GlobalSettings.getTheSpriteImageGroupManager().getSpriteImageGroup(imageSampleGroupName);
 	}
 	
 	

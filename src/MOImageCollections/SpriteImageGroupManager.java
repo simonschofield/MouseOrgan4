@@ -10,6 +10,7 @@ import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
 import MOMaths.PVector;
 import MOMaths.Rect;
+import MOUtils.GlobalSettings;
 
 
 
@@ -26,7 +27,7 @@ public class SpriteImageGroupManager {
 	//Surface parentSurface;
 
 	public SpriteImageGroupManager() {
-		
+		GlobalSettings.setTheSpriteImageGroupManager(this);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////

@@ -32,24 +32,28 @@ public class Sprite {
 		setImage(img);
 	}
 	
-	public Sprite(SpriteImageGroupManager spriteImageGroupManager, SpriteSeed sseed ){
+	public Sprite(SpriteSeed sseed) {
 		data = sseed.copy();
-		
-		//System.out.println(sseed.getAsCSVStr());
-		//System.out.println("Sprite:: spriteImageGroupName" + data.spriteImageGroupName +  "  number " +  data.spriteImageGroupItemNumber );
-		SpriteImageGroup sig = spriteImageGroupManager.getSpriteImageGroup(data.spriteImageGroupName);
-		
-		//System.out.println("Sprite constructor spriteImageGroupName " + data.spriteImageGroupName + " spriteImageGroupItemNumber " + data.spriteImageGroupItemNumber + " total num = " + sig.getNumImages());
-		BufferedImage img = sig.getImage(data.spriteImageGroupItemNumber);
-		
-		if(img==null) System.out.println("Sprite constructor NULL IMAGE");
-		
-		
-		setImage(img); 
+		setRandomSeed(data.id);
 
-		//System.out.println("ImageSprite::Get sprite origin " + data.origin.toStr());
-	    setRandomSeed(data.id);
+		// This method is called by Sprite initialisation to
+		// fully make a sprite from a seed.
+		SpriteImageGroupManager sigm = GlobalSettings.getTheSpriteImageGroupManager();
+		SpriteImageGroup sig = sigm.getSpriteImageGroup(data.spriteImageGroupName);
+		if (sig == null) {
+			System.out.println("ERROR Sprite::SpriteSeed constructor - cannot find spriteImageGroup called "
+					+ data.spriteImageGroupName);
+			return;
+		}
+		BufferedImage img = sig.getImage(data.spriteImageGroupItemNumber);
+		if (img == null) {
+			System.out.println("ERROR Sprite::SpriteSeed constructor - cannot find image number "
+					+ data.spriteImageGroupItemNumber + " in " + data.spriteImageGroupName);
+			return;
+		}
+		setImage(img);
 	}
+	
 	
 	public void initQuad() {
 		

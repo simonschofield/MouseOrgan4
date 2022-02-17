@@ -17,6 +17,7 @@ import MOImage.ImageProcessing;
 // ROI helper (Optional) - this generates the full size render dims
 // in UserSession initialiseUserSession you MUST call initialsieSystem(....)
 // RenderSaver (Optional)
+import MOImageCollections.SpriteImageGroupManager;
 
 public class GlobalSettings {
 	
@@ -27,7 +28,7 @@ public class GlobalSettings {
 	// The theDocumentCoordSystem is set as soon as the MainDocument is instantiated
 	private static float sessionScale = 0;
 	private static ImageCoordinateSystem theDocumentCoordSystem;
-	
+	private static SpriteImageGroupManager  theSpriteImageGroupManager;
 	
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,6 +148,15 @@ public class GlobalSettings {
 
 	public static String getMouseOrganImageCachePath() {
 		return mouseOrganImageCachePath;
+	}
+
+	public static SpriteImageGroupManager getTheSpriteImageGroupManager() {
+		return theSpriteImageGroupManager;
+	}
+
+	public static void setTheSpriteImageGroupManager(SpriteImageGroupManager theSpriteImageGroupManager) {
+		// only set by the SpriteImageGroupManager when instantiated
+		GlobalSettings.theSpriteImageGroupManager = theSpriteImageGroupManager;
 	}
 
 }
