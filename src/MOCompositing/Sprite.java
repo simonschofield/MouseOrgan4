@@ -80,6 +80,10 @@ public class Sprite {
 	
 	
 	public void setImage(BufferedImage img) {
+		//
+		// The sprite initially has an actual reference to the image in the SIG.
+		// However, any attempt to alter it results in a new image, so the original is left unaltered.
+		//
 		img.setAccelerationPriority(1);
 		if(this.image == null) {
 			this.image = img;
@@ -88,7 +92,7 @@ public class Sprite {
 			this.image = img;
 		}
 		
-		
+		//System.out.println("reference to image in sprite is " + img);
 	}
 	
 	public int getImageWidth() {

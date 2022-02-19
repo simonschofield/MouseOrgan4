@@ -246,7 +246,7 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 	}
 
 
-	public void drawExtractedEdgeRuns(Color c, int width, RenderTarget rt) {
+	void drawExtractedEdgeRuns(Color c, int width, RenderTarget rt) {
 
 		int numEdgeRuns  = preExtractedEdgeRuns.size();
 		for(int n = 0; n < numEdgeRuns; n++) {

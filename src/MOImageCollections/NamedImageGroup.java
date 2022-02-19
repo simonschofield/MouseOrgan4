@@ -193,8 +193,9 @@ public class NamedImageGroup {
 			System.out.println("getImage:: ImageGroup has no images ");
 			return null;
 		}
-		return imageList.get(n).image;
-		
+		BufferedImage img = imageList.get(n).image;
+		//System.out.println("reference to image in Group is " + img);
+		return img;
 	}
 	
 
