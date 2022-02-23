@@ -136,7 +136,7 @@ public class NNetwork {
     }
   }
 
-  void applyROI(Rect roi) {
+  public void applyROI(Rect roi) {
 	  for (NPoint np : points) {
 		  	PVector p = np.getPt();
 	        PVector nomPoint = roi.norm(p);

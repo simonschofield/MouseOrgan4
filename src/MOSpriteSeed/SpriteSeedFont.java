@@ -35,6 +35,8 @@ public class SpriteSeedFont {
 	// only used when this SpriteSeedFont is within a SpriteSeedFontBiome
 	public float spriteSeedFontBiomeProbability = 1f;
 	
+	private String instancenameMustContain = "";
+	
 	public SpriteSeedFont(String sdFontName, String imageSampleGroupName,
 			float sizeInScene, boolean useRelativeSizes, PVector origin, int rseed) {
 		
@@ -46,10 +48,19 @@ public class SpriteSeedFont {
 		this.origin = origin;
 	}
 	
+	public void setInstanceNameMustContain(String mustContain) {
+		instancenameMustContain = mustContain;
+	}
+
 	public SpriteSeed getRandomSpriteSeedInstance() {
 		int n = getRandomSpriteImageGroupItemNumber();
-		//System.out.println("getRandomSpriteSeedInstance - n " + n);
+		
 		return getSpriteSeedInstance(n);
+	}
+	
+	public int getNumImages() {
+		return getSpriteImageGroup().getNumImages();
+		
 	}
 	
 	public SpriteSeed getSpriteSeedInstance(int n) {
@@ -74,8 +85,21 @@ public class SpriteSeedFont {
 	
 	
 	private int getRandomSpriteImageGroupItemNumber() {
-		int numItems = getSpriteImageGroup().getNumImages();
-		//System.out.println("getRandomSpriteImageGroupItemNumber - numItems in group " + imageSampleGroupName +  " is "  +   numItems);
-		return randomStream.randRangeInt(0, numItems - 1);
+		if(instancenameMustContain==null) return randomStream.randRangeInt(0, getNumImages() - 1);
+		if(instancenameMustContain.equals("")) return randomStream.randRangeInt(0, getNumImages() - 1);
+		
+	
+		int bailCount = getNumImages()*10; // should be more than enough to find all samples randomly (see Coupon collector's problem)
+		int num = 0;
+		while(bailCount > 0) {
+			num =  randomStream.randRangeInt(0, getNumImages() - 1);
+			String shortName = getSpriteImageGroup().getImageName(num);
+			if( shortName.contains(instancenameMustContain)) return num;
+			bailCount--;
+		}
+		System.out.println("ERROR: SpriteSeedFont::getRandomSpriteImageGroupItemNumber cannot fins an image containing the string " + instancenameMustContain);
+		return num;
 	}
+	
+	
 }
