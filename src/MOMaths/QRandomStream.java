@@ -32,7 +32,7 @@ class QRandomStream {
 		setSeedAndPosition(rseed, streamPosition);
 	}
 	
-	QRandomStream copy() {
+	public QRandomStream copy() {
 		// returns a completely independent copy, but exactly the same stream sequence
 		QRandomStream newCopy = new QRandomStream(seed);
 		newCopy.sequencePosition = sequencePosition;

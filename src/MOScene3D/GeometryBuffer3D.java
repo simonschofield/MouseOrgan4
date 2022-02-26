@@ -1,7 +1,10 @@
-package MOImage;
+package MOScene3D;
 
 import java.awt.image.BufferedImage;
 
+import MOImage.FloatImage;
+import MOImage.ImageProcessing;
+import MOImage.KeyImageSampler;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;

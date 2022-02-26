@@ -2,9 +2,9 @@ package MOPointGeneration;
 
 import java.util.ArrayList;
 
-import MOImage.SceneData3D;
 import MOMaths.AABox3D;
 import MOMaths.PVector;
+import MOScene3D.SceneData3D;
 
 ////////////////////////////////////////////////////////////////////////////
 //Generates a set of evenly distributed points on the 3D surface

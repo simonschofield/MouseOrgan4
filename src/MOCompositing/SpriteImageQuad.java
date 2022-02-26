@@ -46,8 +46,21 @@ public class SpriteImageQuad{
 		VertB = new PVector(theSprite.getImageWidth(),0);
 		VertC = new PVector(0,theSprite.getImageHeight());
 		VertD = new PVector(theSprite.getImageWidth(),theSprite.getImageHeight());
+		
 	}
-
+	
+	
+	SpriteImageQuad copy(Sprite s) {
+		SpriteImageQuad cpy = new SpriteImageQuad(s);
+		
+		cpy.VertA = VertA.copy();
+		cpy.VertB = VertB.copy();
+		cpy.VertC = VertC.copy();
+		cpy.VertD = VertD.copy();
+		
+		return cpy;
+	}
+	
 
 	public Vertices2 getSpriteBufferSpaceQuadVertices() {
 		// note that the vertices are added in a clockwise way

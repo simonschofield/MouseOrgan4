@@ -1,8 +1,11 @@
-package MOImage;
+package MOScene3D;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOImage.FloatImage;
+import MOImage.ImageProcessing;
+import MOImage.KeyImageSampler;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.NamedImageGroup;
 import MOMaths.PVector;

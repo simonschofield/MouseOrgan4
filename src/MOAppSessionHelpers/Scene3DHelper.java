@@ -8,14 +8,13 @@ import MOCompositing.RenderTarget;
 import MOCompositing.Sprite;
 import MOImage.ConvolutionFilter;
 import MOImage.ImageProcessing;
-import MOImage.SceneData3D;
-
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
+import MOScene3D.SceneData3D;
 import MOSimpleUI.Slider;
 import MOSimpleUI.TextInputBox;
 //import MOSimpleUI.Slider;

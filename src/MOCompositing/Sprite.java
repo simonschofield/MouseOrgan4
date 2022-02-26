@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 
 import MOImage.BendImage;
 import MOImage.ImageProcessing;
-import MOImage.SceneData3D;
 import MOImageCollections.SpriteImageGroup;
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.Line2;
@@ -13,6 +12,7 @@ import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
+import MOScene3D.SceneData3D;
 import MOSpriteSeed.SpriteSeed;
 import MOUtils.GlobalSettings;
 
@@ -22,7 +22,6 @@ public class Sprite {
 	// for internal workings
 	public SpriteImageQuad imageQuad;
 	private BufferedImage image;
-	private float aspect;	
 	private QRandomStream qRandomStream;
 		
 	public float alpha = 1;
@@ -52,6 +51,16 @@ public class Sprite {
 			return;
 		}
 		setImage(img);
+	}
+	
+	Sprite copy() {
+		
+		Sprite cpy = new Sprite(this.data);
+		cpy.imageQuad = this.imageQuad.copy(cpy);
+		cpy.setImage(ImageProcessing.copyImage(this.image));
+		cpy.setRandomStream(this.qRandomStream);
+		cpy.alpha = this.alpha;
+		return cpy;
 	}
 	
 	
@@ -133,6 +142,11 @@ public class Sprite {
 		return qRandomStream;
 	}
 	
+	public void setRandomStream(QRandomStream qrs) {
+		// set this random stream to an identical state as qrs  
+		qRandomStream = qrs.copy();
+	}
+	
 	/*
 	Rect getPasteRectDocSpace(SceneData3D sceneData) {
 		// returns a document space rect to paste this sprite into
@@ -189,6 +203,10 @@ public class Sprite {
 		
 	}
 	
+	public PVector spriteBufferSpaceToDocSpace(PVector spriteBufferSpace) {
+		PVector docBufferPoint = spriteBufferSpaceToDocumentBufferSpace( spriteBufferSpace);
+		return GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(docBufferPoint);
+	}
 	
 	
 	
@@ -239,8 +257,8 @@ public class Sprite {
 	
 	
 	float getAspect() {
-		this.aspect = getImageWidth()/(float)getImageHeight();
-		return this.aspect;
+		float aspect = getImageWidth()/(float)getImageHeight();
+		return aspect;
 	}
 	
 	String getImageName() {
@@ -351,7 +369,7 @@ public class Sprite {
 		// The height of the sample image is set using pre-set sizeInScene member variable as a documentSpace measurement.
 		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
 		float scale = scaleModifier * data.sizeInScene;
-		//System.out.println("scaleToSizeInScene  scaleModifier " + scaleModifier + "  sizeInScene " + sizeInScene + " result " + scale);
+		//System.out.println("scaleToSizeInScene  scaleModifier " + scaleModifier + "  sizeInScene " + data.sizeInScene + " result " + scale);
 		scaleToSizeInDocSpace(null, scale);
 	}
 	

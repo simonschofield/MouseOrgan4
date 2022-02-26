@@ -1,4 +1,4 @@
-package MOImage;
+package MOScene3D;
 
 import MOMaths.Range;
 

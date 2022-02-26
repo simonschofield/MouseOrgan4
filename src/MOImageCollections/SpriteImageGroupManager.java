@@ -243,7 +243,7 @@ public class SpriteImageGroupManager {
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	//
-	void paradeContent(String groupName, RenderTarget rt) {
+	public void paradeContent(String groupName, RenderTarget rt) {
 		paradeContent(groupName,ImageProcessing.COLORTRANSFORM_NONE, 0, 0, 0, rt);
 	}
 

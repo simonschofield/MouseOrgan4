@@ -3,14 +3,12 @@ package MOAppSessionHelpers;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOImage.SceneData3D;
-
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
 import MOPointGeneration.PointGenerator_RadialPackSurface3D;
-
+import MOScene3D.SceneData3D;
 import MOSpriteSeed.SpriteSeed;
 import MOSpriteSeed.SpriteSeedBatch;
 import MOSpriteSeed.SpriteSeedFont;
