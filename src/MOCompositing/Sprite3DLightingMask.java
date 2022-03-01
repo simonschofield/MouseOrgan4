@@ -4,13 +4,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 import MOMaths.PVector;
-import MOScene3D.SolidTexture3D;
+import MOScene3D.ProjectedLight3D;
 
 public class Sprite3DLightingMask {
 	int maskScale;
 	BufferedImage lightingMask;
-	SolidTexture3D solidTexture;
-	Sprite3DLightingMask(SolidTexture3D solidTex, int maskScale){
+	ProjectedLight3D solidTexture;
+	Sprite3DLightingMask(ProjectedLight3D solidTex, int maskScale){
 		this.solidTexture = solidTex;
 		this.maskScale = maskScale;
 		

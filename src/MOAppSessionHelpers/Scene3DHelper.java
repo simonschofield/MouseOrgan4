@@ -10,7 +10,10 @@ import MOImage.ConvolutionFilter;
 import MOImage.ImageProcessing;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
+import MOMaths.Plane3D;
 import MOMaths.QRandomStream;
+import MOMaths.Ray3D;
+import MOMaths.Intersection3D;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
@@ -29,12 +32,23 @@ public class Scene3DHelper {
 		static Surface theSurface = null;
 		static SceneData3D sceneData3D = null;
 		
+		
+		
 		public static void initialise(SceneData3D sd3d, Surface s) {
 			theSurface = s;
 			sceneData3D = sd3d;
 			add3DMeasuringToolSlider();
 			makeRenderImageMenu();
 		}
+		
+		static PVector vec(float x, float y, float z) {
+			return new PVector(x,y,z);
+		}
+		
+		
+		
+		
+		
 		
 		static float getLerpDistanceEffect(Sprite sprite, float distMinEffect, float distMaxEffect) {
 			float dist = sceneData3D.getDistance(sprite.getDocPoint());
@@ -163,7 +177,7 @@ public class Scene3DHelper {
 		theSurface.theUI.deleteCanvasOverlayShapes("measuringTool");
 		PVector endPt = docPt.copy();
 		float worldScale = sceneData3D.get3DScale(docPt);
-		
+		PVector p3d = sceneData3D.get3DSurfacePoint(docPt);
 		float distance = sceneData3D.getDistance(docPt);
 		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
 		
@@ -171,13 +185,14 @@ public class Scene3DHelper {
 		endPt.y -= (worldScale * measuringToolSize);
 		float textY1 = endPt.y;
 		float textY2 = endPt.y + (0.1f);
-		
-		
+		float len = docPt.dist(endPt);
+		//System.out.println("measure: doc pt " + docPt.toStr() + " end pt "  + endPt.toStr() + " len " + len + " world scale " + worldScale);
 		// theUI.addCanvasOverlayShape("mouseDot", uied.docSpacePt, radiusOffset, "ellipse", new Color(127, 0, 0, 255), Color.gray, 1);
 		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance,  Color.blue, 20);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  depth = " + normalisedDepth,  Color.blue, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance + "  depth = " + normalisedDepth,  Color.blue, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr(),  Color.blue, 20);
+		//theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), ,  Color.blue, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);
 		
 	}

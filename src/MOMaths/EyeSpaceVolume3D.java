@@ -58,7 +58,8 @@ public class EyeSpaceVolume3D {
 		// cast a ray from eye pos to the docspace pos (with a z of 0)
 		// normalise it. The multiply by the distance.
 		PVector pointOnViewingPlane = new PVector(docSpacePt.x,docSpacePt.y,0);
-		Ray3D ray = new Ray3D(eyePosition, pointOnViewingPlane);
+		Ray3D ray = new Ray3D();
+		ray.setFromTwoPoints(eyePosition, pointOnViewingPlane);
 		return ray.getPointAtDistance(distance);
 	}
 	

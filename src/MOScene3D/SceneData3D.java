@@ -260,7 +260,7 @@ public class SceneData3D {
 	
 	
 	
-	boolean isSubstance(PVector docSpace) {
+	public boolean isSubstance(PVector docSpace) {
 		PVector roiSpace = getROILoc(docSpace);
 		
 		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);

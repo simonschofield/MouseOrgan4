@@ -115,9 +115,9 @@ public class KeyImageSampler{
 		//
 		//normSpace = documentExtentsRect.norm(normSpace);
 		
-		
-		int pixelX = (int) MOMaths.constrain(normSpace.x *  sourceImageWidth , 0, sourceImageWidth-1);
-		int pixelY = (int) MOMaths.constrain(normSpace.y *  sourceImageHeight , 0, sourceImageHeight-1);
+		// while buffer space is usually in ints, we need float coords as the result may be interpolated (bi-linear)
+		float pixelX =  MOMaths.constrain(normSpace.x *  sourceImageWidth , 0, sourceImageWidth-1);
+		float pixelY =  MOMaths.constrain(normSpace.y *  sourceImageHeight , 0, sourceImageHeight-1);
 		return new PVector(pixelX,pixelY);
 	}
 	

@@ -20,6 +20,9 @@ import MOUtils.ImageDimensions;
 
 public class SceneHelper {
 	
+	
+	
+	
 	public static float millimeterToDocspace(float mm) {
 		// you give it a dimension in the printed version (e.g. 5mm)
 		// and it returns the doc space dimension that is that size when printed at full size. Gives the same answer at all

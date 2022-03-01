@@ -243,7 +243,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	// scaled drawing operations
 	// All units are in documentSpace, including lineThickness
 	// so, in this case, radius and lineThickness are fractions of the longest edge.
-
+	
 	public void drawCircle(PVector docPoint, float radiusDocSpace, Color fillColor, Color lineColor,
 			float lineThicknessDocSpace) {
 

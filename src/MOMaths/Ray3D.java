@@ -12,25 +12,21 @@ public class Ray3D {
 
 	boolean isIntersection = false;
 	
+	public Ray3D() {}
 	
-	
-	public Ray3D(PVector v1, PVector v2) {
-		origin = v1.copy();
-		direction = PVector.sub(v2, v1);
+	public Ray3D(PVector orig, PVector dir) {
+		origin = orig.copy();
+		direction = dir.copy();
 		direction.normalize();
 	}
 	
-	public Ray3D() {}
 	
-	static Ray3D fromTwoPoints(PVector v1, PVector v2) {
-		return new Ray3D(v1,v2);
-	}
 	
-	public static Ray3D fromOriginAndVector(PVector o, PVector v) {
-		PVector point2 = PVector.add(o, v);
-		return new Ray3D(o,point2);
+	void setFromTwoPoints(PVector orig, PVector pt2) {
+		origin = orig.copy();
+		direction =  PVector.sub(pt2,orig);
+		direction.normalize();
 	}
-
 
 	Ray3D copy() {
 		Ray3D sr = new Ray3D(this.origin, this.direction);
