@@ -236,6 +236,16 @@ public class NamedImageGroup {
 		return imageNames;
 	}
 	
+	public void  replaceImage(BufferedImage img, String name, int n) {
+		// replaces an image, but keeps the exiting name the same
+		if( checkLegalIndex(n)==false) return;
+		
+		NamedImage namedImage = imageList.get(n);
+		namedImage.image = img;
+		namedImage.name = name;
+		
+	}
+	
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	// private

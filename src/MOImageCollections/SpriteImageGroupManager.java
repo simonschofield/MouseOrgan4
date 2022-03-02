@@ -248,10 +248,28 @@ public class SpriteImageGroupManager {
 	}
 
 	void paradeContent(String groupName, int effect, float p1, float p2, float p3, RenderTarget rt) {
-		SpriteImageGroup sampleGroup = this.getSpriteImageGroup(groupName);
+		SpriteImageGroup sampleGroup = this.getSpriteImageGroup(groupName).copy(groupName + "copy");
+		
+		int numItems = sampleGroup.getNumImages();
+		// get them in portrait mode
+		for(int n = 0; n < numItems; n++) {
+			BufferedImage img = sampleGroup.getImage(n);
+			String exisitingName = sampleGroup.getImageName(n);
+			int w = img.getWidth();
+			int h = img.getHeight();
+			if(w > h) {
+				
+				img = ImageProcessing.rotate90(img, 1);
+				String newName = exisitingName + "_rot90";
+				sampleGroup.replaceImage(img, newName, n);
+			}
+			
+		}
+		
+		
 		//Surface parentSurface = GlobalObjects.theSurface;
 
-		int numItems = sampleGroup.getNumImages();
+		
 		int biggestItemWidth = (int) sampleGroup.widthExtrema.getUpper();
 		int biggestItemHeight = (int) sampleGroup.heightExtrema.getUpper();
 		float itemAspect = biggestItemWidth / (float) biggestItemHeight;
