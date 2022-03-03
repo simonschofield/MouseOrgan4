@@ -8,6 +8,7 @@ import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.NamedImageGroup;
+import MOMaths.Fustrum3D;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
@@ -282,6 +283,27 @@ public class SceneData3D {
 		// needs to take angle into consideration but OK for the moment
 		float realDistance = geometryBuffer3d.normalisedDepthToRealDepth(normDepth);
 		return geometryBuffer3d.docSpaceToWorld3D( roiSpace, realDistance);
+	}
+	
+	Fustrum3D getViewFustrum() {
+		// returns the 8 points that represnt the extents of the viewing fustrum
+		// in this order starting at index 
+		// Front plane Top Left
+		Fustrum3D fustrum = new Fustrum3D();
+		float docWidth = GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth();
+		float docHeight = GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight();
+		
+		fustrum.farTopLeft = get3DVolumePoint(new PVector(0,0), 1);
+		fustrum.farTopRight = get3DVolumePoint(new PVector(docWidth,0), 1);
+		fustrum.farBottomLeft = get3DVolumePoint(new PVector(0,docHeight), 1);
+		fustrum.farBottomRight = get3DVolumePoint(new PVector(docWidth,docHeight), 1);
+		
+		fustrum.nearTopLeft = get3DVolumePoint(new PVector(0,0), 0);
+		fustrum.nearTopRight = get3DVolumePoint(new PVector(docWidth,0), 0);
+		fustrum.nearBottomLeft = get3DVolumePoint(new PVector(0,docHeight), 0);
+		fustrum.nearBottomRight = get3DVolumePoint(new PVector(docWidth,docHeight), 0);
+		
+		return fustrum;
 	}
 	
 	public float get3DScale(PVector docSpace) {

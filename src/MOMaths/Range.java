@@ -18,7 +18,7 @@ public class Range {
 		limit2 = l2;
 	}
 
-	void initialiseForExtremaSearch() {
+	public void initialiseForExtremaSearch() {
 		limit1 = Float.MAX_VALUE;
 		limit2 = -Float.MAX_VALUE;
 
@@ -42,7 +42,7 @@ public class Range {
 		return new Range(limit1, limit2);
 	}
 
-	float getDifference() {
+	public float getDifference() {
 		return getUpper() - getLower();
 	}
 
