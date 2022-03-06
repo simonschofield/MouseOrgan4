@@ -590,8 +590,25 @@ public class ImageProcessing {
 		return outImg;
 	}
 	
+	public static BufferedImage tintWithColor(BufferedImage image, Color c) {
+		// black pixels in the source remains black,  white pixels become the tint colour
+		image = assertImageTYPE_INT_ARGB(image);
+		byte[][] data = new byte[4][256];
+		
+		
+		for (int n = 0; n < 256; n++) {
+			//data[0][n] = (byte) n;
+			float amt = n/255.0f;
+			data[0][n] = (byte) MOMaths.lerp(amt, n, c.getRed());
+			data[1][n] = (byte) MOMaths.lerp(amt, n, c.getGreen());
+			data[2][n] = (byte) MOMaths.lerp(amt, n, c.getBlue());
+			data[3][n] = (byte) n;
+		}
+		return pointFunction(image, data);
+	}
 	
 	public static BufferedImage blendWithColor(BufferedImage image, Color c, float amt) {
+		// blends exisiting rgb values with colour c acording to parameter amt (0..1), preserving alpha
 		image = assertImageTYPE_INT_ARGB(image);
 		//ignores any alpha, just blends the rgb values.
 		byte[][] data = new byte[4][256];
@@ -610,7 +627,7 @@ public class ImageProcessing {
 	
 	
 	public static BufferedImage replaceColor(BufferedImage image, Color c) {
-		//ignores any alpha, just replaces rgb values with colour
+		// replaces exisiting rgb values with colour c, preserving alpha
 		byte[][] data = new byte[3][256];
 		
 		byte r = (byte) c.getRed();
