@@ -154,15 +154,15 @@ public class ProjectedLight3D {
 		}
 		
 		// debug - draw the fustrum points on the texture image
-		for(int n = 0; n < 8; n++) {
-			PVector thisFustrumVertex = sceneFustrum.getViaIndex(n);
-			PVector uv = point3DToPlaneUV(thisFustrumVertex);
-			PVector bufferLoc = UVToTextureImageBufferLoc(uv);
-			//System.out.println("normPoint " + normPoint + "map to x y " + mapBufferPointX + "," + mapBufferPointY);
-			int red = ImageProcessing.packARGB(255, 255, 0, 0); 
-			textureImage.setRGB((int) bufferLoc.x, (int) bufferLoc.y,red);
-		}
-		
+//		for(int n = 0; n < 8; n++) {
+//			PVector thisFustrumVertex = sceneFustrum.getViaIndex(n);
+//			PVector uv = point3DToPlaneUV(thisFustrumVertex);
+//			PVector bufferLoc = UVToTextureImageBufferLoc(uv);
+//			//System.out.println("normPoint " + normPoint + "map to x y " + mapBufferPointX + "," + mapBufferPointY);
+//			int red = ImageProcessing.packARGB(255, 255, 0, 0); 
+//			textureImage.setRGB((int) bufferLoc.x, (int) bufferLoc.y,red);
+//		}
+//		
 		
 		
 		ImageProcessing.saveImage(GlobalSettings.getUserSessionPath() + "texturetest.png", textureImage);
