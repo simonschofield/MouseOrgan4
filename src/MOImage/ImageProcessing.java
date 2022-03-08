@@ -7,6 +7,7 @@ import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
+import java.awt.image.BandCombineOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ByteLookupTable;
@@ -284,8 +285,48 @@ public class ImageProcessing {
 		return getMaskedImage( source,  maskFullSize,  0,  0, AlphaComposite.DST_IN);
 	}
 	
+	// new tbd
+	public void applyGrayscaleMaskToAlpha(BufferedImage image, BufferedImage mask) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        int[] imagePixels = image.getRGB(0, 0, width, height, null, 0, width);
+        int[] maskPixels = mask.getRGB(0, 0, width, height, null, 0, width);
+
+        for (int i = 0; i < imagePixels.length; i++) {
+            int color = imagePixels[i] & 0x00ffffff; // Mask preexisting alpha
+            int alpha = maskPixels[i] << 24; // Shift blue to alpha
+            imagePixels[i] = color | alpha;
+        }
+
+        image.setRGB(0, 0, width, height, imagePixels, 0, width);
+    }
 	
-	
+	// new tbd
+	 private BufferedImage toAlpha(BufferedImage src) {
+	        /*
+	        This matrix specifies which band(s) to manipulate and how. The 3-ones
+	        in the right-most column sets dst's RGB bands to white. The solitary
+	        one in the bottom row will copy the green band into dst's alpha band.
+
+	        Footnote: when the grayscale was converted to ARGB I expected the RGB
+	        bands to be identical. After some testing the bands were found to be
+	        *near* identical; it seems a color conversion from grayscale to 
+	        RGB is not as simple as a bulk memory copy. The differences are low 
+	        enough that no one would've noticed a difference had the either the 
+	        red or blue band been chosen over the green band.
+	        */
+	        final float[][] matrix = new float[][] {
+	            {0, 0, 0, 0},
+	            {0, 0, 0, 0},
+	            {0, 0, 0, 0},
+	            {0, 1, 0, 0}};
+
+	        BandCombineOp op = new BandCombineOp(matrix, null);
+	        BufferedImage dst = new BufferedImage(src.getWidth(), src.getHeight(), src.getType());
+	        op.filter(src.getRaster(), dst.getRaster());
+	        return dst;
+	    }
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////

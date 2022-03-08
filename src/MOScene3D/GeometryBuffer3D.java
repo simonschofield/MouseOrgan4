@@ -30,6 +30,9 @@ public class GeometryBuffer3D{
 	// the original distance data gathered from the scene, left in its
 	// original units. -Float.MAX_VAL is set for "sky"
 	private FloatImage distanceBuffer;
+	
+	// the filtered distance buffer is the gamma-ed version of the distanceBuffer
+	// all readings are made from this buffer.
 	private FloatImage filteredDistanceBuffer;
 	
 	// the orthogonal distance to the viewing plane in the the range 0..1
@@ -116,7 +119,8 @@ public class GeometryBuffer3D{
 	private void makeDepthAndSubstanceBuffers() {
 		// this makes the depthBuffer - a floatimage containing the perpendicular distances
 		// it also contains -1 values for "sky" (infinitely distant)
-		depthBufferExtrema = new Range(Float.MAX_VALUE,-Float.MAX_VALUE);
+		depthBufferExtrema = new Range();
+		depthBufferExtrema.initialiseForExtremaSearch();
 		
 		int BLACK = ImageProcessing.packARGB(255, 0, 0, 0);
 		int WHITE = ImageProcessing.packARGB(255, 255, 255, 255);

@@ -190,8 +190,8 @@ public class Scene3DHelper {
 		// theUI.addCanvasOverlayShape("mouseDot", uied.docSpacePt, radiusOffset, "ellipse", new Color(127, 0, 0, 255), Color.gray, 1);
 		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance + "  depth = " + normalisedDepth,  Color.blue, 20);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr(),  Color.blue, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance + "  depth = " + normalisedDepth,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr(),  Color.red, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), ,  Color.blue, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);
 		
