@@ -172,7 +172,25 @@ public class ProjectedLight3D {
 	}
 	
 	
+	
+	
+	// this should be called after all the geometric transformations have been applied to the sprite
+	// It returns the lighting mask image to mask the desired sprite effect.
+	// This will not be the same size as the sprite but will be roughly the same aspect.
+	// It gets scaled up in the applicatio f 
 	public BufferedImage makeLightMask(Sprite sprite, int shortEgeResolution) {
+		float aspect = sprite.getImageWidth()/(float)sprite.getImageHeight();
+		int lightMaskW,lightMaskH;
+		
+		if(aspect > 1) {
+			lightMaskW = (int) (shortEgeResolution * aspect + 0.5f);
+			lightMaskH = shortEgeResolution; 
+			
+		}else {
+			lightMaskW = shortEgeResolution; 
+			lightMaskH = (int) (shortEgeResolution/aspect + 0.5f);
+		}
+		
 		
 		
 		return null

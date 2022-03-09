@@ -509,24 +509,25 @@ public class Sprite {
 	// think this is pretty rubbish.....
 	
 	
-	BufferedImage getMaskedImage(BufferedImage mask, PVector maskCentre, PVector maskBottomRight) {
-		// maskRect is in normalised Quad Space
-		// preserves the scale of the mask despite any rotation, but does not rotate the mask ever, soreally only
-		// works with radial and symmetrical masks
-		PVector maskCentre_BufferSpace = imageQuad.getQuadPointBufferCoords(maskCentre.x, maskCentre.y);
-		PVector maskBottomRight_BufferSpace = imageQuad.getQuadPointBufferCoords(maskBottomRight.x, maskBottomRight.y);
-		float distToBottomRight = maskCentre_BufferSpace.dist(maskBottomRight_BufferSpace);
-		
-		PVector brNorm = maskBottomRight.normalize(null);
-		PVector bottomRightScaled = PVector.mult(brNorm, distToBottomRight);
-		Rect maskRect_BufferSpace = new Rect(PVector.sub(maskCentre_BufferSpace,bottomRightScaled), PVector.add(maskCentre_BufferSpace,bottomRightScaled));
-		
-		//System.out.println("dist cen-br " + distToBottomRight + " brNorm " + brNorm.toStr() + " BottomRightScaled " + bottomRightScaled + " rect " + maskRect_BufferSpace.toStr());
-		
-		return ImageProcessing.getMaskedImage(getImage(),  mask,  maskRect_BufferSpace);
-	}
+//	BufferedImage getMaskedImage(BufferedImage mask, PVector maskCentre, PVector maskBottomRight) {
+//		// maskRect is in normalised Quad Space
+//		// preserves the scale of the mask despite any rotation, but does not rotate the mask ever, soreally only
+//		// works with radial and symmetrical masks
+//		PVector maskCentre_BufferSpace = imageQuad.getQuadPointBufferCoords(maskCentre.x, maskCentre.y);
+//		PVector maskBottomRight_BufferSpace = imageQuad.getQuadPointBufferCoords(maskBottomRight.x, maskBottomRight.y);
+//		float distToBottomRight = maskCentre_BufferSpace.dist(maskBottomRight_BufferSpace);
+//		
+//		PVector brNorm = maskBottomRight.normalize(null);
+//		PVector bottomRightScaled = PVector.mult(brNorm, distToBottomRight);
+//		Rect maskRect_BufferSpace = new Rect(PVector.sub(maskCentre_BufferSpace,bottomRightScaled), PVector.add(maskCentre_BufferSpace,bottomRightScaled));
+//		
+//		//System.out.println("dist cen-br " + distToBottomRight + " brNorm " + brNorm.toStr() + " BottomRightScaled " + bottomRightScaled + " rect " + maskRect_BufferSpace.toStr());
+//		
+//		return ImageProcessing.getMaskedImage(getImage(),  mask,  maskRect_BufferSpace);
+//	}
 	
 	//... once you have done the treatment to the masked part, remerge it
+	
 	void mergeMaskedImage(BufferedImage maskedImage){
 		
 		ImageProcessing.compositeImage_ChangeTarget(maskedImage, getImage(), 0, 0, 1);
