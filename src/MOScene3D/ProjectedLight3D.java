@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOCompositing.Sprite;
 import MOImage.ImageProcessing;
 import MOMaths.Fustrum3D;
 import MOMaths.Intersection3D;
@@ -89,7 +90,11 @@ public class ProjectedLight3D {
 		
 	}
 	
-	
+	///////////////////////////////////////////////////////////////////////////
+	// This is called at the start of the session to make a global light map based on a
+	// pre-existing render image (perhaps one of the Scenedata3D renders). This eanables the user to paint the result
+	// of the desired lighting on the surface of the scene, and this then becomes the light
+	// "shone" from an angle (the texturePlane normal)  into the 3D scene
 	public void buildMapFromSceneImage(BufferedImage sceneImage) {
 		// This builds a map the same size as the range in x and y
 
@@ -163,13 +168,17 @@ public class ProjectedLight3D {
 //			textureImage.setRGB((int) bufferLoc.x, (int) bufferLoc.y,red);
 //		}
 //		
-		
-		
 		ImageProcessing.saveImage(GlobalSettings.getUserSessionPath() + "texturetest.png", textureImage);
 	}
 	
 	
-	PVector UVToTextureImageBufferLoc(PVector uv) {
+	public BufferedImage makeLightMask(Sprite sprite, int shortEgeResolution) {
+		
+		
+		return null
+	}
+	
+	private PVector UVToTextureImageBufferLoc(PVector uv) {
 		
 		PVector norm = extentsImageMap2D.normClamped(uv.x, uv.y);
 		int texBufferPointX = (int)(norm.x * (textureImage.getWidth()-1));

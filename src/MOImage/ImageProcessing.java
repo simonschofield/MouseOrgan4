@@ -230,25 +230,11 @@ public class ImageProcessing {
 	///////////////////////////////////////////////////////////////////////////////////////
 	// mask compositing operations
 	//
-	/*
-	public static BufferedImage getCompositeMasked(BufferedImage source, BufferedImage mask, BufferedImage target,  float alpha) {
-		// Simplified version of below that assumes all images are in register
-		return getCompositeMasked( source,  mask, 0, 0,  target,  0,0,  alpha);
-	}
 	
-	public static BufferedImage getCompositeMasked(BufferedImage source, BufferedImage mask, int maskX, int maskY, BufferedImage target,  int x, int y, float alpha) {
-		// Adds two image together using SRC_OVER (normal pasting) but through a mask, so only the unmasked regions are changed.
-		// the mask is a normal ARGB image, and only the alpha is regarded.
-		// The mask is placed at maskX, maskY in the source image
-		
-		// first, apply the mask to the source, by using Porter Duff SRC_IN, to preserve the masked portion only
-		BufferedImage maskedImage = getMaskedImage(source,   mask, maskX, maskY);
-		// then paste the maskedImage onto the target Image
-		return getCompositeImage(maskedImage,  target, x, y, alpha);
-		
-	}*/
 	
 	public static BufferedImage getMaskedImage(BufferedImage source,  BufferedImage mask, int x, int y, int compositeMode) {
+		// used by RenderBoarder to mask out parts of the image using the bespoke crop images
+		//
 		// AlphaComposite.DST_OUT preserves the parts of source which are overlaid by transparent alpha values
 		// AlphaComposite.DST_IN preserves those parts under the solid parts of the mask
 		BufferedImage source_copy = copyImage(source);
@@ -264,6 +250,8 @@ public class ImageProcessing {
 	
 	
 	public static BufferedImage getMaskedImage(BufferedImage source,  BufferedImage mask, Rect maskRect) {
+		// Not used
+		//
 		// Mask rect is in pixel coordinates of the source, and can be outside the source
 		// The mask is scaled to the rect, and applied.
 		// Areas outside the mask image rect are wholly masked-out.
@@ -285,24 +273,48 @@ public class ImageProcessing {
 		return getMaskedImage( source,  maskFullSize,  0,  0, AlphaComposite.DST_IN);
 	}
 	
-	// new tbd
-	public void applyGrayscaleMaskToAlpha(BufferedImage image, BufferedImage mask) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-
-        int[] imagePixels = image.getRGB(0, 0, width, height, null, 0, width);
-        int[] maskPixels = mask.getRGB(0, 0, width, height, null, 0, width);
-
-        for (int i = 0; i < imagePixels.length; i++) {
-            int color = imagePixels[i] & 0x00ffffff; // Mask preexisting alpha
-            int alpha = maskPixels[i] << 24; // Shift blue to alpha
-            imagePixels[i] = color | alpha;
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// Used in masked effects
+	// The idea is that you have a greyscale mask that represents the parts of the 
+	// source image you want to affect.The greysale mask can be made any size, and is resized to match the source image.
+	// The mask can be any image format, as it is converted to TYPE_INT_ARGB before use. (The green channel is used)
+	// This method returns this masked image. You submit the masked-image to the effect, and
+	// then re-merge it with the original image.
+	//
+	static public BufferedImage extractImageUsingGrayscaleMask(BufferedImage sourceImage, BufferedImage mask) {
+		// returns a copy of imageIn preserving the parts of the imageIn which are in the lighter regions of the mask
+		// Those in the dark mask regions are alpha-ed out
+		// i.e. new alpha = min(maskAlpha, exisitingAlpha);
+		int width = sourceImage.getWidth();
+        int height = sourceImage.getHeight();
+		
+		if( isSameDimensions(sourceImage, mask) == false ) {
+			mask = resizeTo(mask, width, height);
+		}
+		
+		sourceImage = assertImageTYPE_INT_ARGB(sourceImage);
+		mask = assertImageTYPE_INT_ARGB(mask);
+		
+		int[] sourceImagePixels = ((DataBufferInt) sourceImage.getRaster().getDataBuffer()).getData();
+		int[] maskPixels = ((DataBufferInt) mask.getRaster().getDataBuffer()).getData();
+		
+        BufferedImage imageOut = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
+        int[] imageOutPixels = ((DataBufferInt) imageOut.getRaster().getDataBuffer()).getData();
+        
+        
+        for (int i = 0; i < sourceImagePixels.length; i++) {
+            
+        	int[] exisitingCol = unpackARGB(sourceImagePixels[i]);
+            int maskAlpha = getGreen(maskPixels[i]); 
+            int newAlpha = Math.min(exisitingCol[0], maskAlpha);
+            imageOutPixels[i] = packARGB(newAlpha, exisitingCol[1], exisitingCol[2], exisitingCol[3]);
         }
 
-        image.setRGB(0, 0, width, height, imagePixels, 0, width);
+        return imageOut;
     }
 	
 	// new tbd
+	// not used but demonstrates use of BandCombineOp
 	 private BufferedImage toAlpha(BufferedImage src) {
 	        /*
 	        This matrix specifies which band(s) to manipulate and how. The 3-ones
@@ -317,9 +329,9 @@ public class ImageProcessing {
 	        red or blue band been chosen over the green band.
 	        */
 	        final float[][] matrix = new float[][] {
-	            {0, 0, 0, 0},
-	            {0, 0, 0, 0},
-	            {0, 0, 0, 0},
+	            {0, 0, 0, 1},
+	            {0, 0, 0, 1},
+	            {0, 0, 0, 1},
 	            {0, 1, 0, 0}};
 
 	        BandCombineOp op = new BandCombineOp(matrix, null);
@@ -356,6 +368,23 @@ public class ImageProcessing {
 		col[2] = (packedCol >> 8) & 0xFF; // green
 		col[3] = packedCol & 0xFF; // blue
 		return col;
+	}
+	
+	
+	static int getRed(int packedCol) {
+		return (packedCol >> 16) & 0xFF;// red
+	}
+	
+	static int getGreen(int packedCol) {
+		return (packedCol >> 8) & 0xFF; // green
+	}
+	
+	static int getBlue(int packedCol) {
+		return packedCol & 0xFF; // blue
+	}
+	
+	static int getAlpha(int packedCol) {
+		return (packedCol >> 24) & 0xFF;// alpha
 	}
 
 	static void unpackARGB(int packedCol, int[] col) {
