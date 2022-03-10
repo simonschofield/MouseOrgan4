@@ -48,18 +48,23 @@ public class ImageProcessing {
 	
 	
 	static int interpolationQuality = 2;
-
+	static int interpolationQualityRestore = interpolationQuality;
 	public static void setInterpolationQuality(int q) {
 		// this is set by the user
+		interpolationQualityRestore = interpolationQuality;
 		interpolationQuality = q;
 	}
 	
 	public static int getInterpolationQuality() {
 		return interpolationQuality;
 	}
+	
+	public static void restoreInterpolationQuality() {
+		 interpolationQuality = interpolationQualityRestore;
+	}
 
 	private static void setInterpolationQuality(Graphics2D g) {
-		// this is called during all scale and rotation functions
+		// this is called during all scale and rotation functions and sets the interpolation to the current global interpolation scheme
 		if (interpolationQuality == 0)
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 		if (interpolationQuality == 1)
@@ -68,6 +73,8 @@ public class ImageProcessing {
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
 	}
+	
+	
 
 	public static BufferedImage loadImage(String pathAndName) {
 
@@ -491,14 +498,28 @@ public class ImageProcessing {
 	}
 	
 	
-	public static BufferedImage resizeTo(BufferedImage originalImage, int newW, int newH) {
-		// scales the originalImage to be newW, newH
-		int w = originalImage.getWidth();
-		int h = originalImage.getHeight();
-		float wScale = newW/(float)w;
-		float hScale = newH/(float)h;
-		return scaleImage( originalImage,wScale,hScale);
-	}
+//	public static BufferedImage resizeTo(BufferedImage originalImage, int newW, int newH) {
+//		// scales the originalImage to be newW, newH
+//		int w = originalImage.getWidth();
+//		int h = originalImage.getHeight();
+//		float wScale = newW/(float)w;
+//		float hScale = newH/(float)h;
+//		return scaleImage( originalImage,wScale,hScale);
+//	}
+	
+	public static BufferedImage resizeTo(BufferedImage originalImage, int scaledWidth, int scaledHeight)
+	{
+        BufferedImage outputImage = new BufferedImage(scaledWidth,
+                scaledHeight, originalImage.getType());
+ 
+        // scales the input image to the output image
+        Graphics2D g2d = outputImage.createGraphics();
+        setInterpolationQuality(g2d);
+        g2d.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
+        g2d.dispose();
+ 
+        return outputImage;
+    }
 	
 	public static BufferedImage scaleToTarget(BufferedImage originalImage, BufferedImage target) {
 		return resizeTo(originalImage, target.getWidth(),  target.getHeight());

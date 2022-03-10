@@ -14,9 +14,9 @@ import MOMaths.Range;
 import MOMaths.Ray3D;
 import MOUtils.GlobalSettings;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Maps 3D points in space onto a "texture plane" using parallel rays (on the planes surface normal)
-// This produces a UV value within the texture plane, whihc is then used to map into the texture image
-//
+// Creates a lighting volume based on a bitmap projected from a plane in 3D. Any 3D point within the viewing fustrum can be mapped to this 
+// image-plane and the lighting value found.
+// So the angle of the light can be set
 // Also builds a texture image from an existing texture (from the 3D scene). This then becomes a "light" from an angle (the normal of the plane)
 // so the user can interactively "paint" the resultant light from the texture, and then this becomes the light.
 //
@@ -159,15 +159,15 @@ public class ProjectedLight3D {
 		}
 		
 		// debug - draw the fustrum points on the texture image
-//		for(int n = 0; n < 8; n++) {
-//			PVector thisFustrumVertex = sceneFustrum.getViaIndex(n);
-//			PVector uv = point3DToPlaneUV(thisFustrumVertex);
-//			PVector bufferLoc = UVToTextureImageBufferLoc(uv);
-//			//System.out.println("normPoint " + normPoint + "map to x y " + mapBufferPointX + "," + mapBufferPointY);
-//			int red = ImageProcessing.packARGB(255, 255, 0, 0); 
-//			textureImage.setRGB((int) bufferLoc.x, (int) bufferLoc.y,red);
-//		}
-//		
+		for(int n = 0; n < 8; n++) {
+			PVector thisFustrumVertex = sceneFustrum.getViaIndex(n);
+			PVector uv = point3DToPlaneUV(thisFustrumVertex);
+			PVector bufferLoc = UVToTextureImageBufferLoc(uv);
+			//System.out.println("normPoint " + normPoint + "map to x y " + mapBufferPointX + "," + mapBufferPointY);
+			int red = ImageProcessing.packARGB(255, 255, 0, 0); 
+			textureImage.setRGB((int) bufferLoc.x, (int) bufferLoc.y,red);
+		}
+		
 		ImageProcessing.saveImage(GlobalSettings.getUserSessionPath() + "texturetest.png", textureImage);
 	}
 	
@@ -175,9 +175,9 @@ public class ProjectedLight3D {
 	
 	
 	// this should be called after all the geometric transformations have been applied to the sprite
-	// It returns the lighting mask image to mask the desired sprite effect.
-	// This will not be the same size as the sprite but will be roughly the same aspect.
-	// It gets scaled up in the applicatio f 
+	// and the sprite has a docPoint (and therefore position and depth) in the scene.
+	// It returns the lightMask image used to mask the desired sprite effect.
+	//
 	public BufferedImage makeLightMask(Sprite sprite, int shortEgeResolution) {
 		float aspect = sprite.getImageWidth()/(float)sprite.getImageHeight();
 		int lightMaskW,lightMaskH;
@@ -192,9 +192,46 @@ public class ProjectedLight3D {
 		}
 		
 		
+		BufferedImage lightMask = new BufferedImage(lightMaskW,lightMaskH, BufferedImage.TYPE_INT_ARGB);
 		
-		return null
+		
+		// establish the depth of the sprite
+		// now work out the normalised centres of the pixels in the lightMask and get the equivalent docSpace point for the positioned sprite.
+		// with this you have a set of 3D points to sample the "lighting volume"
+		
+		float normx, normy;
+		float normalisedSpriteDepth = sceneData3D.getDepthNormalised(sprite.getDocPoint());
+		for(int y = 0; y < lightMaskH; y++) {
+			normy = y/(float) lightMaskH;
+			for(int x = 0; x < lightMaskW; x++) {
+				normx = x/(float) lightMaskW;
+				PVector normPoint = new PVector(normx, normy);
+				PVector docPoint = sprite.spriteNormalisedSpaceToDocumentSpace(normPoint);
+				int lightingVal = (int)(getValue01(docPoint, normalisedSpriteDepth)*255);
+				
+				int pixelVal = ImageProcessing.packARGB(255, lightingVal, lightingVal, lightingVal);
+				lightMask.setRGB(x, y, pixelVal);
+			}
+		}
+		ImageProcessing.setInterpolationQuality(2);
+		lightMask  = ImageProcessing.scaleToTarget(lightMask, sprite.getImage());
+		ImageProcessing.restoreInterpolationQuality();
+		
+		return lightMask;
 	}
+	
+	
+	public void spriteLightMaskTest(Sprite sprite) {
+		//This replaces the sprite's image with the lightmask, so you get a lit rectangle in place of the sprite
+		//you would expect
+		
+		
+		
+	}
+	
+	
+	
+	
 	
 	private PVector UVToTextureImageBufferLoc(PVector uv) {
 		

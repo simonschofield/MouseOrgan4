@@ -528,7 +528,7 @@ public class Sprite {
 	
 	//... once you have done the treatment to the masked part, remerge it
 	
-	void mergeMaskedImage(BufferedImage maskedImage){
+	public void mergeMaskedImage(BufferedImage maskedImage){
 		
 		ImageProcessing.compositeImage_ChangeTarget(maskedImage, getImage(), 0, 0, 1);
 		

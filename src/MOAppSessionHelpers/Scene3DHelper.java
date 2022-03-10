@@ -179,18 +179,19 @@ public class Scene3DHelper {
 		float worldScale = sceneData3D.get3DScale(docPt);
 		PVector p3d = sceneData3D.get3DSurfacePoint(docPt);
 		float distance = sceneData3D.getDistance(docPt);
+		float depth = sceneData3D.getDepth(docPt);
 		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
 		
 		float textX = endPt.x;
 		endPt.y -= (worldScale * measuringToolSize);
-		float textY1 = endPt.y;
-		float textY2 = endPt.y + (0.1f);
+		float textY1 = endPt.y + (0.1f);
+		float textY2 = endPt.y + (0.12f);
 		float len = docPt.dist(endPt);
 		//System.out.println("measure: doc pt " + docPt.toStr() + " end pt "  + endPt.toStr() + " len " + len + " world scale " + worldScale);
 		// theUI.addCanvasOverlayShape("mouseDot", uied.docSpacePt, radiusOffset, "ellipse", new Color(127, 0, 0, 255), Color.gray, 1);
 		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance + "  depth = " + normalisedDepth,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance + " depth " + depth + "  norm depth = " + normalisedDepth,  Color.red, 20);
 		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr(),  Color.red, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), ,  Color.blue, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);

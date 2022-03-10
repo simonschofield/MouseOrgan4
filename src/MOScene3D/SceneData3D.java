@@ -293,6 +293,9 @@ public class SceneData3D {
 		float docWidth = GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth();
 		float docHeight = GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight();
 		
+		System.out.println("doc width and height " + docWidth + " " + docHeight);
+		
+		
 		fustrum.farTopLeft = get3DVolumePoint(new PVector(0,0), 1);
 		fustrum.farTopRight = get3DVolumePoint(new PVector(docWidth,0), 1);
 		fustrum.farBottomLeft = get3DVolumePoint(new PVector(0,docHeight), 1);
@@ -322,7 +325,7 @@ public class SceneData3D {
 	}
 	
 	
-	float getDepth(PVector docSpace) {
+	public float getDepth(PVector docSpace) {
 		PVector roiSpace = getROILoc(docSpace);
 		
 		return geometryBuffer3d.getDepth(roiSpace);
