@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 
 import MOCompositing.MainDocumentRenderTarget;
-import MOCompositing.RenderBoarder;
+import MOCompositing.RenderBorder;
 import MOCompositing.RenderTarget;
 import MOCompositing.Sprite;
 import MOUtils.ImageCoordinateSystem;
@@ -33,7 +33,7 @@ public class MainDocument{
 	
 	
 	ArrayList<MainDocumentRenderTarget> renderTargets = new ArrayList<MainDocumentRenderTarget>();
-	public RenderBoarder renderBoarder;
+	public RenderBorder renderBoarder;
 	int width, height;
 	
 	public MainDocument(int wdth, int hght, int mainRenderType) {
@@ -42,7 +42,7 @@ public class MainDocument{
 		height = hght;
 		addRenderTarget("main", mainRenderType);
 		GlobalSettings.setTheDocumentCoordSystem(this);
-		renderBoarder = new RenderBoarder();
+		renderBoarder = new RenderBorder();
 		
 	}
 	
@@ -95,7 +95,7 @@ public class MainDocument{
 	}
 	
 
-	public void setRenderBoarder(RenderBoarder rb) {
+	public void setRenderBoarder(RenderBorder rb) {
 		renderBoarder = rb;
 	}
 	

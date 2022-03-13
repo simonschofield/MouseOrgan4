@@ -32,7 +32,7 @@ import MOUtils.GlobalSettings;
 // with the following precedence
 // (HIGH) EXCLUDED, BESPOKE_CROP, RECT_CROP, NONE (LOW)
 //
-public class RenderBoarder {
+public class RenderBorder {
 	
 	
 	
@@ -57,7 +57,7 @@ public class RenderBoarder {
 	// this is for selecting the particular edge-mask
 	QRandomStream qRandomStream = new QRandomStream(1);
 	
-	public RenderBoarder(){
+	public RenderBorder(){
 		
 		boarderRect = new Rect(0,0,GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth(), GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight());
 		

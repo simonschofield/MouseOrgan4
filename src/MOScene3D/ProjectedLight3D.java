@@ -213,7 +213,7 @@ public class ProjectedLight3D {
 				lightMask.setRGB(x, y, pixelVal);
 			}
 		}
-		ImageProcessing.setInterpolationQuality(2);
+		ImageProcessing.setInterpolationQuality(1);
 		lightMask  = ImageProcessing.scaleToTarget(lightMask, sprite.getImage());
 		ImageProcessing.restoreInterpolationQuality();
 		

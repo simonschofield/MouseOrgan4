@@ -138,7 +138,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		
 		Rect theROI = sceneData3D.getROIRect();
 		
-		
+		System.out.println("apply ROI to seeds " + theROI.toStr());
 		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch();
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
