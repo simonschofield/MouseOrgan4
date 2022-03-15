@@ -23,15 +23,19 @@ public class SpriteSeedBatch extends CollectionIterator{
 	
 	
 	private ArrayList<SpriteSeed> seeds = new ArrayList<SpriteSeed>();
+	String seedBatchName = "";
 	
-
-	public SpriteSeedBatch(){
-		
+	public SpriteSeedBatch(String name){
+		seedBatchName = name;
+	}
+	
+	public String getName() {
+		return seedBatchName;
 	}
 	
 	
 	public SpriteSeedBatch copy() {
-		SpriteSeedBatch cpy = new SpriteSeedBatch();
+		SpriteSeedBatch cpy = new SpriteSeedBatch(seedBatchName + "_copy");
 		cpy.seeds = (ArrayList<SpriteSeed>) this.seeds.clone();
 		return cpy;
 	}
@@ -41,9 +45,15 @@ public class SpriteSeedBatch extends CollectionIterator{
 	}
 
 
-	ArrayList<SpriteSeed> getSpriteSeeds(){
+	public ArrayList<SpriteSeed> getSpriteSeeds(){
 		return seeds;
 	}
+	
+	
+	public void setSpriteSeeds(ArrayList<SpriteSeed> sds) {
+		seeds = sds;
+	}
+	
 	
 	
 	public void append(SpriteSeedBatch otherBatch) {

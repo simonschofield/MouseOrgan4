@@ -95,8 +95,12 @@ public class MainDocument{
 	}
 	
 
-	public void setRenderBoarder(RenderBorder rb) {
+	public void setRenderBorder(RenderBorder rb) {
 		renderBoarder = rb;
+	}
+	
+	public RenderBorder getRenderBorder() {
+		return renderBoarder;
 	}
 	
 	public boolean cropSpriteToBoarder(Sprite sprite) {

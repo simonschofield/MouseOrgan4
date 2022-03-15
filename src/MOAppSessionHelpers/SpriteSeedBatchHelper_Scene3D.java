@@ -85,7 +85,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		//SpriteSeedFont seedFont = imageSampleSelector.getSpriteSeedFontInstance();
 		
 		
-		SpriteSeedBatch seedbatch = new SpriteSeedBatch();
+		SpriteSeedBatch seedbatch = new SpriteSeedBatch(batchName);
 		
 		String pathAndFileName = GlobalSettings.getUserSessionPath() + "seeds\\" + batchName + ".sds";
 		
@@ -97,7 +97,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 			
 			SpriteSeed seedInstance = seedFontBiome.getSpriteSeedInstance();
 			seedInstance.setDocPoint(p);
-			seedInstance.seedFontName = batchName;
+			seedInstance.spriteSeedBatchName = batchName;
 			seedInstance.setDepth(p.z);
 			seedbatch.addSpriteSeed(seedInstance);
 			n++;
@@ -139,7 +139,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		Rect theROI = sceneData3D.getROIRect();
 		
 		System.out.println("apply ROI to seeds " + theROI.toStr());
-		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch();
+		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch(seedbatch.getName());
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
 			

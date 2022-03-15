@@ -216,7 +216,7 @@ public class SceneData3D {
 		
 	BufferedImage cropToROI(BufferedImage uncropped) {
 		// returns the roi cropped image from whatever function
-		System.out.println("cropping to roi rect " + roiRect.toStr());
+		//System.out.println("cropping to roi rect " + roiRect.toStr());
 		return ImageProcessing.cropImageWithNormalisedRect(uncropped,roiRect);
 	}
 	

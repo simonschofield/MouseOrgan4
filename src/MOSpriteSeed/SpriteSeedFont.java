@@ -65,7 +65,8 @@ public class SpriteSeedFont {
 	
 	public SpriteSeed getSpriteSeedInstance(int n) {
 		SpriteSeed spriteSeed = new SpriteSeed();
-		spriteSeed.seedFontName = seedFontName;
+		
+		spriteSeed.spriteSeedFontName = seedFontName;
 		spriteSeed.spriteImageGroupName = imageSampleGroupName;
 		spriteSeed.sizeInScene = sizeInScene;
 		spriteSeed.useRelativeSizes = useRelativeSizes;

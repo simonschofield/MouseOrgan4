@@ -34,7 +34,7 @@ import MOUtils.GlobalSettings;
 //
 public class RenderBorder {
 	
-	
+	private SpriteCropDecisionList spriteCropDecisionList;
 	
 	
 	public static final int	CROP_ACTION_NONE = 0;
@@ -60,7 +60,7 @@ public class RenderBorder {
 	public RenderBorder(){
 		
 		boarderRect = new Rect(0,0,GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth(), GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight());
-		
+		spriteCropDecisionList = new SpriteCropDecisionList();
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +93,25 @@ public class RenderBorder {
 	public void setActive(boolean active) {
 		isActive = active;
 	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Crop decision methods
+	
+	private boolean logSpriteCropDecision(Sprite sprite, boolean contributes) {
+		// this is used to echo the crop decision in the above method, and log it
+		// to a list, which is saved as a file at the end of the render. This can
+		// then be used to speed up subsequent renders by not bothering with sprites that do not
+		// contribute to the image (e.g. totally outside the renderBoarder, or the document bounds if no render boarder has been set)
+		if(contributes) spriteCropDecisionList.addDecision(sprite.data.id, contributes);
+		return contributes;
+	}
+	
+	
+	public SpriteCropDecisionList getSpriteCropDecisionList() {
+		return spriteCropDecisionList;
+	}
+	
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,16 +148,16 @@ public class RenderBorder {
 	// obliterated by the crop action.
 	public boolean cropSprite(Sprite sprite) {
 		
-		if(isActive()==false) return true;
+		if(isActive()==false) return logSpriteCropDecision( sprite, true);
 		
 		String overlapReport = sprite.getDocSpaceRect().reportIntersection(boarderRect);
 		
 		
 		// do the trivial non-cropping actions if the image is wholly inside or outside the boarderRect
-		if(overlapReport.equals("NONE")) return false;
-		if(overlapReport.equals("WHOLLYINSIDE")) return true;
-		if(checkCrop_Action_None(overlapReport)) return true;
-		if(checkCrop_Action_Exclude(overlapReport)) return false;
+		if(overlapReport.equals("NONE")) return logSpriteCropDecision( sprite, false);
+		if(overlapReport.equals("WHOLLYINSIDE")) return logSpriteCropDecision( sprite, true);
+		if(checkCrop_Action_None(overlapReport)) return logSpriteCropDecision( sprite, true);
+		if(checkCrop_Action_Exclude(overlapReport)) return logSpriteCropDecision( sprite, false);
 		
 		//System.out.println("cropToPermittedPasteArea");
 		Rect uncroppedSpriteRect = sprite.getDocSpaceRect();
@@ -157,7 +176,7 @@ public class RenderBorder {
 
 		Rect croppedRectBufferSpace = new Rect(bTopLeft,bBottomRight);
 		//System.out.println("doBespokeCrop:croppedRectBufferSpace " + croppedRectBufferSpace.toStr());
-		if(croppedRectBufferSpace.getWidth() < 1 || croppedRectBufferSpace.getHeight() < 1) return false;
+		if(croppedRectBufferSpace.getWidth() < 1 || croppedRectBufferSpace.getHeight() < 1) return logSpriteCropDecision( sprite, false);
 
 		// As we don't want to complicate things, and don't want to have to adjust the origin
 		// of the sprite to adjust to the new crop, we just delete the pixels outside of the croppedRectBufferSpace
@@ -170,7 +189,7 @@ public class RenderBorder {
 			boolean result = doBespokeCrop(preCroppedImage, overlapReport );
 			if(result == false) {
 				// the bespoke crop obliterated the image
-				return false;
+				return logSpriteCropDecision( sprite, false);
 			}
 		}
 
@@ -180,8 +199,9 @@ public class RenderBorder {
 		sprite.setImage(outputImage);
 
 	    // image has been cropped OK
-		return true;
+		return logSpriteCropDecision( sprite, true);
 	}
+	
 	
 	
 	
@@ -397,3 +417,5 @@ public class RenderBorder {
 	
 	
 }
+
+

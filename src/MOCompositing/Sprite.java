@@ -134,8 +134,14 @@ public class Sprite {
 		return data.spriteImageGroupName.contentEquals(s);
 	}
 	
+	public boolean seedBatchEquals(String s) {
+		//System.out.println("seedFontis " + data.spriteSeedFontName + " testing " + s);
+		return data.spriteSeedBatchName.contentEquals(s);
+	}
+	
 	public boolean seedFontEquals(String s) {
-		return data.seedFontName.contentEquals(s);
+		//System.out.println("seedFontis " + data.spriteSeedFontName + " testing " + s);
+		return data.spriteSeedFontName.contentEquals(s);
 	}
 	
 	public QRandomStream getRandomStream() {
