@@ -3,6 +3,8 @@ package MOAppSessionHelpers;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOApplication.MainDocument;
+import MOCompositing.SpriteCropDecisionList;
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.Rect;
@@ -30,7 +32,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 	PointGenerator_RadialPackSurface3D pointGenerator;
 	SpriteSeedFontBiome seedFontBiome;
 	
-	
+	boolean saveOutContributingSeedReport = false;
 
 	public SpriteSeedBatchHelper_Scene3D( SceneData3D sd3d, int biomeRanSeed) {
 		seedFontBiome = new SpriteSeedFontBiome(biomeRanSeed);
@@ -43,10 +45,10 @@ public class SpriteSeedBatchHelper_Scene3D {
 		// sets up the pontGenerator for this seed batch
 		// optionally returns the point generator if you need it
 		sceneData3D.setCurrentRenderImage(namePointDisImage);
-		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage();
+		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage(true);
 		PointGenerator_RadialPackSurface3D pointField = new PointGenerator_RadialPackSurface3D(pointDistRSeed, sceneData3D);
 
-		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage());
+		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage(true));
 		pointField.setPackingInterpolationScheme(packingInterpolationScheme, pointDistributionImage);
 		pointGenerator = pointField;
 		return pointField;
@@ -179,6 +181,30 @@ public class SpriteSeedBatchHelper_Scene3D {
 			s.setDepth(d);
 		}
 		seedbatch.resetItemIterator();
+		
+	}
+	
+	
+	public boolean removeNoncontributingSeedsInROI(ROIHelper roiHelper, MainDocument theDocument, SpriteSeedBatch seedbatch) {
+		
+		if(roiHelper.isUsingMaster()) return false;
+		String roiname = roiHelper.getCurrentROIName();
+		SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
+		boolean loadResult = spriteCropList.load(GlobalSettings.getUserSessionPath() + "seeds//spriteCropDecisions_" + roiname + ".csv");
+		if(loadResult == false) {
+			saveOutContributingSeedReport = true;
+			return false;
+		}
+		spriteCropList.removeNonContributingSpriteSeeds(seedbatch);
+		return true;
+	}
+	
+	public void saveContributingSeedsReport(ROIHelper roiHelper, MainDocument theDocument, boolean forcesave) {
+		if(roiHelper.isUsingMaster()) return;
+		if(forcesave) saveOutContributingSeedReport = true;
+		if(saveOutContributingSeedReport==false) return;
+		String roiname = roiHelper.getCurrentROIName();
+		theDocument.getRenderBorder().getSpriteCropDecisionList().save(GlobalSettings.getUserSessionPath() + "seeds//spriteCropDecisions_" + roiname + ".csv");
 		
 	}
 	

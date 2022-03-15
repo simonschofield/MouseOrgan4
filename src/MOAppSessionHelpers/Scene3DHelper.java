@@ -69,9 +69,9 @@ public class Scene3DHelper {
 		
 		public static float addWave(Sprite sprite, String waveImageName, float amt, boolean flipInDirection) {
 			
-			ConvolutionFilter cf = new ConvolutionFilter();
-			BufferedImage gritty = sceneData3D.getRenderImage(waveImageName);
-			PVector grad = cf.getGradient(sprite.getDocPoint(), gritty);
+			
+			
+			PVector grad = sceneData3D.getCurrentRenderGradiant(sprite.getDocPoint());
 			float mag = grad.mag();
 			
 			if(mag>0.001) {
@@ -125,7 +125,7 @@ public class Scene3DHelper {
 			if(uied.menuItem.contentEquals("none")) {
 				theSurface.setCanvasBackgroundImage(null);
 			} else {
-				BufferedImage viewIm = sceneData3D.getRenderImage(uied.menuItem);
+				BufferedImage viewIm = sceneData3D.getRenderImage(uied.menuItem, true);
 				theSurface.setCanvasBackgroundImage(viewIm);
 			}
 		}

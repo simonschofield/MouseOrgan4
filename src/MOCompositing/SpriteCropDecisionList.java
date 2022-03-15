@@ -61,8 +61,9 @@ public class SpriteCropDecisionList{
 
 	}
 
-	public void load(String fileAndPath) {
+	public boolean load(String fileAndPath) {
 		cropDecisionList.clear();
+		boolean loadResult = false;
 		// there should be a directory in the project folder called seeds
 		try{
 			BufferedReader csvReader = new BufferedReader(new FileReader(fileAndPath));
@@ -75,12 +76,14 @@ public class SpriteCropDecisionList{
 				SpriteCropDecision cd = new SpriteCropDecision(1,false);//temporary values get overwritten in next line
 				cd.setWithCSVStr(row);
 				cropDecisionList.add(cd);
+				loadResult = true;
 			}
 			csvReader.close();
 		} catch(Exception e){
-
+			loadResult = false;
 			System.out.println("SpriteCropDecisionList.load: csv reader failed - " + fileAndPath + e);
 		}
+		return loadResult;
 
 	}
 

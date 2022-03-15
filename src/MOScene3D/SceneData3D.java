@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOImage.ConvolutionFilter;
 import MOImage.FloatImage;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
@@ -195,17 +196,20 @@ public class SceneData3D {
 	//
 	// get images
 	//
-	public BufferedImage getSubstanceMaskImage() {
-		return cropToROI(geometryBuffer3d.substanceImage);
+	public BufferedImage getSubstanceMaskImage(boolean cropToRoi) {
+		if(cropToRoi) return cropToROI(geometryBuffer3d.substanceImage);
+		return geometryBuffer3d.substanceImage;
 	}
 	
-	public BufferedImage getCurrentRenderImage() {
-		return cropToROI(currentRenderKeyImage);
+	public BufferedImage getCurrentRenderImage(boolean cropToRoi) {
+		if(cropToRoi)  return cropToROI(currentRenderKeyImage);
+		return currentRenderKeyImage;
 	}
 	
-	public BufferedImage getRenderImage(String shortName) {
+	public BufferedImage getRenderImage(String shortName, boolean cropToRoi) {
 		BufferedImage renderImage = renderImages.getImage(shortName);
-		return cropToROI(renderImage);
+		if(cropToRoi)  return cropToROI(renderImage);
+		return renderImage;
 	}
 	
 	
@@ -259,7 +263,13 @@ public class SceneData3D {
 		return ImageProcessing.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
 	}
 	
-	
+	public PVector getCurrentRenderGradiant(PVector docSpace) {
+		PVector roiSpace = getROILoc(docSpace);
+		ConvolutionFilter cf = new ConvolutionFilter();
+		
+		PVector grad = cf.getGradient(roiSpace, currentRenderKeyImage);
+		return grad;
+	}
 	
 	public boolean isSubstance(PVector docSpace) {
 		PVector roiSpace = getROILoc(docSpace);

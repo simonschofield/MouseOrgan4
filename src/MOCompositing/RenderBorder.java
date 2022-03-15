@@ -148,17 +148,20 @@ public class RenderBorder {
 	// obliterated by the crop action.
 	public boolean cropSprite(Sprite sprite) {
 		
-		if(isActive()==false) return logSpriteCropDecision( sprite, true);
+		//if(isActive()==false) return logSpriteCropDecision( sprite, true);
 		
 		String overlapReport = sprite.getDocSpaceRect().reportIntersection(boarderRect);
 		
 		
 		// do the trivial non-cropping actions if the image is wholly inside or outside the boarderRect
+		// or is fully excluded, or there is no action to be taken
 		if(overlapReport.equals("NONE")) return logSpriteCropDecision( sprite, false);
 		if(overlapReport.equals("WHOLLYINSIDE")) return logSpriteCropDecision( sprite, true);
 		if(checkCrop_Action_None(overlapReport)) return logSpriteCropDecision( sprite, true);
 		if(checkCrop_Action_Exclude(overlapReport)) return logSpriteCropDecision( sprite, false);
 		
+		
+		// beyond this point some cropping of the sprite takes place
 		//System.out.println("cropToPermittedPasteArea");
 		Rect uncroppedSpriteRect = sprite.getDocSpaceRect();
 		Rect croppedSpriteRect = boarderRect.getBooleanIntersection(uncroppedSpriteRect);
