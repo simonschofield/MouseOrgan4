@@ -246,7 +246,7 @@ public class SpriteImageGroup extends NamedImageGroup{
 		// System.out.println("strippedDirectoryPath ..." + strippedDirectoryPath);
 		String cachedFolderName = cachFolderRoot + strippedDirectoryPath + "\\cached_scaled_" + scalePercentile + "\\";
 		
-		System.out.println("creating cach folder ..." + cachedFolderName);
+		System.out.println("scaled images cache directory ..." + cachedFolderName);
 		return cachedFolderName;
 	}
 	

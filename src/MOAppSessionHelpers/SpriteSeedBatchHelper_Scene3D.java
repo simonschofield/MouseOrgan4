@@ -123,7 +123,11 @@ public class SpriteSeedBatchHelper_Scene3D {
 	// This is sort-of stand alone method that used to belong to an overcomplex class called SeedBatchManager
 	// It is used to adjust the sees locations into the ROI space defined in the SceneData3D
 	//
-	public SpriteSeedBatch applyROIToSeeds(SpriteSeedBatch seedbatch) {
+	public SpriteSeedBatch applyROIToSeeds(ROIHelper roiHelper, SpriteSeedBatch seedbatch) {
+		if(roiHelper.isUsingMaster()) return seedbatch;
+		
+		
+		removeNoncontributingSeedsInROI( roiHelper,   seedbatch);
 		// adjusts the document point of seeds from a seed batch of a whole scene (no ROI)
 		// to a specific ROI within that scene by mapping the original doc points into the nw
 		// doc space represented by the ROI
@@ -161,7 +165,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		
 		
 		
-
+		seedbatchOut.resetItemIterator();
 
 		System.out.println("applyROIToSeeds: seeds before appplication of ROI " + seedbatch.getNumItems() + ". Adjusted number of seeds in ROI " + seedbatchOut.getNumItems());
 		return seedbatchOut;
@@ -185,12 +189,14 @@ public class SpriteSeedBatchHelper_Scene3D {
 	}
 	
 	
-	public boolean removeNoncontributingSeedsInROI(ROIHelper roiHelper, MainDocument theDocument, SpriteSeedBatch seedbatch) {
-		
+	public boolean removeNoncontributingSeedsInROI(ROIHelper roiHelper, SpriteSeedBatch seedbatch) {
+		// this only removed seeds if a "contributing sprite" file has been saved for this ROI (i.e. with the ROI's name) in the seeds folder
+		// if the file cannot be found, then the class is alerted to save one out at the end of this session
 		if(roiHelper.isUsingMaster()) return false;
 		String roiname = roiHelper.getCurrentROIName();
-		SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
-		boolean loadResult = spriteCropList.load(GlobalSettings.getUserSessionPath() + "seeds//spriteCropDecisions_" + roiname + ".csv");
+		//SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
+		SpriteCropDecisionList spriteCropList = new SpriteCropDecisionList();
+		boolean loadResult = spriteCropList.load(GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + roiname + ".csv");
 		if(loadResult == false) {
 			saveOutContributingSeedReport = true;
 			return false;
@@ -200,11 +206,12 @@ public class SpriteSeedBatchHelper_Scene3D {
 	}
 	
 	public void saveContributingSeedsReport(ROIHelper roiHelper, MainDocument theDocument, boolean forcesave) {
+		// called at the end of the session
 		if(roiHelper.isUsingMaster()) return;
 		if(forcesave) saveOutContributingSeedReport = true;
 		if(saveOutContributingSeedReport==false) return;
 		String roiname = roiHelper.getCurrentROIName();
-		theDocument.getRenderBorder().getSpriteCropDecisionList().save(GlobalSettings.getUserSessionPath() + "seeds//spriteCropDecisions_" + roiname + ".csv");
+		theDocument.getRenderBorder().getSpriteCropDecisionList().save(GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + roiname + ".csv");
 		
 	}
 	

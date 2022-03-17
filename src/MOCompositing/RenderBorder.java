@@ -32,6 +32,8 @@ import MOUtils.GlobalSettings;
 // with the following precedence
 // (HIGH) EXCLUDED, BESPOKE_CROP, RECT_CROP, NONE (LOW)
 //
+// It also has a second purpose; to log which sprites (via their unique ID) contribute to the image (i.e. are not cropped out, rejected etc). This can then be saved between sessions
+// and used to speed-up subsequent renders
 public class RenderBorder {
 	
 	private SpriteCropDecisionList spriteCropDecisionList;
