@@ -2,7 +2,7 @@ package MOSpriteSeed;
 
 import java.util.ArrayList;
 
-
+import MOCompositing.Sprite;
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
@@ -41,12 +41,24 @@ public class SpriteSeedFontBiome {
 	// uses stochastics to select a particular SpriteSeed
 	public SpriteSeed getSpriteSeedInstance() {
 		SpriteSeedFont ssf = getSpriteSeedFontInstance();
-		return ssf.getRandomSpriteSeedInstance();
+		return ssf.getSpriteSeedInstance();
+	}
+	
+	public Sprite getSpriteInstance() {
+		SpriteSeedFont ssf = getSpriteSeedFontInstance();
+		return ssf.getSpriteInstance();
 	}
 	
 	
+	
+	
+	
+	///////////////////////////////////////////////////////////////////////////////
+	// private methods
+	//
+	
 	// uses stochastics to select a particular SpriteSeedFont
-	public SpriteSeedFont getSpriteSeedFontInstance() {
+	private SpriteSeedFont getSpriteSeedFontInstance() {
 		// called by the seed batch upon making a batch
 		// only needs docPoint if an influenceImage is set
 		if (probabilitiesNormalised == false) normaliseProbabilities();
@@ -59,11 +71,6 @@ public class SpriteSeedFontBiome {
 		float r = randomStream.randRangeF(0f, 1f);
 		return getSpriteSeedFontFromProbabilityStack(r);
 	}
-	
-	
-	///////////////////////////////////////////////////////////////////////////////
-	// private methods
-	//
 
 	private SpriteSeedFont getSpriteSeedFontFromProbabilityStack(float f) {
 		float sumOfProbs = 0f;

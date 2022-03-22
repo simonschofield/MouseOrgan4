@@ -1,6 +1,7 @@
 package MOSpriteSeed;
 
 
+import MOCompositing.Sprite;
 import MOImageCollections.SpriteImageGroup;
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
@@ -13,7 +14,7 @@ import MOUtils.GlobalSettings;
 // 
 // Does not have any positional data after generation, so this needs another process afterwards
 
-// TBD impose constraints on the item chosen via regex
+// 
 //
 //
 // whether its a biome or a singel SeedFont, the seedFontName is valid for this type of seed, the name extends to seedbatches as they have come from this font.
@@ -52,18 +53,27 @@ public class SpriteSeedFont {
 		instancenameMustContain = mustContain;
 	}
 
-	public SpriteSeed getRandomSpriteSeedInstance() {
+	//////////////////////////////////////////////////////////////////////////
+	// getting SpriteSeed and Sprite instances using stochastics
+	//
+	public SpriteSeed getSpriteSeedInstance() {
 		int n = getRandomSpriteImageGroupItemNumber();
-		
 		return getSpriteSeedInstance(n);
 	}
-	
-	public int getNumImages() {
-		return getSpriteImageGroup().getNumImages();
-		
+
+	public Sprite getSpriteInstance() {
+		int n = getRandomSpriteImageGroupItemNumber();
+		return getSpriteInstance(n);
 	}
 	
+	//////////////////////////////////////////////////////////////////////////
+	// getting specific SpriteSeed and Sprite instances based on their SpriteImageGroup number
+	//
 	public SpriteSeed getSpriteSeedInstance(int n) {
+		if(n >= getNumImages()) {
+			System.out.println("SpriteSeedFont::getSpriteSeedInstance number asked for isout of index " + n + " out of maximum " + getNumImages());
+			return null;
+		}
 		SpriteSeed spriteSeed = new SpriteSeed();
 		
 		spriteSeed.spriteSeedFontName = seedFontName;
@@ -78,11 +88,28 @@ public class SpriteSeedFont {
 	}
 	
 	
+	public Sprite getSpriteInstance(int n) {
+		SpriteSeed s = getSpriteSeedInstance(n);
+		return new Sprite(s);
+	}
+	
+	public int getNumImages() {
+		return getSpriteImageGroup().getNumImages();
+		
+	}
+	
+	
 	private SpriteImageGroup getSpriteImageGroup() {
 		//System.out.println("getSpriteImageGroup SprietImage group is " + imageSampleGroupName );
 		return GlobalSettings.getTheSpriteImageGroupManager().getSpriteImageGroup(imageSampleGroupName);
 	}
 	
+	
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	// private
+	//
 	
 	
 	private int getRandomSpriteImageGroupItemNumber() {

@@ -313,6 +313,16 @@ public class Rect{
 
 		return new Rect(new PVector(tx1, ty1), new PVector(tx2, ty2));
 	}
+	
+	public boolean canLineIntersect(PVector startPt, PVector endPt){
+	    // this is a trivial check to see if a line is wholly above, right, left or below the rect.
+	    // To see if the line actually intersects, you have to do a more thorough check...
+	    if((startPt.x < left && endPt.x < left) ||
+	       (startPt.x > right && endPt.x > right) ||
+	       (startPt.y < top && endPt.x < top) ||
+	       (startPt.y > bottom && endPt.y > bottom)) return false;
+	       return true;
+	  }
 
 	
 	

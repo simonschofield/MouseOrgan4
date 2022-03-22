@@ -137,12 +137,30 @@ public class NNetwork {
   }
 
   public void applyROI(Rect roi) {
+	  // remove edgs outside of roi
+	  ArrayList<NEdge> toRemove  = new ArrayList<NEdge>();
+	  for(NEdge ne: edges) {
+		  PVector p1 = ne.p1.coordinates;
+		  PVector p2 = ne.p2.coordinates;
+		  if(roi.canLineIntersect(p1,p2) == false) {
+			  toRemove.add(ne);
+		  }
+		  
+	  }
+	  
+	  for(NEdge ne: toRemove) {
+		  edges.remove(ne);
+	  }
+	  
+	  
 	  for (NPoint np : points) {
 		  	PVector p = np.getPt();
 	        PVector nomPoint = roi.norm(p);
 	        PVector docSpcPt = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(nomPoint);
 	        np.setPt(docSpcPt);
 	      }
+	  
+	  
   }
   
   
