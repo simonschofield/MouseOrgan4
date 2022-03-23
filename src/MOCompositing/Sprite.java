@@ -379,6 +379,14 @@ public class Sprite {
 		scaleToSizeInDocSpace(null, scale);
 	}
 	
+	void scaleYToSizeInDocSpace(Float sizeY) {
+		float heightInPixels = docSizeToRenderTargetPixels2D(sizeY);
+		float scaleY = (heightInPixels / getImageHeight());
+
+		scale(1, scaleY);
+		
+	}
+	
 	
 	void scaleToSizeInDocSpace(Float sizeX, Float sizeY) {
 		// This method allows the user to specify the doc space size of the sprite in X, or in Y, or both. Use NULL to not define a particular dimension.
@@ -454,6 +462,8 @@ public class Sprite {
 		data.origin = new PVector(0.5f, 1.0f);
 		float r = line.getRotation();
 		float len = line.getLength()*overlap;
+		
+		
 		//System.out.println( "BEFORE SCALE sprite width " + this.getImageBufferWidth() + " sprite height " + this.getImageBufferHeight() + " aspect = " + getAspect());
 		scaleToSizeInDocSpace(null, len);
 		//System.out.println( "AFTER SCALE sprite width " + this.getImageBufferWidth() + " sprite height " + this.getImageBufferHeight() + " aspect = " + getAspect() + "\n");
@@ -461,6 +471,29 @@ public class Sprite {
 		setDocPoint(line.p1);
 	}
 
+	public void mapToLine2(Line2 line, float overlap, float minLength) {
+		// this version tries to deal with problem short lines, which would otherwise result in a very small scale sprites being made.
+		// Here, short lines are caught using the minLength parameter. If short, the line is scales to the minlength, preserving aspect,
+		// then scales only in Y to the correct length, preserving the X, therefore making a squat version of the shape but fitted to
+		// the line
+		data.origin = new PVector(0.5f, 1.0f);
+		float r = line.getRotation();
+		float len = line.getLength();
+		float lenWithOverlap = len*overlap;
+		
+		if(len < (minLength*0.9f)) {
+			// this gets the line scale in X and Y proportionally to the correct Y height
+			scaleToSizeInDocSpace(null, minLength*overlap);
+			// then scrunches the sprite in Y only
+			scaleYToSizeInDocSpace(len);
+		} else {
+		    // scale normally
+			scaleToSizeInDocSpace(null, lenWithOverlap);
+		}
+		//System.out.println( "AFTER SCALE sprite width " + this.getImageBufferWidth() + " sprite height " + this.getImageBufferHeight() + " aspect = " + getAspect() + "\n");
+		rotate(r);
+		setDocPoint(line.p1);
+	}
 
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////

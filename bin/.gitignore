@@ -2,8 +2,6 @@
 /ApplicationMain.class
 /Func.class
 /UserSession.class
-/MOScene3D/
-/MOAppSessionHelpers/
-/MOApplication/
+/MOMaths/
+/MONetwork/
 /MOCompositing/
-/MOSpriteSeed/

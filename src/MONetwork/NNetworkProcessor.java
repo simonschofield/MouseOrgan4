@@ -66,11 +66,11 @@ public class NNetworkProcessor{
 		 if(currentSearchAttributes==null) return true;
 		 boolean result = e.getAttributes().containsEqual(currentSearchAttributes);
 		 
-		 System.out.println("comparing incoming item");
-		 e.printAttributes();
-		 System.out.println("to current attributes");
-		 currentSearchAttributes.printMe();
-		 System.out.println("result = " + result);
+		 //System.out.println("comparing incoming item");
+		 //e.printAttributes();
+		 //System.out.println("to current attributes");
+		 //currentSearchAttributes.printMe();
+		 //System.out.println("result = " + result);
 		 
 		 
 		 return result;

@@ -16,9 +16,13 @@ public class MOMaths {
 	}
 
 	public static boolean isClose(float v, float target, float tol) {
-		if (Math.abs(v - target) >= tol)
+		if (diff(v,target) >= tol)
 			return false;
 		return true;
+	}
+	
+	public static float diff(float a, float b) {
+		return Math.abs(a - b);
 	}
 
 	public static float lerp(float p, float lo, float hi) {
@@ -139,47 +143,7 @@ public class MOMaths {
 		return constrain(rampedV, 0, 1);
 	}
 	
-	//////////////////////////////////////////////////////////////////////////
-	// coordinate space conversion between 
-	// doc space (longest edge 0..1, shortest edge < 1 according to aspect)... and
-	// normalised space (both edges in range 0..1, regardless of aspect)
-	// these are useful for the mouseorgan in many places
-	static PVector docSpaceToNormalisedSpace(PVector docSpace, float aspect) {
-		
-		
-		PVector normalisedPoint = docSpace.copy();
-		if(aspect > 1) {
-			// i.e. landscape
-			// x already in range 0..1
-			// scales y up to be in range 0...1
-			normalisedPoint.y = docSpace.y *aspect; 
-		} else {
-			// i.e. portrait
-			// y already in range 0..1
-			// scales x to be in range 0..1
-			normalisedPoint.x = docSpace.x/aspect;
-		}
-		return normalisedPoint;
-		
-	}
 	
-	
-	static PVector normalisedSpaceToDocSpace(PVector normSpace, float aspect) {
-		
-		PVector docSpacePoint = normSpace.copy();
-		if(aspect > 1) {
-			// i.e. landscape
-			// keep x in 0...1 range
-			// reduce y to be reduced by the aspect
-			docSpacePoint.y /= aspect;
-		} else {
-			// i.e. portrait
-			// keep y in range 0..1
-			// reduce x by the aspect
-			docSpacePoint.x *= aspect;
-		}
-		return docSpacePoint;
-	}
 
 }
 

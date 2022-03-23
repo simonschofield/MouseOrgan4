@@ -36,8 +36,12 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 
 
 	// this is the user-set size of the crawl step in document space
-	float crawlStepDistance = 0.01f;
+	float targetCrawlStepDistance = 0.01f;
 
+	// this is the nearest crawlstep to the target craw step for any particular run
+	// calculated at the start for each found run
+	float thisRunCrawlStep = 0.01f;
+	
 	// these are the normalised state of the crawl
 	float crawlStepParametric = 0.01f;
 	float currentVerticesProgressParametric = 0;
@@ -104,14 +108,37 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 
 		if(currentVertices==null) return null; // no more runs to be found
 
+////		float totalLen = currentVertices.getTotalLength();
+//		//System.out.println("nextEdgeRun : total currentVertices = " + currentVertices.size());
+//		float numSteps = (int)(totalLen/crawlStepDistance);
+//		if(numSteps == 0) numSteps = 1;
+//		crawlStepParametric = 1/numSteps;
+//		currentVerticesProgressParametric = 0;
+
 		float totalLen = currentVertices.getTotalLength();
-		//System.out.println("nextEdgeRun : total currentVertices = " + currentVertices.size());
-		float numSteps = (int)(totalLen/crawlStepDistance);
-		if(numSteps == 0) numSteps = 1;
-		crawlStepParametric = 1/numSteps;
+	//System.out.println("nextEdgeRun : total currentVertices = " + currentVertices.size());
+		float numStepsLo = (int)(totalLen/targetCrawlStepDistance);
+		float numStepsHi = numStepsLo+1;
+		float candidateCrawlStepHi = totalLen/numStepsLo;
+		float candidateCrawlStepLo = totalLen/numStepsHi;
+		
+		int numSteps = 1;
+		
+		if(MOMaths.diff(candidateCrawlStepHi, targetCrawlStepDistance) < MOMaths.diff(candidateCrawlStepLo, targetCrawlStepDistance)) {
+			numSteps = (int)numStepsLo;
+			thisRunCrawlStep = candidateCrawlStepHi;
+		} else {
+			numSteps = (int)numStepsHi;
+			thisRunCrawlStep = candidateCrawlStepLo;
+		}
+		
+		
+		
+		crawlStepParametric = 1.0f/(float)numSteps;
 		currentVerticesProgressParametric = 0;
-
-
+		
+		
+		
 		runCounter++;
 		return currentVertices;
 	}
@@ -194,7 +221,12 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 
 
 	public void setCrawlStep(float s) {
-		crawlStepDistance = s;
+		targetCrawlStepDistance = s;
+	}
+	
+	public float getCrawlStep() {
+		return targetCrawlStepDistance;
+		
 	}
 
 	Line2 getNextCrawlLine() {
