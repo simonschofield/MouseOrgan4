@@ -471,26 +471,38 @@ public class Sprite {
 		setDocPoint(line.p1);
 	}
 
-	public void mapToLine2(Line2 line, float overlap, float minLength) {
-		// this version tries to deal with problem short lines, which would otherwise result in a very small scale sprites being made.
-		// Here, short lines are caught using the minLength parameter. If short, the line is scales to the minlength, preserving aspect,
-		// then scales only in Y to the correct length, preserving the X, therefore making a squat version of the shape but fitted to
+	public void mapToLine2(Line2 line, float overlapAtStart, float overlapAtEnd, float minLength) {
+		// This version tries to deal with problem short lines, i.e. where the line is considerably shorter than the desired line length (in network crawling, the targetCrawlStepDistance)
+		// Short lines result in a noticeably small sprite.
+		// Here, short lines are caught using the minLength parameter. If short, the line is scaled to the minlength, preserving aspect,
+		// then scaled only in Y to the correct length, preserving the X, therefore making a squat version of the shape but fitted to
 		// the line
+		// overlap is also dealt with in a better way, in that the sprite is scaled to overlap the line in either directions. The overlap amounts is a proportion of the initial line length
+		// where 0 is no overlap added, and 1 is the whole line length added at either start or end.
 		data.origin = new PVector(0.5f, 1.0f);
 		float r = line.getRotation();
 		float len = line.getLength();
-		float lenWithOverlap = len*overlap;
+		
+		float overlapP1 = len*overlapAtStart;
+		float overlapP2 = len*overlapAtEnd;
+		float overlapTotal = overlapP1 + overlapP2;
+		float lenWithOverlap = len + overlapTotal;
+		
+		float newP1Y = 1 - MOMaths.norm(0, -overlapP1, len+overlapP2);
+		PVector shiftedorigin = new PVector(0.5f, newP1Y);
+		
 		
 		if(len < (minLength*0.9f)) {
 			// this gets the line scale in X and Y proportionally to the correct Y height
-			scaleToSizeInDocSpace(null, minLength*overlap);
+			scaleToSizeInDocSpace(null, minLength+overlapTotal);
 			// then scrunches the sprite in Y only
-			scaleYToSizeInDocSpace(len);
+			scaleYToSizeInDocSpace(lenWithOverlap);
 		} else {
 		    // scale normally
 			scaleToSizeInDocSpace(null, lenWithOverlap);
 		}
 		//System.out.println( "AFTER SCALE sprite width " + this.getImageBufferWidth() + " sprite height " + this.getImageBufferHeight() + " aspect = " + getAspect() + "\n");
+		setOrigin(shiftedorigin);
 		rotate(r);
 		setDocPoint(line.p1);
 	}
