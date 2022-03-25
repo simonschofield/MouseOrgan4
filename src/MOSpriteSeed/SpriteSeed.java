@@ -54,6 +54,7 @@ public class SpriteSeed {
 	
 	/////////////////////////////////////////////////////
 	// Geometric transforms applied
+	
 	// the doc point of the seed
 	// used to position (translate) the item
 	public float docPointX = 0;
