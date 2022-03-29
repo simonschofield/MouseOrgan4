@@ -16,9 +16,13 @@ public class NEdge extends NAttributes {
 	NPoint p2 = null;
 
 	Line2 line2 = null;
+	
+	// used in automatically finding regions
 	NRegion region1;
 	NRegion region2;
 
+	
+	
 	NEdge(NPoint a, NPoint b, NNetwork ntwk ) {
 		super(TYPE_NEDGE, ntwk);
 		p1 = a;
@@ -51,6 +55,9 @@ public class NEdge extends NAttributes {
 		if (n==1) return p2;
 		return null;
 	}
+	
+	
+	
 
 
 	PVector getEndPt(int n) {
@@ -175,4 +182,50 @@ public class NEdge extends NAttributes {
 		attributes.removeKeyValue("ID");
 		addThisEdgeToPoints();
 	}
-}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	// region stuff. Only used by automatic region finding/merging processed
+	//
+	
+	public void setRegion(NRegion r) {
+		if(region1==null) {
+			region1 = r;
+			return;
+		}
+		if(region2==null) {
+			region2 = r;
+			return;
+		}
+		// should not get to here
+		System.out.println("NRegion::setRegion - already has both regions set ");
+	}
+	
+	public int getAssociatedRegionCount() {
+		int n = 0;
+		if(region1 != null) n++;
+		if(region2 != null) n++;
+		return n;
+	}
+	
+	public boolean isPartOfRegion(NRegion r) {
+		if(region1==r) {
+			return true;
+		}
+		if(region2==r) {
+			return true;
+		}
+		return false;
+	}
+	
+	
+}// end of class
+
+
+
+
+
+
+
+
+
+

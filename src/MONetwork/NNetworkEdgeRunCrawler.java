@@ -108,15 +108,9 @@ public class NNetworkEdgeRunCrawler  extends NNetworkEdgeRunExtractor{
 
 		if(currentVertices==null) return null; // no more runs to be found
 
-////		float totalLen = currentVertices.getTotalLength();
-//		//System.out.println("nextEdgeRun : total currentVertices = " + currentVertices.size());
-//		float numSteps = (int)(totalLen/crawlStepDistance);
-//		if(numSteps == 0) numSteps = 1;
-//		crawlStepParametric = 1/numSteps;
-//		currentVerticesProgressParametric = 0;
-
+		// works out the nearest integer subdivision of the length to the targetCrawlStepDistance
+		// and the number of steps this will take, therefore the crawlStepParametric
 		float totalLen = currentVertices.getTotalLength();
-	//System.out.println("nextEdgeRun : total currentVertices = " + currentVertices.size());
 		float numStepsLo = (int)(totalLen/targetCrawlStepDistance);
 		float numStepsHi = numStepsLo+1;
 		float candidateCrawlStepHi = totalLen/numStepsLo;

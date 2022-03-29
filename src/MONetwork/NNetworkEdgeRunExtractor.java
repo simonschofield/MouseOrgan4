@@ -23,6 +23,8 @@ import MOUtils.KeyValuePairList;
 // This network processor extracts a continuous run of edges from a network
 // The class keeps the found edge run in the form of and ArrayList of NEdges.
 //
+// It uses a destructive search method, so makes a copy of the network's edge
+// list at start.
 public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	
 	ArrayList<NEdge> theEdgeList;
@@ -33,14 +35,15 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	RandomStream randomStream = new RandomStream(1);
 
 	
+	// common to this and region extractor
 	NNetworkEdgeRunExtractor(NNetwork ntwk, KeyValuePairList searchCriteria){
 		super(ntwk);
 		setSearchAttribute(searchCriteria);
-		initialiseRun();
+		initialise();
 	} 
 	
-	
-	private void initialiseRun() {
+	// common to this and region extractor
+	private void initialise() {
 		// gets called just before the runs are collected
 		// after all parameters are set up.
 		
@@ -72,6 +75,7 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	// available edge. These edges are removed from the initial
 	// edgeList, so cannot be re-used in any other search
 	//
+	// common to this and region extractor
 	ArrayList<NEdge> extractEdgeRun_RandomStart() {
 		
 		NEdge runStartEdge = findRandomStartEdge();
@@ -127,6 +131,8 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	// private methods
 	//
+	
+	
 	private NEdge findRandomStartEdge() {
 		if(theEdgeList == null) {
 			System.out.println("NetworkEdgeMarcher:findAStartEdge edge = null");
@@ -160,7 +166,7 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 				//no more edges can be found to connect
 				break;
 			}
-			if( currentEdge.isUsingIdenticalPoints(connectedEdge) ) continue; // rare event, but it has been popped so ignore it
+			if( currentEdge.isUsingIdenticalPoints(connectedEdge) ) continue; // rare event of infinitely short line. It gets ignored
 			
 			// find "far" connecting point of current Edge
 			NPoint connectionPoint = getEdgeJoinPoint(connectedEdge, currentEdge);

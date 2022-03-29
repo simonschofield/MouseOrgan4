@@ -131,7 +131,7 @@ public class NRegion  extends NAttributes {
 	}
 
 	boolean findLoop(ArrayList<NEdge> edgesIn, int startingEdgeNum, ArrayList<NEdge> loopedEdges) {
-
+		// the looped edges are returned via the third parameter.
 		// we need to make a copy so that we can pop unsortedEdges as we search
 		ArrayList<NEdge> unsortedEdges = (ArrayList)edgesIn.clone();
 
@@ -228,4 +228,17 @@ public class NRegion  extends NAttributes {
 
 		isValid = tryToConstructFromEdges(edges);
 	}
+	
+	
+	
+	// region edge-reference stuff, used in automatic construction of regions
+	public void setRegionReferencesOfEdges() {
+		for(NEdge e: edgeReferences) {
+			e.setRegion(this);
+		}
+	}
+	
+	
+	
+	
 }

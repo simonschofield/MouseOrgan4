@@ -142,6 +142,12 @@ public class NNetworkProcessor{
 	}
 	
 	
+	public NPoint getFarPointOfEdge2(NEdge e1, NEdge e2) {
+		NPoint joiningPoint = getEdgeJoinPoint( e1,  e2);
+		return getOtherEdgeEnd(e2, joiningPoint);
+	}
+	
+	
 	float angleBetweenEdges(NEdge e1, NEdge e2) {
 		
 		NPoint connectingPoint = e1.getConnectingPoint(e2);

@@ -317,6 +317,7 @@ public class NNetwork {
   boolean tryCreateRegion(ArrayList<NEdge> edges) {
     NRegion reg = new NRegion(this, edges);
     if ( reg.isValid()) {
+      reg.setRegionReferencesOfEdges();
       regions.add(reg);
       return true;
     }
