@@ -156,7 +156,11 @@ public class NNetworkProcessor{
 		NPoint otherPointE2 = e2.getOtherPoint(connectingPoint);
 		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
 		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
-		return l1.getAngleBetween(l2);
+		
+		
+		return l1.getAngleBetween2(l2);
+		
+		//return l1.getAngleBetween(l2);
 	}
 	
 	boolean checkEdgesAreOrdered(ArrayList<NEdge> edges) {
@@ -282,7 +286,7 @@ public class NNetworkProcessor{
 	}
 	
 	
-	void drawRegion(NRegion r, Color c, int width, RenderTarget rt) {
+	public void drawRegion(NRegion r, Color c, int width, RenderTarget rt) {
 		int numEdges = r.getNumEdges();
 		for(int n = 0; n < numEdges; n++) {
 			NEdge e = r.getEdge(n);
@@ -290,7 +294,7 @@ public class NNetworkProcessor{
 		}
 	}
 	
-	void drawRegions(ArrayList<NRegion> regions, Color c, int width, RenderTarget rt) {
+	public void drawRegions(ArrayList<NRegion> regions, Color c, int width, RenderTarget rt) {
 		for(NRegion r: regions) {
 			drawRegion(r,  c,  width, rt);
 		}

@@ -148,9 +148,7 @@ public class NNetwork {
 		  
 	  }
 	  
-	  for(NEdge ne: toRemove) {
-		  edges.remove(ne);
-	  }
+	  removeEdges(toRemove);
 	  
 	  
 	  for (NPoint np : points) {
@@ -163,7 +161,15 @@ public class NNetwork {
 	  
   }
   
+  public void removeEdges(ArrayList<NEdge> toRemove) {
+	  for(NEdge ne: toRemove) {
+		  edges.remove(ne);
+	  }
+  }
   
+  public void removeEdge(NEdge e) {
+	  edges.remove(e);
+  }
   
   void addItemFromCSV_KVP(KeyValuePairList kvpl) {
     if (kvpl.getString("THING").equals("NPOINT")) {

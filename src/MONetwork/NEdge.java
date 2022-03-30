@@ -104,6 +104,13 @@ public class NEdge extends NAttributes {
 		return false;
 	}
 
+	boolean containsPoint(NPoint p) {
+		System.out.println("containsPoint: p " + p.toStr() +  " p1 + " + p1.toStr() + " p2 + " + p2.toStr());
+		if (p == p1) return true;
+		if (p == p2) return true;
+		return false;
+	}
+	
 	NPoint getOtherPoint(NPoint p) {
 		if (p == p1) return p2;
 		if (p == p2) return p1;

@@ -153,6 +153,14 @@ public class Line2 {
 		float degrees = (float) (Math.atan2(v.y,v.x)*180/Math.PI) + 90;
 		return degrees;
 	}
+	
+	
+	
+	public float getAngleBetween2(Line2 otherLine) {
+		float thisBaring = this.getRotation();
+		float otherBaring = otherLine.getRotation();
+		return MOMaths.diff(thisBaring, otherBaring);
+	}
 
 	public float getAngleBetween(Line2 otherLine) {
 		// returns the radians between the two lines.
