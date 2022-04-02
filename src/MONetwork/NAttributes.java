@@ -88,6 +88,27 @@ public class NAttributes {
 	KeyValuePair getAttribute(String k) {
 		return attributes.findKeyValue(k);
 	}
+	
+	
+	int getAttributeInttVal(String k) {
+		KeyValuePair kvp =  attributes.findKeyValue(k);
+		return kvp.getInt();
+	}
+	
+	float getAttributeFloatVal(String k) {
+		KeyValuePair kvp =  attributes.findKeyValue(k);
+		return kvp.getFloat();
+	}
+	
+	boolean getAttributeBooleanVal(String k) {
+		KeyValuePair kvp =  attributes.findKeyValue(k);
+		return kvp.getBoolean();
+	}
+	
+	String getAttributeStringVal(String k) {
+		KeyValuePair kvp =  attributes.findKeyValue(k);
+		return kvp.getString();
+	}
 
 	int getNumAttributes() {
 		return attributes.getNumItems();

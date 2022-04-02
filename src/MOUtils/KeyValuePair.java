@@ -150,19 +150,19 @@ public class KeyValuePair {
 		return theKey.equals(query);
 	}
 
-	int getType() {
+	public int getType() {
 		return TYPE;
 	}
 
-	boolean getBoolean() {
+	public boolean getBoolean() {
 		return bval;
 	}
 
-	int getInt() {
+	public int getInt() {
 		return ival;
 	}
 
-	float getFloat() {
+	public float getFloat() {
 		return fval;
 	}
 

@@ -143,7 +143,19 @@ public class MOMaths {
 		return constrain(rampedV, 0, 1);
 	}
 	
-	
+	public static float getHingedAngleBetween(PVector p1, PVector join, PVector p2) {
+		// calculated the angle between line p1->join and line join->p2
+		// the the angle returned (in radians) is the angle between the two lines, where an acute angle is a low number < PI and
+		// an obtuse angle is a high number > PI. Two lines forming one straight line would be == PI.
+		// Two lines -- would be 180 degrees, two lines _| would be 90, and two lines /| would be 45 
+		
+		PVector vThis = PVector.sub(join, p1);
+		PVector vOther = PVector.sub(p2, join);
+		float dot = vThis.dot(vOther)  ;    // dot product between [x1, y1] and [x2, y2]
+		float det = vThis.x*vOther.y - vThis.y*vOther.x;      
+		return (float) (Math.atan2(det, dot) + Math.PI);  // atan2(y, x) or atan2(sin, cos)
+		
+	}
 
 }
 

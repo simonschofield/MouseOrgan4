@@ -163,13 +163,11 @@ public class NNetwork {
   
   public void removeEdges(ArrayList<NEdge> toRemove) {
 	  for(NEdge ne: toRemove) {
-		  edges.remove(ne);
+		  deleteEdge(ne);
 	  }
   }
   
-  public void removeEdge(NEdge e) {
-	  edges.remove(e);
-  }
+  
   
   void addItemFromCSV_KVP(KeyValuePairList kvpl) {
     if (kvpl.getString("THING").equals("NPOINT")) {
@@ -323,7 +321,7 @@ public class NNetwork {
   boolean tryCreateRegion(ArrayList<NEdge> edges) {
     NRegion reg = new NRegion(this, edges);
     if ( reg.isValid()) {
-      reg.setRegionReferencesOfEdges();
+      reg.setEdgesAssociatedRegion();
       regions.add(reg);
       return true;
     }

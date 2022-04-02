@@ -156,18 +156,35 @@ public class Line2 {
 	
 	
 	
-	public float getAngleBetween2(Line2 otherLine) {
-		float thisBaring = this.getRotation();
-		float otherBaring = otherLine.getRotation();
-		return MOMaths.diff(thisBaring, otherBaring);
-	}
+	
 
 	public float getAngleBetween(Line2 otherLine) {
 		// returns the radians between the two lines.
+		// returns a lower number for a "straighter" pair of lines
 		PVector vThis = getAsPVector();
 		PVector vOther = otherLine.getAsPVector();
 		return PVector.angleBetween(vThis, vOther);
 	}
+	
+	
+	public float getHingedAngleBetween(Line2 otherLine) {
+		// if the two vectors are "hinged" around the end point of this line, and the start point of the other line
+		// the the angle returned (in radians) is the angle between the two lines, where a n acute angle is a low number < PI and
+		// an obtuse angle is a high number > PI. Two lines forming one straight line would be == PI.
+		// Two lines -- would be 180 degrees, two lines _| would be 90, and two lines /| would be 45 
+		
+		if( p2.equals(otherLine.p1)==false ) {
+			System.out.println("Line2:: hingedAngleBetween lines are not joined at this.p2-other.p1");
+			return 0;
+		}
+		PVector p1 = this.p1;
+		PVector join = this.p2;
+		PVector p2 = otherLine.p2;
+		
+		return MOMaths.getHingedAngleBetween(p1,join, p2);
+		
+	}
+	
 
 	public PVector getAsPVector() {
 		return PVector.sub(p2, p1);

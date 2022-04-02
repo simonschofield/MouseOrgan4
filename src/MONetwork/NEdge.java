@@ -21,7 +21,7 @@ public class NEdge extends NAttributes {
 	NRegion region1;
 	NRegion region2;
 
-	
+	public int regionAssociationCount = 0;
 	
 	NEdge(NPoint a, NPoint b, NNetwork ntwk ) {
 		super(TYPE_NEDGE, ntwk);
@@ -191,10 +191,10 @@ public class NEdge extends NAttributes {
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////
-	// region stuff. Only used by automatic region finding/merging processed
+	// region stuff. Only used by automatic region finding/merging processes
 	//
 	
-	public void setRegion(NRegion r) {
+	public void setAssociatedRegion(NRegion r) {
 		if(region1==null) {
 			region1 = r;
 			return;
@@ -208,10 +208,11 @@ public class NEdge extends NAttributes {
 	}
 	
 	public int getAssociatedRegionCount() {
-		int n = 0;
-		if(region1 != null) n++;
-		if(region2 != null) n++;
-		return n;
+		//int n = 0;
+		//if(region1 != null) n++;
+		//if(region2 != null) n++;
+		//return n;
+		return regionAssociationCount;
 	}
 	
 	public boolean isPartOfRegion(NRegion r) {

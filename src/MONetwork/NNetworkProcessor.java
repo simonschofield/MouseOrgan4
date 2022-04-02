@@ -158,8 +158,8 @@ public class NNetworkProcessor{
 		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
 		
 		
-		return l1.getAngleBetween2(l2);
-		
+		//return l1.getAngleBetween2(l2);
+		return l1.getHingedAngleBetween(l2);
 		//return l1.getAngleBetween(l2);
 	}
 	
@@ -230,27 +230,27 @@ public class NNetworkProcessor{
 	////////////////////////////////////////////////////////////////////////////////////
 	// draw-all -type methods
 	//
-	void draw(RenderTarget rt) {
-		drawPoints(rt);
-		drawEdges(rt);
+	void draw(RenderTarget rt, Color c) {
+		drawPoints(rt, c);
+		drawEdges(rt, c);
 	}
 	
 		
-	void drawPoints(RenderTarget rt)	{
+	void drawPoints(RenderTarget rt, Color c)	{
 		ArrayList<NPoint> points = theNetwork.getPoints();
 		for (int n = 0; n < points.size(); n++) {
 			NPoint np = points.get(n);
 			float radiusDocSpace = 0.0002f;
-			drawPoint( np, Color.RED, radiusDocSpace, rt);
+			drawPoint( np, c, radiusDocSpace, rt);
 		}
 	}
 
-	void drawEdges(RenderTarget rt) {
+	void drawEdges(RenderTarget rt, Color c) {
 		ArrayList<NEdge> edges = theNetwork.getEdges();
 	
 		for (int n = 0; n < edges.size(); n++) {
 			NEdge e = edges.get(n);
-			Color c = getEdgeColor(e);
+			if(c==null)c = getEdgeColor(e);
 			int lineWt = getEdgeLineWeight(e)*3;
 			drawEdge(e,c,lineWt,rt);
 		}

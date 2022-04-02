@@ -232,9 +232,9 @@ public class NRegion  extends NAttributes {
 	
 	
 	// region edge-reference stuff, used in automatic construction of regions
-	public void setRegionReferencesOfEdges() {
+	public void setEdgesAssociatedRegion() {
 		for(NEdge e: edgeReferences) {
-			e.setRegion(this);
+			e.setAssociatedRegion(this);
 		}
 	}
 	
