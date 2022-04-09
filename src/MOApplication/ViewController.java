@@ -381,7 +381,7 @@ public class ViewController {
 	
 	
 
-	// called from UI
+	// called from the Surface event handler
 	//
 	//
 	public void keyboardViewInput(KeyEvent e) {
@@ -423,8 +423,8 @@ public class ViewController {
 			shiftXY(0f, -0.2f);
 		}
 
-		System.out.println(
-				"zoomSetting " + zoomSetting + " current zoom " + currentZoom + " current scale " + getCurrentScale());
+		//System.out.println(
+		//		"zoomSetting " + zoomSetting + " current zoom " + currentZoom + " current scale " + getCurrentScale());
 		// System.out.println(" new view rect " + currentViewRect.left + ", " +
 		// currentViewRect.top + ", " + currentViewRect.getWidth() + ", " +
 		// currentViewRect.getHeight());

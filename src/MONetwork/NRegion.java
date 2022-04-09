@@ -116,7 +116,7 @@ public class NRegion  extends NAttributes {
 			extents = vertices.getExtents();
 			//printEdges(edgeReferences);
 		} else {
-			System.out.println("loop not found - region is invalid ");
+			//System.out.println("loop not found - region is invalid ");
 		}
 
 
@@ -151,7 +151,7 @@ public class NRegion  extends NAttributes {
 
 		if( edgesIn.size() != loopedEdges.size() ){
 			// this is to stop a fatal bug TBD
-			System.out.println("Network findLoop problem - edges in " + edgesIn.size() + " edges out " + loopedEdges.size() + " strating edge = " + startingEdgeNum);
+			//System.out.println("Network findLoop problem - edges in " + edgesIn.size() + " edges out " + loopedEdges.size() + " starting edge = " + startingEdgeNum);
 			return false;
 		}
 

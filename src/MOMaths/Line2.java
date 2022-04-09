@@ -160,7 +160,8 @@ public class Line2 {
 
 	public float getAngleBetween(Line2 otherLine) {
 		// returns the radians between the two lines.
-		// returns a lower number for a "straighter" pair of lines
+		// returns a lower number for a "straighter" pair of lines. The lines do not need to join
+		// but are regarded as vectors in 2D space
 		PVector vThis = getAsPVector();
 		PVector vOther = otherLine.getAsPVector();
 		return PVector.angleBetween(vThis, vOther);

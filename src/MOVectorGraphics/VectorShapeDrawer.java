@@ -127,10 +127,7 @@ public class VectorShapeDrawer{
   }
   
   
-  public void drawVertices(Vertices2 verts) {
-	  
-	  
-  }
+  
   
   public void drawText(String str, int x, int y) {
 	  Font font = new Font("Arial", Font.PLAIN, currentDrawingStyle.textSize);
@@ -138,11 +135,7 @@ public class VectorShapeDrawer{
 	  graphics2D.setFont(font);
 	  graphics2D.drawString( str,  x,  y);
   }
-  
 
-
-  
-  
   public void drawVertices2(Vertices2 v){
        Path2D pth = makePath2D(v, v.isClosed());
        drawShape(pth);

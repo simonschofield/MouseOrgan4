@@ -1,8 +1,8 @@
-package MOUtils;
+package MOImage;
 
 import java.awt.Color;
 
-public class ColorUtils {
+public class MOColor {
 	
 	static public Color[] getBasic12ColorPalette() {
 		Color[] cols = new Color[12];
@@ -22,5 +22,7 @@ public class ColorUtils {
 		return cols;
 	}
 	
-	
+	public static Color invisibleCol() {
+		return new Color(0,0,0,0);
+	}
 }

@@ -1,139 +1,99 @@
 package MONetwork;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
+import java.util.ArrayList;
 import MOApplication.Surface;
 import MOCompositing.RenderTarget;
-import MOImage.KeyImageSampler;
-import MOMaths.Line2;
-import MOMaths.MOMaths;
-import MOMaths.PVector;
-import MOMaths.RandomStream;
-import MOMaths.Rect;
-import MOMaths.Vertices2;
-import MOSpriteSeed.SpriteSeed;
-import MOUtils.ColorUtils;
-import MOUtils.KeyValuePair;
-import MOUtils.KeyValuePairList;
+import MOMaths.Range;
+import MOUtils.SortObjectWithValue;
 
 //////////////////////////////////////////////////////////////////////////////////////
+// 
 // This network processor extracts regions from the list of edges
-// It works in two passes. First pass, the first edge with no associated edge references (AERs) is found and a clockwise search made to find the loop.
-// If an edge is found it is given an AER. Find the next edge without an AER, and continue until all edges have been processed. This pass may leave some
-// regions unfound (bedded between other regions - all the edges have 1 AER, but the inner region is not found). The second pass finds an edge with 1 AER, and searches for attached edges also with 1 AER. 
-// Edges which do not participate in loops (dangling edges) are removed at the start.
-
+// Before it can start, it needs to remove "dangling" edges - i.e. those edges not in a loop but maybe in a run.
+// Also accidental co-incident edges need to be removed.
+// It works in two passes. First pass, the first edge with no associated region count (ARCs) is found and a left-most-turn search made to find the loop. Pass 1 uses the p1 direction of 
+// the edge to establish the search direction.
+// Depending on the orientation of the edge, and the nature of the loop to be found it is not possible to determine whether to not the search is in a Clockwise or Anti clockwise fashion; 
+// you only know after the loop has been found, then it is too late.
+// In pass 1 connectingEdges with any ARC are added to the list of edges making this loop. Once a loop has been found, all the edges' ARC are incremented. The start edge is added to a startEdgeList, this has 2 purposes; 
+// 1 so that if we bail on this edge, we do not attempt the same edge again,
+// and 2/ the start Edge list is used to search using the p2 direction to find many missing loops from the first search.
+//
+//
+// In pass 2 the the startEdge list is used, to get the sae start edges as in pass 1, but direct the search the other way (using p2 direction of the statEdge) to find loops in the other direction. 
+// In this pass connecting edges with any ARC are permitted.
+//
+// This seems to get about 99% of regions.
 // This algorithm is purely deterministic with one conclusion; all the regions in the network are found and stored in the loaded network. 
 // It removes any previously stored regions. This can then be saved for later use.
 // 
-// Each edge is the boundary between two regions, one found by searching clockwise, the other found by searching anti-clockwise. 
-// Clockwise regions are found first. 
-// The whole network is surrounded by one large region. Once an edge has been used
-// to find its two regions it is removed from the theEdgeList, thereby optimising the remaining process.
-// Because we want to store the found regions in the 
+
 
 public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 
-	// used for sorting edges according to angle to other edge
-	class NEdgeWithValue{
-		Object edge;
-		float val;
-		
-		public NEdgeWithValue(Object e, float degs) {
-			// TODO Auto-generated constructor stub
-			edge = e;
-			val = degs;
-		}
-		
-		public float getVal() {
-			return val;
-			
-		}
-		
-	}
+	ArrayList<NEdge> startEdgeList = new ArrayList<NEdge>();
+	int startEdgeListCounter = 0;
 	
-	//ArrayList<NEdge> theEdgeListCopy;
-
-	RenderTarget renderTarget;
-	Surface theSurface;
-
+	// just for debugging
+	int foundRegionCount = 0;
+	Range largestRegion = new Range();
+	
+	
 	// common to this and region extractor
 	//NNetworkAutoRegionFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
-	public NNetworkAutoRegionFinder(NNetwork ntwk, RenderTarget testDraw, Surface thesurface){
+	public NNetworkAutoRegionFinder(NNetwork ntwk){
 		super(ntwk);
+		// for debug only
+		largestRegion.initialiseForExtremaSearch();
 		
-		renderTarget = testDraw;
-		theSurface = thesurface;
-		this.draw(renderTarget, Color.BLACK);
-		theSurface.repaint();
 		
 		
 		removePreExisitingRegions();
-		System.out.println("NNetworkAutoRegionFinder: removedPreExisitingRegions ");
-		//removeAllDanglingEdges();
+		removeAllDanglingEdges();
+		removeCoincidentEdges();
 		
-		this.draw(renderTarget, Color.RED);
-		theSurface.repaint();
-		System.out.println("NNetworkAutoRegionFinder: removedAllDanglingEdges ");
-		//setSearchAttribute(searchCriteria);
 
+		System.out.println("NNetworkAutoRegionFinder:  pass 0");
+		findRegions(0);
+		printEdgeRegionAssociateionCounts(0);
 		
-		//findRegions(1);
-
+		System.out.println("NNetworkAutoRegionFinder:  pass 1");
+		findRegions(1);
+		printEdgeRegionAssociateionCounts(1);
 		
-		//findRegions(2);
 		
-		angleTest();
+		
 	} 
-
-
 	
-	void angleTest() {
-		NEdge startEdge = theNetwork.findEdgeWithID(6);
-		this.drawEdge(startEdge,  Color.PINK, 30, renderTarget);
-		theSurface.repaint();
+
+	void printEdgeRegionAssociateionCounts(int pass) {
+		// for debug only
+		int countminus = 0;
+		int count0=0;
+		int count1=0;
+		int count2=0;
+		int count3=0;
+		for(NEdge e: theNetwork.edges) {
+			   if(e.getAssociatedRegionCount() < 0) countminus++;
+			   if(e.getAssociatedRegionCount() == 0) count0++;
+			   if(e.getAssociatedRegionCount() == 1) count1++;
+			   if(e.getAssociatedRegionCount() == 2) count2++;
+			   if(e.getAssociatedRegionCount() > 2) count3++;
+		   }
 		
-		int endCount0 = getConnectedEdgeCount(startEdge, 0);
-		int endCount1 = getConnectedEdgeCount(startEdge, 1);
+		System.out.println("Pass " + pass + " final edge association counts 0: " + count0 + ", 1: " + count1 + ", 2: " + count2 + ", illegal -> too low: " +countminus + ", too high: " + count3);
+		System.out.println("Found regions in this pass = " + foundRegionCount);
+		foundRegionCount = 0;
 		
-		int startEdgeEndPointNum = 0;
-		if(endCount0 < endCount1) startEdgeEndPointNum = 1;
 		
-		System.out.println("end count of start edge , end 0 : " + endCount0 + ", end 1 : " + endCount1);
-		Color[] cols = ColorUtils.getBasic12ColorPalette();
-		//Color.BLACK;
-		//Color.RED;
-		//Color.GREEN;
-		//Color.CYAN;
-		//Color.DARK_GRAY;
-		//Color.MAGENTA;
-		//Color.YELLOW;
-		//Color.BLUE;
-		//Color.LIGHT_GRAY;
-		//Color.ORANGE;
-		//Color.GRAY;
-		//Color.PINK;
-		
-		ArrayList<NEdge> connectedEdges =  getConnectedEdges(startEdge, startEdgeEndPointNum);
-		ArrayList<NEdgeWithValue> edgesWithAngles = new ArrayList<NEdgeWithValue>();
-		int colNum = 0;
-		for(NEdge e: connectedEdges) {
-			this.drawEdge(e,  cols[colNum++], 6, renderTarget);
-			float rads = angleBetweenEdges(startEdge, e);
-			float degs = (float) Math.toDegrees(rads);
-			//KeyValuePair kvp = new KeyValuePair("angle", degs);
-			//e.addAttribute(kvp);
-			NEdgeWithValue edgeWithAngle = new NEdgeWithValue(e,degs);
-			edgesWithAngles.add(edgeWithAngle);
-			System.out.println("angle between start edge and edge id " + e.getID() + " is " + degs);
+		for(NRegion r: theNetwork.regions) {
+			
+			int n = r.getNumEdges();
+			largestRegion.addExtremaCandidate(n);
 		}
 		
-		edgesWithAngles.sort(Comparator.comparing(NEdgeWithValue::getVal));
-		theSurface.repaint();
+		System.out.println("largest regions has " + largestRegion.limit2 + " edges");
 	}
 	
 	
@@ -145,13 +105,13 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 		int bailCount=0;
 		while(findRegion(pass)) {
 			bailCount++;
-			System.out.println("NNetworkAutoRegionFinder: findRegions found " + bailCount + " pass " + pass);
-			if(bailCount > 10) {
+			//System.out.println("NNetworkAutoRegionFinder: findRegions found " + bailCount + " pass " + pass);
+			if(bailCount > 1000000) {
 				System.out.println("NNetworkAutoRegionFinder: findRegions seems stuck in a loop");
 				return;
 			}
 		}
-		System.out.println("NNetworkAutoRegionFinder: findRegions found " + bailCount + " regions on pass " + pass);
+		//System.out.println("NNetworkAutoRegionFinder: findRegions found " + bailCount + " regions on pass " + pass);
 	}
 
 	boolean findRegion(int pass) {
@@ -159,189 +119,134 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 		ArrayList<NEdge> thisRegionEdges = new ArrayList<NEdge>();
 		
 		NEdge startEdge  = getStartEdge(pass);
-		
-		
-		
-		
+
 		if(startEdge==null) {
 			// assume you have found and processed all the edges
 			System.out.println("NO more regions!");
 			return false;
 		}
 		
-		startEdge.regionAssociationCount++;
-		System.out.println("NNetworkAutoRegionFinder: findRegion found startEdge " + startEdge.toStr());
+		
 		thisRegionEdges.add(startEdge);
-		NPoint startPoint = startEdge.p1;
-		
-		int startEdgeID = startEdge.getID();
-
-		
 		NEdge thisEdge = startEdge;
+		
+		// Establish the direction of the search in this pass
+		// this is important as it sets the direction of the search of this loop. The other pass uses this same start edge but goes
+		// in the opposite direction, but with the same winding rule, so should find the "other region" of this edge, if there is one.
+		NPoint startPoint = thisEdge.p1;
 		NPoint thisEndPoint = thisEdge.p2;
+		if(pass==1) {
+			startPoint = thisEdge.p2;
+			thisEndPoint = thisEdge.p1;
+		}
 		
-	
-		//this.drawEdge(startEdge,  Color.RED, 4, renderTarget);
-		//theSurface.repaint();
-	
-		
+		//System.out.println("going into region loop");
+		int bailCount = 0;
+		while(bailCount < 2000) {
+			bailCount++;
+			NEdge connectedEdge =  getMostClockwiseConnectedEdge(thisEdge, thisEndPoint);
+			
+			if(connectedEdge == null) return true;
 
-		while(true) {
-			NEdge connectedEdge =  getMostClockwiseConnectedEdge(thisEdge, thisEndPoint, pass);
-			connectedEdge.regionAssociationCount++;
 			thisRegionEdges.add(connectedEdge);
 			
 			NPoint connectedEdgefarPoint = connectedEdge.getOtherPoint(thisEndPoint);
-			//this.drawEdge(connectedEdge,  Color.GREEN, 4, renderTarget);
-			//theSurface.repaint();
 			
-			System.out.println("NNetworkAutoRegionFinder: findRegion connected edge " + connectedEdge.getID() + " start ID " + startEdgeID);
+			
+			//System.out.println("NNetworkAutoRegionFinder: findRegion connected edge " + connectedEdge.getID() + " start ID " + startEdgeID);
 			if( connectedEdgefarPoint == startPoint ) {
-				System.out.println("Found complete region");
+				//System.out.println("Found complete region");
 				///////////////////////////////////////////////
 				// this where the region is added to the network
 				boolean result = theNetwork.tryCreateRegion(thisRegionEdges);
 				if(result==false) {
-					System.out.println("NNetworkAutoRegionFinder: in-valid region edges found - unable to make region");
-					return false;
+					//System.out.println("Warning:: NNetworkAutoRegionFinder:findRegion... in-valid region edges found - unable to make region");
+					return true;
 				}
+				// all is good, a region has been formed
+				foundRegionCount++;
+				
 				return true;	
 			}
 			
 			thisEndPoint = getFarPointOfEdge2(thisEdge, connectedEdge);
 			thisEdge = connectedEdge;
 		}
+		return true;
 
 
 	}
 	
-	
+
    
 
 
 	NEdge getStartEdge(int pass) {
-		if(pass==1) return getEdgeWithAssociatedRegionCount(0);
-		// if pass == 2
-		return getEdgeWithAssociatedRegionCount(1);
+		if(pass==0) {
+			NEdge startEdge = getVirginEdge();
+			if(startEdge!=null) startEdgeList.add(startEdge);
+			return startEdge;
+		}
+		
+		if(pass>0) return getEdgeFromStartEdgeList();
+		// will never get here
+		return null;
+		
 	}
 
-	NEdge getEdgeWithAssociatedRegionCount(int associatedRegionCount) {
-
+	NEdge getVirginEdge() {
+		// for pass 0
 		for(NEdge e: theNetwork.edges) {
-			if( e.getAssociatedRegionCount() == associatedRegionCount) return e;
+			if( e.getAssociatedRegionCount()==0 && startEdgeList.contains(e)==false ) {
+				return e;
+			}
 		}
 		return null;
 	}
-
-
-
-
-
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	// public methods This method returns an ordered list of connected edges, starting at a random
-	// available edge. These edges are removed from the initial
-	// edgeList, so cannot be re-used in any other search
-	//
-	// common to this and region extractor
-	int getConnectedEdgeCount(NEdge thisEdge, int usingThisEnd) {
-		return getConnectedEdges( thisEdge,  usingThisEnd).size();
-	}
-
-	ArrayList<NEdge> getConnectedEdges(NEdge thisEdge, int usingThisEnd){
-		NPoint usingThisPoint = thisEdge.getEndNPoint(usingThisEnd);
-		return getConnectedEdges( thisEdge,  usingThisPoint);
-	}
-	ArrayList<NEdge> getConnectedEdges(NEdge thisEdge, NPoint usingThisPoint){
-		if(thisEdge.containsPoint(usingThisPoint)==false) {
-			System.out.println("getConnectedEdges:: the edge does not contain the point requested");
-			return null;
+	
+	NEdge getEdgeFromStartEdgeList() {
+		// for pass 1
+		for(int n = startEdgeListCounter; n < startEdgeList.size(); n++) {
+			NEdge e = startEdgeList.get(n);
+			if( e.getAssociatedRegionCount()==0 || e.getAssociatedRegionCount()==1 ) {
+				startEdgeListCounter = n + 1;
+				return e;
+			}
 		}
-		ArrayList<NEdge> connectedEdges = (ArrayList)usingThisPoint.getEdgeReferences().clone();
-		connectedEdges.remove(thisEdge);
-		return connectedEdges;
+		// must have exhausted the list
+		return null;
 	}
 
-
-
-	ArrayList<NEdge> getConnectedEdges(NEdge thisEdge, NPoint usingThisPoint, int pass){
-		ArrayList<NEdge> connectedEdges = (ArrayList)usingThisPoint.getEdgeReferences().clone();
-		connectedEdges.remove(thisEdge);
-
-		if(pass == 0) {
-			// remove edges with 1 or 2 region references
-			removeEdgesWithRegionReference(connectedEdges, 1, 2);
-		}
-
-		if(pass == 1) {
-			// remove edges with 0 or 2 region references
-			removeEdgesWithRegionReference(connectedEdges, 0, 2);
-		}
-
-
-		return connectedEdges;
+	private NEdge getMostClockwiseConnectedEdge(NEdge thisEdge, NPoint usingThisPoint) {
+		ArrayList<NEdge> connectedEdges = thisEdge.getConnectedEdges(usingThisPoint);
+		ArrayList<NEdge> sortedEdges = sortConnectedEdgesByClockwiseAngle(thisEdge, connectedEdges);
+		
+		int size = sortedEdges.size();
+		if(size==0) return null;
+		
+	    return sortedEdges.get(0);
 	}
 
-	void removeEdgesWithRegionReference(ArrayList<NEdge> connectedEdges, int refCountA, int refCountB) {
-		ArrayList<NEdge> tempList = new ArrayList<NEdge>();
+	ArrayList<NEdge> sortConnectedEdgesByClockwiseAngle(NEdge referenceEdge, ArrayList<NEdge> connectedEdges) {
+		
+		SortObjectWithValue objectValueSorter = new SortObjectWithValue();
+		
 		for(NEdge e: connectedEdges) {
-
-			if(e.getAssociatedRegionCount()==refCountA  || e.getAssociatedRegionCount()==refCountB) {
-				// don't add to temp
-			}else {
-				tempList.add(e);
-			}
+			float rads = angleBetweenEdges(referenceEdge, e);
+			float degs = (float) Math.toDegrees(rads);
+			objectValueSorter.add(e,degs);
 		}
-		connectedEdges = tempList;
+		
+		return objectValueSorter.getSorted();
 	}
-
-
-
-	private NEdge getMostClockwiseConnectedEdge(NEdge thisEdge, NPoint usingThisPoint, int pass) {
-		//finds an single edge connected to either end of thisEdge
-		NEdge foundEdge = null;
-
-		ArrayList<NEdge> connectedEdges = getConnectedEdges( thisEdge,  usingThisPoint, pass);
-		System.out.println("getConnectedEdge: num connecting edge found " + connectedEdges.size());
-		if(connectedEdges.size()==1) return connectedEdges.get(0);
-
-		// if there is more than one edge connected find the most cw/acw
-		foundEdge = getMostClockwise(thisEdge, connectedEdges);
-		if(foundEdge==null) {
-			System.out.println("getConnectedEdge: no connecting edge found");
-			return null;
-		}
-
-		return foundEdge;
-
-	}
-
-
-	private NEdge getMostClockwise(NEdge e, ArrayList<NEdge> connectedEdges) {
-
-		NEdge largestAngleEdge = null;
-		float largestAngle = 0;
-
-		for(NEdge otherEdge: connectedEdges) {
-			//if( isInEdgeList(otherEdge) == false ) continue;
-			float ang = angleBetweenEdges(e, otherEdge);
-			System.out.println("angleBetweenEdges " + ang);
-			if( ang > largestAngle) {
-				largestAngle = ang;
-				largestAngleEdge = otherEdge;
-			}
-
-
-		}
-
-		return largestAngleEdge;
-	}
-
 
 
 
 
 	//////////////////////////////////////////////////////////////////////////////
-	// Dangling Edge removal, and removing previoulsy existing regions
+	// Preparation work before the region finding can take place.
+	// 
+	// Dangling Edge removal, identical edge removal, and removing previously existing regions
 	//
 	
 	// iteratively erodes all dangling tips from all sequences of edges
@@ -387,6 +292,26 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 			e.region1 = null;
 			e.region2 = null;
 		}
+	}
+	
+	
+	private void removeCoincidentEdges() {
+		ArrayList<NEdge> eList = theNetwork.getEdges();
+		ArrayList<NEdge> toRemove = new ArrayList<NEdge>();
+		for(NEdge e: eList) {
+			
+			ArrayList<NEdge> connectedEdges = e.getAllConnectedEdges();
+			
+			for(NEdge connected: connectedEdges) {
+				if(e.isUsingIdenticalPoints(connected)) {
+					toRemove.add(connected);
+				}
+			}
+
+		}
+		
+		System.out.println("removed " + toRemove.size() + " identical edges");
+		theNetwork.removeEdges(toRemove);
 	}
 
 }

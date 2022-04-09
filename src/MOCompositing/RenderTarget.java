@@ -312,15 +312,19 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	}
 	
 	
-	
-	void drawVertices(Vertices2 v, Color c, int w) {
-		int numLines = v.getNumLines();
-		for(int n = 0; n < numLines; n++) {
-			Line2 l = v.getLine(n);
-			drawLine( l,  c,  w);
-		}
-		
+	public void drawVertices2(Vertices2 v, Color lineCol, int w) {
+		// draws the lines only
+		shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), lineCol, w);
+		Vertices2 vbuff = v.getInBufferSpace(false);
+		shapeDrawer.drawVertices2(vbuff);
 	}
+	
+	public void drawVertices2(Vertices2 v, Color fillCol, Color lineCol, int w) {
+		shapeDrawer.setDrawingStyle(fillCol,lineCol, w);
+		Vertices2 vbuff = v.getInBufferSpace(false);
+		shapeDrawer.drawVertices2(vbuff);
+	}
+	
 	
 	public void drawVerticesWithPoints(Vertices2 v, Color c, int w) {
 		int numLines = v.getNumLines();

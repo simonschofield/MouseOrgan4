@@ -83,7 +83,7 @@ public class NNetwork {
     }
   }
 
-  void save(String pathandfilename) {
+  public void save(String pathandfilename) {
     // there should be a directory in the project folder called seeds
     refreshIDs();
     System.out.println("saving " + pathandfilename);

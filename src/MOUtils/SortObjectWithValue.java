@@ -30,14 +30,16 @@ public class SortObjectWithValue {
 		objlist.add(new ObjectWithValue(o,v));
 	}
 	
-	public ArrayList<Object> getSorted(){
+	@SuppressWarnings("unchecked")
+	public <T> ArrayList<T> getSorted(){
 		objlist.sort(Comparator.comparing(ObjectWithValue::getValue));
-		return getStripped();
+		return (ArrayList<T>) getStripped(objlist);
 	}
 	
-	public ArrayList<Object> getReverseSorted(){
+	@SuppressWarnings("unchecked")
+	public <T> ArrayList<T> getReverseSorted(){
 		objlist.sort(Comparator.comparing(ObjectWithValue::getValue).reversed());
-		return getStripped();
+		return (ArrayList<T>) getStripped(objlist);
 	}
 	
 	public Object getLargest() {
@@ -56,12 +58,16 @@ public class SortObjectWithValue {
 		return objlist.size();
 	}
 	
-	private ArrayList<Object> getStripped(){
-		ArrayList<Object> stripped = new ArrayList<Object>();
-		for(ObjectWithValue owv: objlist) {
-			stripped.add(owv.obj);
-		}
-		return stripped;
+	
+	
+	@SuppressWarnings("unchecked")
+	private <T> ArrayList<T> getStripped(ArrayList<T> listIn){
+		ArrayList<T> stripped = new ArrayList<T>();
 		
+		for(ObjectWithValue owv: objlist) {
+			stripped.add((T) owv.obj);
+		}
+		
+		return stripped;
 	}
 }

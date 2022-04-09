@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 
 import MOCompositing.RenderTarget;
+import MOImage.MOColor;
 import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.Rect;
@@ -149,7 +150,22 @@ public class NNetworkProcessor{
 	
 	
 	float angleBetweenEdges(NEdge e1, NEdge e2) {
+		// returns the clockwise angle between the two edges at the join point.
+		// as if they were clock hands, then agle between the hour hand and the minute hand; if both at 12, then angle between is 0;
+		// if 15.00, then angle between is 270. if 18.00 then angle is 180
+		NPoint connectingPoint = e1.getConnectingPoint(e2);
 		
+		NPoint otherPointE1 = e1.getOtherPoint(connectingPoint);
+		NPoint otherPointE2 = e2.getOtherPoint(connectingPoint);
+		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
+		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
+
+		return l1.getHingedAngleBetween(l2);
+	}
+	
+	
+	float getColiniarityOfEdges(NEdge e1, NEdge e2) {
+		// returns a low number if the two edges are going in the same direction.
 		NPoint connectingPoint = e1.getConnectingPoint(e2);
 		
 		NPoint otherPointE1 = e1.getOtherPoint(connectingPoint);
@@ -157,10 +173,7 @@ public class NNetworkProcessor{
 		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
 		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
 		
-		
-		//return l1.getAngleBetween2(l2);
-		return l1.getHingedAngleBetween(l2);
-		//return l1.getAngleBetween(l2);
+		return l1.getAngleBetween(l2);
 	}
 	
 	boolean checkEdgesAreOrdered(ArrayList<NEdge> edges) {
@@ -230,7 +243,7 @@ public class NNetworkProcessor{
 	////////////////////////////////////////////////////////////////////////////////////
 	// draw-all -type methods
 	//
-	void draw(RenderTarget rt, Color c) {
+	public void draw(RenderTarget rt, Color c) {
 		drawPoints(rt, c);
 		drawEdges(rt, c);
 	}
@@ -286,23 +299,24 @@ public class NNetworkProcessor{
 	}
 	
 	
-	public void drawRegion(NRegion r, Color c, int width, RenderTarget rt) {
-		int numEdges = r.getNumEdges();
-		for(int n = 0; n < numEdges; n++) {
-			NEdge e = r.getEdge(n);
-			drawEdge( e, c, width, rt);
-		}
+	public void drawRegionEdges(NRegion r, Color c, int width, RenderTarget rt) {
+		Vertices2 verts = r.getVertices();
+		
+		rt.drawVertices2(verts, c, width);
 	}
 	
-	public void drawRegions(ArrayList<NRegion> regions, Color c, int width, RenderTarget rt) {
+	public void drawRegionListEdges(ArrayList<NRegion> regions, Color c, int width, RenderTarget rt) {
 		for(NRegion r: regions) {
-			drawRegion(r,  c,  width, rt);
+			drawRegionEdges(r,  c,  width, rt);
 		}
 		
 	}
 	
 	
-	
+	public void drawRegionFill(NRegion r, Color c, RenderTarget rt) {
+		Vertices2 verts = r.getVertices();
+		rt.drawVertices2(verts, c, c, 1);
+	}
 	
 	
 	Color getEdgeColor(NEdge ne){

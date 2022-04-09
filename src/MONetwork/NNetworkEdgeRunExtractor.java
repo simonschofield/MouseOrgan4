@@ -212,12 +212,14 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 		float bestAngle = 10000;
 		for(NEdge otherEdge: connectedEdges) {
 			if( isInEdgeList(otherEdge) == false ) continue;
-			float ang = angleBetweenEdges(e, otherEdge);
+			float ang = getColiniarityOfEdges(e, otherEdge);
 			if( ang < bestAngle) {
 				bestAngle = ang;
 				bestEdge = otherEdge;
 			}
 		}
+		
+		
 		/// you can work out the most straight edge connection here
 		return bestEdge;
 	}
@@ -227,7 +229,7 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 	
 	boolean isCollinearWithinTollearance(NEdge e1, NEdge e2, float angleTolInDegrees) {
 		//if(edgesConnect( e1, e2)== false) return false;
-		float radiansBetween = angleBetweenEdges( e1,  e2);
+		float radiansBetween = getColiniarityOfEdges( e1,  e2);
 		float degreesBetween = radiansBetween*57.2958f;
 				
 		if( ( MOMaths.isClose(degreesBetween, 0, angleTolInDegrees) || MOMaths.isClose(degreesBetween, 180, angleTolInDegrees) ) )  return true;

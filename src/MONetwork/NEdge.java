@@ -17,12 +17,11 @@ public class NEdge extends NAttributes {
 
 	Line2 line2 = null;
 	
+	// associated regions. Only 2 supported in this system.
 	// used in automatically finding regions
 	NRegion region1;
 	NRegion region2;
 
-	public int regionAssociationCount = 0;
-	
 	NEdge(NPoint a, NPoint b, NNetwork ntwk ) {
 		super(TYPE_NEDGE, ntwk);
 		p1 = a;
@@ -81,12 +80,29 @@ public class NEdge extends NAttributes {
 		if (whichEnd == 1) return p2.getEdgeReferences();
 		return null;
 	}
+	
+	ArrayList<NEdge> getConnectedEdges(NPoint thisPoint) {
+		if( containsPoint(thisPoint)==false){
+			return null;
+		}
+		ArrayList<NEdge> connectedEdges = (ArrayList)thisPoint.getEdgeReferences().clone();
+		connectedEdges.remove(this);
+		return connectedEdges;
+	}
 
 	ArrayList<NEdge> getConnectedEdges(int whichEnd) {
 		ArrayList<NEdge> edgeRefs = (ArrayList)getEdgeReferences(whichEnd).clone();
 		if(edgeRefs == null) return null;
 		edgeRefs.remove(this);
 		return edgeRefs;
+	}
+	
+	ArrayList<NEdge> getAllConnectedEdges(){
+		// returns all the edges connected to this edge (except itself)
+		ArrayList<NEdge> connections0 = getConnectedEdges(0);
+		ArrayList<NEdge> connections1 = getConnectedEdges(1);
+		connections0.addAll(connections1);
+		return connections0;
 	}
 
 	boolean connectsWith(NEdge other) {
@@ -105,7 +121,7 @@ public class NEdge extends NAttributes {
 	}
 
 	boolean containsPoint(NPoint p) {
-		System.out.println("containsPoint: p " + p.toStr() +  " p1 + " + p1.toStr() + " p2 + " + p2.toStr());
+		//System.out.println("containsPoint: p " + p.toStr() +  " p1 + " + p1.toStr() + " p2 + " + p2.toStr());
 		if (p == p1) return true;
 		if (p == p2) return true;
 		return false;
@@ -195,6 +211,9 @@ public class NEdge extends NAttributes {
 	//
 	
 	public void setAssociatedRegion(NRegion r) {
+		// TBD: called and already if full, the use the smaller of the regions.
+		
+		
 		if(region1==null) {
 			region1 = r;
 			return;
@@ -203,16 +222,17 @@ public class NEdge extends NAttributes {
 			region2 = r;
 			return;
 		}
-		// should not get to here
-		System.out.println("NRegion::setRegion - already has both regions set ");
+		// should not get to here, if it does choose the smaller region on the same side and ditch the larger one.
+		// System.out.println("NRegion::setRegion - already has both regions set ");
 	}
 	
 	public int getAssociatedRegionCount() {
-		//int n = 0;
-		//if(region1 != null) n++;
-		//if(region2 != null) n++;
-		//return n;
-		return regionAssociationCount;
+		int n = 0;
+		if(region1 != null) n++;
+		if(region2 != null) n++;
+		return n;
+		
+		//return regionAssociationCount;
 	}
 	
 	public boolean isPartOfRegion(NRegion r) {
