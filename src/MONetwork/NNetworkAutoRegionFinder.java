@@ -12,19 +12,19 @@ import MOUtils.SortObjectWithValue;
 // This network processor extracts regions from the list of edges
 // Before it can start, it needs to remove "dangling" edges - i.e. those edges not in a loop but maybe in a run.
 // Also accidental co-incident edges need to be removed.
-// It works in two passes. First pass, the first edge with no associated region count (ARCs) is found and a left-most-turn search made to find the loop. Pass 1 uses the p1 direction of 
+// It works in two passes. (Pass 0 and Pass 1) First pass, the first edge with no associated region count (ARCs) is found and a left-most-turn search made to find the loop. Pass 1 uses the p1 direction of 
 // the edge to establish the search direction.
 // Depending on the orientation of the edge, and the nature of the loop to be found it is not possible to determine whether to not the search is in a Clockwise or Anti clockwise fashion; 
 // you only know after the loop has been found, then it is too late.
-// In pass 1 connectingEdges with any ARC are added to the list of edges making this loop. Once a loop has been found, all the edges' ARC are incremented. The start edge is added to a startEdgeList, this has 2 purposes; 
+// In pass 0 connectingEdges with any ARC are added to the list of edges making this loop. Once a loop has been found, all the edges' ARC are incremented. The start edge is added to a startEdgeList, this has 2 purposes; 
 // 1 so that if we bail on this edge, we do not attempt the same edge again,
-// and 2/ the start Edge list is used to search using the p2 direction to find many missing loops from the first search.
+// and 2/ the start Edge list is used in the second pass (pass 1) to search using the p2 direction to find many missing loops from the first search.
 //
 //
-// In pass 2 the the startEdge list is used, to get the sae start edges as in pass 1, but direct the search the other way (using p2 direction of the statEdge) to find loops in the other direction. 
+// In the second pass the the startEdge list is used, to get the sae start edges as in pass 1, but direct the search the other way (using p2 direction of the statEdge) to find loops in the other direction. 
 // In this pass connecting edges with any ARC are permitted.
 //
-// This seems to get about 99% of regions.
+// This seems to get about 99% of regions. The reason that some regions are left unfound is that these region has some edges with an ARC of 2, due to finding larger surrounding regions. TBD. These might be mopped up later.
 // This algorithm is purely deterministic with one conclusion; all the regions in the network are found and stored in the loaded network. 
 // It removes any previously stored regions. This can then be saved for later use.
 // 
@@ -160,7 +160,7 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 				// this where the region is added to the network
 				boolean result = theNetwork.tryCreateRegion(thisRegionEdges);
 				if(result==false) {
-					//System.out.println("Warning:: NNetworkAutoRegionFinder:findRegion... in-valid region edges found - unable to make region");
+					// 
 					return true;
 				}
 				// all is good, a region has been formed
@@ -169,7 +169,8 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 				return true;	
 			}
 			
-			thisEndPoint = getFarPointOfEdge2(thisEdge, connectedEdge);
+			//thisEndPoint = getFarPointOfEdge2(thisEdge, connectedEdge);  // 
+			thisEndPoint =  thisEdge.getFarPointOtherEdge(connectedEdge);
 			thisEdge = connectedEdge;
 		}
 		return true;
@@ -219,6 +220,8 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 
 	private NEdge getMostClockwiseConnectedEdge(NEdge thisEdge, NPoint usingThisPoint) {
 		ArrayList<NEdge> connectedEdges = thisEdge.getConnectedEdges(usingThisPoint);
+		if(connectedEdges==null) System.out.println("getMostClockwiseConnectedEdge:NULL1");
+		if(thisEdge==null) System.out.println("getMostClockwiseConnectedEdge:NULL2");
 		ArrayList<NEdge> sortedEdges = sortConnectedEdgesByClockwiseAngle(thisEdge, connectedEdges);
 		
 		int size = sortedEdges.size();
@@ -232,7 +235,8 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 		SortObjectWithValue objectValueSorter = new SortObjectWithValue();
 		
 		for(NEdge e: connectedEdges) {
-			float rads = angleBetweenEdges(referenceEdge, e);
+			//float rads = angleBetweenEdges(referenceEdge, e);
+			float rads = referenceEdge.getHingedAngleBetween(e);
 			float degs = (float) Math.toDegrees(rads);
 			objectValueSorter.add(e,degs);
 		}

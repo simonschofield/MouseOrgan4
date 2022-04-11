@@ -54,12 +54,8 @@ public class NEdge extends NAttributes {
 		if (n==1) return p2;
 		return null;
 	}
-	
-	
-	
 
-
-	PVector getEndPt(int n) {
+	PVector getEndCoordinate(int n) {
 		return getEndNPoint(n).getPt();
 	}
 
@@ -83,6 +79,7 @@ public class NEdge extends NAttributes {
 	
 	ArrayList<NEdge> getConnectedEdges(NPoint thisPoint) {
 		if( containsPoint(thisPoint)==false){
+			System.out.println("getConnectedEdges null point");
 			return null;
 		}
 		ArrayList<NEdge> connectedEdges = (ArrayList)thisPoint.getEdgeReferences().clone();
@@ -140,16 +137,18 @@ public class NEdge extends NAttributes {
 		if(p2 == other.p1) return p2;
 		return null;
 	}
+	
+	NPoint getFarPointOtherEdge(NEdge other) {
+		NPoint joiningPoint =  getConnectingPoint(other);
+		if(joiningPoint==null) return null;
+		return other.getOtherPoint(joiningPoint);
+	}
 
 	float getLength() {
 		return line2.getLength();
 	}
 
-	float getRotation() {
-		PVector v =  line2.getAsPVector();
-		float rads = v.heading();
-		return rads*57.296f + 90;
-	}
+	
 
 	float getDistSq(PVector p) {
 		return line2.distancePointToLineSq( p);
@@ -169,7 +168,51 @@ public class NEdge extends NAttributes {
 		p2.removeEdgeReference(this);
 	}
 
-
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// rotations and angles between edges, used in searching etc.
+	//
+	float getRotation() {
+		PVector v =  line2.getAsPVector();
+		float rads = v.heading();
+		return rads*57.296f + 90;
+	}
+	
+	float getHingedAngleBetween(NEdge other) {
+		// returns the clockwise angle between the two edges at the join point.
+		// as if they were clock hands, then agle between the hour hand and the minute hand; if both at 12, then angle between is 0;
+		// if 15.00, then angle between is 270. if 18.00 then angle is 180
+		NPoint connectingPoint = this.getConnectingPoint(other);
+		if(connectingPoint==null) {
+			System.out.println("NEdge::getHingedAngleBetween - edges are not joined");
+			return -1;
+		}
+		NPoint otherPointE1 = this.getOtherPoint(connectingPoint);
+		NPoint otherPointE2 = other.getOtherPoint(connectingPoint);
+		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
+		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
+		return l1.getHingedAngleBetween(l2);
+	}
+	
+	
+	float getColiniarity(NEdge other) {
+		// returns a low number if the two edges are going in the same direction.
+		NPoint connectingPoint = this.getConnectingPoint(other);
+		if(connectingPoint==null) {
+			System.out.println("NEdge::getColiniarity - edges are not joined");
+			return -1;
+		}
+		NPoint otherPointE1 = this.getOtherPoint(connectingPoint);
+		NPoint otherPointE2 = other.getOtherPoint(connectingPoint);
+		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
+		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
+		
+		return l1.getAngleBetween(l2);
+	}
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// used in file reading /saving
+	//
 	String getAsCSVLine() {
 		KeyValuePairList coreVariables = new KeyValuePairList();
 		coreVariables.addKeyValue("THING", "NEDGE");

@@ -12,32 +12,18 @@ import MOMaths.Vertices2;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 
-//base class containing common useful methods used in processing NNetwork
+// base class containing common useful methods used in processing NNetwork
+// Attribute searching, so you can select a sub-group of the network for processing based on attribute.
+// Drawing the network - this has been primarily for debugging, but could be extended to me more polished.
 public class NNetworkProcessor{
 	
 	NNetwork theNetwork;
 	KeyValuePairList currentSearchAttributes = new KeyValuePairList();
-	KeyValuePair hasBeenProcessedFlag;
+	
 	
 	public NNetworkProcessor(NNetwork ntwk){
 		theNetwork = ntwk;
-		hasBeenProcessedFlag = new KeyValuePair();
-		hasBeenProcessedFlag.set("PROCESSED", true);
 	}
-	
-	
-	
-	
-	
-	void setAsProcessed(NAttributes e) {
-		e.getAttributes().addKeyValuePair(hasBeenProcessedFlag.copy());
-	}
-	
-	boolean hasBeenProcessed(NAttributes e) {
-		return e.getAttributes().containsEqual(hasBeenProcessedFlag);
-		
-	}
-	
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	// attribute matching
@@ -59,28 +45,13 @@ public class NNetworkProcessor{
 	void clearSarchAttributes() {
 		currentSearchAttributes.removeAll();
 	}
-	
-	
-	
-	
+
 	boolean isMatchingSearchAttribute(NAttributes e) {
 		 if(currentSearchAttributes==null) return true;
 		 boolean result = e.getAttributes().containsEqual(currentSearchAttributes);
-		 
-		 //System.out.println("comparing incoming item");
-		 //e.printAttributes();
-		 //System.out.println("to current attributes");
-		 //currentSearchAttributes.printMe();
-		 //System.out.println("result = " + result);
-		 
-		 
 		 return result;
 	}
-	
-	
-	
-	
-	
+
 	ArrayList<NEdge> getEdgesMatching(){
 		
 		ArrayList<NEdge> edges = theNetwork.getEdges();
@@ -116,130 +87,7 @@ public class NNetworkProcessor{
 		return matchingRegions;
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////
-	//
-	// general useful methods that are specific for searching
-	
-	NPoint getOtherEdgeEnd(NEdge e, NPoint oneEnd) {
-		if(e.p1 == oneEnd) return e.p2;
-		if(e.p2 == oneEnd) return e.p1;
-		return null;
-	}
-	
-	NPoint getEdgeJoinPoint(NEdge e1, NEdge e2) {
-		if(e1.p1 == e2.p1) {
-			return e1.p1;
-		}
-		if(e1.p2 == e2.p2) {
-			return e1.p2;
-		}
-		if(e1.p1 == e2.p2) {
-			return e1.p1;
-		}
-		if(e1.p2 == e2.p1) {
-			return e1.p2;
-		}
-		return null;
-	}
-	
-	
-	public NPoint getFarPointOfEdge2(NEdge e1, NEdge e2) {
-		NPoint joiningPoint = getEdgeJoinPoint( e1,  e2);
-		return getOtherEdgeEnd(e2, joiningPoint);
-	}
-	
-	
-	float angleBetweenEdges(NEdge e1, NEdge e2) {
-		// returns the clockwise angle between the two edges at the join point.
-		// as if they were clock hands, then agle between the hour hand and the minute hand; if both at 12, then angle between is 0;
-		// if 15.00, then angle between is 270. if 18.00 then angle is 180
-		NPoint connectingPoint = e1.getConnectingPoint(e2);
-		
-		NPoint otherPointE1 = e1.getOtherPoint(connectingPoint);
-		NPoint otherPointE2 = e2.getOtherPoint(connectingPoint);
-		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
-		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
 
-		return l1.getHingedAngleBetween(l2);
-	}
-	
-	
-	float getColiniarityOfEdges(NEdge e1, NEdge e2) {
-		// returns a low number if the two edges are going in the same direction.
-		NPoint connectingPoint = e1.getConnectingPoint(e2);
-		
-		NPoint otherPointE1 = e1.getOtherPoint(connectingPoint);
-		NPoint otherPointE2 = e2.getOtherPoint(connectingPoint);
-		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
-		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
-		
-		return l1.getAngleBetween(l2);
-	}
-	
-	boolean checkEdgesAreOrdered(ArrayList<NEdge> edges) {
-		//System.out.println("drawing num edges " + edges.size());
-		if(edges == null) {
-			System.out.println("checkEdgesAreOrdered - null edges list");
-			return false;
-		}
-		NEdge thisEdge = edges.get(0);
-		int numEdges = edges.size();
-		for(int n = 1; n < numEdges; n++) {
-			NEdge nextEdge = edges.get(n);
-
-			if(thisEdge.connectsWith(nextEdge) == false) {
-				System.out.println("checkEdgesAreOrdered - failed at edge " + n + " out of " + numEdges);
-				return false;
-			}
-			thisEdge = nextEdge;
-		}
-		return true;
-	}
-	
-	// turns an array list of NEdges, which should be sequential (edges link, but by either end, so, the raw end points are not sequential), into an ordered
-	// list of PVector points by finding the joining points between each edge pair.
-	Vertices2 getVertices(ArrayList<NEdge> edges){
-		if( checkEdgesAreOrdered(edges)==false) {
-			System.out.println("getVertices - edges are not ordered");
-			return null;
-		}
-		ArrayList<PVector> pointList = new ArrayList<PVector>();
-		
-		NEdge thisEdge = edges.get(0);
-		if(edges.size()==1) {
-			pointList.add(thisEdge.getEndPt(0));
-			pointList.add(thisEdge.getEndPt(1));
-			return new Vertices2(pointList);
-		}
-		
-		
-		
-		NEdge nextEdge = edges.get(1);
-		
-		// find first dangling vertex
-		NPoint connectionPoint = getEdgeJoinPoint(thisEdge, nextEdge);
-		NPoint firstPoint = getOtherEdgeEnd(thisEdge, connectionPoint);
-		pointList.add(firstPoint.getPt());
-		
-		
-		
-		int numEdges = edges.size();
-		// find all the connecting points in order
-		for(int n = 1; n < numEdges; n++) {
-			nextEdge = edges.get(n);
-			connectionPoint = getEdgeJoinPoint(thisEdge, nextEdge);
-			pointList.add(connectionPoint.getPt());
-			thisEdge = nextEdge;
-		}
-		
-		// find final dangling point
-		NPoint finalPoint = getOtherEdgeEnd(nextEdge, connectionPoint);
-		pointList.add(finalPoint.getPt());
-		
-		return new Vertices2(pointList);
-		
-	}
-	
 	////////////////////////////////////////////////////////////////////////////////////
 	// draw-all -type methods
 	//
@@ -284,8 +132,8 @@ public class NNetworkProcessor{
 
 	void drawEdge(NEdge e, Color c, int width, RenderTarget rt) {
 		//Rect viewPort = GlobalObjects.theSurface.getViewPortDocSpace();
-		PVector p1 = e.getEndPt(0);
-	    PVector p2 = e.getEndPt(1);
+		PVector p1 = e.getEndCoordinate(0);
+	    PVector p2 = e.getEndCoordinate(1);
 		//if(viewPort.isPointInside(p1)==false && viewPort.isPointInside(p2)==false) return;
 		rt.drawLine(p1, p2, c, width);
 	}

@@ -83,12 +83,11 @@ public class TextRenderer {
 		
 		
 		sprite.scaleToSizeInDocSpace(docSpaceFontHeight, line.getLength());
-		//sprite.scaleToDocSpace(docSpaceFontHeight, line.getLength());
+		
 		
 		float r = line.getRotation();
 		sprite.rotate(r);
 		sprite.setDocPoint(line.p2);
-		//sprite.mapToLine2(line);
 		return sprite;
 	}
 	
