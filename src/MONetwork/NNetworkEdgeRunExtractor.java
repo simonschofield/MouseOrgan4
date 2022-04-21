@@ -29,8 +29,9 @@ import MOUtils.KeyValuePairList;
 // 
 // If no more edfes can be found then returns null
 
-public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
+public class NNetworkEdgeRunExtractor{
 
+	NNetwork theNetwork; 
 	ArrayList<NEdge> theEdgeList;
 
 	float angleTolleranceDegrees = 45;
@@ -41,8 +42,9 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 
 	// common to this and region extractor
 	NNetworkEdgeRunExtractor(NNetwork ntwk, KeyValuePairList searchCriteria){
-		super(ntwk);
-		setSearchAttribute(searchCriteria);
+		//super(ntwk);
+		theNetwork = ntwk;
+		theNetwork.setSearchAttribute(searchCriteria);
 		initialise();
 	} 
 
@@ -51,12 +53,12 @@ public class NNetworkEdgeRunExtractor extends NNetworkProcessor{
 		// gets called just before the runs are collected
 		// after all parameters are set up.
 
-		if(currentSearchAttributes == null) {
+		if(theNetwork.currentSearchAttributes == null) {
 			// makes a copy because theEdgeList gets destroyed by the search
 			theEdgeList = (ArrayList)theNetwork.getEdges().clone();
 			System.out.println("NetworkEdgeMarcher:fcurrentSearchAttribute is null");
 		} else {
-			theEdgeList = getEdgesMatching();
+			theEdgeList = theNetwork.getEdgesMatchingSearchAttributes();
 			//System.out.println("NetworkEdgeMarcher:found " + theEdgeList.size() + " edges matching the critera " + currentSearchAttribute.theKey);
 		}
 		if(theEdgeList == null) {

@@ -12,82 +12,18 @@ import MOMaths.Vertices2;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 
-// base class containing common useful methods used in processing NNetwork
+// a class containing common useful methods used in processing NNetwork
 // Attribute searching, so you can select a sub-group of the network for processing based on attribute.
 // Drawing the network - this has been primarily for debugging, but could be extended to me more polished.
-public class NNetworkProcessor{
+public class NNetworkDrawer{
 	
 	NNetwork theNetwork;
-	KeyValuePairList currentSearchAttributes = new KeyValuePairList();
 	
-	
-	public NNetworkProcessor(NNetwork ntwk){
+	public NNetworkDrawer(NNetwork ntwk){
 		theNetwork = ntwk;
 	}
 	
-	//////////////////////////////////////////////////////////////////////////////////
-	// attribute matching
-	// currently only uses a single attribute, so cannot do complex checks (like if contains K:ROAD and V: A OR B)
-	// the attributes e contains a KVP list, so if currentSearchAttribute was also a list
 	
-	void setSearchAttribute(KeyValuePair kvp) {
-		if(kvp == null) return;
-		currentSearchAttributes.addKeyValuePair(kvp.copy());
-		System.out.println("NNetworkProcessor: added to currentSearchAttribute = " + kvp.getKey());
-	}
-	
-	void setSearchAttribute(KeyValuePairList kvpl) {
-		if(kvpl == null) return;
-		currentSearchAttributes=kvpl.copy();
-		//System.out.println("NNetworkProcessor: added to currentSearchAttribute = " + kvp.theKey);
-	}
-	
-	void clearSarchAttributes() {
-		currentSearchAttributes.removeAll();
-	}
-
-	boolean isMatchingSearchAttribute(NAttributes e) {
-		 if(currentSearchAttributes==null) return true;
-		 boolean result = e.getAttributes().containsEqual(currentSearchAttributes);
-		 return result;
-	}
-
-	ArrayList<NEdge> getEdgesMatching(){
-		
-		ArrayList<NEdge> edges = theNetwork.getEdges();
-		ArrayList<NEdge> matchingEdges = new ArrayList<NEdge>();
-		for (int n = 0; n < edges.size(); n++) {
-			NEdge e = edges.get(n);
-			if(isMatchingSearchAttribute(e) ) matchingEdges.add(e);
-		}
-		return matchingEdges;
-	}
-	
-
-	ArrayList<NPoint> getPointsMatching(){
-		
-		ArrayList<NPoint> points = theNetwork.getPoints();
-		ArrayList<NPoint> matchingPoints = new ArrayList<NPoint>();
-		for (int n = 0; n < points.size(); n++) {
-			NPoint p = points.get(n);
-			if(isMatchingSearchAttribute(p) ) matchingPoints.add(p);
-		}
-		return matchingPoints;
-	}
-	
-	
-	ArrayList<NRegion> getRegionsMatching(){
-		
-		ArrayList<NRegion> regions = theNetwork.getRegions();
-		ArrayList<NRegion> matchingRegions = new ArrayList<NRegion>();
-		for (int n = 0; n < regions.size(); n++) {
-			NRegion r = regions.get(n);
-			if(isMatchingSearchAttribute(r) ) matchingRegions.add(r);
-		}
-		return matchingRegions;
-	}
-	
-
 	////////////////////////////////////////////////////////////////////////////////////
 	// draw-all -type methods
 	//

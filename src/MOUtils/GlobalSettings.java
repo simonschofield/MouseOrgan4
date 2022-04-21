@@ -133,7 +133,7 @@ public class GlobalSettings {
 	}
 	
 	
-	public static ImageDimensions getFullScaleDocumentDimentsion() {
+	public static ImageDimensions getFullScaleDocumentDimension() {
 		return new ImageDimensions(fullScaleRenderWidth, fullScaleRenderHeight);
 	}
 

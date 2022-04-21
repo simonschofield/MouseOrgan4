@@ -7,7 +7,7 @@ import java.awt.image.BufferedImage;
 import MOCompositing.RenderTarget;
 import MOCompositing.Sprite;
 import MOImage.ImageProcessing;
-
+import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.SpriteImageGroup;
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
@@ -15,10 +15,23 @@ import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
+import MOSpriteSeed.SpriteSeedFont;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageDimensions;
 
 public class SceneHelper {
+	
+	// load a SpriteImageGroup and add it to the ImageGroupManager (ImageGroupManager must be instantiated before calling this)
+	public static void loadSpriteImageGroup(String spriteImageGroupSamplePath, String spriteImageGroupName, String fileNameContains) {
+		    SpriteImageGroup spriteImageGroup = new SpriteImageGroup(spriteImageGroupName);
+		    DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(spriteImageGroupSamplePath);
+		    if(fileNameContains != null) {
+		    	dfns.setFileNameContains(fileNameContains);
+		    }
+		    spriteImageGroup.setDirectoryFileNameScanner(dfns);
+		    spriteImageGroup.loadSamples();
+		    GlobalSettings.getTheSpriteImageGroupManager().addSpriteImageGroup(spriteImageGroup);
+		}
 	
 	
 	
@@ -27,7 +40,7 @@ public class SceneHelper {
 		// you give it a dimension in the printed version (e.g. 5mm)
 		// and it returns the doc space dimension that is that size when printed at full size. Gives the same answer at all
 		// draft resolutions.
-		ImageDimensions dims = GlobalSettings.getFullScaleDocumentDimentsion();
+		ImageDimensions dims = GlobalSettings.getFullScaleDocumentDimension();
 		// Assumes print resolution is 300dpi, (or 11.811 pixels per mm)
 		
 		if(dims.width > dims.height) {
@@ -137,25 +150,6 @@ public class SceneHelper {
 	
 	
 	
-	static void addClump(Sprite sprite, float scaleAmt, float rotAmount){
-		
-		
-	}
-	
-
-	Sprite createImageSprite(PVector docPos, String imageContentGroupName, SpriteImageGroupManager contentManager) {
-		
-		QRandomStream qrs = new QRandomStream(1);
-		SpriteImageGroup sig = contentManager.getSpriteImageGroup(imageContentGroupName);
-		int maxNum = sig.getNumImages()-1;
-		int n = qrs.randRangeInt(0, maxNum);
-		BufferedImage img = sig.getImage(n);
-		
-		Sprite sprite =  new Sprite(img);
-		
-		sprite.setDocPoint( docPos);
-		return sprite;
-	}
 	
 }
 

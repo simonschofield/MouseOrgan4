@@ -1,9 +1,11 @@
 package MONetwork;
 
 
+import java.awt.Color;
 import java.util.ArrayList;
 import MOApplication.Surface;
 import MOCompositing.RenderTarget;
+import MOImage.MOColor;
 import MOMaths.Range;
 import MOUtils.SortObjectWithValue;
 
@@ -29,9 +31,13 @@ import MOUtils.SortObjectWithValue;
 // It removes any previously stored regions. This can then be saved for later use.
 // 
 
+ public class NNetworkAutoRegionFinder{
 
-public class NNetworkAutoRegionFinder extends NNetworkProcessor{
-
+	NNetwork theNetwork;
+	public NNetworkDrawer networkDrawer;
+	
+	
+	
 	ArrayList<NEdge> startEdgeList = new ArrayList<NEdge>();
 	int startEdgeListCounter = 0;
 	
@@ -43,10 +49,13 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 	// common to this and region extractor
 	//NNetworkAutoRegionFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
 	public NNetworkAutoRegionFinder(NNetwork ntwk){
-		super(ntwk);
+		//super(ntwk);
 		// for debug only
 		largestRegion.initialiseForExtremaSearch();
 		
+		theNetwork = ntwk;
+		
+		networkDrawer = new NNetworkDrawer(theNetwork);
 		
 		
 		removePreExisitingRegions();
@@ -66,6 +75,39 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 		
 	} 
 	
+	public void drawResult(RenderTarget rt) {
+		
+		
+		ArrayList<NRegion> regions = theNetwork.getRegions();
+		
+		Color[] cols = MOColor.getBasic12ColorPalette();
+		//Color.BLACK;
+		//Color.RED;
+		//Color.GREEN;
+		//Color.CYAN;
+		//Color.DARK_GRAY;
+		//Color.MAGENTA;
+		//Color.YELLOW;
+		//Color.BLUE;
+		//Color.LIGHT_GRAY;
+		//Color.ORANGE;
+		//Color.GRAY;
+		//Color.PINK;
+		
+		int colNum = 0;
+		for(NRegion r: regions) {
+	    
+	    	
+			networkDrawer.drawRegionFill(r, cols[colNum++], rt);
+			if(colNum>10) colNum = 0;
+		}
+		
+		for(NRegion r: regions) {
+			networkDrawer.drawRegionEdges(r, Color.blue, 5, rt);
+		}
+		networkDrawer.draw(rt, Color.WHITE);
+		//theNetwork.save("C:\\simon\\Artwork\\MouseOrgan4\\Maps\\Network Maps\\London Flowers\\regionFindTest.csv");
+	}
 
 	void printEdgeRegionAssociateionCounts(int pass) {
 		// for debug only
@@ -319,5 +361,4 @@ public class NNetworkAutoRegionFinder extends NNetworkProcessor{
 	}
 
 }
-
-
+ 

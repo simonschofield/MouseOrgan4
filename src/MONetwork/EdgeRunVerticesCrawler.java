@@ -22,7 +22,11 @@ import MOUtils.KeyValuePairList;
 
 
 public class EdgeRunVerticesCrawler{
-
+	
+	// copy of the network and search criteria used in the extraction
+	private NNetwork theNetwork;
+	private KeyValuePairList theSearchCriteria;
+	
 	// The extracted edge run vertices
 	ArrayList<Vertices2> edgeRunVertices; 
 
@@ -44,7 +48,11 @@ public class EdgeRunVerticesCrawler{
 	int runCounter = 0;
 
 
-	public EdgeRunVerticesCrawler() {}
+	public EdgeRunVerticesCrawler(NNetwork ntwk, KeyValuePairList searchCriteria) {
+		theNetwork = ntwk;
+		theSearchCriteria = searchCriteria;
+		
+		}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Initialisations
@@ -54,9 +62,9 @@ public class EdgeRunVerticesCrawler{
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	// extract general edge-runs from the network - so is suitable for roads and will find incomplete parts of regions
 	//
-	public void extractNetworkEdgeVertices(NNetwork ntwk, KeyValuePairList searchCriteria, float angleTollerance){
+	public void extractNetworkEdgeVertices(float angleTollerance){
 		
-		NNetworkEdgeRunExtractor edgeRunExtractor = new NNetworkEdgeRunExtractor(ntwk, searchCriteria);
+		NNetworkEdgeRunExtractor edgeRunExtractor = new NNetworkEdgeRunExtractor(theNetwork, theSearchCriteria);
 		edgeRunExtractor.angleTolleranceDegrees = angleTollerance;
 
 		edgeRunVertices = new ArrayList<Vertices2>();
@@ -78,9 +86,9 @@ public class EdgeRunVerticesCrawler{
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	// for finding the vertices of regions only
 	//
-	public void extractRegionEdgeVertices(NNetwork ntwk, KeyValuePairList searchCriteria){
+	public void extractRegionEdgeVertices(){
 		
-		ArrayList<NRegion> regions = ntwk.getRegions();
+		ArrayList<NRegion> regions = theNetwork.getRegions();
 		edgeRunVertices = new ArrayList<Vertices2>();
 		for(NRegion r : regions) {
 			Vertices2 verts = r.getVertices();
