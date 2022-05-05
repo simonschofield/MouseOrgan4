@@ -128,14 +128,7 @@ public class MOMaths {
 		return new PVector(v.y, -v.x, v.z);
 	}
 	
-	public static PVector bisector(PVector v1, PVector v2) {
-		// returns the vector that bisects two other vectors. 2 and 3d. 
-		float angleBetween = PVector.angleBetween(v1, v2);
-		float halfAngle = angleBetween/2;
-		PVector v = v1.copy();
-		v.rotate(halfAngle);
-		return orthogonal(v);
-	}
+	
 
 	//interpolates the input value between the low and hi values
 	public static float ramp(float v, float low, float hi) {
@@ -143,19 +136,44 @@ public class MOMaths {
 		return constrain(rampedV, 0, 1);
 	}
 	
+	public static PVector bisector(PVector v1, PVector v2) {
+		// returns the vector that bisects two other vectors. 2 and 3d. 
+		//float angleBetween = PVector.angleBetween(v1, v2);
+		float angleBetween = getClockwiseAngleBetween(v1, v2);
+		float halfAngle = angleBetween/2;
+		PVector v = v1.copy();
+		v.rotate(halfAngle);
+		return v; //orthogonal(v);
+	}
+	
 	public static float getHingedAngleBetween(PVector p1, PVector join, PVector p2) {
-		// calculated the angle between line p1->join and line join->p2
+		// calculated the CLOCKWISE angle between line p1->join and line join->p2
 		// the the angle returned (in radians) is the angle between the two lines, where an acute angle is a low number < PI and
 		// an obtuse angle is a high number > PI. Two lines forming one straight line would be == PI.
 		// Two lines -- would be 180 degrees, two lines _| would be 90, and two lines /| would be 45 
 		
 		PVector vThis = PVector.sub(join, p1);
 		PVector vOther = PVector.sub(p2, join);
-		float dot = vThis.dot(vOther)  ;    // dot product between [x1, y1] and [x2, y2]
-		float det = vThis.x*vOther.y - vThis.y*vOther.x;      
+		return getClockwiseAngleBetween(vThis, vOther);
+		//float dot = vThis.dot(vOther)  ;    // dot product between [x1, y1] and [x2, y2]
+		//float det = vThis.x*vOther.y - vThis.y*vOther.x;      
+		//return (float) (Math.atan2(det, dot) + Math.PI);  // atan2(y, x) or atan2(sin, cos)
+		
+	}
+	
+	public static float getClockwiseAngleBetween(PVector v1, PVector v2){
+		// calculated the CLOCKWISE angle between line p1 and p2
+		// the the angle returned (in radians) is the angle between the vectors, where an acute angle is a low number < PI and
+		// an obtuse angle is a high number > PI. Two lines forming one straight line would be == PI.
+		// Two lines -- would be 180 degrees, two lines _| would be 90, and two lines /| would be 45 
+		
+		
+		float dot = v1.dot(v2)  ;    // dot product between [x1, y1] and [x2, y2]
+		float det = v1.x*v2.y - v1.y*v2.x;      
 		return (float) (Math.atan2(det, dot) + Math.PI);  // atan2(y, x) or atan2(sin, cos)
 		
 	}
+	
 
 }
 

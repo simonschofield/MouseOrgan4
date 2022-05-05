@@ -1,4 +1,4 @@
-package MOCompositing;
+package MOSpriteSeed;
 
 import java.awt.image.BufferedImage;
 
@@ -13,7 +13,6 @@ import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOScene3D.SceneData3D;
-import MOSpriteSeed.SpriteSeed;
 import MOUtils.GlobalSettings;
 
 public class Sprite {
@@ -388,7 +387,7 @@ public class Sprite {
 	}
 	
 	
-	void scaleToSizeInDocSpace(Float sizeX, Float sizeY) {
+	public void scaleToSizeInDocSpace(Float sizeX, Float sizeY) {
 		// This method allows the user to specify the doc space size of the sprite in X, or in Y, or both. Use NULL to not define a particular dimension.
 		// If only a size-in-X is specified then the Y is scaled proportionally to this to preserve the aspect of the sprite.
 		// If only a size-in-Y is specified then the X is scaled proportionally to this to preserve the aspect of the sprite.

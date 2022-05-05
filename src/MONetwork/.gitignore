@@ -12,3 +12,5 @@
 /NNetworkAutoRegionFinder$NEdgeWithValue.class
 /EdgeRunVerticesCrawler.class
 /NNetworkDrawer.class
+/NNetworkEdgeRunFinder.class
+/NNetworkRegionFinder.class

@@ -29,19 +29,19 @@ import MOUtils.KeyValuePairList;
 // 
 // If no more edfes can be found then returns null
 
-public class NNetworkEdgeRunExtractor{
+public class NNetworkEdgeRunFinder{
 
 	NNetwork theNetwork; 
 	ArrayList<NEdge> theEdgeList;
 
 	float angleTolleranceDegrees = 45;
-	//ArrayList<NEdge> currentEdgeRunList;
+	
 
 	RandomStream randomStream = new RandomStream(1);
 
 
 	// common to this and region extractor
-	NNetworkEdgeRunExtractor(NNetwork ntwk, KeyValuePairList searchCriteria){
+	NNetworkEdgeRunFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
 		//super(ntwk);
 		theNetwork = ntwk;
 		theNetwork.setSearchAttribute(searchCriteria);
@@ -77,8 +77,28 @@ public class NNetworkEdgeRunExtractor{
 		angleTolleranceDegrees = angleDegrees;
 	}
 
-	void setRandomSeed(int s) {
+	public void setRandomSeed(int s) {
 		randomStream = new RandomStream(s);
+	}
+	
+	
+	public ArrayList<Vertices2> extractAllEdgeRunVertices(){
+		
+		ArrayList<Vertices2> edgeRunVertices = new ArrayList<Vertices2>();
+		while(true) {
+			Vertices2 verts = extractEdgeRunVertices();
+			if(verts==null) {
+				System.out.println("preExtractEdgeRuns: fininshed collecting edge runs ");
+				break;
+			}
+
+			edgeRunVertices.add(verts);
+			System.out.println("extractNetworkEdgeVertices: found " + edgeRunVertices.size() + " runs");
+		}
+
+		System.out.println("preExtractEdgeRuns: found " + edgeRunVertices.size() + " runs");
+		
+		return edgeRunVertices;
 	}
 
 

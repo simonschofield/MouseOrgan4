@@ -10,6 +10,7 @@ import MOImageCollections.SpriteImageGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
+import MOSpriteSeed.Sprite;
 import MOUtils.GlobalSettings;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

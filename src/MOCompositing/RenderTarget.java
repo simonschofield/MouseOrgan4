@@ -21,6 +21,7 @@ import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
+import MOSpriteSeed.Sprite;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
@@ -312,7 +313,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	}
 	
 	
-	public void drawVertices2(Vertices2 v, Color lineCol, int w) {
+	public void drawVertices2NoFill(Vertices2 v, Color lineCol, int w) {
 		// draws the lines only
 		shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), lineCol, w);
 		Vertices2 vbuff = v.getInBufferSpace(false);

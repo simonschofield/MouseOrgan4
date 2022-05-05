@@ -41,8 +41,8 @@ public class NNetwork {
 	UniqueID uniqueIDGenerator;
 
 	KeyValuePairList currentSearchAttributes = new KeyValuePairList();
-	
-	
+
+
 	public NNetwork() {
 		//GlobalPointers.theNNetwork = this;
 		//setSpatialIndex( 1, 1, 10, 10);
@@ -62,9 +62,26 @@ public class NNetwork {
 		return uniqueIDGenerator.getUniqueID();
 	}
 
-	//void setSpatialIndex(float w, float h, int numInX, int numInY) {
-	// pointsSpatialIndex = new SpatialIndex(w, h, numInX, numInY);
-	//}
+	//////////////////////////////////////////////////////////////////////////
+	// experimental: this is destructive to the other network
+	// so is best used when the other network is very temporary, e.g. load from file and the dispose
+	public void mergeNetwork(NNetwork other){
+		points.addAll(other.points);
+		edges.addAll(other.edges);
+		regions.addAll(other.regions);
+		for (NPoint np : other.points) {
+			np.theNetwork = this;
+		}
+		uniqueIDGenerator.reset();
+		for (NEdge ne : other.edges) {
+			ne.theNetwork = this;
+		}
+		uniqueIDGenerator.reset();
+		for (NRegion nr : other.regions) {
+			nr.theNetwork = this;
+		}
+		refreshIDs();
+	}
 
 	void clearNetwork() {
 		points = new ArrayList<NPoint>();

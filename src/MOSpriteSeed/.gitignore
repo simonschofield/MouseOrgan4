@@ -2,3 +2,7 @@
 /SpriteSeedBatch.class
 /SpriteSeedFont.class
 /SpriteSeedFontBiome.class
+/Sprite.class
+/SpriteImageQuad.class
+/SpriteSourceInterface.class
+/PolygonPatchSpriteFont.class

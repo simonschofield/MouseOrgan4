@@ -42,7 +42,7 @@ public class NNetworkDrawer{
 		}
 	}
 
-	void drawEdges(RenderTarget rt, Color c) {
+	public void drawEdges(RenderTarget rt, Color c) {
 		ArrayList<NEdge> edges = theNetwork.getEdges();
 	
 		for (int n = 0; n < edges.size(); n++) {
@@ -52,6 +52,40 @@ public class NNetworkDrawer{
 			drawEdge(e,c,lineWt,rt);
 		}
 
+	}
+	
+	public void drawRegionsRandomColors(RenderTarget rt) {
+		
+		
+		ArrayList<NRegion> regions = theNetwork.getRegions();
+		
+		Color[] cols = MOColor.getBasic12ColorPalette();
+		//Color.BLACK;
+		//Color.RED;
+		//Color.GREEN;
+		//Color.CYAN;
+		//Color.DARK_GRAY;
+		//Color.MAGENTA;
+		//Color.YELLOW;
+		//Color.BLUE;
+		//Color.LIGHT_GRAY;
+		//Color.ORANGE;
+		//Color.GRAY;
+		//Color.PINK;
+		
+		int colNum = 0;
+		for(NRegion r: regions) {
+	    
+	    	
+			drawRegionFill(r, cols[colNum++], rt);
+			if(colNum>10) colNum = 0;
+		}
+		
+		for(NRegion r: regions) {
+			drawRegionEdges(r, Color.black, 5, rt);
+		}
+		//draw(rt, Color.WHITE);
+		//theNetwork.save("C:\\simon\\Artwork\\MouseOrgan4\\Maps\\Network Maps\\London Flowers\\regionFindTest.csv");
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////
@@ -86,7 +120,7 @@ public class NNetworkDrawer{
 	public void drawRegionEdges(NRegion r, Color c, int width, RenderTarget rt) {
 		Vertices2 verts = r.getVertices();
 		
-		rt.drawVertices2(verts, c, width);
+		rt.drawVertices2NoFill(verts, c, width);
 	}
 	
 	public void drawRegionListEdges(ArrayList<NRegion> regions, Color c, int width, RenderTarget rt) {

@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 import MOCompositing.RenderTarget;
-import MOCompositing.Sprite;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
 import MOMaths.MOMaths;
@@ -12,6 +11,7 @@ import MOMaths.PVector;
 import MOMaths.Plane3D;
 import MOScene3D.ProjectedLight3D;
 import MOScene3D.SceneData3D;
+import MOSpriteSeed.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 

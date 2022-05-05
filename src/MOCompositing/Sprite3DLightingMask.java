@@ -5,6 +5,7 @@ import java.awt.image.DataBufferByte;
 
 import MOMaths.PVector;
 import MOScene3D.ProjectedLight3D;
+import MOSpriteSeed.Sprite;
 
 public class Sprite3DLightingMask {
 	int maskScale;

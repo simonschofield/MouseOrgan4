@@ -68,12 +68,14 @@ public class NRegion  extends NAttributes {
 	}
 
 	public Vertices2 getVertices(){
-		ArrayList<PVector> verts = new ArrayList<PVector>();
+		ArrayList<PVector> points = new ArrayList<PVector>();
 		for(int n = 0; n < getNumEdges(); n++){
 			NPoint np =  getNPointVertex(n);
-			verts.add(np.getPt());
+			points.add(np.getPt());
 		}
-		return new Vertices2(verts);
+		Vertices2 vertices = new Vertices2(points);
+		vertices.close();
+		return vertices;
 	}
 
 

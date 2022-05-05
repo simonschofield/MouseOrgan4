@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import MOCompositing.MainDocumentRenderTarget;
 import MOCompositing.RenderBorder;
 import MOCompositing.RenderTarget;
-import MOCompositing.Sprite;
+import MOSpriteSeed.Sprite;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.GlobalSettings;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

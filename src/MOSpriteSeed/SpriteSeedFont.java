@@ -1,9 +1,7 @@
 package MOSpriteSeed;
 
 
-import MOCompositing.Sprite;
 import MOImageCollections.SpriteImageGroup;
-import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOUtils.GlobalSettings;
@@ -17,10 +15,10 @@ import MOUtils.GlobalSettings;
 // 
 //
 //
-// whether its a biome or a singel SeedFont, the seedFontName is valid for this type of seed, the name extends to seedbatches as they have come from this font.
+// whether its a biome or a single SeedFont, the seedFontName is valid for this type of seed, the name extends to seedbatches as they have come from this font.
 
 
-public class SpriteSeedFont {
+public class SpriteSeedFont implements SpriteSourceInterface{
 	
 
 	
@@ -99,7 +97,7 @@ public class SpriteSeedFont {
 	}
 	
 	
-	private SpriteImageGroup getSpriteImageGroup() {
+	protected SpriteImageGroup getSpriteImageGroup() {
 		//System.out.println("getSpriteImageGroup SprietImage group is " + imageSampleGroupName );
 		return GlobalSettings.getTheSpriteImageGroupManager().getSpriteImageGroup(imageSampleGroupName);
 	}
@@ -112,7 +110,7 @@ public class SpriteSeedFont {
 	//
 	
 	
-	private int getRandomSpriteImageGroupItemNumber() {
+	protected int getRandomSpriteImageGroupItemNumber() {
 		if(instancenameMustContain==null) return randomStream.randRangeInt(0, getNumImages() - 1);
 		if(instancenameMustContain.equals("")) return randomStream.randRangeInt(0, getNumImages() - 1);
 		

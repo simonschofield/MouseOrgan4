@@ -17,7 +17,7 @@ import MOUtils.KeyValuePairList;
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Extracts the edge runs from a collection of edges using a NNetworkEdgeRunExtractor or from the regions
 // stores them as a list of Vertices2
-// Once extracted, the network si not consulted any more. You are just dealing with Vertices2
+// Once extracted, the network is not consulted any more. You are just dealing with Vertices2
 
 
 
@@ -64,22 +64,9 @@ public class EdgeRunVerticesCrawler{
 	//
 	public void extractNetworkEdgeVertices(float angleTollerance){
 		
-		NNetworkEdgeRunExtractor edgeRunExtractor = new NNetworkEdgeRunExtractor(theNetwork, theSearchCriteria);
-		edgeRunExtractor.angleTolleranceDegrees = angleTollerance;
-
-		edgeRunVertices = new ArrayList<Vertices2>();
-		while(true) {
-			Vertices2 verts = edgeRunExtractor.extractEdgeRunVertices();
-			if(verts==null) {
-				System.out.println("preExtractEdgeRuns: fininshed collecting edge runs ");
-				break;
-			}
-
-			edgeRunVertices.add(verts);
-			System.out.println("extractNetworkEdgeVertices: found " + edgeRunVertices.size() + " runs");
-		}
-
-		System.out.println("preExtractEdgeRuns: found " + edgeRunVertices.size() + " runs");
+		NNetworkEdgeRunFinder edgeRunExtractor = new NNetworkEdgeRunFinder(theNetwork, theSearchCriteria);
+		edgeRunExtractor.setAngleTollerance(angleTollerance);
+		edgeRunVertices = edgeRunExtractor.extractAllEdgeRunVertices();
 		runCounter = 0;
 	}
 
@@ -130,6 +117,10 @@ public class EdgeRunVerticesCrawler{
 
 	public ArrayList<Vertices2> getEdgeRunVertices(){
 		return edgeRunVertices;
+	}
+	
+	public void setEdgeRunVertices(ArrayList<Vertices2> vertList){
+		edgeRunVertices = vertList;
 	}
 
 

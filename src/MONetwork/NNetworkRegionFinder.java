@@ -12,6 +12,7 @@ import MOUtils.SortObjectWithValue;
 //////////////////////////////////////////////////////////////////////////////////////
 // 
 // This network processor extracts regions from the list of edges
+// It then adds them to the network as NRegions.
 // Before it can start, it needs to remove "dangling" edges - i.e. those edges not in a loop but maybe in a run.
 // Also accidental co-incident edges need to be removed.
 // It works in two passes. (Pass 0 and Pass 1) First pass, the first edge with no associated region count (ARCs) is found and a left-most-turn search made to find the loop. Pass 1 uses the p1 direction of 
@@ -31,7 +32,7 @@ import MOUtils.SortObjectWithValue;
 // It removes any previously stored regions. This can then be saved for later use.
 // 
 
- public class NNetworkAutoRegionFinder{
+ public class NNetworkRegionFinder{
 
 	NNetwork theNetwork;
 	public NNetworkDrawer networkDrawer;
@@ -48,7 +49,7 @@ import MOUtils.SortObjectWithValue;
 	
 	// common to this and region extractor
 	//NNetworkAutoRegionFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
-	public NNetworkAutoRegionFinder(NNetwork ntwk){
+	public NNetworkRegionFinder(NNetwork ntwk){
 		//super(ntwk);
 		// for debug only
 		largestRegion.initialiseForExtremaSearch();

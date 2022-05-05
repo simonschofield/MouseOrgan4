@@ -1,4 +1,4 @@
-package MOCompositing;
+package MOSpriteSeed;
 
 
 
@@ -6,6 +6,7 @@ package MOCompositing;
 
 import java.awt.Color;
 
+import MOCompositing.RenderTarget;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Vertices2;

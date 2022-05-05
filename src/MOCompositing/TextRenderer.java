@@ -21,6 +21,7 @@ import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
+import MOSpriteSeed.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.WordBank;
 

@@ -137,6 +137,10 @@ public class VectorShapeDrawer{
   }
 
   public void drawVertices2(Vertices2 v){
+	  
+	  //System.out.println("drawVertices2 is closed " + v.isClosed());
+	  
+	  
        Path2D pth = makePath2D(v, v.isClosed());
        drawShape(pth);
   }

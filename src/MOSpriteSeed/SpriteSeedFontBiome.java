@@ -2,7 +2,6 @@ package MOSpriteSeed;
 
 import java.util.ArrayList;
 
-import MOCompositing.Sprite;
 import MOImageCollections.SpriteImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
@@ -12,7 +11,7 @@ import MOMaths.QRandomStream;
 //  can be named individually, so as to identify sprites from  and treat different fonts
 //
 
-public class SpriteSeedFontBiome {
+public class SpriteSeedFontBiome  implements SpriteSourceInterface{
 
 	
 	SpriteImageGroupManager theImageSampleGroupManager;

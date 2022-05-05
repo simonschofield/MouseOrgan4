@@ -13,7 +13,7 @@ import MOUtils.MOStringUtils;
 
 
 ///////////////////////////////////////////////////////////////////////////
-// A SpriteSeedBatch is an iterable collection of SpriteSeed.
+// A SpriteSeedBatch is an iterable collection of type SpriteSeed.
 // When a helper produces seeds it is this form.
 // Used when iterating through seeds in the main loop
 // Can save/load to file

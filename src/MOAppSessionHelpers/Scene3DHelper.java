@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import MOApplication.Surface;
 
 import MOCompositing.RenderTarget;
-import MOCompositing.Sprite;
 import MOImage.ConvolutionFilter;
 import MOImage.ImageProcessing;
 import MOMaths.MOMaths;
@@ -23,6 +22,7 @@ import MOSimpleUI.TextInputBox;
 //import MOSimpleUI.Slider;
 //import MOSimpleUI.TextInputBox;
 import MOSimpleUI.UIEventData;
+import MOSpriteSeed.Sprite;
 
 
 

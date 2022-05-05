@@ -162,15 +162,21 @@ public class ImageProcessing {
 	}
 	
 	public static BufferedImage cropImage(BufferedImage src, Rect r) {
-		  //System.out.println("ImageProcessing:cropImage rect " + r.toStr());
-		
-		  int wid = Math.min(src.getWidth(), (int)r.getWidth());
-		  int hig = Math.min(src.getHeight(), (int)r.getHeight());
-		
-		
-	      BufferedImage dest = src.getSubimage((int)r.left,(int)r.top, wid, hig);
-	      return dest; 
+		// returns a sub image, but shares the same image buffer data as the src image
+		int wid = Math.min(src.getWidth(), (int)r.getWidth());
+		int hig = Math.min(src.getHeight(), (int)r.getHeight());
+
+	    BufferedImage subImg = src.getSubimage((int)r.left,(int)r.top, wid, hig);
+	    return subImg;  
 	   }
+	
+	
+	public static BufferedImage deepCropImage(BufferedImage src, Rect r) {
+		 //creates a completely independent cropped image
+		BufferedImage shallowCrop = cropImage( src,  r);
+		return copyImage(shallowCrop);
+	   }
+	   
 	
 	public static BufferedImage cropImageWithNormalisedRect(BufferedImage src, Rect r) {
 		int w = src.getWidth();
@@ -292,6 +298,8 @@ public class ImageProcessing {
 		// returns a copy of imageIn preserving the parts of the imageIn which are in the lighter regions of the mask
 		// Those in the dark mask regions are alpha-ed out
 		// i.e. new alpha = min(maskAlpha, exisitingAlpha);
+		System.out.println("sourceImage " + sourceImage.getWidth() + "," + sourceImage.getHeight());
+		System.out.println("mask " + mask.getWidth() + "," + mask.getHeight());
 		int width = sourceImage.getWidth();
         int height = sourceImage.getHeight();
 		
@@ -308,7 +316,9 @@ public class ImageProcessing {
         BufferedImage imageOut = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
         int[] imageOutPixels = ((DataBufferInt) imageOut.getRaster().getDataBuffer()).getData();
         
-        
+        System.out.println("sourceImagePixels " + sourceImagePixels.length);
+        System.out.println("maskPixels " + maskPixels.length);
+        //int length = width*height;
         for (int i = 0; i < sourceImagePixels.length; i++) {
             
         	int[] exisitingCol = unpackARGB(sourceImagePixels[i]);
@@ -319,6 +329,9 @@ public class ImageProcessing {
 
         return imageOut;
     }
+	
+	
+	
 	
 	// new tbd
 	// not used but demonstrates use of BandCombineOp

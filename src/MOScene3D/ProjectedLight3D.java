@@ -3,7 +3,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOCompositing.Sprite;
 import MOImage.ImageProcessing;
 import MOMaths.Fustrum3D;
 import MOMaths.Intersection3D;
@@ -12,6 +11,7 @@ import MOMaths.PVector;
 import MOMaths.Plane3D;
 import MOMaths.Range;
 import MOMaths.Ray3D;
+import MOSpriteSeed.Sprite;
 import MOUtils.GlobalSettings;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Creates a lighting volume based on a bitmap projected from a plane in 3D. Any 3D point within the viewing fustrum can be mapped to this 

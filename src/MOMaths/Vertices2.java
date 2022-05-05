@@ -373,9 +373,63 @@ public class Vertices2 {
 		return path;
 
 	}
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////
+	// expand/contract polygon
+	// only works with closed Vertices2
+	// expandAmount is in the same units as the vertices e.g. document space
+	// A +ve expand makes the polygon bigger by displacing the vertices along the bisector line by that distance
+	// hence a -ve displacement shrinks the poly
+	// so, how does the algorithm know which way is shrinking, and which way is growing? If the poly was guaranteed to be ordered in a clockwise manner
+	// then toward the centre of the polygon would be 
+	
+	public Vertices2 getExpanded(float displacement) {
+		if(isClosed()==false) return null;
+		
+		ArrayList<PVector> displacedPoints = new ArrayList<PVector>();
+		for(int n = 0; n < size()-1; n++) {
+			PVector dp = getBiscectorDisplacedPoint(n, displacement);
+			displacedPoints.add(dp);
+		}
+		Vertices2 v = new Vertices2(displacedPoints);
+		v.close();
+		return v;
+	}
+	
+	
+	public PVector getBiscectorDisplacedPoint(int n, float dist) {
+		// returns a point that is moved along the bisector of the lines connecting
+		PVector vA = new PVector();
+		PVector vB = new PVector();
+		if(n == 0 ) {
+			// find the first and previous (i.e.) last line
+			vA = getLine(getNumLines()-1).getNormalisedVector();
+			vB = getLine(0).getNormalisedVector();
+		} 
+
+		if(n >0 && n < getNumLines()) {
+			vA =  getLine(n-1).getNormalisedVector();
+			vB =  getLine(n).getNormalisedVector();
+		}
+		
+		if(n < 0 || n > getNumLines()) {
+			// error
+			return null;
+		}
+		
+		PVector orthogVector =  MOMaths.bisector(vA, vB);
+		orthogVector.normalize();
+		PVector displacement = PVector.mult(orthogVector, dist);
+		PVector p = this.get(n);
+		return PVector.add(p, displacement);
+	}
 
 
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	// for adding detail to the line, probably not going to use this
+	//
 
 	public PVector getOrthogonallyDisplacedPoint(int n, float dist) {
 		// returns a point that is moved "orthogonally" to the lines connecting

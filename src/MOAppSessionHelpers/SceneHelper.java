@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 
 
 import MOCompositing.RenderTarget;
-import MOCompositing.Sprite;
 import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.SpriteImageGroup;
@@ -15,6 +14,7 @@ import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
+import MOSpriteSeed.Sprite;
 import MOSpriteSeed.SpriteSeedFont;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageDimensions;
