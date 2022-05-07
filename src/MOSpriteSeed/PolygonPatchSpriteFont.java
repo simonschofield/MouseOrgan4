@@ -75,6 +75,7 @@ public class PolygonPatchSpriteFont extends SpriteSeedFont{
 		
 		if( xlatitude < 0 || ylatitude < 0) {
 			System.out.println("Warning, PolygonPatchSpriteFont:: mask is larger than texture ");
+			chosenTexture = ImageProcessing.resizeTo(chosenTexture, polygonMask.getWidth(), polygonMask.getHeight());
 			return chosenTexture;
 		}
 		int xoff = 0;

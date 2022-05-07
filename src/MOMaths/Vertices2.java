@@ -248,6 +248,32 @@ public class Vertices2 {
 		}
 		return a/2f;
 	}
+	
+	public void makeClockwise(boolean anti) {
+		if(isClosed()==false) {
+			System.out.println("Vertices2: makeClockwise() shape is not closed");
+			return;
+		}
+		if(anti==true && isClockwisePolygon()) {
+			reverse();
+			return;
+		}
+		if(anti==false && isClockwisePolygon()==false) {
+			reverse();
+			return;
+		}
+		
+	}
+	
+	public boolean isClockwisePolygon() {
+		if(isClosed()==false) {
+			System.out.println("Vertices2: isClockwisePolygon() shape is not closed");
+			return false;
+		}
+		float a = getArea();
+		if(a < 0) return true;
+		return false;
+	}
 
 	public int getNumLines() {
 		return this.size()-1;
