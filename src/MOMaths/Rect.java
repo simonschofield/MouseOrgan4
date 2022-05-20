@@ -79,11 +79,11 @@ public class Rect{
 		return new PVector(left, top);
 	}
 
-	PVector getTopRight() {
+	public PVector getTopRight() {
 		return new PVector(right, top);
 	}
 
-	PVector getBottomLeft() {
+	public PVector getBottomLeft() {
 		return new PVector(left, bottom);
 	}
 
@@ -126,6 +126,11 @@ public class Rect{
 		// returns a translated copy
 		return new Rect(left+dx, top+dy, getWidth(), getHeight());
 	}
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////
+	// in-place geometric alterations
+	//
 
 	public void translate(float dx, float dy) {
 		// translates in-place 
@@ -152,6 +157,17 @@ public class Rect{
 		right = left+w;
 		bottom = top+h; 
 	}
+	
+	public void dilate(float inX, float inY) {
+		// can be used to grow and shrink the rect about its centre
+		// inX and in Y are added to each side of the rect
+		// +ve nums increase the size, -ve nums decrease the size
+		left = left - inX;
+		right = right + inX;
+		top = top - inY;
+		bottom = bottom + inY;
+	}
+	
 
 	//////////////////////////////////////////////////////////////////////////////////
 	// interpolation

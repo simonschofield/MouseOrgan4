@@ -10,9 +10,10 @@ public class Line2 {
 	public PVector p2;
 
 	// intersection with other line
-	boolean intersection_segmentsIntersect;
-	PVector intersection_point;
-
+	public boolean intersection_segmentsIntersect;
+	public PVector intersection_point;
+	float intersection_t1 = -1;
+	float intersection_t2 = -1; 
 
 	public Line2() {
 		p1 = new PVector(0, 0);
@@ -27,6 +28,10 @@ public class Line2 {
 	public Line2(float startX, float startY, float endX, float endY) {
 		this.p1 = new PVector(startX, startY);
 		this.p2 = new PVector(endX, endY);
+	}
+	
+	public String toStr() {
+		return p1.toStr() + "," + p2.toStr();
 	}
 
 
@@ -63,8 +68,14 @@ public class Line2 {
 
 		return new PVector(x, y);
 	}
+	
+	public PVector getIntersectionPoint(Line2 l) {
+		// returns null if no intersection, otherwise returns the point
+		if( calculateIntersection(l) ) return intersection_point;
+		return null;
+	}
 
-	boolean calculateIntersection(Line2 l)
+	public boolean calculateIntersection(Line2 l)
 	{
 		// returns true if this line segment intersects with other line segemnt
 		// The intersection point can be recovered after the test via intersection_point
@@ -82,18 +93,19 @@ public class Line2 {
 		float dx34 = p4.x - p3.x;
 		float dy34 = p4.y - p3.y;
 
-		float intersection_t1 = -1;
-		float intersection_t2 = -1; 
+		intersection_t1 = -1;
+		intersection_t2 = -1; 
 
 		// Solve for t1 and t2
 		float denominator = (dy12 * dx34 - dx12 * dy34);
 
 		// check if lines are parallel
-		if (denominator < 0.00000001)
+		if (Math.abs(denominator) < 0.00000001)
 		{
 			// The lines are parallel (or close enough to it).
 			intersection_segmentsIntersect = false;
 			intersection_point = null;
+			//System.out.println("parallel " + denominator);
 			return false;
 		}
 		intersection_t1 = ((p1.x - p3.x) * dy34 + (p3.y - p1.y) * dx34) / denominator;
@@ -106,8 +118,30 @@ public class Line2 {
 		intersection_segmentsIntersect = ((intersection_t1 >= 0) && (intersection_t1 <= 1) && (intersection_t2 >= 0) && (intersection_t2 <= 1));
 		return intersection_segmentsIntersect;
 	}
+	
+	boolean isJustTouching() {
+		// you can call this after a successful intersection calculation with the other line to determine if the lines were
+		// justTouching (returns true) or properly crossing (returns false)
+		float tol = Float.MIN_VALUE * 2; // just to give the calculations some headroom
+		if( MOMaths.isClose(intersection_t1, 0, tol) ||
+			MOMaths.isClose(intersection_t1, 1, tol) ||	
+			MOMaths.isClose(intersection_t2, 0, tol) ||
+			MOMaths.isClose(intersection_t2, 1, tol)) return true;
+		return false;
+	}
 
-
+	public boolean isIntersectionPossible(Line2 otherLine) {
+		// this is a trivial check to see if 2 lines can intersect, might speed things up
+		PVector otherp1 = otherLine.p1;
+		PVector otherp2 = otherLine.p2;
+	    if((otherp1.x < p1.x && otherp2.x < p2.x) || // other is wholly left of this
+	       (otherp1.x > p1.x && otherp2.x > p2.x) || // other is wholly right of this
+	       (otherp1.y < p1.y && otherp2.y < p2.y) || // other is wholly above of this
+	       (otherp1.y > p1.y && otherp2.x > p2.y)    // other is wholly below of this
+	       ) return false;
+	    
+	       return true;
+	}
 
 	boolean equals(Line2 otherLine) {
 		if ( p1.equals(otherLine.p1) && p2.equals(otherLine.p2)) return true;

@@ -63,6 +63,7 @@ public class WordVerticeCrawler {
 	
 	
 	public boolean nextWord() {
+		// set to loop endlessly
 		int wordListSize = getNumWordsOnCurrentVertices();
 		//System.out.println("nextWord: wordListSize " + wordListSize + " precalculatedListIterator " + precalculatedListIterator);
 		if(precalculatedListIterator+1 >= wordListSize) {

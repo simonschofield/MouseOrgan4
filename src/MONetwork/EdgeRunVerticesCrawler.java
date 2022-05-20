@@ -23,6 +23,8 @@ import MOUtils.KeyValuePairList;
 
 public class EdgeRunVerticesCrawler{
 	
+	
+	
 	// copy of the network and search criteria used in the extraction
 	private NNetwork theNetwork;
 	private KeyValuePairList theSearchCriteria;
@@ -91,10 +93,25 @@ public class EdgeRunVerticesCrawler{
 
 
 		if(shortestFirst) {
-			edgeRunVertices.sort(Comparator.comparing(Vertices2::size));
+			edgeRunVertices.sort(Comparator.comparing(Vertices2::getTotalLength));
 		} else {
-			edgeRunVertices.sort(Comparator.comparing(Vertices2::size).reversed());
+			edgeRunVertices.sort(Comparator.comparing(Vertices2::getTotalLength).reversed());
 		}
+
+	}
+	
+	public void setRunDirectionPreference(int preference) {
+		for(Vertices2 v: edgeRunVertices) {
+			v.setRunDirectionPreference(preference);
+		}
+	}
+	
+	public void removeShortEdgeRuns(float minLength) {
+		ArrayList<Vertices2> toBeRemoved = new ArrayList<Vertices2>();
+		for(Vertices2 v: edgeRunVertices) {
+			if( v.getTotalLength() < minLength) toBeRemoved.add(v);
+		}
+		edgeRunVertices.removeAll(toBeRemoved);
 
 	}
 
@@ -270,7 +287,7 @@ public class EdgeRunVerticesCrawler{
 
 		ArrayList<PVector> verticesOut = new ArrayList<PVector> ();
 
-		int numPoints = verts.size();
+		int numPoints = verts.getNumVertices();
 		for(int n = 0; n < numPoints; n++) {
 			PVector thisPt = verts.get(n);
 

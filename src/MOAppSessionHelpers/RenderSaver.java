@@ -208,11 +208,11 @@ public class RenderSaver {
 				String shortName = thisFileOrFolder.getName();
 				boolean containsIncrementString =  shortName.contains("_session");
 				if (containsIncrementString == true && thisFileOrFolder.isFile() && useSubDirectory==false) {
-					System.out.println("Found a file called name = " + shortName);
+					//System.out.println("Found a file called name = " + shortName);
 					foundFilesOrFolders.add(thisFileOrFolder);
 				}
 				if (containsIncrementString == true && thisFileOrFolder.isDirectory() && useSubDirectory==true) {
-					System.out.println("Found a directory called name = " + shortName);
+					//System.out.println("Found a directory called name = " + shortName);
 					foundFilesOrFolders.add(thisFileOrFolder);
 				}
 				
@@ -226,7 +226,7 @@ public class RenderSaver {
 			int indexOfSessionNumber = thisFileOrFolder.indexOf("_session") + 8;
 			String numberSubString = thisFileOrFolder.substring(indexOfSessionNumber, indexOfSessionNumber+4);
 			int ival = Integer.parseInt(numberSubString);
-			System.out.println("Found number string = " + numberSubString + " integer value " + ival);
+			//System.out.println("Found number string = " + numberSubString + " integer value " + ival);
 			if(ival > highestNumber) highestNumber = ival;
 		}
 		

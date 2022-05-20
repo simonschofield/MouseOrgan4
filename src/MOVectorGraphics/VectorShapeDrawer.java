@@ -147,7 +147,7 @@ public class VectorShapeDrawer{
   
   private Path2D makePath2D(Vertices2 v, boolean closed) {
     Path2D path = new Path2D.Float();
-    int numPoints = v.size();
+    int numPoints = v.getNumVertices();
     for (int i = 0; i < numPoints; i++) {
       PVector p = v.get(i);
       

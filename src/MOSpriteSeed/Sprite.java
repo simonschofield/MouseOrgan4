@@ -26,17 +26,21 @@ public class Sprite {
 	public float alpha = 1;
 	
 	public Sprite(BufferedImage img) {
+		setRandomSeed(1);
 		data = new SpriteSeed();
 		setImage(img);
 	}
 	
 	public Sprite(SpriteSeed sseed) {
+		setRandomSeed(sseed.id);
 		data = sseed.copy();
-		setRandomSeed(data.id);
+		
 
 		// This method is called by Sprite initialisation to
 		// fully make a sprite from a seed.
 		SpriteImageGroupManager sigm = GlobalSettings.getTheSpriteImageGroupManager();
+		if(data==null) System.out.println("ERROR Sprite::data == null");
+		if(sigm==null) System.out.println("ERROR Sprite::SpriteImageGroupManager == null");
 		SpriteImageGroup sig = sigm.getSpriteImageGroup(data.spriteImageGroupName);
 		if (sig == null) {
 			System.out.println("ERROR Sprite::SpriteSeed constructor - cannot find spriteImageGroup called "
@@ -52,11 +56,12 @@ public class Sprite {
 		setImage(img);
 	}
 	
-	Sprite copy() {
+	public Sprite copy() {
 		
 		Sprite cpy = new Sprite(this.data);
-		cpy.imageQuad = this.imageQuad.copy(cpy);
 		cpy.setImage(ImageProcessing.copyImage(this.image));
+		cpy.imageQuad = this.imageQuad.copy(cpy);
+		
 		cpy.setRandomStream(this.qRandomStream);
 		cpy.alpha = this.alpha;
 		return cpy;

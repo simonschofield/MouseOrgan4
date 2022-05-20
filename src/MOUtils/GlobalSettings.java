@@ -70,6 +70,8 @@ public class GlobalSettings {
 		ImageProcessing.setInterpolationQuality(getRenderQuality());
 		setDefaultSessionName();
 		
+		// for your convenience, and because we don't want a null one
+		theSpriteImageGroupManager = new SpriteImageGroupManager();
 		}
 	
 	public static void setTheDocumentCoordSystem(MainDocument md) {

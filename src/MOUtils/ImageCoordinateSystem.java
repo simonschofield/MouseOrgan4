@@ -104,6 +104,10 @@ public class ImageCoordinateSystem {
 			return documentWidth / documentHeight;
 		}
 		
+		public Rect getDocumentRect() {
+			return new Rect(0,0,documentWidth,documentHeight);
+		}
+		
 		public boolean isInsideDocumentSpace(PVector p) {
 	        
 	        if(isInsideXDocumentSpace(p.x) && isInsideYDocumentSpace(p.y)) return true;

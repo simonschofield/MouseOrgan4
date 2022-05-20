@@ -19,7 +19,16 @@ import java.util.ArrayList;
 // Once closed you can re-open it.
 // Needs to be closed to use the isPointInside() method
 public class Vertices2 {
-
+	
+	// for determinig the preseference of direction
+	public static final int LEFTRIGHT = 0;
+	public static final int RIGHTLEFT = 1;
+	public static final int DOWNWARDS = 2;
+	public static final int UPWARDS = 3;
+	public static final int CLOCKWISE = 4;
+	public static final int ANTICLOCKWISE = 5;
+	
+	
 	ArrayList<PVector> vertices;
 
 	public Vertices2(){
@@ -76,9 +85,12 @@ public class Vertices2 {
 
 
 
+	
 
-
-	public int size(){ return vertices.size();}
+	public int getNumVertices(){ 
+		// if the Vertices is closed there will be a duplicate point start and end
+		return vertices.size();
+		}
 
 	public void add(PVector p){ vertices.add(p.copy());}
 
@@ -223,11 +235,17 @@ public class Vertices2 {
 		PVector maxExtents = new PVector(maxx, maxy);
 		return new Rect(minExtents, maxExtents);
 	}
-
+	
 	public float getArea() {
+		return Math.abs(getAreaSigned());
+	}
+
+	private float getAreaSigned() {
 		// using Gauss's area formula
 		// most cogent explanation here https://www.mathsisfun.com/geometry/area-irregular-polygons.html
 		// returns the area as a float (units sqd)
+		// The method returns a positive area for an ANTI clockwise polygon, and a negative area for 
+		// a CLOCKWISE polygon, so is useful for determining winding.
 		
 		if(isClosed()==false) {
 			System.out.println("Vertices2: getArea() shape is not closed");
@@ -238,7 +256,7 @@ public class Vertices2 {
 		PVector thisPoint = this.getStartPoint();
 		float thisX = thisPoint.x;
 		float thisY = thisPoint.y;
-		for(int n = 1; n < this.size(); n++) {
+		for(int n = 1; n < this.getNumVertices(); n++) {
 			PVector nextPoint = this.get(n);
 			float nextX = nextPoint.x;
 			float nextY = nextPoint.y;
@@ -249,34 +267,76 @@ public class Vertices2 {
 		return a/2f;
 	}
 	
-	public void makeClockwise(boolean anti) {
-		if(isClosed()==false) {
-			System.out.println("Vertices2: makeClockwise() shape is not closed");
+	/////////////////////////////////////////////////////////////////////////////////////
+	// run direction preferences
+	//
+	//
+	public void setRunDirectionPreference(int preference) {
+		if(isClosed()) {
+			System.out.println("Vertices2: setRunDirectionPreference() shape is closed");
 			return;
 		}
-		if(anti==true && isClockwisePolygon()) {
+		float startX = getStartPoint().x;
+		float startY = getStartPoint().y;
+		float endX = getEndPoint().x;
+		float endY = getEndPoint().y;
+		if(preference == LEFTRIGHT) {
+			if(startX > endX) reverse();
+			return;
+		}
+		
+		if(preference == RIGHTLEFT) {
+			if(startX < endX) reverse();
+			return;
+		}
+		
+		if(preference == DOWNWARDS) {
+			if(startY > endY) reverse();
+			return;
+		}
+		
+		if(preference == UPWARDS) {
+			if(startX < endX) reverse();
+			return;
+		}
+		
+		
+		
+	}
+	
+	
+	public void setPolygonWindingDirection(int direction) {
+		// makes the oder of the points clockwise if anti==false, of (if anti==true) anti-clockwise.
+		if(isClosed()==false) {
+			System.out.println("Vertices2: setPolygonWindingDirection() shape is not closed");
+			return;
+		}
+		if(direction==ANTICLOCKWISE && isClockwisePolygon()) {
 			reverse();
 			return;
 		}
-		if(anti==false && isClockwisePolygon()==false) {
+		if(direction==CLOCKWISE && isClockwisePolygon()==false) {
 			reverse();
 			return;
 		}
 		
 	}
 	
+	
+	
 	public boolean isClockwisePolygon() {
 		if(isClosed()==false) {
 			System.out.println("Vertices2: isClockwisePolygon() shape is not closed");
 			return false;
 		}
-		float a = getArea();
+		float a = getAreaSigned();
 		if(a < 0) return true;
 		return false;
 	}
 
 	public int getNumLines() {
-		return this.size()-1;
+		//if(isClosed()) return this.getNumVertices();
+		return this.getNumVertices()-1;
 	}
 
 	public Line2 getLine(int n) {
@@ -348,7 +408,7 @@ public class Vertices2 {
 	public Vertices2 getInBufferSpace(boolean shiftToTopLeft) {
 		// used by TextRenderer, render text in polygon
 		Vertices2 bufferSpaceVerts = new Vertices2();
-		int numPoints = this.size();
+		int numPoints = this.getNumVertices();
 
 		PVector topleft = getExtents().getTopLeft();
 
@@ -373,7 +433,7 @@ public class Vertices2 {
 
 	public Path2D getAsPath2D(boolean convertToBufferSpace, boolean shiftToTopLeft) {
 		Path2D path = new Path2D.Float();
-		int numPoints = this.size();
+		int numPoints = this.getNumVertices();
 
 		PVector topleft = getExtents().getTopLeft();
 
@@ -410,11 +470,11 @@ public class Vertices2 {
 	// so, how does the algorithm know which way is shrinking, and which way is growing? If the poly was guaranteed to be ordered in a clockwise manner
 	// then toward the centre of the polygon would be 
 	
-	public Vertices2 getExpanded(float displacement) {
+	public Vertices2 getDilated(float displacement) {
 		if(isClosed()==false) return null;
 		
 		ArrayList<PVector> displacedPoints = new ArrayList<PVector>();
-		for(int n = 0; n < size()-1; n++) {
+		for(int n = 0; n < getNumVertices()-1; n++) {
 			PVector dp = getBiscectorDisplacedPoint(n, displacement);
 			displacedPoints.add(dp);
 		}
@@ -461,7 +521,7 @@ public class Vertices2 {
 		// returns a point that is moved "orthogonally" to the lines connecting
 		PVector orthogVector = new PVector(0,1);
 
-		if( (n >0 && n < size()-1) && size()>2) {
+		if( (n >0 && n < getNumVertices()-1) && getNumVertices()>2) {
 			// the mid points
 			PVector vbefore =  getLine(n-1).getNormalisedVector();
 			PVector vafter =  getLine(n).getNormalisedVector();
@@ -472,7 +532,7 @@ public class Vertices2 {
 			PVector lineVector = getLine(0).getNormalisedVector();
 			orthogVector = MOMaths.orthogonal(lineVector);
 		} 
-		if(n == size()-1) {
+		if(n == getNumVertices()-1) {
 			// find the vector orthogonal to the end line
 			PVector lineVector = getLine(n-1).getNormalisedVector();
 			orthogVector = MOMaths.orthogonal(lineVector);

@@ -2,7 +2,10 @@ package MOImage;
 
 import java.awt.Color;
 
+import MOMaths.QRandomStream;
+
 public class MOColor {
+	static QRandomStream ranStream = new QRandomStream(1);
 	
 	static public Color[] getBasic12ColorPalette() {
 		Color[] cols = new Color[12];
@@ -25,4 +28,13 @@ public class MOColor {
 	public static Color invisibleCol() {
 		return new Color(0,0,0,0);
 	}
+	
+	public static Color getRandomRGB() {
+		int r = ranStream.randRangeInt(0, 255);
+		int g = ranStream.randRangeInt(0, 255);
+		int b = ranStream.randRangeInt(0, 255);
+		
+		return new Color(r,g,b);
+	}
+	
 }

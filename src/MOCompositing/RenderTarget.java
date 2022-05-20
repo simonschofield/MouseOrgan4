@@ -117,7 +117,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		getGraphics2D().clearRect(0, 0, coordinateSystem.getBufferWidth(), coordinateSystem.getBufferHeight());
 	}
 	
-	void fillBackgroundWithImage(BufferedImage img, float alpha) {
+	public void fillBackgroundWithImage(BufferedImage img, float alpha) {
 		BufferedImage resizedImage = ImageProcessing.resizeTo(img, coordinateSystem.getBufferWidth(), coordinateSystem.getBufferHeight());
 		pasteImage_BufferCoordinates(resizedImage,0,0,alpha);
 	}
@@ -146,9 +146,9 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	////////////////////////////////////////////////////////////////////////////////////
 	// pastes the topleft of the image at docSpacePoint
 	// 
-	public void pasteImage(BufferedImage img, PVector docSpacePoint, float alpha) {
-		Rect r = getPasteRectDocSpace(img, docSpacePoint);
-		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(docSpacePoint);
+	public void pasteImage(BufferedImage img, PVector docSpaceTopLeftPoint, float alpha) {
+		//Rect r = getPasteRectDocSpace(img, docSpacePoint);
+		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(docSpaceTopLeftPoint);
 		pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
 	}
 	
@@ -184,8 +184,23 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		pasteImage(spriteMaskImage, docSpacePoint, alpha);
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////
+	// Experimental erase operation
+	// Rather than adding to what is already there, this method reduces the alpha of pixels within the existing targetRenderImage
+	// subtracts the sprite's alpha from the existing alpha. The sprite's colour is ignored. 
+	public void pasteSpriteErase(Sprite sprite) {
+		PVector topLeftDocSpace = sprite.getDocSpaceRect().getTopLeft();
+		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(topLeftDocSpace);
+		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.DST_OUT, sprite.alpha);
+		getGraphics2D().setComposite(ac);
+		getGraphics2D().drawImage(sprite.getImage(), (int)bufferPt.x, (int)bufferPt.y, null);
+	}
 	
 	
+	////////////////////////////////////////////////////////////////////////////////////
+	// the sprite has a similar method, we might need this here as it is very generalised
+	// but for the moment removed
+	/*
 	public Rect getPasteRectDocSpace(BufferedImage img, PVector docSpacePoint) {
 		// Final pasting always by defining the top left of the image in doc space
 		// give an image and its upperleft at docSpacePoint
@@ -193,7 +208,11 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		PVector bottomRightOffset = coordinateSystem.bufferSpaceToDocSpace(img.getWidth(), img.getHeight());
 		PVector bottomRight = PVector.add(docSpacePoint, bottomRightOffset);
 		return new Rect(docSpacePoint, bottomRight);
-	}
+	}*/
+	
+	
+	
+	
 
 	////////////////////////////////////////////////////////////////////////////////////
 	// this is called by the Surface to get the current view rect from the whole

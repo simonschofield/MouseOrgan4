@@ -86,6 +86,12 @@ public class WordBank extends CollectionIterator{
 	}
 	
 	public String getNextWord() {
+		
+		// so that the words never ever run out
+		if(this.getNumItemsRemaining()<=1) {
+			this.setIterator(0);
+		}
+
 		Object obj = this.getNextItem();
 		if(obj==null) {
 			//System.out.println("getNextItem is null");

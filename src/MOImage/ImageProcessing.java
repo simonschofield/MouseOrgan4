@@ -522,8 +522,9 @@ public class ImageProcessing {
 	
 	public static BufferedImage resizeTo(BufferedImage originalImage, int scaledWidth, int scaledHeight)
 	{
-        BufferedImage outputImage = new BufferedImage(scaledWidth,
-                scaledHeight, originalImage.getType());
+		if(originalImage.getWidth()==scaledWidth && originalImage.getHeight()==scaledHeight) return originalImage;
+		//System.out.println("resizeTo " + scaledWidth + " " + scaledHeight + " type " + originalImage.getColorModel());	 
+        BufferedImage outputImage = new BufferedImage(scaledWidth, scaledHeight, originalImage.getType());
  
         // scales the input image to the output image
         Graphics2D g2d = outputImage.createGraphics();

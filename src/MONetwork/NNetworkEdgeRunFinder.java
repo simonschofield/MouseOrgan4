@@ -42,7 +42,7 @@ public class NNetworkEdgeRunFinder{
 
 	// common to this and region extractor
 	NNetworkEdgeRunFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
-		//super(ntwk);
+		
 		theNetwork = ntwk;
 		theNetwork.setSearchAttribute(searchCriteria);
 		initialise();
@@ -58,7 +58,7 @@ public class NNetworkEdgeRunFinder{
 			theEdgeList = (ArrayList)theNetwork.getEdges().clone();
 			System.out.println("NetworkEdgeMarcher:fcurrentSearchAttribute is null");
 		} else {
-			theEdgeList = theNetwork.getEdgesMatchingSearchAttributes();
+			theEdgeList = theNetwork.getEdgesMatchingSearchAttributes(true);
 			//System.out.println("NetworkEdgeMarcher:found " + theEdgeList.size() + " edges matching the critera " + currentSearchAttribute.theKey);
 		}
 		if(theEdgeList == null) {
@@ -93,7 +93,7 @@ public class NNetworkEdgeRunFinder{
 			}
 
 			edgeRunVertices.add(verts);
-			System.out.println("extractNetworkEdgeVertices: found " + edgeRunVertices.size() + " runs");
+			//System.out.println("extractNetworkEdgeVertices: found " + edgeRunVertices.size() + " runs");
 		}
 
 		System.out.println("preExtractEdgeRuns: found " + edgeRunVertices.size() + " runs");

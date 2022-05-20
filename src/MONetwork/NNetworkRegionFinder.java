@@ -3,42 +3,53 @@ package MONetwork;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Comparator;
+
 import MOApplication.Surface;
 import MOCompositing.RenderTarget;
 import MOImage.MOColor;
+import MOMaths.Line2;
+import MOMaths.PVector;
 import MOMaths.Range;
+import MOMaths.Rect;
+import MOMaths.Vertices2;
+import MOUtils.GlobalSettings;
+import MOUtils.KeyValuePair;
+import MOUtils.KeyValuePairList;
 import MOUtils.SortObjectWithValue;
 
 //////////////////////////////////////////////////////////////////////////////////////
 // 
-// This network processor extracts regions from the list of edges
+// This network processor finds all the implicit regions from the list of edges
 // It then adds them to the network as NRegions.
-// Before it can start, it needs to remove "dangling" edges - i.e. those edges not in a loop but maybe in a run.
-// Also accidental co-incident edges need to be removed.
-// It works in two passes. (Pass 0 and Pass 1) First pass, the first edge with no associated region count (ARCs) is found and a left-most-turn search made to find the loop. Pass 1 uses the p1 direction of 
-// the edge to establish the search direction.
-// Depending on the orientation of the edge, and the nature of the loop to be found it is not possible to determine whether to not the search is in a Clockwise or Anti clockwise fashion; 
-// you only know after the loop has been found, then it is too late.
+// The region finding is done as soon as the object is instantiated.
+// All the regions are found and stored in a copy of the original network (i.e. is non-destructive to the input network) that can be retrieved using getNetworkWithFoundRegions()
+// or a separate ArrayList of sorted found regions can be retrieves using getRegionsSortedByArea()
 //
-// In pass 0 connectingEdges with no ARC are added to the list of edges making this loop. Once a loop has been found, all the edges' ARC are incremented. The start edge is added to a startEdgeList, this has 2 purposes; 
-// 1 so that if we bail on this edge, we do not attempt the same edge again,
-// and 2/ the start Edge list is used in the second pass (pass 1) to search using the p2 direction to find many missing loops from the first search.
+// Notes on implementation:-
+// At the start a copy of the input NNetwork is made, so that it is not destructive to the input NNetwork.
+// Before it can start finding regions, it needs to remove "dangling" edges - i.e. those edges not in a loop but maybe in a run.
+// Also accidental co-incident edges need to be removed. It also removes any previously stored regions so the algorithm return only those regions found by the algorithm.
 //
-// In pass 1 the the startEdge list is used, to get the same start edges as in pass 1, but direct the search the other way (using p2 direction of the statEdge) to find loops in the other direction. 
+// Depending on the orientation of the edge, and the nature of the loop to be found it is not possible to determine whether the search is in a Clockwise or Anti clockwise fashion; 
+// you only know after the complete loop has been found, then it is too late. So search may happen in either winding. The following system copes with this.
+//
+// In pass 0 connectingEdges with no ARC are added to the list of edges making this loop using clockwise-most connecting edge search. Once a loop has been found, all the edges' ARC are incremented. The start edge is added to a startEdgeList, this has 2 purposes; 
+// 1 so that if we bail on this edge, we do not attempt the same edge again, and 2/ the start Edge list is used in the second pass (pass 1) to search using the p2 direction to find many missing loops from the first search.
+//
+// In pass 1 the the startEdge list is used to get the same start edges as in pass 1, but direct the search the other way (using p2 direction of the statEdge) to find loops in the other direction. 
 // In this pass connecting edges with any ARC are permitted.
 //  
-// In pass 2 there are some scattered regions and some edges to whole map still left unused. They all have an ARC of 1. This pass mops them up.
+// In pass 2 there are some scattered non-regions with residual edges with an ARC of 1. This pass mops them up.
 //
 // This seems to get about 99.9% of regions. The reason that some regions are left unfound is that these region has some edges with an ARC of 2, due to finding larger surrounding regions. TBD. These might be mopped up later.
-// This algorithm is purely deterministic with one conclusion; all the regions in the network are found and stored in the loaded network. 
-// It removes any previously stored regions. This can then be saved for later use.
+// This algorithm is purely deterministic with one conclusion. 
 // 
 
  public class NNetworkRegionFinder{
 
 	NNetwork theNetwork;
 	public NNetworkDrawer networkDrawer;
-	
 	
 	
 	ArrayList<NEdge> startEdgeList = new ArrayList<NEdge>();
@@ -49,23 +60,36 @@ import MOUtils.SortObjectWithValue;
 	int foundRegionCount = 0;
 	Range largestRegion = new Range();
 	
-	
+	KeyValuePair documentEdgeAttribute = new KeyValuePair("REGIONEDGE", "document");
 	// common to this and region extractor
 	//NNetworkAutoRegionFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
-	public NNetworkRegionFinder(NNetwork ntwk){
+	public NNetworkRegionFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
 		//super(ntwk);
 		// for debug only
 		largestRegion.initialiseForExtremaSearch();
 		
-		theNetwork = ntwk;
+		theNetwork = ntwk.copy();
+
+		if(searchCriteria != null) {
+			theNetwork.setSearchAttribute(searchCriteria);
+			ArrayList<NEdge> toRemove = theNetwork.getEdgesMatchingSearchAttributes(false);
+			theNetwork.removeEdges(toRemove);
+		}
 		
 		networkDrawer = new NNetworkDrawer(theNetwork);
+	}
+	
+	
 		
+	public void findAllRegions() {	
 		
 		removePreExisitingRegions();
 		removeAllDanglingEdges();
 		removeCoincidentEdges();
 		System.out.println("NNetworkAutoRegionFinder: finding regions please wait...");
+		
+		
+		
 		// using sequentially found start-edge with no associated regions
 		findRegions(0);
 		
@@ -75,9 +99,243 @@ import MOUtils.SortObjectWithValue;
 		// mopping up those remaining regions with ARCs == 1
 		findRegions(2);
 		
+		
+		
+		/// now make all the region vertices clockwise
+		for (NRegion nr : theNetwork.regions) {
+				nr.getVertices().setPolygonWindingDirection(Vertices2.CLOCKWISE);
+		}
+		
 	} 
 	
+	public NNetwork getNetworkWithFoundRegions() {
+		return theNetwork;
+	}
 	
+	public ArrayList<NRegion> getFoundRegions(){
+		return theNetwork.regions;
+	}
+	
+	public ArrayList<NRegion> getFoundRegionsSortedByArea(boolean smallestFirst) {
+		// if smallestFirst == true, the regions are sorted with smallest regions first
+		// if smallestFirst == false, the regions are sorted with largest regions first
+		SortObjectWithValue objectValueSorter = new SortObjectWithValue();
+		
+		for(NRegion nr : theNetwork.regions) {
+			float area = nr.getVertices().getArea();
+			
+			objectValueSorter.add(nr,area);
+		}
+		if(smallestFirst) {
+			return objectValueSorter.getSorted();
+		} else {
+			return objectValueSorter.getReverseSorted();
+		}
+
+	}
+	
+	///////////////////////////////////////////////////////////////////////////////////////
+	// addOuterBoundaryEdges
+	// New edges are added to the NNetwork on the precise addOuterBoundaryEdges rect before the region search is undertaken. These are "welded" to the existing network 
+	// edges with Attribute REGIONEDGE: "Document"
+	// One use it to use the documentRect
+	// These are useful for finding the outer areas of the network that would not otherwise be complete regions, but composed of dangling edges
+	// Method - 
+	//	    find all the intersections of the exiting network with the new document edges - allIntersectionsList
+	//      get the first edge in the allIntersectionsList - thisEdge
+	// 		get all the documentEdges in another list i.e. all edges with attribute "REGIONEDGE", "document" - documentEdgesList
+	// 		find the documentEdge in the documentEdgesList that intersects with thisEdge
+	//		Weld(thisEdge, intersectingDocumentEdge) - this will split both edges to make 4 new edges connected to the intersection point
+	//	    remove thisEdge from the allIntersectionsList
+	//      continue until allIntersectionsList is empty.
+	// addOuterBoundaryEdges
+	public void addOuterBoundaryEdges(Rect boundaryRect) {
+		
+		// first create the new boundary edges
+		NPoint topLeft = new NPoint(boundaryRect.getTopLeft(),theNetwork);
+		theNetwork.addPoint(topLeft);
+		
+		NPoint topRight = new NPoint(boundaryRect.getTopRight(),theNetwork);
+		theNetwork.addPoint(topRight);
+		
+		NPoint bottomRight = new NPoint(boundaryRect.getBottomRight(),theNetwork);
+		theNetwork.addPoint(bottomRight);
+		
+		NPoint bottomLeft = new NPoint(boundaryRect.getBottomLeft(),theNetwork);
+		theNetwork.addPoint(bottomLeft);
+		
+		
+		NEdge topEdge = theNetwork.addEdge(topLeft, topRight);
+		topEdge.addAttribute(documentEdgeAttribute);
+		NEdge rightEdge = theNetwork.addEdge(topRight, bottomRight);
+		rightEdge.addAttribute(documentEdgeAttribute);
+		NEdge bottomEdge = theNetwork.addEdge(bottomRight, bottomLeft);
+		bottomEdge.addAttribute(documentEdgeAttribute);
+		NEdge leftEdge = theNetwork.addEdge(bottomLeft,topLeft);
+		leftEdge.addAttribute(documentEdgeAttribute);
+		
+		// for debug only
+		for(NEdge e: theNetwork.edges) {
+			//System.out.println("edges in network " + e.toStr() + e.getAttributes().getAsCSVLine());
+			
+		}
+		
+		
+		// get all the intersections of the network with these edges
+		ArrayList<NEdge> allIntersectionsList = new ArrayList<NEdge>();
+		allIntersectionsList.addAll(findIntersections(topEdge));
+		allIntersectionsList.addAll(findIntersections(rightEdge));
+		allIntersectionsList.addAll(findIntersections(bottomEdge));
+		allIntersectionsList.addAll(findIntersections(leftEdge));
+		
+		
+		// so now we have all the intersecting edges with the documentEdges
+		int bailCount = 0;
+		
+		
+		
+		
+		while( edgesToWeld(allIntersectionsList) ) {
+			bailCount++;
+			if(bailCount>1000000) {
+				System.out.println("bail count exceeded");
+				break;
+			}
+			
+		}
+		
+		
+		theNetwork.refreshIDs();
+	}
+	
+	boolean edgesToWeld(ArrayList<NEdge> allIntersectionsList) {
+		
+		if(allIntersectionsList.size()<1) return false;
+		NEdge thisEdge = allIntersectionsList.get(0);
+		
+		ArrayList<NEdge> documentEdges = getAllDocumentEdges();
+		//System.out.println("edgesToWeld documentEdges " + documentEdges.size());
+		if(documentEdges.size() == 0) return false;
+		for(NEdge docEdge: documentEdges) {
+			if( isIntersection(thisEdge, docEdge) ) {
+				weldEdges(thisEdge, docEdge);
+				allIntersectionsList.remove(thisEdge);
+				//System.out.println("edgesToWeld welded edges still to process " + allIntersectionsList.size());
+				return true;
+			}
+		}
+		
+		return true;
+	}
+	
+	
+	
+	ArrayList<NEdge> getAllDocumentEdges(){
+		ArrayList<NEdge> documentEdges = new ArrayList<NEdge>();
+		
+		ArrayList<NEdge> allEdges = theNetwork.getEdges();
+		// find all the possible lines intersecting
+		for(NEdge e: allEdges) {
+			if( e.getAttributes().containsEqual(documentEdgeAttribute)) {
+				documentEdges.add(e);
+			}
+		}
+		
+		return documentEdges;
+	}
+	
+	
+	ArrayList<NEdge> getAllNonDocumentEdges(){
+		ArrayList<NEdge> allEdges = (ArrayList<NEdge>) theNetwork.getEdges().clone();
+		
+		ArrayList<NEdge> docEdges = getAllDocumentEdges();
+		allEdges.removeAll(docEdges);
+		return allEdges;
+	}
+	
+	
+	
+	ArrayList<NEdge> findIntersections(NEdge theEdge) {
+		// first find all the intersecting edges
+		ArrayList<NEdge> allEdges = getAllNonDocumentEdges();
+		ArrayList<NEdge> intersectingEdges = new ArrayList<NEdge>();
+
+		// find all the possible lines intersecting
+		for(NEdge e: allEdges) {
+			//if( e.getAttributes().containsEqual(documentEdgeAttribute)) continue;
+			if( isIntersection(theEdge,e) ) {
+				intersectingEdges.add(e);
+			}
+		}
+		//System.out.println("findAllWelds found " + intersectingEdges.size() + " intersecting edges");
+		
+		return intersectingEdges;
+		
+		
+	}
+	
+	
+	boolean isIntersection(NEdge e1, NEdge e2) {
+		Line2 l1 = e1.getLine2();
+		Line2 l2 = e2.getLine2();
+		//if( l1.isIntersectionPossible(l2)== false) return false;
+		boolean result =  l1.calculateIntersection(l2);	
+		//System.out.println("line1 " + l1.toStr() + " line2 " + l2.toStr() + " intersection = " + result);
+		return result;
+	}
+	
+	void weldEdges(NEdge e1, NEdge e2) {
+		// assumes that they have already been determined as intersecting
+		PVector intersectionPoint = e1.getLine2().getIntersectionPoint(e2.getLine2());
+		if(intersectionPoint == null) return;
+		
+		NPoint newSplitPoint = splitEdge(e1, intersectionPoint);
+		splitEdge(e2,  newSplitPoint);
+		
+	}
+	
+	NPoint splitEdge(NEdge oldEdge, PVector splitPoint){
+	    if( oldEdge == null || splitPoint == null) return null;
+	    NPoint newSplitPoint = new NPoint(splitPoint, theNetwork);
+	    splitEdge( oldEdge,  newSplitPoint);
+	    return newSplitPoint;
+	}
+	    
+	void splitEdge(NEdge oldEdge, NPoint newSplitPoint) {  
+		if( oldEdge == null || newSplitPoint == null) return;
+	    NPoint np1 = oldEdge.getEndNPoint(0);
+	    NPoint np2 = oldEdge.getEndNPoint(1);
+	    
+	    KeyValuePairList attr1 = oldEdge.getAttributes().copy();
+	    KeyValuePairList attr2 = oldEdge.getAttributes().copy();
+	    theNetwork.addPoint(newSplitPoint);
+	    
+	    // give the new edges a copy of the old one's attributes
+	    // deep copy is required to avoid reference sharing
+	    NEdge newEdge1 = theNetwork.addEdge(np1, newSplitPoint);
+	    newEdge1.setAttributes(attr1);
+	    NEdge newEdge2 = theNetwork.addEdge(newSplitPoint, np2);
+	    newEdge2.setAttributes(attr2);
+	    updateDependentRegions_SplitEdge( oldEdge,  newEdge1,  newEdge2);
+	    theNetwork.deleteEdge(oldEdge);
+	  }
+	
+	// not sure we need to do this as this process happens before any regions are found
+	void updateDependentRegions_SplitEdge(NEdge oldEdge, NEdge newEdge1, NEdge newEdge2){
+	    ArrayList<NRegion> regions = theNetwork.getRegions();
+	    
+	    for(NRegion reg: regions){
+	      reg.splitEdge( oldEdge,  newEdge1,  newEdge2);
+	    }
+	  }
+	
+	
+	
+	
+
+	///////////////////////////////////////////////////////////////////////////////////////
+	// all below is private apart from the debug methods at the bottom
+	//
 	
 	private void findRegions(int pass) {
 
@@ -338,7 +596,7 @@ import MOUtils.SortObjectWithValue;
 
 		}
 		
-		System.out.println("removed " + toRemove.size() + " identical edges");
+		//System.out.println("removed " + toRemove.size() + " identical edges");
 		theNetwork.removeEdges(toRemove);
 	}
 
@@ -346,17 +604,46 @@ import MOUtils.SortObjectWithValue;
 	// debug methods
 	//
 	
+	
+	public void drawEdgesRandomColorWithPoints(RenderTarget rt) {
+		// for debug only
+		
+		
+		NNetworkDrawer drawer = new NNetworkDrawer(theNetwork);
+		
+		for(NEdge e: theNetwork.edges) {
+			Color c = MOColor.getRandomRGB();
+			
+				
+			drawer.drawEdge(e, c, 20, rt);
+			
+		}
+		
+		for(NPoint p: theNetwork.points) {
+			
+			drawer.drawPoint(p, Color.RED, 0.001f, rt);
+		}
+		
+		printEdgePointNums(" in draw edges ");
+		
+	}
+	
+	void printEdgePointNums(String message) {
+		System.out.println(message + " Num edges " + theNetwork.edges.size() + " Num Points " + + theNetwork.points.size());
+	}
+	
 	public void drawEdgeRegionStatus(RenderTarget rt) {
 		// for debug only
 		NNetworkDrawer drawer = new NNetworkDrawer(theNetwork);
+		printEdgePointNums(" in drawEdgeRegionStatus ");
 		for(NEdge e: theNetwork.edges) {
-			Color c = Color.black;
+			Color c = Color.YELLOW;
 			int n = e.getAssociatedRegionCount();
 			if(n == 0) c = Color.red;
 			if(n == 1) c = Color.blue;
 			if(n == 2) c = Color.black;
 				
-				drawer.drawEdge(e, c, 6, rt);
+				drawer.drawEdge(e, c, 20, rt);
 		}
 		
 		
@@ -404,10 +691,6 @@ import MOUtils.SortObjectWithValue;
 	
 	
 }
- 
- 
- 
- 
  
  
  

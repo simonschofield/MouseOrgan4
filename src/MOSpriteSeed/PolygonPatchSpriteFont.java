@@ -42,7 +42,11 @@ public class PolygonPatchSpriteFont extends SpriteSeedFont{
 		int n = getRandomSpriteImageGroupItemNumber();
 		BufferedImage chosenTexture  = getSpriteImageGroup().getImage(n);
 		
-		BufferedImage croppedTexture = cropTextureToMask(chosenTexture, polygonMask, false);
+		// tbd
+		//chosenTexture = applyGeometricTransforms(chosenTexture, polygonMask);
+		
+		
+		BufferedImage croppedTexture = cropTextureToMask(chosenTexture, polygonMask, true);
 		
 		System.out.println("croppedTexture " + croppedTexture.getWidth() + "," + croppedTexture.getHeight());
 		System.out.println("polygonMask " + polygonMask.getWidth() + "," + polygonMask.getHeight());
@@ -78,12 +82,14 @@ public class PolygonPatchSpriteFont extends SpriteSeedFont{
 			chosenTexture = ImageProcessing.resizeTo(chosenTexture, polygonMask.getWidth(), polygonMask.getHeight());
 			return chosenTexture;
 		}
+		
+		
 		int xoff = 0;
 		int yoff = 0;
 		
 		if(randomDisplace) {
-			
-			
+			xoff = randomStream.randRangeInt(0, xlatitude);
+			yoff = randomStream.randRangeInt(0, ylatitude);
 		}
 		
 		Rect cropRect = new Rect(xoff,yoff,polygonMask.getWidth(),polygonMask.getHeight());

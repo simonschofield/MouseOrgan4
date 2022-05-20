@@ -8,11 +8,15 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Toolkit;
+import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
 
 import MOApplication.MainDocument;
 import MOImage.ImageProcessing;
@@ -26,7 +30,7 @@ import MOUtils.GlobalSettings;
 import MOUtils.WordBank;
 
 public class TextRenderer {
-	String fontName = "Arial";
+	String fontName = "Times New Roman";
 	int fontStyle = 0;
 	int fontSize = 10;
 	Font font;
@@ -41,6 +45,8 @@ public class TextRenderer {
 	int bufferWidth, bufferHeight;
 	ArrayList<String> fontFamilies = new ArrayList<String>();
 	
+	Sprite backGroundSprite;
+	float fontmetricMeanLine, fontmetricBaseLine;
 	
 	public TextRenderer(){
 		
@@ -63,6 +69,7 @@ public class TextRenderer {
 		fontName = name;
 		
 		font = new Font(fontName, fontStyle, fontSize);
+		setBackgroundSpriteMargins();
 	}
 	
 	void setOutlineStyle(float outlineFractWidth, Color outlineCol) {
@@ -74,22 +81,72 @@ public class TextRenderer {
 	
 	
 	
-	public Sprite getSprite(String text, float docSpaceFontHeight, Line2 line) {
+	public Sprite getSprite(String text, float docSpaceFontHeight, Line2 line, Color backgrndCol) {
+		//System.out.println("getSpriteText====" + text + "==");
+
+		if(backgrndCol != null) {
+			backGroundSprite = createBackgroundSprite( text,  docSpaceFontHeight,  line,  backgrndCol);
+		}
+
 		BufferedImage img = this.drawText(text);
 		Sprite sprite = new Sprite(img);
-		
+		sprite = mapToLine( sprite,  docSpaceFontHeight,  line);
+		return sprite;
+	}
+	
+	
+	Sprite createBackgroundSprite(String text, float docSpaceFontHeight, Line2 line, Color backgrndCol) {
+		// so that the background sprite has the correct blocking of text
+		// i.e. between the baseline and the meanline of the font
+		//
+		String trimmedText = text.trim();
+		//System.out.println("createBackgroundSprite====" + text + "==");
+		BufferedImage img = this.drawText(trimmedText);
+
+		BufferedImage bkgrndImg = ImageProcessing.createEmptyCopy(img);
+		Graphics2D backgroundGraphics = bkgrndImg.createGraphics();	
+		backgroundGraphics.setColor(backgrndCol);
+
+		backgroundGraphics.fillRect(0, (int)fontmetricMeanLine, bkgrndImg.getWidth(), (int)(fontmetricBaseLine - fontmetricMeanLine));
+		Sprite sprt = new Sprite(bkgrndImg);
+		return mapToLine( sprt,  docSpaceFontHeight,  line);
+	}
+	
+	
+	void setBackgroundSpriteMargins() {
+		FontRenderContext frc = graphics2D.getFontRenderContext();
+	    LineMetrics metrics = font.getLineMetrics("The quick brown fox jumps over the lazy dog", frc);
+	    //float messageWidth = (float) font.getStringBounds(message, frc).getWidth();
+
+	    // centre text
+	    float ht = metrics.getHeight();
+	    float ascent = metrics.getAscent();
+	    float descent = metrics.getDescent();
+	    
+	    float topBottomMargin = (ht - (ascent+descent))/2;
+	    // so from the top (y = 0) down
+	    float topOfAscenders = topBottomMargin;
+	    
+	    fontmetricMeanLine = topOfAscenders + (descent*2f);
+	    fontmetricBaseLine = ascent+(topBottomMargin*4);// seems to work ok for most
+		 
+	}
+	
+	Sprite mapToLine(Sprite sprite, float docSpaceFontHeight, Line2 line) {
 		
 		sprite.rotate(-90);
 		sprite.data.origin = new PVector(0.5f,0.0f);
-		
-		
 		sprite.scaleToSizeInDocSpace(docSpaceFontHeight, line.getLength());
-		
-		
 		float r = line.getRotation();
 		sprite.rotate(r);
 		sprite.setDocPoint(line.p2);
 		return sprite;
+	}
+	
+
+	public Sprite getBackgroundSprite() {
+		// this sprite is generated when getSprite is called. It is avaiable should you need it directly after 
+		return backGroundSprite;
 	}
 	
 	
@@ -144,7 +201,7 @@ public class TextRenderer {
 		 Rectangle2D r2d = fontMetrics.getStringBounds(s, g2d);
 		 double bufferSpaceWidth = r2d.getWidth();
 		 double bufferSpaceHeight = r2d.getHeight();
-		 bufferSpaceHeight += bufferSpaceHeight*0.1; // to fit descenders
+		 //bufferSpaceHeight += bufferSpaceHeight*0.1; // to fit descenders
 		 
 		 int w = (int)Math.ceil(bufferSpaceWidth);
 		 int h = (int)Math.ceil(bufferSpaceHeight);
@@ -155,12 +212,17 @@ public class TextRenderer {
 	
 	 BufferedImage drawText(String str) {
 		createRenderBuffer(str);  
-		//font = new Font(fontName, fontStyle, fontSize);
+		font = new Font(fontName, fontStyle, fontSize);
+		
 		getGraphics2D().setColor(outlineColor);
 		getGraphics2D().setFont(font);
 		getGraphics2D().drawString( str,  0,  font.getSize());
+		
 		return bufferedImage;
 	}
+	 
+	 
+	 
 	
 	 BufferedImage  drawOutlineText(String text) {
 		createRenderBuffer(text); 
@@ -339,6 +401,26 @@ public class TextRenderer {
 
 	public void setGraphics2D(Graphics2D graphics2d) {
 		graphics2D = graphics2d;
+		Map<?, ?> desktopHints =  (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
+		if (desktopHints != null) {
+			graphics2D.setRenderingHints(desktopHints);
+			
+				
+			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING,
+				    RenderingHints.VALUE_RENDER_QUALITY);
+			
+			graphics2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
+				    RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+				    RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+				    
+		    graphics2D.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
+				   RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		    
+		    graphics2D.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+		}
+		
 	}
 		
 }

@@ -15,7 +15,7 @@ public class NEdge extends NAttributes {
 	NPoint p1 = null;
 	NPoint p2 = null;
 
-	Line2 line2 = null;
+	private Line2 line2 = null;
 	
 	// associated regions. Only 2 supported in this system.
 	// used in automatically finding regions
@@ -33,6 +33,10 @@ public class NEdge extends NAttributes {
 	public NEdge( KeyValuePairList kvp, NNetwork ntwk  ) {
 		super(TYPE_NEDGE, ntwk);
 		setWithKeyValuePairList( kvp);
+	}
+	
+	public Line2 getLine2() {
+		return new Line2(p1.getPt(), p2.getPt());
 	}
 
 	String toStr() {
