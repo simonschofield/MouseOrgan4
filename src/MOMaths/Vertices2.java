@@ -576,6 +576,19 @@ public class Vertices2 {
 		vertices = verticesOut;
 
 	}
+	
+	public String getStats() {
+		int nv = getNumVertices();
+		float l = getTotalLength();
+		Rect r = getExtents();
+		boolean cl = isClosed();
+		if(cl) {
+			float a = getArea();
+			return "Closed Polygon of " + nv + " vertices, area: " + a + ", length: " + l + ", width: " + r.getWidth() + ", height: " + r.getHeight();
+		}else {
+			return "Open Polyline of " + nv + " vertices, length: " + l + ", width: " + r.getWidth() + ", height: " + r.getHeight();
+		}
+	}
 
 
 }

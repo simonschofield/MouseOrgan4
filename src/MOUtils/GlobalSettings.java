@@ -29,7 +29,7 @@ public class GlobalSettings {
 	private static float sessionScale = 0;
 	private static ImageCoordinateSystem theDocumentCoordSystem;
 	private static SpriteImageGroupManager  theSpriteImageGroupManager;
-	
+	private static MainDocument theDocument;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// paths used by the system
@@ -76,6 +76,7 @@ public class GlobalSettings {
 	
 	public static void setTheDocumentCoordSystem(MainDocument md) {
 		// only set by the MainDocument in Surface.initialiseSystem() after init()
+		GlobalSettings.theDocument = md;
 		GlobalSettings.theDocumentCoordSystem = md.getCoordinateSystem();
 	}
 	
@@ -99,6 +100,10 @@ public class GlobalSettings {
 			System.exit(0);
 		}
 		return sessionScale;
+	}
+	
+	public static MainDocument getMainDocument() {
+		return theDocument;
 	}
 
 	public static ImageCoordinateSystem getTheDocumentCoordSystem() {

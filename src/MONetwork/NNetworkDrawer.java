@@ -100,7 +100,7 @@ public class NNetworkDrawer{
 	}
 	
 
-	void drawEdge(NEdge e, Color c, int width, RenderTarget rt) {
+	void drawEdge(NEdge e, Color c, float width, RenderTarget rt) {
 		//Rect viewPort = GlobalObjects.theSurface.getViewPortDocSpace();
 		PVector p1 = e.getEndCoordinate(0);
 	    PVector p2 = e.getEndCoordinate(1);
@@ -108,7 +108,7 @@ public class NNetworkDrawer{
 		rt.drawLine(p1, p2, c, width);
 	}
 	
-	public void drawEdges(ArrayList<NEdge> edges, Color c, int width, RenderTarget rt) {
+	public void drawEdges(ArrayList<NEdge> edges, Color c, float width, RenderTarget rt) {
 		//System.out.println("drawing num edges " + edges.size());
 		for(NEdge e: edges) {
 			//System.out.println(e.toStr());
@@ -117,13 +117,13 @@ public class NNetworkDrawer{
 	}
 	
 	
-	public void drawRegionEdges(NRegion r, Color c, int width, RenderTarget rt) {
+	public void drawRegionEdges(NRegion r, Color c, float width, RenderTarget rt) {
 		Vertices2 verts = r.getVertices();
 		
 		rt.drawVertices2NoFill(verts, c, width);
 	}
 	
-	public void drawRegionListEdges(ArrayList<NRegion> regions, Color c, int width, RenderTarget rt) {
+	public void drawRegionListEdges(ArrayList<NRegion> regions, Color c, float width, RenderTarget rt) {
 		for(NRegion r: regions) {
 			drawRegionEdges(r,  c,  width, rt);
 		}

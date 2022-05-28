@@ -306,47 +306,47 @@ public class RenderTarget implements MainDocumentRenderTarget{
 
 	}
 
-	public void drawPoint(PVector docSpacePoint, Color c, int size) {
-		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
-		shapeDrawer.setDrawingStyle(ca, ca, 2);
+	public void drawPoint(PVector docSpacePoint, Color c, float size) {
+		//Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+		shapeDrawer.setDrawingStyle(c, c, 2);
 		PVector bufpt = coordinateSystem.docSpaceToBufferSpace(docSpacePoint);
 		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, size, size);
 
 	}
 
-	public void drawLine(PVector start, PVector end, Color c, int w) {
-		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
-		shapeDrawer.setDrawingStyle(ca, ca, w);
+	public void drawLine(PVector start, PVector end, Color c, float w) {
+		//Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
+		shapeDrawer.setDrawingStyle(c, c, w);
 		PVector bufStart = coordinateSystem.docSpaceToBufferSpace(start);
 		PVector bufEnd = coordinateSystem.docSpaceToBufferSpace(end);
 		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
 	
 	
-	void drawLine(Line2 l, Color c, int w) {
-		Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
-		shapeDrawer.setDrawingStyle(ca, ca, w);
+	void drawLine(Line2 l, Color c, float w) {
+		//Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
+		shapeDrawer.setDrawingStyle(c, c, w);
 		PVector bufStart = coordinateSystem.docSpaceToBufferSpace(l.p1);
 		PVector bufEnd = coordinateSystem.docSpaceToBufferSpace(l.p2);
 		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
 	
 	
-	public void drawVertices2NoFill(Vertices2 v, Color lineCol, int w) {
+	public void drawVertices2NoFill(Vertices2 v, Color lineCol, float w) {
 		// draws the lines only
 		shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), lineCol, w);
 		Vertices2 vbuff = v.getInBufferSpace(false);
 		shapeDrawer.drawVertices2(vbuff);
 	}
 	
-	public void drawVertices2(Vertices2 v, Color fillCol, Color lineCol, int w) {
+	public void drawVertices2(Vertices2 v, Color fillCol, Color lineCol, float w) {
 		shapeDrawer.setDrawingStyle(fillCol,lineCol, w);
 		Vertices2 vbuff = v.getInBufferSpace(false);
 		shapeDrawer.drawVertices2(vbuff);
 	}
 	
 	
-	public void drawVerticesWithPoints(Vertices2 v, Color c, int w) {
+	public void drawVerticesWithPoints(Vertices2 v, Color c, float w) {
 		int numLines = v.getNumLines();
 		for(int n = 0; n < numLines; n++) {
 			Line2 l = v.getLine(n);

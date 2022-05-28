@@ -50,6 +50,8 @@ public class NRegion  extends NAttributes {
 	boolean containsEdge(NEdge e){
 		return edgeReferences.contains(e);
 	}
+	
+	
 
 	public boolean isPointInside(PVector p){
 		if(vertices == null) return false;
@@ -75,6 +77,7 @@ public class NRegion  extends NAttributes {
 		}
 		Vertices2 vertices = new Vertices2(points);
 		vertices.close();
+		vertices.setPolygonWindingDirection(Vertices2.CLOCKWISE);
 		return vertices;
 	}
 
@@ -124,6 +127,9 @@ public class NRegion  extends NAttributes {
 
 		return result;
 	}
+	
+	
+	
 
 	void printEdges(ArrayList<NEdge> edges) {
 		System.out.println("Num edges " + edges.size());

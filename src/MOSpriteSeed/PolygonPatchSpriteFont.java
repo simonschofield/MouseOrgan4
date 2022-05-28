@@ -27,10 +27,10 @@ public class PolygonPatchSpriteFont extends SpriteSeedFont{
 	// call this to get the patch
 	public Sprite getSpriteInstance(Vertices2 polygon) {
 		Rect inSceneExtents = polygon.getExtents();
-		System.out.println("inSceneExtents " + inSceneExtents.toStr());
+		//System.out.println("inSceneExtents " + inSceneExtents.toStr());
 		// make a translated copy, with its TLHC at (0,0)
 		Vertices2 spriteBufferSpacePolygon = polygon.getInBufferSpace(true);
-		System.out.println("bufferSpaceExtents " + spriteBufferSpacePolygon.getExtents().toStr());
+		//System.out.println("bufferSpaceExtents " + spriteBufferSpacePolygon.getExtents().toStr());
 		
 		
 		if( spriteBufferSpacePolygon.getExtents().getWidth() < 1 || spriteBufferSpacePolygon.getExtents().getHeight() < 1) return null;
@@ -48,8 +48,8 @@ public class PolygonPatchSpriteFont extends SpriteSeedFont{
 		
 		BufferedImage croppedTexture = cropTextureToMask(chosenTexture, polygonMask, true);
 		
-		System.out.println("croppedTexture " + croppedTexture.getWidth() + "," + croppedTexture.getHeight());
-		System.out.println("polygonMask " + polygonMask.getWidth() + "," + polygonMask.getHeight());
+		//System.out.println("croppedTexture " + croppedTexture.getWidth() + "," + croppedTexture.getHeight());
+		//System.out.println("polygonMask " + polygonMask.getWidth() + "," + polygonMask.getHeight());
 		BufferedImage extractedPatch = ImageProcessing.extractImageUsingGrayscaleMask(croppedTexture, polygonMask);
 		
 		SpriteSeed seed = getSpriteSeedInstance(n);

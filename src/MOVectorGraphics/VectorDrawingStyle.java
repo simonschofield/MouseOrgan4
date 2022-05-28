@@ -15,7 +15,7 @@ public class VectorDrawingStyle{
 	boolean strokeVisible = true;
 	boolean fillVisible = true;
 	BasicStroke strokeStyle = new BasicStroke();
-	public int strokeWeight = 1;
+	public float strokeWeight = 1;
 	int textSize = 8;
 
 	public VectorDrawingStyle() {}
@@ -33,21 +33,43 @@ public class VectorDrawingStyle{
 
 	}
 
-	public void setStyle(Color fillC, Color lineC, int lineWt){
-		fillColor = fillC;
-		strokeColor = lineC;
-		strokeWeight = lineWt;
+	public void setStyle(Color fillC, Color lineC, Float lineWt){
+		// values if nulled will result in no change
+		
+		
+		// set the fill colour
+		if(fillC!=null) {
+			fillColor = fillC;
+			if(fillC.getAlpha() == 0){
+				fillVisible = false;}
+			else{
+				fillVisible = true; 
+				}
+		}
+		
+		// set the line colour
+		if(lineC!=null) {
+			strokeColor = lineC;
+			
+		}	
+		
+		// set the line weight
+		if(lineWt!=null) {
+			strokeWeight = lineWt;
+		}
+		
 
-		if(lineC.getAlpha() == 0 || lineWt == 0){
-			strokeVisible = false;}
-		else 
-		{ strokeVisible = true; }
-
-		if(fillC.getAlpha() == 0){
-			fillVisible = false;}
-		else{
-			fillVisible = true; }
+		// have to wait til here to make this decision
+		// as BOTH alpha and weight need to be non-zero
+		// for the line to be visible.
+		if(strokeColor.getAlpha()==0 || strokeWeight==0) {
+			strokeVisible=false;
+		} else {
+			strokeVisible=true;
+		}
+		
 	}
+		
 
 	public void setFillColor(Color fillC) {
 		setStyle( fillC, strokeColor, strokeWeight);
@@ -57,7 +79,7 @@ public class VectorDrawingStyle{
 		setStyle( fillColor, strokeC, strokeWeight);
 	}
 
-	public void setStrokeWeight(int lineWt) {
+	public void setStrokeWeight(float lineWt) {
 		setStyle( fillColor, strokeColor, lineWt);
 	}
 

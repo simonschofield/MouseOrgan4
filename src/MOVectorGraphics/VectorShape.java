@@ -25,7 +25,7 @@ public class VectorShape{
 	public VectorShape() {}
 	
 	
-	public void setShape(float x1, float y1, float x2, float y2, String shpType, Color fillC, Color lineC, int lineWt) {
+	public void setShape(float x1, float y1, float x2, float y2, String shpType, Color fillC, Color lineC, float lineWt) {
 		p1 = new PVector(x1,y1);
 		p2 = new PVector(x2,y2);
 		float w = x2-x1;

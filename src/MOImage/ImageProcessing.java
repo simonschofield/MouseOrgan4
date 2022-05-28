@@ -298,8 +298,8 @@ public class ImageProcessing {
 		// returns a copy of imageIn preserving the parts of the imageIn which are in the lighter regions of the mask
 		// Those in the dark mask regions are alpha-ed out
 		// i.e. new alpha = min(maskAlpha, exisitingAlpha);
-		System.out.println("sourceImage " + sourceImage.getWidth() + "," + sourceImage.getHeight());
-		System.out.println("mask " + mask.getWidth() + "," + mask.getHeight());
+		//System.out.println("sourceImage " + sourceImage.getWidth() + "," + sourceImage.getHeight());
+		//System.out.println("mask " + mask.getWidth() + "," + mask.getHeight());
 		int width = sourceImage.getWidth();
         int height = sourceImage.getHeight();
 		
@@ -316,8 +316,8 @@ public class ImageProcessing {
         BufferedImage imageOut = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
         int[] imageOutPixels = ((DataBufferInt) imageOut.getRaster().getDataBuffer()).getData();
         
-        System.out.println("sourceImagePixels " + sourceImagePixels.length);
-        System.out.println("maskPixels " + maskPixels.length);
+        //System.out.println("sourceImagePixels " + sourceImagePixels.length);
+        //System.out.println("maskPixels " + maskPixels.length);
         //int length = width*height;
         for (int i = 0; i < sourceImagePixels.length; i++) {
             

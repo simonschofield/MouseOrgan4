@@ -40,7 +40,7 @@ public class NNetwork {
 
 	UniqueID uniqueIDGenerator;
 
-	KeyValuePairList currentSearchAttributes = null; //new KeyValuePairList();
+	KeyValuePairList currentSearchAttributes = new KeyValuePairList();
 
 
 	public NNetwork() {
@@ -49,7 +49,7 @@ public class NNetwork {
 		uniqueIDGenerator = new UniqueID();
 	}
 	
-	NNetwork copy() {
+	public NNetwork copy() {
 		NNetwork networkcopy = new NNetwork();
 		networkcopy.mergeNetwork(this);
 		return networkcopy;
@@ -171,64 +171,98 @@ public class NNetwork {
 	// currently only uses a single attribute, so cannot do complex checks (like if contains K:ROAD and V: A OR B)
 	// the attributes e contains a KVP list, so if currentSearchAttribute was also a list
 
-	void setSearchAttribute(KeyValuePair kvp) {
+	public void setSearchAttribute(KeyValuePair kvp) {
 		if(kvp == null) return;
+		
+		
+		
+		
 		currentSearchAttributes.addKeyValuePair(kvp.copy());
 		System.out.println("NNetworkProcessor: added to currentSearchAttribute = " + kvp.getKey());
 	}
 
-	void setSearchAttribute(KeyValuePairList kvpl) {
+	public void setSearchAttribute(KeyValuePairList kvpl) {
 		if(kvpl == null) return;
 		currentSearchAttributes=kvpl.copy();
 		//System.out.println("NNetworkProcessor: added to currentSearchAttribute = " + kvp.theKey);
 	}
 
-	void clearSearchAttributes() {
+	public void clearSearchAttributes() {
 		currentSearchAttributes.removeAll();
 	}
 
-	boolean isMatchingSearchAttribute(NAttributes e) {
-		if(currentSearchAttributes==null) return true;
+	public boolean isMatchingSearchAttribute(NAttributes e) {
+		if(currentSearchAttributes.getNumItems()==0) return true;
 		boolean result = e.getAttributes().containsEqual(currentSearchAttributes);
 		return result;
 	}
 
-	ArrayList<NEdge> getEdgesMatchingSearchAttributes(boolean match){
+	public ArrayList<NEdge> getEdgesMatchingSearchAttributes(boolean match){
 
-		ArrayList<NEdge> edges = this.getEdges();
+		ArrayList<NEdge> edgeList = this.getEdges();
 		ArrayList<NEdge> matchingEdges = new ArrayList<NEdge>();
-		for (int n = 0; n < edges.size(); n++) {
-			NEdge e = edges.get(n);
+		for (int n = 0; n < edgeList.size(); n++) {
+			NEdge e = edgeList.get(n);
 			if(isMatchingSearchAttribute(e) == match) matchingEdges.add(e);
+		}
+		return matchingEdges;
+	}
+	
+	public ArrayList<NEdge> getEdgesMatchingQuery(KeyValuePair query) {
+		ArrayList<NEdge> edgeList = this.getEdges();
+		ArrayList<NEdge> matchingEdges = new ArrayList<NEdge>();
+		for (int n = 0; n < edgeList.size(); n++) {
+			NEdge e = edgeList.get(n);
+			if( e.thisItemContainsMatch(query) ) matchingEdges.add(e);
 		}
 		return matchingEdges;
 	}
 
 
-	ArrayList<NPoint> getPointsMatchingSearchAttributes(boolean match){
+	public ArrayList<NPoint> getPointsMatchingSearchAttributes(boolean match){
 
-		ArrayList<NPoint> points = this.getPoints();
+		ArrayList<NPoint> pointList = this.getPoints();
 		ArrayList<NPoint> matchingPoints = new ArrayList<NPoint>();
-		for (int n = 0; n < points.size(); n++) {
-			NPoint p = points.get(n);
+		for (int n = 0; n < pointList.size(); n++) {
+			NPoint p = pointList.get(n);
 			if(isMatchingSearchAttribute(p) == match ) matchingPoints.add(p);
 		}
 		return matchingPoints;
 	}
+	
+	
+	public ArrayList<NPoint> getPointsMatchingQuery(KeyValuePair query) {
+		ArrayList<NPoint> pointList = this.getPoints();
+		ArrayList<NPoint> matchingPoints = new ArrayList<NPoint>();
+		for (int n = 0; n < pointList.size(); n++) {
+			NPoint p = pointList.get(n);
+			if( p.thisItemContainsMatch(query) ) matchingPoints.add(p);
+		}
+		return matchingPoints;
+		
+	}
 
 
-	ArrayList<NRegion> getRegionsMatchingSearchAttributes(boolean match){
+	public ArrayList<NRegion> getRegionsMatchingSearchAttributes(boolean match){
 
-		ArrayList<NRegion> regions = this.getRegions();
+		ArrayList<NRegion> regionList = this.getRegions();
 		ArrayList<NRegion> matchingRegions = new ArrayList<NRegion>();
-		for (int n = 0; n < regions.size(); n++) {
-			NRegion r = regions.get(n);
+		for (int n = 0; n < regionList.size(); n++) {
+			NRegion r = regionList.get(n);
 			if(isMatchingSearchAttribute(r) == match ) matchingRegions.add(r);
 		}
 		return matchingRegions;
 	}
 
-
+	public ArrayList<NRegion> getRegionsMatchingQuery(KeyValuePair query) {
+		ArrayList<NRegion> regionList = this.getRegions();
+		ArrayList<NRegion> matchingRegions = new ArrayList<NRegion>();
+		for (int n = 0; n < regionList.size(); n++) {
+			NRegion r = regionList.get(n);
+			if( r.thisItemContainsMatch(query) ) matchingRegions.add(r);
+		}
+		return matchingRegions;
+	}
 
 
 	//////////////////////////////////////////////////////////////////////////////////
@@ -354,6 +388,12 @@ public class NNetwork {
 			NRegion r = regions.get(n);
 			if( r.containsEdge(e) ) regions.remove(n);
 		}
+	}
+	
+	void deleteRegion(NRegion r) {
+		// does not delete the points or edges contained in this region,
+		// but only removes the region from the region list
+		regions.remove(r);
 	}
 
 	NPoint findPointWithID(int searchID) {

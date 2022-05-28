@@ -81,8 +81,8 @@ public class KeyValuePair {
 	}
 
 	boolean stringValueEquals(String otherString) {
-// we need this more complex expression for strings because they can support a wild-card "*"
-// if either of the strings is a wild card, then the test returns true. 
+		// we need this more complex expression for strings because they can support a wild-card "*"
+		// if either of the strings is a wild card, then the test returns true. 
 		if (sval.equals(otherString))
 			return true;
 		if (sval.equals("*"))

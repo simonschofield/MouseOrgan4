@@ -12,7 +12,11 @@ import java.awt.geom.Path2D;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This is the final class before calling the native Java drawing methods.
+// All measurements in this class are in Render Target (whatever buffer that sets the graphics2D) buffer space, but are with floating point accuracy
+//
+//
 public class VectorShapeDrawer{
   
   Graphics2D graphics2D; 
@@ -51,11 +55,11 @@ public class VectorShapeDrawer{
 	  currentDrawingStyle.setStrokeColor( strokeC);
   }
   
-  public void setStrokeWeight(int lineWt) {
+  public void setStrokeWeight(float lineWt) {
 	  currentDrawingStyle.setStrokeWeight( lineWt);
   }
   
-  public void setDrawingStyle(Color fillC, Color lineC, int lineWt){
+  public void setDrawingStyle(Color fillC, Color lineC, float lineWt){
     
 	currentDrawingStyle.setStyle( fillC, lineC, lineWt);
     setStrokeStyle(currentDrawingStyle.strokeWeight);
@@ -86,8 +90,10 @@ public class VectorShapeDrawer{
 	  
   }
   
-  private void setStrokeStyle(int w){
-	  currentDrawingStyle.strokeStyle = new BasicStroke(w);
+  private void setStrokeStyle(float w){
+	  //currentDrawingStyle.strokeStyle = new BasicStroke(w);
+	  float dash[] = { 4.0f };
+	  currentDrawingStyle.strokeStyle = new BasicStroke(w, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f, null, 0.0f);
 	  graphics2D.setStroke(currentDrawingStyle.strokeStyle);
 	  }
   

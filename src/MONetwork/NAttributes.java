@@ -47,8 +47,8 @@ public class NAttributes {
 
 
 	void setID() {
-		// you can only se the id automatically with this 
-		// method, whihc uses the auto-inremented number
+		// you can only set the id automatically with this 
+		// method, which uses the auto-incremented number
 		id = theNetwork.getUniqueID();
 		// System.out.println(" setting id " + id);
 	}
@@ -65,7 +65,7 @@ public class NAttributes {
 
 
 
-	void addAttribute( KeyValuePair kvp ) {
+	public void addAttribute( KeyValuePair kvp ) {
 		// Items in the network are only allowed to have 1 instance
 		// of any specific key, so old instances get removed before adding a new one
 		attributes.removeKeyValue(kvp.getKey());
@@ -112,6 +112,11 @@ public class NAttributes {
 
 	int getNumAttributes() {
 		return attributes.getNumItems();
+	}
+	
+	boolean thisItemContainsMatch( KeyValuePair query ) {
+		// returns true if this item contains a KVP matching query
+		return attributes.containsEqual(query);
 	}
 
 	boolean equals(NAttributes other) {

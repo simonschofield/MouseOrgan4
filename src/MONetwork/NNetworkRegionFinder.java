@@ -61,8 +61,11 @@ import MOUtils.SortObjectWithValue;
 	Range largestRegion = new Range();
 	
 	KeyValuePair documentEdgeAttribute = new KeyValuePair("REGIONEDGE", "document");
-	// common to this and region extractor
-	//NNetworkAutoRegionFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
+	
+	int parkCounter = 0;
+	int riverCounter = 0;
+	int lakeCounter = 0;
+	
 	public NNetworkRegionFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
 		//super(ntwk);
 		// for debug only
@@ -80,7 +83,9 @@ import MOUtils.SortObjectWithValue;
 	}
 	
 	
-		
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// This is the big algorithm that finds all the regions according to the method described at the top of the class
+	//
 	public void findAllRegions() {	
 		
 		removePreExisitingRegions();
@@ -102,8 +107,19 @@ import MOUtils.SortObjectWithValue;
 		
 		
 		/// now make all the region vertices clockwise
+		NRegion bigRegion = null;
 		for (NRegion nr : theNetwork.regions) {
 				nr.getVertices().setPolygonWindingDirection(Vertices2.CLOCKWISE);
+				
+				if(nr.getVertices().getArea()> 0.9f) {
+					bigRegion = nr;
+				}
+		}
+		
+		
+		// and finally remove the big outer region
+		if(bigRegion != null) {
+			theNetwork.deleteRegion(bigRegion);
 		}
 		
 	} 
@@ -126,6 +142,7 @@ import MOUtils.SortObjectWithValue;
 			
 			objectValueSorter.add(nr,area);
 		}
+
 		if(smallestFirst) {
 			return objectValueSorter.getSorted();
 		} else {
@@ -134,16 +151,17 @@ import MOUtils.SortObjectWithValue;
 
 	}
 	
+
 	///////////////////////////////////////////////////////////////////////////////////////
 	// addOuterBoundaryEdges
 	// New edges are added to the NNetwork on the precise addOuterBoundaryEdges rect before the region search is undertaken. These are "welded" to the existing network 
-	// edges with Attribute REGIONEDGE: "Document"
-	// One use it to use the documentRect
-	// These are useful for finding the outer areas of the network that would not otherwise be complete regions, but composed of dangling edges
+	// edges with Attribute REGIONEDGE: "Document". One obvious use it to use the documentRect as the boundary.
+	// These are useful for finding the outer areas of the network that would not otherwise be complete regions, but composed of dangling edges, so left blank.
 	// Method - 
-	//	    find all the intersections of the exiting network with the new document edges - allIntersectionsList
+	//		add 4 new document edges to the NNetwork representing the sides of the boundary rect.
+	//	    find all the intersections of the exiting network with the new document edges - store them in allIntersectionsList
 	//      get the first edge in the allIntersectionsList - thisEdge
-	// 		get all the documentEdges in another list i.e. all edges with attribute "REGIONEDGE", "document" - documentEdgesList
+	// 		get all the documentEdges in another list i.e. all edges with attribute "REGIONEDGE", "document" - documentEdgesList (this is 4 at first but will increase with each "weld")
 	// 		find the documentEdge in the documentEdgesList that intersects with thisEdge
 	//		Weld(thisEdge, intersectingDocumentEdge) - this will split both edges to make 4 new edges connected to the intersection point
 	//	    remove thisEdge from the allIntersectionsList
@@ -174,12 +192,6 @@ import MOUtils.SortObjectWithValue;
 		NEdge leftEdge = theNetwork.addEdge(bottomLeft,topLeft);
 		leftEdge.addAttribute(documentEdgeAttribute);
 		
-		// for debug only
-		for(NEdge e: theNetwork.edges) {
-			//System.out.println("edges in network " + e.toStr() + e.getAttributes().getAsCSVLine());
-			
-		}
-		
 		
 		// get all the intersections of the network with these edges
 		ArrayList<NEdge> allIntersectionsList = new ArrayList<NEdge>();
@@ -191,10 +203,7 @@ import MOUtils.SortObjectWithValue;
 		
 		// so now we have all the intersecting edges with the documentEdges
 		int bailCount = 0;
-		
-		
-		
-		
+
 		while( edgesToWeld(allIntersectionsList) ) {
 			bailCount++;
 			if(bailCount>1000000) {
@@ -330,7 +339,44 @@ import MOUtils.SortObjectWithValue;
 	  }
 	
 	
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// Specifying the Attributes of automatically found regions. 
+	// A once defined region will have one REGIONTYPE key, (if not, then it has not been defined).
+	// Defining an automatically found region can be done by two methods:-
+	// Explicit - where region-markers are placed within regions to identify their type. Region-markers are NPoints placed within the region they
+	// wish to identify, and must have the Attribute ("REGIONMARKER" , regionType) where regionType is another string e.g. "LAKE".
+	// Implicit - via some algorithm based on properties of the of the network or other data - e.g. density of points, using a key image
+	// Only the explicit method setRegionAttributeWithRegionMarker() is part of this class. Because implicit methods could be almost any process, they are not contained within this class;
+	// use the network helper instead
 	
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// if a region contains a region marker, then the region has the regionAttribute added
+	//
+	//
+	public void setRegionAttributeWithRegionMarker(String regionType) {
+		// first find all the markers with marker attribute
+		// does not copy network into current network as you want the network passed in to be permanently affected
+		KeyValuePair markerDescriptor = new KeyValuePair("REGIONMARKER", regionType);
+		KeyValuePair newRegionAttribute = new KeyValuePair("REGIONTYPE", regionType);
+
+		ArrayList<NPoint> markers = theNetwork.getPointsMatchingQuery(markerDescriptor);
+		System.out.println("setRegionAttributeWithRegionMarker:: found " + markers.size() + " markers matching " + regionType);
+		// next loop through the markers finding the containing regions
+		// once found, add the regionAttributeToAdd to the region
+		int n = 0;
+		for(NPoint marker: markers) {
+
+			NRegion r = theNetwork.getNearestNRegion(marker.getPt());
+			if(r != null) {
+				r.addAttribute(newRegionAttribute);
+				n++;
+			}
+		}
+		
+		System.out.println("setRegionAttributeWithRegionMarker:: found " + n + " regions matching " + regionType);
+		
+	}
+
 	
 
 	///////////////////////////////////////////////////////////////////////////////////////
@@ -686,9 +732,63 @@ import MOUtils.SortObjectWithValue;
 	}
 
 	
+	public void drawRegionsByType(RenderTarget rt) {
+		// for debug only
+		
+		ArrayList<NRegion> regions = theNetwork.getRegions();
+		
+		
+		
+		int colNum = 0;
+		for(NRegion r: regions) {
+			Color c = getRegionDefaultColour(r);
+	    	
+			networkDrawer.drawRegionFill(r, c, rt);
+			if(colNum>10) colNum = 0;
+		}
+		
+		
+		System.out.println("drawn " + parkCounter + " park regions ," + lakeCounter + " lake regions ," + riverCounter + " river regions ");
+	}
+
 	
-	
-	
+	public Color getRegionDefaultColour(NRegion r) {
+		Color c = Color.WHITE;
+		
+		KeyValuePair parkAttribute = new KeyValuePair("REGIONTYPE", "PARK");
+		if(r.thisItemContainsMatch(parkAttribute)) {
+			parkCounter++;
+			return Color.green;
+		}
+		KeyValuePair lakeAttribute = new KeyValuePair("REGIONTYPE", "LAKE");
+		if(r.thisItemContainsMatch(lakeAttribute)) {
+			lakeCounter++;
+			return Color.CYAN;
+		}
+		KeyValuePair riverAttribute = new KeyValuePair("REGIONTYPE", "RIVER");
+		if(r.thisItemContainsMatch(riverAttribute)) {
+			riverCounter++;
+			return Color.blue;
+		}
+		
+		KeyValuePair densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_HIGH");
+		if(r.thisItemContainsMatch(densityAttribute)) {
+			riverCounter++;
+			return Color.red;
+		}
+		densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_MEDIUM");
+		if(r.thisItemContainsMatch(densityAttribute)) {
+			riverCounter++;
+			return Color.orange;
+		}
+		densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_LOW");
+		if(r.thisItemContainsMatch(densityAttribute)) {
+			riverCounter++;
+			return Color.yellow;
+		}
+		
+		return c;
+	}
 	
 }
  
