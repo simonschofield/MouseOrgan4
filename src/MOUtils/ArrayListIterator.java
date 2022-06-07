@@ -41,6 +41,11 @@ public class ArrayListIterator<T>{
 		
 	}
 	
+	
+	public int size() {
+		return arrayList.size();
+	}
+	
 
 	
 }

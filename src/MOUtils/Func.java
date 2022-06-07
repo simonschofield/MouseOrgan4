@@ -1,5 +1,5 @@
+package MOUtils;
 import MOMaths.PVector;
-import MOUtils.GlobalSettings;
 
 public class Func {
 	

@@ -19,7 +19,7 @@ import MOUtils.GlobalSettings;
 // If using FILENAME_OVERWRITE, this will overwrite previously saved files/directories saved. The action is sensitive to previously saved SESSION_DIFFERENTIATOR_INCREMENT sessions, and will target the highest 
 // numerical session files/directories it finds on the UserSessionPath. If no previous SESSION_DIFFERENTIATOR_NUMERICAL is found, then the differentiating file string is 0000
 //
-// calling saveDocumentImages() causes the main render target and all suplemetary render targets to be saved with the following naimg conventions.
+// calling saveDocumentImages() causes the main render target and all supplementary render targets to be saved with the following naming conventions.
 //
 // NOT USING A SUB DIRECTORY
 // Files are saved to the userSessionDirectory with the following convention

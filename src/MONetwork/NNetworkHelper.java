@@ -18,6 +18,7 @@ import MOSpriteSeed.SpriteSeedFont;
 import MOSpriteSeed.SpriteSourceInterface;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
+import MOUtils.SortObjectWithValue;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // common network operations
@@ -42,13 +43,11 @@ public class NNetworkHelper {
 	
 	public static void drawEdges(NNetwork ntwk, KeyValuePair descriptor, Color c, float fullScaleWidth) {
 		// in this method the width is set as the full-scale width of the 
-		setCurrentNetwork(ntwk);
+		
 		
 		ArrayList<NEdge> edges;
 		if(descriptor != null) {
-			theCurrentNetwork.setSearchAttribute(descriptor);
-			edges = theCurrentNetwork.getEdgesMatchingSearchAttributes(true);
-			
+			edges = ntwk.getEdgesMatchingQuery(descriptor);
 		} else {
 			edges = theCurrentNetwork.getEdges();
 		}
@@ -86,8 +85,61 @@ public class NNetworkHelper {
 	
 	
 	
+	public ArrayList<NRegion> sortRegionsByArea(ArrayList<NRegion> regionsIn, boolean smallestFirst) {
+		// if smallestFirst == true, the regions are sorted with smallest regions first
+		// if smallestFirst == false, the regions are sorted with largest regions first
+		SortObjectWithValue objectValueSorter = new SortObjectWithValue();
+		
+		for(NRegion nr : regionsIn) {
+			float area = nr.getVertices().getArea();
+			
+			objectValueSorter.add(nr,area);
+		}
+
+		if(smallestFirst) {
+			return objectValueSorter.getSorted();
+		} else {
+			return objectValueSorter.getReverseSorted();
+		}
+
+	}
 	
-	
+	public static void renderEdgesAndSave(NNetwork theNetwork) {
+
+		String sessPth = GlobalSettings.getUserSessionPath();
+
+
+		KeyValuePair descriptorC = NNetworkHelper.getDescriptor("ROAD", "C");  
+		drawEdges(theNetwork, descriptorC, Color.BLACK, 10);
+		GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + "C_Roads.png");
+
+		GlobalSettings.getMainDocument().getMain().clearImage();
+
+		KeyValuePair descriptoB = NNetworkHelper.getDescriptor("ROAD", "B");  
+		drawEdges(theNetwork, descriptoB, Color.BLACK, 15);
+		GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + "B_Roads.png");
+
+		GlobalSettings.getMainDocument().getMain().clearImage();
+
+
+		KeyValuePair descriptorA = NNetworkHelper.getDescriptor("ROAD", "A");
+		drawEdges(theNetwork, descriptorA, Color.BLACK, 20);
+		GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + "A_Roads.png");
+
+		GlobalSettings.getMainDocument().getMain().clearImage();
+
+		KeyValuePair thamesDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "RIVER");
+		drawEdges(theNetwork, thamesDescriptor, Color.BLACK, 10); 
+		KeyValuePair parksDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "PARK");
+		drawEdges(theNetwork, parksDescriptor, Color.BLACK, 10); 
+		KeyValuePair lakeDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "LAKE");
+		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, 10); 
+
+
+		GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + "Other Boundaries.png");
+
+	}
+
 	
 	public static void setRegionAttributeUbanDensity(NNetwork ntwk, String densityImagePathAndName) {
 		// first, find all the regions that have not yet been defined,
@@ -108,6 +160,9 @@ public class NNetworkHelper {
 		}
 		
 	}
+	
+	
+	
 	
 	
 	static ArrayList<NRegion> getUnattributedRegions(NNetwork ntwk) {

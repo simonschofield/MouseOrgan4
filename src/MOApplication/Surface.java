@@ -360,6 +360,22 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	protected abstract void handleCanvasMouseEvent(UIEventData uied);
 
 	protected abstract void handleUserSessionUIEvent(UIEventData uied);
+	
+	////////////////////////////////////////////////////////////////////////
+	// for using a SessionSequncer, these methods are expected by that class...
+	// overload these in your code to utilise the SessionSequncer class
+	
+	public void initialiseSequence(String sqname) {
+		
+	}
+	
+	public boolean updateSequence(String sqname) {
+		return false;
+	}
+	
+	public void finaliseSequence(String sqname) {
+		
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	// private event methods
