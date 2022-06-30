@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import MOApplication.MainDocument;
 import MOCompositing.SpriteCropDecisionList;
-import MOImageCollections.SpriteImageGroupManager;
+import MOImageCollections.ScaledMOImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;

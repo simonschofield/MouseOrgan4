@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
+import MOUtils.Histogram;
 
 
 public class ImageProcessing {
@@ -150,6 +151,10 @@ public class ImageProcessing {
 	
 	public static boolean isSameDimensions(BufferedImage imageA, BufferedImage imageB) {
 		return (imageA.getWidth() == imageB.getWidth() && imageA.getHeight() == imageB.getHeight());
+	}
+	
+	public static Rect getImageBufferRect(BufferedImage img) {
+		return new Rect(0,0,img.getWidth(), img.getHeight());
 	}
 	
 	public static BufferedImage convertColorModel(BufferedImage src, int colorModel) {
@@ -407,7 +412,7 @@ public class ImageProcessing {
 		return (packedCol >> 24) & 0xFF;// alpha
 	}
 
-	static void unpackARGB(int packedCol, int[] col) {
+	public static void unpackARGB(int packedCol, int[] col) {
 
 		col[0] = (packedCol >> 24) & 0xFF;// alpha
 		col[1] = (packedCol >> 16) & 0xFF;// red
@@ -511,14 +516,27 @@ public class ImageProcessing {
 	}
 	
 	
-//	public static BufferedImage resizeTo(BufferedImage originalImage, int newW, int newH) {
-//		// scales the originalImage to be newW, newH
-//		int w = originalImage.getWidth();
-//		int h = originalImage.getHeight();
-//		float wScale = newW/(float)w;
-//		float hScale = newH/(float)h;
-//		return scaleImage( originalImage,wScale,hScale);
-//	}
+	public static BufferedImage scaleImageToFitRect(BufferedImage img, Rect rect) {
+		// scales the image uniformly to fit the rect - so no distortion in x or y
+		// the rect should be in Image Buffer Units (pixels)
+		float rectW = rect.getWidth();
+		float rectH = rect.getHeight();
+		float rectAspect = rect.aspect();
+		
+		float imageW = img.getWidth();
+		float imageH = img.getHeight();
+		float aspectImg = imageW/imageH;
+
+		// if the rect is bigger than the image then scale up, else scale down
+		float scalefactor = 1;
+		if(aspectImg > rectAspect) {
+			scalefactor = rectH/imageH;
+		}else {
+			scalefactor = rectW/imageW;
+		}
+		return ImageProcessing.scaleImage(img, scalefactor, scalefactor);
+	}
+	
 	
 	public static BufferedImage resizeTo(BufferedImage originalImage, int scaledWidth, int scaledHeight)
 	{
@@ -707,6 +725,24 @@ public class ImageProcessing {
 			data[0][n] = (byte) MOMaths.lerp(amt, n, c.getRed());
 			data[1][n] = (byte) MOMaths.lerp(amt, n, c.getGreen());
 			data[2][n] = (byte) MOMaths.lerp(amt, n, c.getBlue());
+			data[3][n] = (byte) n;
+		}
+		return pointFunction(image, data);
+	}
+	
+	public static BufferedImage tintWithColor(BufferedImage image, Color darkCol, Color lightCol) {
+		// black pixels are replaced by dark color,  white pixels become lightCol color
+		image = assertImageTYPE_INT_ARGB(image);
+		byte[][] data = new byte[4][256];
+		
+		
+		for (int n = 0; n < 256; n++) {
+			//data[0][n] = (byte) n;
+			float amt = n/255.0f;
+			Color c = ImageProcessing.blendColor(darkCol, lightCol, amt);
+			data[0][n] = (byte) c.getRed();
+			data[1][n] = (byte) c.getGreen();
+			data[2][n] = (byte) c.getBlue();
 			data[3][n] = (byte) n;
 		}
 		return pointFunction(image, data);
@@ -910,6 +946,16 @@ public class ImageProcessing {
 	//
 	public static BufferedImage adjustHSV(BufferedImage img, float dh, float ds, float dv) {
 		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
+		// Hue
+		// 0.0    is equivalent to red
+		// 0.1666 is equivalent to yellow
+		// 0.3333 is equivalent to green
+		// 0.5    is equivalent to cyan
+		// 0.6666 is equivalent to blue
+		// 0.8333 is equivalent to magenta
+		// 0.9999 is equivalent to red
+		
+		
 		int w = img.getWidth();
 		int h = img.getHeight();
 		int imtype = img.getType();
@@ -967,11 +1013,8 @@ public class ImageProcessing {
 	
 	public static float getDominantHue(BufferedImage img) {
 		// all input values operate in the range 0..1, with h having its own wrap-around for numbers outside of 0..1
-		int imtype = img.getType();
+		img = assertImageTYPE_INT_ARGB(img);
 		
-		if(imtype != BufferedImage.TYPE_INT_ARGB) {
-			img = convertColorModel(img, BufferedImage.TYPE_INT_ARGB);
-		}
 		//System.out.println("AFTER adjustHSV incoming image is of type " + img.getType() + " BufferedImage.TYPE_INT_ARGB is " + BufferedImage.TYPE_INT_ARGB);
 		int[] pixelsIn = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
 		
@@ -999,6 +1042,9 @@ public class ImageProcessing {
 		return hueAverage;
 	}
 	
+	
+	
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Multiply two images
 	//

@@ -332,9 +332,18 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	}
 	
 	
-	public void drawVertices2NoFill(Vertices2 v, Color lineCol, float w) {
-		// draws the lines only
-		shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), lineCol, w);
+	public void drawVertices2NoFill(Vertices2 v, Color lineCol, float w, float[] dashPattern) {
+		// for the sake of ease of use, dash pattern styles are in 100% render pixel dimensions, so if the render is 
+		// scaled-don, so should the dash styles
+		
+		
+		// draws the lines only, has an option for dashes
+		if(dashPattern == null) {
+			shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), lineCol, w);
+		}else {
+			float[] scaledDashPattern = sessionScaleDashPattern(dashPattern);
+			shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), lineCol, w, scaledDashPattern);		
+			}
 		Vertices2 vbuff = v.getInBufferSpace(false);
 		shapeDrawer.drawVertices2(vbuff);
 	}
@@ -378,6 +387,17 @@ public class RenderTarget implements MainDocumentRenderTarget{
 
 	public void setGraphics2D(Graphics2D graphics2d) {
 		graphics2D = graphics2d;
+	}
+	
+	private float[] sessionScaleDashPattern(float[] dashPattern) {
+		int num = dashPattern.length;
+		float[] scaled = new float[num];
+		float sessionScale = GlobalSettings.getSessionScale();
+		for(int n = 0; n < num; n++) {
+			float sf = dashPattern[n] * sessionScale;
+			scaled[n] = sf;
+		}
+		return scaled;
 	}
 
 }

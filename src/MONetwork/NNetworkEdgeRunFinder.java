@@ -41,15 +41,15 @@ public class NNetworkEdgeRunFinder{
 
 
 	// common to this and region extractor
-	NNetworkEdgeRunFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
+	public NNetworkEdgeRunFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
 		
 		theNetwork = ntwk;
 		theNetwork.setSearchAttribute(searchCriteria);
-		initialise();
+		initialiseEdgeList();
 	} 
 
 	// common to this and region extractor
-	private void initialise() {
+	private void initialiseEdgeList() {
 		// gets called just before the runs are collected
 		// after all parameters are set up.
 
@@ -82,8 +82,21 @@ public class NNetworkEdgeRunFinder{
 	}
 	
 	
+	public ArrayList<Vertices2> extractAllEdgeRunVertices(KeyValuePairList searchCriteria){
+		// Use this method to get all the edge runs with
+		// the searchCriteria, as a list of Vertices2
+		//
+		theNetwork.clearSearchAttributes();
+		theNetwork.setSearchAttribute(searchCriteria);
+		initialiseEdgeList();
+		return extractAllEdgeRunVertices();
+	}
+	
+	
 	public ArrayList<Vertices2> extractAllEdgeRunVertices(){
-		
+		// Use this method to get all the edge runs with
+		// the existing search criteria, as a list of Vertices2
+		//
 		ArrayList<Vertices2> edgeRunVertices = new ArrayList<Vertices2>();
 		while(true) {
 			Vertices2 verts = extractEdgeRunVertices();

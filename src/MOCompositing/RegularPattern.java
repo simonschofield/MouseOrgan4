@@ -3,7 +3,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOImage.KeyImageSampler;
-import MOImageCollections.SpriteImageGroup;
+import MOImageCollections.ScaledMOImageGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 

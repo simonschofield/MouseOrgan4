@@ -5,7 +5,8 @@ import java.awt.image.BufferedImage;
 
 import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
-import MOImageCollections.SpriteImageGroup;
+import MOImageCollections.ScaledMOImageGroup;
+import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
@@ -16,12 +17,54 @@ import MOUtils.GlobalSettings;
 public class PolygonPatchSpriteFont extends SpriteSeedFont{
 
     
-
+	float scaleToFit = 0;
 
 	public PolygonPatchSpriteFont(String sdFontName, String imageSampleGroupName, int rseed) {
 		super( sdFontName,  imageSampleGroupName, 1,  false,  new PVector(0,0),  rseed);
 		
 
+	}
+	
+	// if s == 0, then no scaling involved. You get the unscaled texture
+	// if s == 0.5 the the textures is scaled 50% towards exact fit
+	// if s == 1; then texture is scaled to fit the mask - 
+	public void setScaleToFit(float s) {
+		
+		scaleToFit = s;
+		
+	}
+	
+	
+	
+	BufferedImage scaleImageToFitMask(BufferedImage img, BufferedImage mask, float amt) {
+		
+		if(amt==0) return img;
+		
+		
+		float maskW = mask.getWidth();
+		float maskH = mask.getHeight();
+		float maskAspect = maskW/maskH;
+		
+		float imageW = img.getWidth();
+		float imageH = img.getHeight();
+		float aspectImg = imageW/imageH;
+		
+		// if the patch is bigger than the image, return the unscaled image
+		if(maskW > imageW || maskH > imageH) return img;
+		
+		// so now the image is bigger than the patch
+		float scalefactor = 1f;
+		if(aspectImg > maskAspect) {
+			// make the height of the image tend towards the height of the patch with scaleToFit parametric
+			float targetImageHeight = MOMaths.lerp(amt, imageH, maskH);
+			scalefactor = targetImageHeight/imageH;
+		}else {
+			// make the width of the image tend towards the width of the patch with scaleToFit parametric
+			float targetImageWidth = MOMaths.lerp(amt, imageW, maskW);
+			scalefactor = targetImageWidth/imageW;
+		}
+
+		return ImageProcessing.scaleImage(img, scalefactor, scalefactor);
 	}
 
 	// call this to get the patch
@@ -43,7 +86,7 @@ public class PolygonPatchSpriteFont extends SpriteSeedFont{
 		BufferedImage chosenTexture  = getSpriteImageGroup().getImage(n);
 		
 		// tbd
-		//chosenTexture = applyGeometricTransforms(chosenTexture, polygonMask);
+		chosenTexture = scaleImageToFitMask(chosenTexture, polygonMask, scaleToFit);
 		
 		
 		BufferedImage croppedTexture = cropTextureToMask(chosenTexture, polygonMask, true);
@@ -79,8 +122,12 @@ public class PolygonPatchSpriteFont extends SpriteSeedFont{
 		
 		if( xlatitude < 0 || ylatitude < 0) {
 			System.out.println("Warning, PolygonPatchSpriteFont:: mask is larger than texture ");
-			chosenTexture = ImageProcessing.resizeTo(chosenTexture, polygonMask.getWidth(), polygonMask.getHeight());
-			return chosenTexture;
+			//chosenTexture = ImageProcessing.resizeTo(chosenTexture, polygonMask.getWidth(), polygonMask.getHeight());
+			Rect maskRect = ImageProcessing.getImageBufferRect(polygonMask);
+			chosenTexture = ImageProcessing.scaleImageToFitRect(chosenTexture,maskRect);
+			xlatitude = 0;
+			ylatitude = 0;
+			//return chosenTexture;
 		}
 		
 		

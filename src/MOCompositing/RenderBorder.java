@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.SpriteImageGroup;
+import MOImageCollections.ScaledMOImageGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
@@ -55,7 +55,7 @@ public class RenderBorder {
 	int rightEdgeAction = CROP_ACTION_NONE;
 	int bottomEdgeAction = CROP_ACTION_NONE;
 
-	SpriteImageGroup bespokeCropImages;
+	ScaledMOImageGroup bespokeCropImages;
 	
 	// this is for selecting the particular edge-mask
 	QRandomStream qRandomStream = new QRandomStream(1);
@@ -86,7 +86,7 @@ public class RenderBorder {
 	
 	public void setBespokeCropImageSampleGroup(String pathandfilename, int unscaledWidth, int unscaledHeight) {
 		DirectoryFileNameScanner cropdfns = new DirectoryFileNameScanner(pathandfilename, "png");
-		bespokeCropImages = new SpriteImageGroup("cropImages");
+		bespokeCropImages = new ScaledMOImageGroup("cropImages");
 		bespokeCropImages.setDirectoryFileNameScanner(cropdfns);
 		bespokeCropImages.loadImages();
 		float sessionScale = GlobalSettings.getSessionScale();
@@ -271,7 +271,7 @@ public class RenderBorder {
 
 	// alters the preCroppedImage
 	private boolean addBespokeCropToEdge(BufferedImage preCroppedImage, String theEdge) {
-		int numCropImages = bespokeCropImages.getNumImages();
+		int numCropImages = bespokeCropImages.getNumMOImages();
 		int n = qRandomStream.randRangeInt(0, numCropImages-1);
 		BufferedImage croppingMask = bespokeCropImages.getImage(n);
 		int sourceImageW = preCroppedImage.getWidth();

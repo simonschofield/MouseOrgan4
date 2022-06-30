@@ -17,7 +17,7 @@ import MOImage.ImageProcessing;
 // ROI helper (Optional) - this generates the full size render dims
 // in UserSession initialiseUserSession you MUST call initialsieSystem(....)
 // RenderSaver (Optional)
-import MOImageCollections.SpriteImageGroupManager;
+import MOImageCollections.ScaledMOImageGroupManager;
 
 public class GlobalSettings {
 	
@@ -28,14 +28,15 @@ public class GlobalSettings {
 	// The theDocumentCoordSystem is set as soon as the MainDocument is instantiated
 	private static float sessionScale = 0;
 	private static ImageCoordinateSystem theDocumentCoordSystem;
-	private static SpriteImageGroupManager  theSpriteImageGroupManager;
+	private static ScaledMOImageGroupManager  theSpriteImageGroupManager;
 	private static MainDocument theDocument;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// paths used by the system
 	// 
 	// The userSessionPath is set in init()
-	private static String sampleLibPath = "C:\\simon\\sample lib\\";
+	private static String sampleLibPath = "C:\\simon\\art assets\\sample lib\\";
+	private static String dataAssetsPath = "C:\\simon\\art assets\\data\\";
 	private static String mouseOrganImageCachePath = "C:\\mouseOrganImageCache2\\";
 	private static String userSessionPath = "";
 	
@@ -71,7 +72,7 @@ public class GlobalSettings {
 		setDefaultSessionName();
 		
 		// for your convenience, and because we don't want a null one
-		theSpriteImageGroupManager = new SpriteImageGroupManager();
+		theSpriteImageGroupManager = new ScaledMOImageGroupManager();
 		}
 	
 	public static void setTheDocumentCoordSystem(MainDocument md) {
@@ -151,17 +152,25 @@ public class GlobalSettings {
 	public static String getSampleLibPath() {
 		return sampleLibPath;
 	}
+	
+	public static String getDataAssetsPath(String type) {
+		String pth = dataAssetsPath;
+		if(type!=null) {
+			pth = pth + type + "\\";
+		}
+		return pth;
+	}
 
 
 	public static String getMouseOrganImageCachePath() {
 		return mouseOrganImageCachePath;
 	}
 
-	public static SpriteImageGroupManager getTheSpriteImageGroupManager() {
+	public static ScaledMOImageGroupManager getTheSpriteImageGroupManager() {
 		return theSpriteImageGroupManager;
 	}
 
-	public static void setTheSpriteImageGroupManager(SpriteImageGroupManager theSpriteImageGroupManager) {
+	public static void setImageGroupManager(ScaledMOImageGroupManager theSpriteImageGroupManager) {
 		// only set by the SpriteImageGroupManager when instantiated
 		GlobalSettings.theSpriteImageGroupManager = theSpriteImageGroupManager;
 	}

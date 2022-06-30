@@ -4,8 +4,8 @@ import java.awt.image.BufferedImage;
 
 import MOImage.BendImage;
 import MOImage.ImageProcessing;
-import MOImageCollections.SpriteImageGroup;
-import MOImageCollections.SpriteImageGroupManager;
+import MOImageCollections.ScaledMOImageGroup;
+import MOImageCollections.ScaledMOImageGroupManager;
 import MOMaths.Line2;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
@@ -38,10 +38,10 @@ public class Sprite {
 
 		// This method is called by Sprite initialisation to
 		// fully make a sprite from a seed.
-		SpriteImageGroupManager sigm = GlobalSettings.getTheSpriteImageGroupManager();
+		ScaledMOImageGroupManager sigm = GlobalSettings.getTheSpriteImageGroupManager();
 		if(data==null) System.out.println("ERROR Sprite::data == null");
 		if(sigm==null) System.out.println("ERROR Sprite::SpriteImageGroupManager == null");
-		SpriteImageGroup sig = sigm.getSpriteImageGroup(data.spriteImageGroupName);
+		ScaledMOImageGroup sig = sigm.getMOImageGroup(data.spriteImageGroupName);
 		if (sig == null) {
 			System.out.println("ERROR Sprite::SpriteSeed constructor - cannot find spriteImageGroup called "
 					+ data.spriteImageGroupName);

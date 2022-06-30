@@ -18,6 +18,7 @@ import MOSpriteSeed.SpriteSeedFont;
 import MOSpriteSeed.SpriteSourceInterface;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
+import MOUtils.MOStringUtils;
 import MOUtils.SortObjectWithValue;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -104,41 +105,77 @@ public class NNetworkHelper {
 
 	}
 	
-	public static void renderEdgesAndSave(NNetwork theNetwork) {
+	public static void drawRegions(NNetwork ntwk, float dilation, float width, float[] dashPattern) {
+		
+		ArrayList<Vertices2> verts  = convertRegionsToVertices2(ntwk.getRegions());
+		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		if(dilation != 0) {
+			verts = dilateVertices2(verts, dilation, false);
+		}
+		for(Vertices2 v: verts) {
+			rt.drawVertices2NoFill(v, Color.BLACK, width, dashPattern);
+		}
+	}
+	
+	public static void drawVertices2NoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
+		// if dashPattern is nulled, then uses default line
+		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		for(Vertices2 v: verts) {
+			rt.drawVertices2NoFill(v, c, width, dashPattern);
+		}
+	}
+	
+	public static void drawVertices2NoFill(Vertices2 verts, float width, Color c, float[] dashPattern) {
+		// if dashPattern is nulled, then uses default line
+		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		rt.drawVertices2NoFill(verts, c, width, dashPattern);
+	}
+	
+	public static void renderEdgesAndSave(NNetwork theNetwork, float Awidth, float Bwidth, float Cwidth, float otherWidth) {
 
 		String sessPth = GlobalSettings.getUserSessionPath();
+		int CwidthI = (int)Cwidth ;
+		int BwidthI = (int)Bwidth;
+		int AwidthI = (int)Awidth;
+		int otherWidthI = (int)otherWidth;
+		String directoryname = sessPth + "Edges_" + AwidthI + "_" + BwidthI + "_" + CwidthI + "_" + otherWidthI; 
 
-
+		boolean res = MOStringUtils.createDirectory(directoryname);
+		
+		String directoryPath = directoryname + "\\";
+		
 		KeyValuePair descriptorC = NNetworkHelper.getDescriptor("ROAD", "C");  
-		drawEdges(theNetwork, descriptorC, Color.BLACK, 10);
-		GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + "C_Roads.png");
+		drawEdges(theNetwork, descriptorC, Color.BLACK, Cwidth);
+		GlobalSettings.getMainDocument().getMain().saveRenderToFile(directoryPath + "C_Roads_" + Cwidth + ".png");
 
 		GlobalSettings.getMainDocument().getMain().clearImage();
 
 		KeyValuePair descriptoB = NNetworkHelper.getDescriptor("ROAD", "B");  
-		drawEdges(theNetwork, descriptoB, Color.BLACK, 15);
-		GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + "B_Roads.png");
+		drawEdges(theNetwork, descriptoB, Color.BLACK, Bwidth);
+		GlobalSettings.getMainDocument().getMain().saveRenderToFile(directoryPath + "B_Roads_" + BwidthI + ".png");
 
 		GlobalSettings.getMainDocument().getMain().clearImage();
 
 
 		KeyValuePair descriptorA = NNetworkHelper.getDescriptor("ROAD", "A");
-		drawEdges(theNetwork, descriptorA, Color.BLACK, 20);
-		GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + "A_Roads.png");
+		drawEdges(theNetwork, descriptorA, Color.BLACK, Awidth);
+		GlobalSettings.getMainDocument().getMain().saveRenderToFile(directoryPath + "A_Roads_" + AwidthI + ".png");
 
 		GlobalSettings.getMainDocument().getMain().clearImage();
 
 		KeyValuePair thamesDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "RIVER");
-		drawEdges(theNetwork, thamesDescriptor, Color.BLACK, 10); 
+		drawEdges(theNetwork, thamesDescriptor, Color.BLACK, otherWidth); 
 		KeyValuePair parksDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "PARK");
-		drawEdges(theNetwork, parksDescriptor, Color.BLACK, 10); 
+		drawEdges(theNetwork, parksDescriptor, Color.BLACK, otherWidth); 
 		KeyValuePair lakeDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "LAKE");
-		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, 10); 
+		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, otherWidth); 
 
 
-		GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + "Other Boundaries.png");
+		GlobalSettings.getMainDocument().getMain().saveRenderToFile(directoryPath + "Other Boundaries_" + otherWidthI + ".png");
 
 	}
+	
+  
 
 	
 	public static void setRegionAttributeUbanDensity(NNetwork ntwk, String densityImagePathAndName) {

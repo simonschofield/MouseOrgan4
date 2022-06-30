@@ -14,30 +14,30 @@ import MOUtils.MOStringUtils;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-// SpriteImageGroup
-// Inherits from NamedImageGroup. 
-// Contains a list of NamedImages, but SpriteImages are scaled by the global SessionScale
-// the scaled items are cached for rapid reload next time.
+// SessionScaledImageAssetGroup
+// Inherits from ImageAssetGroup. 
+// but the images are scaled by the global SessionScale upon load.
+// The scaled items are cached for rapid reload next time.
 // The group is also named and accessible though the SpriteImageGroupManager
 // Intended for storing images ready to be used in Sprites. i.e. session-scaled alpha cut-out images
 // A SpriteSeed + A SpriteImage = Sprite
 
 
-public class SpriteImageGroup extends NamedImageGroup{
+public class ScaledMOImageGroup extends MOImageGroup{
 	// this is the global session scale as set by the userSession
 	// it cannot be different between objects, so is a static
 	static float sessionScale = 1;
 	
 	private String groupName = "";
 	
-	public SpriteImageGroup(String name) {
+	public ScaledMOImageGroup(String name) {
 		sessionScale = GlobalSettings.getSessionScale();
 		groupName = name;
 	}
 	
 	
-	public SpriteImageGroup copy(String copyName) {
-		SpriteImageGroup cpy = new SpriteImageGroup(copyName);
+	public ScaledMOImageGroup copy(String copyName) {
+		ScaledMOImageGroup cpy = new ScaledMOImageGroup(copyName);
 		
 		
 		cpy.widthExtrema = this.widthExtrema.copy();
@@ -47,7 +47,7 @@ public class SpriteImageGroup extends NamedImageGroup{
 		cpy.cropRect = this.cropRect.copy();
 		cpy.preScale = this.preScale;
 
-		cpy.copyNamedImagesFromOtherGroup(this);
+		cpy.copyMOImagesFromOtherGroup(this);
 		
 		return cpy;
 	}
@@ -63,7 +63,7 @@ public class SpriteImageGroup extends NamedImageGroup{
 	}
 	
 	
-	public float getRelativeSize(int num) {
+	public float getRelativeImageHeight(int num) {
 		// this is used by the sprite to establish a particular 
 		// image's relative height to the others in the group
 		int imgHght = getImage(num).getHeight();
@@ -71,9 +71,17 @@ public class SpriteImageGroup extends NamedImageGroup{
 		return  imgHght / heightMaxItem;
 	}
 	
+	public float getRelativeImageWidth(int num) {
+		// this is used by the sprite to establish a particular 
+		// image's relative width to the others in the group
+		int imgWdth = getImage(num).getWidth();
+		float widthMaxItem = widthExtrema.getUpper();
+		return  imgWdth / widthMaxItem;
+	}
 	
-	public void loadSamples() {
-		// loadSamples is different to loadImages in that it applies the sessionScale to the image 
+	
+	public void loadSessionScaledImages() {
+		// loadSessionScaledImages is different to the superclass loadImages in that it applies the sessionScale to the image 
 		// and deals with caching of sessionScaled versions of the images for subsequent uses, therefore speeding up the system.
 		// 
 		// pre-scaling and cropping only takes place after the cache save/load so is never committed to the cache
@@ -145,53 +153,61 @@ public class SpriteImageGroup extends NamedImageGroup{
 	//
 	public void scaleAll(float x, float y) {
 		
-		for (NamedImage imageSample: imageList) {
-			imageSample.image = ImageProcessing.scaleImage(imageSample.image, x, y);
+		for (MOImage moImage: theImageList) {
+			moImage.image = ImageProcessing.scaleImage(moImage.image, x, y);
 		}
 	}
 
 	public void rotateAll(float rot) {
 		
-		for (NamedImage imageSample: imageList) {
-			imageSample.image = ImageProcessing.rotateImage(imageSample.image, rot);
+		for (MOImage moImage: theImageList) {
+			moImage.image = ImageProcessing.rotateImage(moImage.image, rot);
 		}
 	}
 
 	public void resizeToAll(int x, int y) {
 		
-		for (NamedImage imageSample: imageList) {
-			imageSample.image = ImageProcessing.resizeTo(imageSample.image, x, y);
+		for (MOImage moImage: theImageList) {
+			moImage.image = ImageProcessing.resizeTo(moImage.image, x, y);
 		}
 	}
 
 	public void cropAll(Rect cropRect) {
 		if (cropRect.equals(new Rect())) return;
 		
-		for (NamedImage imageSample: imageList) {
-			imageSample.image = ImageProcessing.cropImageWithNormalisedRect(imageSample.image, cropRect);
+		for (MOImage moImage: theImageList) {
+			moImage.image = ImageProcessing.cropImageWithNormalisedRect(moImage.image, cropRect);
 		}
 	}
 
 	public void addBoarderProportionAll(float left, float top, float right, float bottom) {
 		//calculates the new additions as a proportion of the existing width or height
 
-		for (NamedImage imageSample: imageList) {
-			int w = imageSample.image.getWidth();
-			int h = imageSample.image.getHeight();
+		for (MOImage moImage: theImageList) {
+			int w = moImage.image.getWidth();
+			int h = moImage.image.getHeight();
 			int leftAddition = (int) (w * left);
 			int topAddition = (int) (h * top);
 			int rightAddition = (int) (w * right);
 			int bottomAddition = (int) (h * bottom);
 
-			imageSample.image = ImageProcessing.addBoarder(imageSample.image, leftAddition, topAddition, rightAddition,bottomAddition);
+			moImage.image = ImageProcessing.addBoarder(moImage.image, leftAddition, topAddition, rightAddition,bottomAddition);
 		}
 
 	}
 
 	public void colorTransformAll(int function, float p1, float p2, float p3) {
-		
-		for (NamedImage imageSample: imageList) {
-			imageSample.image = ImageProcessing.colorTransform(imageSample.image, function, p1, p2, p3);
+		//		ImageProcessing.COLORTRANSFORM_NONE = 0;
+		//		ImageProcessing.COLORTRANSFORM_HSV = 1;
+		//		ImageProcessing.COLORTRANSFORM_BRIGHTNESS_NOCLIP = 2;
+		//		ImageProcessing.COLORTRANSFORM_BRIGHTNESS = 3;
+		//		ImageProcessing.COLORTRANSFORM_CONTRAST = 4;
+		//		ImageProcessing.COLORTRANSFORM_LEVELS = 5;
+		//		ImageProcessing.COLORTRANSFORM_BLENDWITHCOLOR = 6;
+		//		ImageProcessing.COLORTRANSFORM_SET_DOMINANT_HUE = 7;
+		for (MOImage moImage: theImageList) {
+			moImage.image = ImageProcessing.colorTransform(moImage.image, function, p1, p2, p3);
+			moImage.calculateStats();
 		}
 	}
 	
@@ -217,26 +233,25 @@ public class SpriteImageGroup extends NamedImageGroup{
 		img = applyPreScaleAndCrop(img);
 		
 		// NOW add the image to the list
-		addNamedImage( img, thisShortFileName);
+		addMOImage( img, thisShortFileName);
 	}
 	
 	
-	
+	 
 		
 	
 	
 	private void assertImageTYPE_INT_ARGB() {
 		// all image content items should be of type INT_ARGB for all the
 		// operations to work OK. This makes sure they are.		
-		for (NamedImage imageSample : imageList) {
-			if (imageSample.image.getType() != BufferedImage.TYPE_INT_ARGB) {
-				imageSample.image = ImageProcessing.convertColorModel(imageSample.image, BufferedImage.TYPE_INT_ARGB);
+		for (MOImage moImage : theImageList) {
+			moImage.image = ImageProcessing.assertImageTYPE_INT_ARGB(moImage.image);
 			}
-		}
+		
 	}
 	
 	
-	////////////
+	
 	private String getCachedScaledImagesFolderName() {
 		int scalePercentile = (int) (sessionScale * 100);
 		String cachFolderRoot = GlobalSettings.getMouseOrganImageCachePath();

@@ -66,10 +66,16 @@ public class VectorShapeDrawer{
     
     //sets the processing drawing style to the settings of this shape
     //handles a bug in processing where an alpha of 0 results in a solid fill
-
-    
-
   }
+  
+  public void setDrawingStyle(Color fillC, Color lineC, float lineWt, float[] dashPattern){
+	    
+		currentDrawingStyle.setStyle( fillC, lineC, lineWt);
+	    setStrokeStyle(currentDrawingStyle.strokeWeight, dashPattern);
+	    
+	    //sets the processing drawing style to the settings of this shape
+	    //handles a bug in processing where an alpha of 0 results in a solid fill
+	  }
   
   public void setTextStyle(int size) {
 	  currentDrawingStyle.textSize = size;
@@ -92,9 +98,21 @@ public class VectorShapeDrawer{
   
   private void setStrokeStyle(float w){
 	  //currentDrawingStyle.strokeStyle = new BasicStroke(w);
-	  float dash[] = { 4.0f };
 	  currentDrawingStyle.strokeStyle = new BasicStroke(w, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f, null, 0.0f);
 	  graphics2D.setStroke(currentDrawingStyle.strokeStyle);
+	  }
+  
+  private void setStrokeStyle(float w, float[] dashPattern){
+	  //currentDrawingStyle.strokeStyle = new BasicStroke(w);
+	  float weight =  currentDrawingStyle.strokeWeight;
+	    currentDrawingStyle.strokeStyle = new BasicStroke(weight, 
+	        BasicStroke.CAP_BUTT, 
+	        BasicStroke.JOIN_ROUND, 
+	        1.0f, 
+	        dashPattern,
+	        0f);
+	      
+	   graphics2D.setStroke(currentDrawingStyle.strokeStyle);
 	  }
   
   
@@ -186,27 +204,27 @@ public class VectorShapeDrawer{
   }
   
  
-  
-  
+  /*
+   void setLineStyleDefault() {
+	   // sets the line style to have no dashes, just the default
+	   float weight =  currentDrawingStyle.strokeWeight;
+	   currentDrawingStyle.strokeStyle = new BasicStroke(weight, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
+	   graphics2D.setStroke(currentDrawingStyle.strokeStyle);
+   }
 
   
-  void setLineStyle(String stl){
+  void setLineStyleDash(float[] dashPattern, float offset){
     
     float weight =  currentDrawingStyle.strokeWeight;
-    if(stl.equals("none")){ currentDrawingStyle.strokeStyle = new BasicStroke(weight);}
-    
-    if(stl.equals("dash")){
-    float dashSize =  3;
-    float[] dash1 = { dashSize, 0f, dashSize };
     currentDrawingStyle.strokeStyle = new BasicStroke(weight, 
         BasicStroke.CAP_BUTT, 
         BasicStroke.JOIN_ROUND, 
         1.0f, 
-        dash1,
-        2f);
-    }   
+        dashPattern,
+        offset);
+      
     graphics2D.setStroke(currentDrawingStyle.strokeStyle);
-  }
+  }*/
   
 
 }

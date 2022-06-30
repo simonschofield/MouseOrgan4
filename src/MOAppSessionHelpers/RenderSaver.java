@@ -119,7 +119,12 @@ public class RenderSaver {
 	// The final layer is not cleared, and when the final layer is saved, any supplementary Document RenderTarget
 	// images are also saved to the directory.
 	// The calling of saveLayer is going to be managed by the user
-	public void saveLayer(boolean finalLayer) {
+	//
+	// sometimes the user will want to save the supplementary images intact between layers (such as in making a selection mask for the whole image)
+	// sometimes they want the supp images saved and deleted per layer - as in multiple sequenced images, hence saveSupplementaryImagesAtEachLayer
+	
+	//
+	public void saveLayer(boolean finalLayer, boolean saveSupplementaryImagesAtEachLayer) {
 		if(useSubDirectory==false) {
 			System.out.println("RenderSaver: saveLayer - cannot save layers without setting a sub directory first - set third argument of constructor to true");
 			return;
@@ -135,18 +140,28 @@ public class RenderSaver {
 		String fullPathAndName = subDirectoryPath + "\\" + name + ".png";
 		System.out.println("saveRenderLayers to folder: saving " + fullPathAndName);
 		theDocument.getRenderTarget("main").saveRenderToFile(fullPathAndName);
-
+		
+		if(saveSupplementaryImagesAtEachLayer) {
+			String dirPath = subDirectoryPath + "\\";
+			saveDocumentSupplementaryImages(dirPath, layerString);
+			if(!finalLayer) {
+				clearDocumentSupplementaryImages();
+			}
+		}
+		
+		if(!finalLayer) {
+			theDocument.getRenderTarget("main").clearImage();
+			
+		}
+		
+		
 		if (useReverseLayerNumbering) {
 			layerCounter--;
 		} else {
 			layerCounter++;
 		}
 		
-		if(!finalLayer) theDocument.getRenderTarget("main").clearImage();
 		
-		if(finalLayer) {
-			saveDocumentSupplementaryImages(subDirectoryPath, "");
-		}
 	}
 
 	
@@ -191,6 +206,14 @@ public class RenderSaver {
 			String fullPathAndName =  fullPath + fullSessionName + enumerator + ext;
 			theDocument.getRenderTarget(n).saveRenderToFile(fullPathAndName);
 		}
+	}
+	
+	private void clearDocumentSupplementaryImages() {
+		if(theDocument.getNumRenderTargets()==1) return;
+		for(int n = 1; n < theDocument.getNumRenderTargets(); n++) {
+			theDocument.getRenderTarget(n).clearImage();;
+		}
+		
 	}
 
 	private int searchDirectoryForHighestSessionEnumerator() {

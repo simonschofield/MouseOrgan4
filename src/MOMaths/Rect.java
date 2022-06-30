@@ -210,6 +210,12 @@ public class Rect{
 		if(   MOMaths.isBetweenInc(p.x, this.left, this.right) && MOMaths.isBetweenInc(p.y, this.top, this.bottom) ) return true;
 		return false;
 	}
+	
+	public boolean isPointInside(PVector p, float tollerance){
+		// inclusive of the boundaries plus a tollerance
+		if(   MOMaths.isBetweenInc(p.x, this.left-tollerance, this.right+tollerance) && MOMaths.isBetweenInc(p.y, this.top-tollerance, this.bottom+tollerance) ) return true;
+		return false;
+	}
 
 	public boolean isPointInside(float x, float y){
 		PVector v = new PVector(x,y);

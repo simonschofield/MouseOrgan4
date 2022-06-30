@@ -3,3 +3,12 @@
 /NamedImageGroup.class
 /SpriteImageGroup.class
 /SpriteImageGroupManager.class
+/ImageAsset.class
+/ImageAssetGroup.class
+/ImageStats.class
+/SessionScaledImageAssetGroup.class
+/SessionScaledImageAssetGroupManager.class
+/MOImage.class
+/MOImageGroup.class
+/ScaledMOImageGroup.class
+/ScaledMOImageGroupManager.class

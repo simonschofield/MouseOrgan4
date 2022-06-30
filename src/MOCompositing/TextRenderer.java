@@ -216,7 +216,10 @@ public class TextRenderer {
 		
 		getGraphics2D().setColor(outlineColor);
 		getGraphics2D().setFont(font);
-		getGraphics2D().drawString( str,  0,  font.getSize());
+		
+		int baseLine =  font.getSize() - (int)(font.getSize()/6f);
+		
+		getGraphics2D().drawString( str,  0,  baseLine);
 		
 		return bufferedImage;
 	}

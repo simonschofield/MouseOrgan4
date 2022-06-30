@@ -120,7 +120,7 @@ public class NNetworkDrawer{
 	public void drawRegionEdges(NRegion r, Color c, float width, RenderTarget rt) {
 		Vertices2 verts = r.getVertices();
 		
-		rt.drawVertices2NoFill(verts, c, width);
+		rt.drawVertices2NoFill(verts, c, width, null); // the null is dashPattern
 	}
 	
 	public void drawRegionListEdges(ArrayList<NRegion> regions, Color c, float width, RenderTarget rt) {

@@ -7,8 +7,8 @@ import java.awt.image.BufferedImage;
 import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.SpriteImageGroup;
-import MOImageCollections.SpriteImageGroupManager;
+import MOImageCollections.ScaledMOImageGroup;
+import MOImageCollections.ScaledMOImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
@@ -23,14 +23,14 @@ public class SceneHelper {
 	
 	// load a SpriteImageGroup and add it to the ImageGroupManager (ImageGroupManager must be instantiated before calling this)
 	public static void loadSpriteImageGroup(String spriteImageGroupSamplePath, String spriteImageGroupName, String fileNameContains) {
-		    SpriteImageGroup spriteImageGroup = new SpriteImageGroup(spriteImageGroupName);
+		    ScaledMOImageGroup spriteImageGroup = new ScaledMOImageGroup(spriteImageGroupName);
 		    DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(spriteImageGroupSamplePath);
 		    if(fileNameContains != null) {
 		    	dfns.setFileNameContains(fileNameContains);
 		    }
 		    spriteImageGroup.setDirectoryFileNameScanner(dfns);
-		    spriteImageGroup.loadSamples();
-		    GlobalSettings.getTheSpriteImageGroupManager().addSpriteImageGroup(spriteImageGroup);
+		    spriteImageGroup.loadSessionScaledImages();
+		    GlobalSettings.getTheSpriteImageGroupManager().addImageGroup(spriteImageGroup);
 		}
 	
 	
@@ -54,7 +54,7 @@ public class SceneHelper {
 		}
 	}
 	
-	public float fullScalePixelsToDocSpace(float pixels) {
+	public static float fullScalePixelsToDocSpace(float pixels) {
 		// Allows the user to get the doc space measurement
 		// for a number of pixels in the full scale image. This is useful for defining 
 		// certain drawing operations, such as defining line thickness and circle radius. 
@@ -62,6 +62,12 @@ public class SceneHelper {
 		// But the user may wish to think in pixel size in the final 100% scale image.
 		float pixelsScaled = pixels*GlobalSettings.getSessionScale();
 		return (pixelsScaled/GlobalSettings.getTheDocumentCoordSystem().getLongestBufferEdge());
+	}
+	
+	public static float docSpaceToFullScalePixels(float docSpaceMeasurement) {
+		// Allows the user to get the number of pixels that represent a docSpaceMeasurement in the full scale 100% image
+		return docSpaceMeasurement*GlobalSettings.getTheDocumentCoordSystem().getLongestBufferEdge();
+		//return pixelsInThisImage*GlobalSettings.getSessionScale();
 	}
 	
 	static void randomRotateScaleSprite(Sprite sprite, float scaleAmt, float rotAmount) {

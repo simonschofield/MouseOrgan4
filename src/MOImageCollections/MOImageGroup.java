@@ -10,8 +10,8 @@ import MOUtils.MOStringUtils;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-// ImageItemGroup
-// A Simple list of ImageSamples where only the image and name is used. Each name is unique.
+// MOImageGroup
+// Containd a list of ImageSamples where only the image and name is used. Each name is unique.
 // While the class uses the ImageSample type to bind names to BufferedImages, this should be used to store collections of
 // regular images, such as in the SceneData3D class, where collections of texture images are collected.
 // 
@@ -22,11 +22,11 @@ import MOUtils.MOStringUtils;
 // or copied from another group.
 
 
-public class NamedImageGroup {
+public class MOImageGroup {
 
 	protected DirectoryFileNameScanner directoryFileNameScanner;
 	
-	protected ArrayList<NamedImage> imageList = new ArrayList<NamedImage>();
+	protected ArrayList<MOImage> theImageList = new ArrayList<MOImage>();
 	
 	
 	protected Range widthExtrema = new Range();
@@ -38,11 +38,15 @@ public class NamedImageGroup {
 	
 	
 
-	public NamedImageGroup() {
+	public MOImageGroup() {
 		
 	}
 	
-	
+	public void calculateImageStats() {
+		for (MOImage thisImage : theImageList) {
+			thisImage.calculateStats();
+		}
+	}
 	
 	public void setDirectoryFileNameScanner(DirectoryFileNameScanner dfns){
 		directoryFileNameScanner = dfns;
@@ -59,16 +63,14 @@ public class NamedImageGroup {
 	}
 	
 	
-	void clearImages() {
-		imageList = new ArrayList<NamedImage>();
-		
-		
+	void clearImageAssets() {
+		theImageList = new ArrayList<MOImage>();
 	}
 	
 	
 	// debug only
 	public void printImageNames() {
-		ArrayList<String> names =  getImageNameList();
+		ArrayList<String> names =  getMOImageNamesList();
 		System.out.println("ImageGroup: has loaded the following image");
 		for(String thisName: names) {
 			System.out.println(thisName);
@@ -118,7 +120,7 @@ public class NamedImageGroup {
 		img = applyPreScaleAndCrop(img);
 
 		String thisShortFileName = MOStringUtils.getShortFileNameFromFullPathAndFileName(pathAndName);
-		addNamedImage(img, thisShortFileName);
+		addMOImage(img, thisShortFileName);
 	}
 	
 	
@@ -141,15 +143,15 @@ public class NamedImageGroup {
 	// Adds a single image with a name
 	// only add images to the images list through this method
 	//
-	public void addNamedImage(BufferedImage img, String shortName) {
+	public void addMOImage(BufferedImage img, String shortName) {
 		
 		if(checkUniqueName(shortName)==false) return;
 		
-		NamedImage namedImage = new NamedImage();
+		MOImage namedImage = new MOImage();
 		namedImage.image = img;
 		namedImage.name = shortName;
 		
-		imageList.add(namedImage);
+		theImageList.add(namedImage);
 		widthExtrema.addExtremaCandidate(img.getWidth());
 		heightExtrema.addExtremaCandidate(img.getHeight());
 		
@@ -161,21 +163,21 @@ public class NamedImageGroup {
 	// copying from another image group
 	// Makes a deep copy of the images so will increase memory footprint
 	//
-	public void copyNamedImagesFromOtherGroup(NamedImageGroup otherGroup) {
-		int i = otherGroup.getNumImages();
+	public void copyMOImagesFromOtherGroup(MOImageGroup otherGroup) {
+		int i = otherGroup.getNumMOImages();
 		for(int n = 0; n < i; n++) {
-			copyNamedImageFromOtherGroup( n,  otherGroup);
+			copyMOImageFromOtherGroup( n,  otherGroup);
 		}
 		
 	}
 	
 	
-	public void copyNamedImageFromOtherGroup(int n, NamedImageGroup otherGroup) {
+	public void copyMOImageFromOtherGroup(int n, MOImageGroup otherGroup) {
 		// makes a new independent copy
 		BufferedImage img = otherGroup.getImage(n);
 		String imageName = otherGroup.getImageName(n);
 		BufferedImage copyOfImage = ImageProcessing.copyImage(img);
-		addNamedImage(copyOfImage, imageName);
+		addMOImage(copyOfImage, imageName);
 	}
 
 	
@@ -183,17 +185,22 @@ public class NamedImageGroup {
 	//
 	// data access methods
 	//
-	public int getNumImages() {
-		return imageList.size();
+	public int getNumMOImages() {
+		return theImageList.size();
+	}
+	
+	public MOImage getMOImage(int n) {
+		if( checkLegalIndex(n)==false) return null;
+		return theImageList.get(n);
 	}
 
 	public BufferedImage getImage(int n) {
 		if( checkLegalIndex(n)==false) return null;
-		if (getNumImages() == 0) {
+		if (getNumMOImages() == 0) {
 			System.out.println("getImage:: ImageGroup has no images ");
 			return null;
 		}
-		BufferedImage img = imageList.get(n).image;
+		BufferedImage img = theImageList.get(n).image;
 		//System.out.println("reference to image in Group is " + img);
 		return img;
 	}
@@ -201,7 +208,7 @@ public class NamedImageGroup {
 
 	public BufferedImage getImage(String shortName) {
 		int n = 0;
-		for (NamedImage thisImage : imageList) {
+		for (MOImage thisImage : theImageList) {
 			if (thisImage.name.contentEquals(shortName))
 				return thisImage.image;
 			n++;
@@ -213,13 +220,13 @@ public class NamedImageGroup {
 	
 	public String getImageName(int n) {
 		if( checkLegalIndex(n)==false) return null;
-		return imageList.get(n).name;
+		return theImageList.get(n).name;
 		
 	}
 
-	public int getIndexOfNamedImage(String shortName) {
+	public int getIndexOfMOImage(String shortName) {
 		int n = 0;
-		for (NamedImage thisImage : imageList) {
+		for (MOImage thisImage : theImageList) {
 			if (thisImage.name.contentEquals(shortName))
 				return n;
 			n++;
@@ -228,9 +235,9 @@ public class NamedImageGroup {
 		return 0;
 	}
 	
-	public ArrayList<String> getImageNameList() {
+	public ArrayList<String> getMOImageNamesList() {
 		ArrayList<String> imageNames = new ArrayList<String>();
-		for (NamedImage thisImage : imageList) {
+		for (MOImage thisImage : theImageList) {
 			imageNames.add(thisImage.name);
 		}
 		return imageNames;
@@ -240,10 +247,10 @@ public class NamedImageGroup {
 		// replaces an image, but keeps the exiting name the same
 		if( checkLegalIndex(n)==false) return;
 		
-		NamedImage namedImage = imageList.get(n);
-		namedImage.image = img;
-		namedImage.name = name;
-		
+		MOImage moImg = theImageList.get(n);
+		moImg.image = img;
+		moImg.name = name;
+		moImg.calculateStats();
 	}
 	
 	
@@ -252,7 +259,7 @@ public class NamedImageGroup {
 	//
 
 	protected boolean checkLegalIndex(int i) {
-		int n = getNumImages();
+		int n = getNumMOImages();
 		if(i >= 0 && i < n) return true;
 		System.out.println("ImageGroup:checkLegalIndex - index out of range " + i + "from a group of " + n + " images");
 		return false;
@@ -260,7 +267,7 @@ public class NamedImageGroup {
 
 	protected boolean isLoaded() {
 
-		if(imageList.size()==0) {
+		if(theImageList.size()==0) {
 			System.out.println("ImageGroup: no images have been loaded - call loadImage() ?");
 			return false;
 		}
@@ -270,7 +277,7 @@ public class NamedImageGroup {
 
 	private boolean checkUniqueName(String newName) {
 
-		for (NamedImage thisImage : imageList) {
+		for (MOImage thisImage : theImageList) {
 			if (thisImage.name.contentEquals(newName))
 			{
 				System.out.println("ImageGroup:checkUniqueName- attempting to add duplicate named image " + newName);

@@ -47,11 +47,12 @@ public class WordVerticeCrawler {
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// This is set with the vertices you want to render as a "text ribbon"
-	// so called beofre you start a new text ribbon
-	public void setVerticesRun(Vertices2 v) {
+	// so called before you start a new text ribbon.
+	// The method returns the slightly altered vertices that will fit more exactly under the text.
+	public Vertices2 setVerticesRun(Vertices2 v) {
 		currentVertices = v;
 		currentVericesTraversalPosition = 0;
-		precalculateWordsOnCurrentVertices();
+		return precalculateWordsOnCurrentVertices();
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////
@@ -103,6 +104,8 @@ public class WordVerticeCrawler {
 		return false;
 	}
 	
+	
+	
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// testing only
 	void printWordsAndLines() {
@@ -124,7 +127,7 @@ public class WordVerticeCrawler {
 	//////////////////////////////////////////////////////////////////////////////
 	// you call this once per vertices traversed
 	// The words never run out as they loop
-	private void precalculateWordsOnCurrentVertices() {
+	private Vertices2 precalculateWordsOnCurrentVertices() {
 		precalculatedWords = new ArrayList<String>();
 		precalculatedLines = new ArrayList<Line2>();
 		boolean wordFound = true;
@@ -137,9 +140,13 @@ public class WordVerticeCrawler {
 		// so we need to refit the words to the lines.
 
 		precalculatedLines = refitVerticesToWords();
-		//printWordsAndLines(); 
-		//System.out.println("precalculateWordsOnCurrentVertices: num words =  " + precalculatedWords.size());
-
+		
+		
+		// this stores the slightly altered edge runs as Vertices2, so you can
+		// redraw the road to fit the words better
+		Vertices2 reCalculatedVertices = new Vertices2();
+		reCalculatedVertices.setWithLine2List(precalculatedLines);
+		return reCalculatedVertices;
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////

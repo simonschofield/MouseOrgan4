@@ -2,7 +2,7 @@ package MOSpriteSeed;
 
 import java.util.ArrayList;
 
-import MOImageCollections.SpriteImageGroupManager;
+import MOImageCollections.ScaledMOImageGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 //
@@ -14,7 +14,7 @@ import MOMaths.QRandomStream;
 public class SpriteSeedFontBiome  implements SpriteSourceInterface{
 
 	
-	SpriteImageGroupManager theImageSampleGroupManager;
+	ScaledMOImageGroupManager theImageSampleGroupManager;
 	ArrayList<SpriteSeedFont> biomeItems = new ArrayList<SpriteSeedFont>();
 	boolean probabilitiesNormalised = false;
 	QRandomStream randomStream;

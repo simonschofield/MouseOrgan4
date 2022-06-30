@@ -2,8 +2,8 @@ package MOSpriteSeed;
 
 import java.awt.image.BufferedImage;
 
-import MOImageCollections.SpriteImageGroup;
-import MOImageCollections.SpriteImageGroupManager;
+import MOImageCollections.ScaledMOImageGroup;
+import MOImageCollections.ScaledMOImageGroupManager;
 import MOMaths.PVector;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;

@@ -45,7 +45,7 @@ public class RandomStream{
 		return (lo + r*(hi-lo) );
 	}
 	
-	float perturb(float v, float amt) {
+	public float perturb(float v, float amt) {
 		
 		return v + (randRangeF(-v,v) * amt);
 		

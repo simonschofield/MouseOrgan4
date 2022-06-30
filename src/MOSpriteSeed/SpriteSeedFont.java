@@ -1,14 +1,14 @@
 package MOSpriteSeed;
 
 
-import MOImageCollections.SpriteImageGroup;
+import MOImageCollections.ScaledMOImageGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
+import MOMaths.Range;
 import MOUtils.GlobalSettings;
 
 ////////////////////////////////////////////////////////////////////
-// Can generate an instance of a SpriteSeed from the association of
-// of an ISG with Size data
+// Can generate an instance of a Sprite or SpriteSeed from its association with the SessionScaledImageGroup
 // 
 // Does not have any positional data after generation, so this needs another process afterwards
 
@@ -35,6 +35,8 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 	public float spriteSeedFontBiomeProbability = 1f;
 	
 	private String instancenameMustContain = "";
+	private Range hueMustBeBetween;
+	
 	
 	public SpriteSeedFont(String sdFontName, String imageSampleGroupName,
 			float sizeInScene, boolean useRelativeSizes, PVector origin, int rseed) {
@@ -48,7 +50,21 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 	}
 	
 	public void setInstanceNameMustContain(String mustContain) {
+		hueMustBeBetween = null;
 		instancenameMustContain = mustContain;
+	}
+	
+	
+	public void setInstanceMustHaveHueBetween(float lo, float hi) {
+		instancenameMustContain = "";
+		hueMustBeBetween = new Range(lo,hi);
+		getSpriteImageGroup().calculateImageStats();
+	}
+	
+	
+	public void clearConstraints() {
+		instancenameMustContain = "";
+		hueMustBeBetween = null;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -92,14 +108,14 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 	}
 	
 	public int getNumImages() {
-		return getSpriteImageGroup().getNumImages();
+		return getSpriteImageGroup().getNumMOImages();
 		
 	}
 	
 	
-	protected SpriteImageGroup getSpriteImageGroup() {
+	protected ScaledMOImageGroup getSpriteImageGroup() {
 		//System.out.println("getSpriteImageGroup SprietImage group is " + imageSampleGroupName );
-		return GlobalSettings.getTheSpriteImageGroupManager().getSpriteImageGroup(imageSampleGroupName);
+		return GlobalSettings.getTheSpriteImageGroupManager().getMOImageGroup(imageSampleGroupName);
 	}
 	
 	
@@ -111,10 +127,17 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 	
 	
 	protected int getRandomSpriteImageGroupItemNumber() {
-		if(instancenameMustContain==null) return randomStream.randRangeInt(0, getNumImages() - 1);
-		if(instancenameMustContain.equals("")) return randomStream.randRangeInt(0, getNumImages() - 1);
 		
+		if(instancenameMustContain.length()>0) return getRandomSpriteImageGroupItemNumber_NameConstraint();
+		if(hueMustBeBetween!=null) return getRandomSpriteImageGroupItemNumber_HueConstraint();
+		
+		return randomStream.randRangeInt(0, getNumImages() - 1);
+		
+	}
 	
+	
+	
+	protected int getRandomSpriteImageGroupItemNumber_NameConstraint() {
 		int bailCount = getNumImages()*10; // should be more than enough to find all samples randomly (see Coupon collector's problem)
 		int num = 0;
 		while(bailCount > 0) {
@@ -123,8 +146,23 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 			if( shortName.contains(instancenameMustContain)) return num;
 			bailCount--;
 		}
-		System.out.println("ERROR: SpriteSeedFont::getRandomSpriteImageGroupItemNumber cannot fins an image containing the string " + instancenameMustContain);
+		System.out.println("ERROR: SpriteSeedFont::getRandomSpriteImageGroupItemNumber_NameConstraint cannot fins an image with name containing the string " + instancenameMustContain);
 		return num;
+		
+	}
+	
+	protected int getRandomSpriteImageGroupItemNumber_HueConstraint() {
+		int bailCount = getNumImages()*10; // should be more than enough to find all samples randomly (see Coupon collector's problem)
+		int num = 0;
+		while(bailCount > 0) {
+			num =  randomStream.randRangeInt(0, getNumImages() - 1);
+			float hue = getSpriteImageGroup().getMOImage(num).stats.dominantHue;
+			if( hueMustBeBetween.isBetweenInc(hue)) return num;
+			bailCount--;
+		}
+		System.out.println("ERROR: SpriteSeedFont::getRandomSpriteImageGroupItemNumber_HueConstraint cannot fins an image containing a dominant hue between " + hueMustBeBetween.toStr());
+		return num;
+		
 	}
 	
 	

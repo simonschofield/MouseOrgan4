@@ -21,20 +21,20 @@ import MOUtils.GlobalSettings;
 // via the SpriteImageGroup's name. 
 //
 //
-public class SpriteImageGroupManager {
+public class ScaledMOImageGroupManager {
 
-	ArrayList<SpriteImageGroup> spriteImageGroups = new ArrayList<SpriteImageGroup>();
+	ArrayList<ScaledMOImageGroup> theMOImageGroupList = new ArrayList<ScaledMOImageGroup>();
 	//Surface parentSurface;
 
-	public SpriteImageGroupManager() {
-		GlobalSettings.setTheSpriteImageGroupManager(this);
+	public ScaledMOImageGroupManager() {
+		GlobalSettings.setImageGroupManager(this);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
 	//
 	//
-	public SpriteImageGroup getSpriteImageGroup(String name) {
-		for (SpriteImageGroup cc : spriteImageGroups) {
+	public ScaledMOImageGroup getMOImageGroup(String name) {
+		for (ScaledMOImageGroup cc : theMOImageGroupList) {
 			if (cc.isNamed(name))
 				return cc;
 		}
@@ -46,66 +46,14 @@ public class SpriteImageGroupManager {
 	
 
 	int getNumItems(String name) {
-		SpriteImageGroup cc = getSpriteImageGroup(name);
+		ScaledMOImageGroup cc = getMOImageGroup(name);
 		if (cc == null)
 			return 0;
-		return cc.getNumImages();
+		return cc.getNumMOImages();
 	}
 
 	
-	/*
-	 * these are now moved to the SpriteHelper in MOApplications group
-	public SpriteImageGroup getSprite(String contentGroupName, int num) {
-		// got to get the correct contentItemGroup first
-		SpriteImageGroup dig = getSpriteImageGroup(contentGroupName);
-
-		if (dig == null)
-			return null;
-		return getSprite(dig,num);
-	}
 	
-	public ImageSprite getSprite(Seed seed) {
-		
-		SpriteImageGroup dig = getSpriteImageGroup(seed.SpriteImageGroupName);
-		if (dig == null)
-			return null;
-		// creating a sprite from a seed, the SpriteImageGroupManager has already determined
-		// to pass the seed to this SpriteImageGroup
-		//System.out.println("getSprite:: seed" + seed.getAsCSVStr());
-		//System.out.println("there are " + this.getNumItems() + " items available");
-		ImageSprite sprite = getSprite(dig, seed.SpriteImageGroupItemNumber);
-		sprite.setID_RandomSeed(seed.id);
-		sprite.setDocPoint(seed.getDocPoint());
-		//sprite.depthFromSeed = seed.depth;
-		return sprite;
-	}
-	
-	
-
-	ImageSprite getSprite(SpriteImageGroup thisSampleGroup, int num) {
-		// creating a sprite from a simple item number within this group
-		// sets up almost everything except the document point
-		if (thisSampleGroup.getNumImages() == 0) {
-			System.out.println("getSprite:: ImageGroup has no images ");
-			return null;
-		}
-		if (num >= thisSampleGroup.getNumImages() || num < 0) {
-			System.out.println("getSprite:: index out of range - setting to uppermost available image");
-			num = thisSampleGroup.getNumImages() - 1;
-		}
-
-		float sizeInScene = thisSampleGroup.getItemSizeInScene(num);
-		
-		BufferedImage img = thisSampleGroup.getImage(num);
-		
-		
-		//ImageSprite sprite = new ImageSprite(img, thisSampleGroup.getGroupOrigin().copy(), sizeInScene, uniqueID.next());
-		ImageSprite sprite = new ImageSprite(img, thisSampleGroup.getGroupOrigin().copy(), sizeInScene, 1);
-		sprite.shortImageFileName = thisSampleGroup.getImageName(num);
-		sprite.SpriteImageGroupName = thisSampleGroup.getGroupName();
-		return sprite;
-	}
-	*/
 	
 
 	/**
@@ -133,7 +81,7 @@ public class SpriteImageGroupManager {
 	 *                             normalised coords
 	                     
 	 */
-	void loadSpriteImageGroup(String spriteImageGroupName, String targetDirectory, String fileNameMustEndWith,
+	void loadImageGroup(String spriteImageGroupName, String targetDirectory, String fileNameMustEndWith,
 			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect) {
 
 		
@@ -142,24 +90,22 @@ public class SpriteImageGroupManager {
     	dfns.setFileNameContains(fileNameMustContain);
     	dfns.setFileListRange(from, to);
     	
-    	SpriteImageGroup newSpriteImageGroup  = new SpriteImageGroup(spriteImageGroupName);
+    	ScaledMOImageGroup newSpriteImageGroup  = new ScaledMOImageGroup(spriteImageGroupName);
 		
 		newSpriteImageGroup.setDirectoryFileNameScanner(dfns);
 		newSpriteImageGroup.setPreScale(preScale);
 		newSpriteImageGroup.setCrop(cropRect);
-		//newSpriteImageGroup.setGroupOrigins(origin);
-		//newSpriteImageGroup.setGroupSizeInScene(sizeInScene);
-		//newSpriteImageGroup.setUseIndividuaImageSize(useInividualSizes);
-		newSpriteImageGroup.loadSamples();
-		spriteImageGroups.add(newSpriteImageGroup);
+		
+		newSpriteImageGroup.loadSessionScaledImages();
+		theMOImageGroupList.add(newSpriteImageGroup);
 
 	}
 
 	/////////////////////////////////////////////////////////////////////////////
 	// this is the short-hand method of the above
-	public void loadSpriteImageGroup(String name, String targetDirectory, Integer from, Integer to) {
+	public void loadImageGroup(String name, String targetDirectory, Integer from, Integer to) {
 
-		loadSpriteImageGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect());
+		loadImageGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect());
 
 	}
 	
@@ -167,15 +113,15 @@ public class SpriteImageGroupManager {
 	// creates a completely independent copy of an already loaded sample group, 
 	// the new group has a different name,so users can rescale or colour treat this group separately
 	///////////////////////////////////////////////////////////////////////////// first
-    public void cloneSpriteImageGroup(String existingGroupname, String newGroupName) {
-    	SpriteImageGroup cc = getSpriteImageGroup(existingGroupname);
+    public void cloneImageGroup(String existingGroupname, String newGroupName) {
+    	ScaledMOImageGroup cc = getMOImageGroup(existingGroupname);
     	if(cc==null) {
 
     	}
-    	SpriteImageGroup newGroup = cc.copy(newGroupName);
+    	ScaledMOImageGroup newGroup = cc.copy(newGroupName);
 
-    	System.out.println("Cloned " + existingGroupname + " with " + cc.getNumImages() + " into " + newGroupName + " with " + newGroup.getNumImages());
-    	spriteImageGroups.add(newGroup);
+    	System.out.println("Cloned " + existingGroupname + " with " + cc.getNumMOImages() + " into " + newGroupName + " with " + newGroup.getNumMOImages());
+    	theMOImageGroupList.add(newGroup);
     }
     
     
@@ -183,25 +129,26 @@ public class SpriteImageGroupManager {
 	// these are the long-hand method of establishing an image-collection
 	// If you are doing it long hand - then the method below needs to be called
 	///////////////////////////////////////////////////////////////////////////// first
-
-    SpriteImageGroup addSpriteImageGroupNameAndPath(String name, String targetDirectory, String filesStrEndWith, String fileStrContains) {
+    /*
+    ScaledMOImageGroup addImageGroupNameAndPath(String name, String targetDirectory, String filesStrEndWith, String fileStrContains) {
     	DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(targetDirectory);
     	dfns.setFileNameContains(fileStrContains);
     	
     	
-    	SpriteImageGroup newSpriteImageGroup  = new SpriteImageGroup(name);
+    	ScaledMOImageGroup newSpriteImageGroup  = new ScaledMOImageGroup(name);
 		
 		newSpriteImageGroup.setDirectoryFileNameScanner(dfns);
-		newSpriteImageGroup.loadSamples();
+		newSpriteImageGroup.loadSessionScaledImages();
 		
-		spriteImageGroups.add(newSpriteImageGroup);
+		theMOImageGroupList.add(newSpriteImageGroup);
 		return newSpriteImageGroup;
 	}
+	*/
 
 	
-     public void addSpriteImageGroup(SpriteImageGroup sig) {
+     public void addImageGroup(ScaledMOImageGroup sig) {
     	 // TBD check unique name
-    	 spriteImageGroups.add(sig);
+    	 theMOImageGroupList.add(sig);
      }
 	
 
@@ -210,8 +157,8 @@ public class SpriteImageGroupManager {
 	//
 	///////////////////////////////////////////////////////////////////////////// first
 
-	public void scaleSpriteImageGroup(String name, float inx, float iny) {
-		SpriteImageGroup ic = getSpriteImageGroup(name);
+	public void scaleImageGroup(String name, float inx, float iny) {
+		ScaledMOImageGroup ic = getMOImageGroup(name);
 		if (ic == null)
 			return;
 		ic.scaleAll(inx, iny);
@@ -229,8 +176,8 @@ public class SpriteImageGroupManager {
 	 * @param p3        third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
-	public void colorTransformSpriteImageGroup(String groupname, int function, float p1, float p2, float p3) {
-		SpriteImageGroup ic = getSpriteImageGroup(groupname);
+	public void colorTransformImageGroup(String groupname, int function, float p1, float p2, float p3) {
+		ScaledMOImageGroup ic = getMOImageGroup(groupname);
 		if (ic == null)
 			return;
 		ic.colorTransformAll(function, p1, p2, p3);
@@ -248,9 +195,9 @@ public class SpriteImageGroupManager {
 	}
 
 	void paradeContent(String groupName, int effect, float p1, float p2, float p3, RenderTarget rt) {
-		SpriteImageGroup sampleGroup = this.getSpriteImageGroup(groupName).copy(groupName + "copy");
+		ScaledMOImageGroup sampleGroup = this.getMOImageGroup(groupName).copy(groupName + "copy");
 		
-		int numItems = sampleGroup.getNumImages();
+		int numItems = sampleGroup.getNumMOImages();
 		// get them in portrait mode
 		for(int n = 0; n < numItems; n++) {
 			BufferedImage img = sampleGroup.getImage(n);

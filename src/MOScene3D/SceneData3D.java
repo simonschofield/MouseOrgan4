@@ -8,7 +8,7 @@ import MOImage.FloatImage;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
 import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.NamedImageGroup;
+import MOImageCollections.MOImageGroup;
 import MOMaths.Fustrum3D;
 import MOMaths.PVector;
 import MOMaths.Range;
@@ -59,7 +59,7 @@ public class SceneData3D {
 	
 	
 	// this reads in and contains all the png files within the input folder
-	NamedImageGroup renderImages;
+	MOImageGroup renderImages;
 	BufferedImage currentRenderKeyImage;
 	boolean currentRenderKeyImageHasAlpha;
 	
@@ -96,7 +96,7 @@ public class SceneData3D {
 		
     public void load(){
     	DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(directoryPath, "png");
-    	renderImages = new NamedImageGroup();
+    	renderImages = new MOImageGroup();
     	renderImages.setDirectoryFileNameScanner(dfns);
 		renderImages.loadImages();
 		
@@ -176,7 +176,7 @@ public class SceneData3D {
 	
 	
 	public ArrayList<String> getRenderImageNames(){
-		return renderImages.getImageNameList();
+		return renderImages.getMOImageNamesList();
 	}
 
 	public BufferedImage setCurrentRenderImage(String shortName) {
