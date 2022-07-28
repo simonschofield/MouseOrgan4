@@ -6,3 +6,8 @@
 /SpriteImageQuad.class
 /SpriteSourceInterface.class
 /PolygonPatchSpriteFont.class
+/SpriteData.class
+/SpriteDataBatch.class
+/SpriteDataFont.class
+/SpriteFont.class
+/SpriteFontBiome.class

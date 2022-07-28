@@ -1,4 +1,4 @@
-package MOSpriteSeed;
+package MOSprite;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -14,7 +14,7 @@ import MOMaths.Vertices2;
 import MOUtils.GlobalSettings;
 
 //implements SpriteSourceInterface
-public class PolygonPatchSpriteFont extends SpriteSeedFont{
+public class PolygonPatchSpriteFont extends SpriteFont{
 
     
 	float scaleToFit = 0;
@@ -95,7 +95,7 @@ public class PolygonPatchSpriteFont extends SpriteSeedFont{
 		//System.out.println("polygonMask " + polygonMask.getWidth() + "," + polygonMask.getHeight());
 		BufferedImage extractedPatch = ImageProcessing.extractImageUsingGrayscaleMask(croppedTexture, polygonMask);
 		
-		SpriteSeed seed = getSpriteSeedInstance(n);
+		SpriteData seed = getSpriteDataInstance(n);
 		seed.origin = new PVector(0,0);
 		seed.setDocPoint(inSceneExtents.getTopLeft());
 		

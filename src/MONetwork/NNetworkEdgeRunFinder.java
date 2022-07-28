@@ -39,6 +39,7 @@ public class NNetworkEdgeRunFinder{
 
 	RandomStream randomStream = new RandomStream(1);
 
+	ArrayList<Vertices2> extractedVertices;
 
 	// common to this and region extractor
 	public NNetworkEdgeRunFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
@@ -82,18 +83,11 @@ public class NNetworkEdgeRunFinder{
 	}
 	
 	
-	public ArrayList<Vertices2> extractAllEdgeRunVertices(KeyValuePairList searchCriteria){
-		// Use this method to get all the edge runs with
-		// the searchCriteria, as a list of Vertices2
-		//
-		theNetwork.clearSearchAttributes();
-		theNetwork.setSearchAttribute(searchCriteria);
-		initialiseEdgeList();
-		return extractAllEdgeRunVertices();
-	}
+	
 	
 	
 	public ArrayList<Vertices2> extractAllEdgeRunVertices(){
+		// The most common method to find all the edge runs as vertices 2
 		// Use this method to get all the edge runs with
 		// the existing search criteria, as a list of Vertices2
 		//
@@ -110,13 +104,68 @@ public class NNetworkEdgeRunFinder{
 		}
 
 		System.out.println("preExtractEdgeRuns: found " + edgeRunVertices.size() + " runs");
-		
+		extractedVertices = edgeRunVertices;
 		return edgeRunVertices;
+	}
+	
+	public ArrayList<Vertices2> extractAllEdgeRunVertices(KeyValuePairList searchCriteria){
+		// Use this method to get all the edge runs with
+		// a new (and changed) searchCriteria from the previous search
+		//
+		theNetwork.clearSearchAttributes();
+		theNetwork.setSearchAttribute(searchCriteria);
+		initialiseEdgeList();
+		return extractAllEdgeRunVertices();
+	}
+	
+	ArrayList<Vertices2> getEdgeRunVertices(){
+		if(isInitialised()==false) return null;
+		return extractedVertices;
+	}
+	
+	
+	public void sortEdgeRuns(boolean shortestFirst) {
+		if(isInitialised()==false) return;
+
+		if(shortestFirst) {
+			extractedVertices.sort(Comparator.comparing(Vertices2::getTotalLength));
+		} else {
+			extractedVertices.sort(Comparator.comparing(Vertices2::getTotalLength).reversed());
+		}
+
+	}
+	
+	public void setRunDirectionPreference(int preference) {
+		if(isInitialised()==false) return;
+		
+		for(Vertices2 v: extractedVertices) {
+			v.setRunDirectionPreference(preference);
+		}
+	}
+	
+	public void removeShortEdgeRuns(float minLength) {
+		if(isInitialised()==false) return;
+		
+		ArrayList<Vertices2> toBeRemoved = new ArrayList<Vertices2>();
+		for(Vertices2 v: extractedVertices) {
+			if( v.getTotalLength() < minLength) toBeRemoved.add(v);
+		}
+		extractedVertices.removeAll(toBeRemoved);
+
+	}
+	
+	
+	private boolean isInitialised() {
+		if(extractedVertices==null) {
+			System.out.println("ERROR: EdgeRunVerticesCrawler: is not initilased -  call extractNetworkEdgeVertices or extractRegionEdgeVertices first");
+			return false;
+		}
+		return true;
 	}
 
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	// public methods This method returns an ordered list of connected edges, starting at a random
+	// private??? methods This method returns an ordered list of connected edges, starting at a random
 	// available edge. These edges are removed from the initial
 	// edgeList, so cannot be re-used in any other search
 	//

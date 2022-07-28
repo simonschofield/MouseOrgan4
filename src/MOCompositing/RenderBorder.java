@@ -10,7 +10,7 @@ import MOImageCollections.ScaledMOImageGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
-import MOSpriteSeed.Sprite;
+import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ public class RenderBorder {
 		// to a list, which is saved as a file at the end of the render. This can
 		// then be used to speed up subsequent renders by not bothering with sprites that do not
 		// contribute to the image (e.g. totally outside the renderBoarder, or the document bounds if no render boarder has been set)
-		if(contributes) spriteCropDecisionList.addDecision(sprite.data.id, contributes);
+		if(contributes) spriteCropDecisionList.addDecision(sprite.spriteData.id, contributes);
 		return contributes;
 	}
 	
@@ -191,7 +191,7 @@ public class RenderBorder {
 
 		if( checkBespokeCropOK() ){
 			// add the bespoke crop to the cropping image set
-			qRandomStream = new QRandomStream(sprite.data.id);
+			qRandomStream = new QRandomStream(sprite.spriteData.id);
 			boolean result = doBespokeCrop(preCroppedImage, overlapReport );
 			if(result == false) {
 				// the bespoke crop obliterated the image

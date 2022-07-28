@@ -1,4 +1,4 @@
-package MOSpriteSeed;
+package MOSprite;
 
 import java.io.FileWriter;
 import java.io.BufferedReader;
@@ -13,19 +13,19 @@ import MOUtils.MOStringUtils;
 
 
 ///////////////////////////////////////////////////////////////////////////
-// A SpriteSeedBatch is an iterable collection of type SpriteSeed.
+// A SpriteDataBatch is an iterable collection of type SpriteData.
 // When a helper produces seeds it is this form.
 // Used when iterating through seeds in the main loop
 // Can save/load to file
 // adds a "unique ID" - this is to seed events in the Sprite, so as to secure repeatability.
 
-public class SpriteSeedBatch extends CollectionIterator{
+public class SpriteDataBatch extends CollectionIterator{
 	
 	
-	private ArrayList<SpriteSeed> seeds = new ArrayList<SpriteSeed>();
+	private ArrayList<SpriteData> seeds = new ArrayList<SpriteData>();
 	String seedBatchName = "";
 	
-	public SpriteSeedBatch(String name){
+	public SpriteDataBatch(String name){
 		seedBatchName = name;
 	}
 	
@@ -34,45 +34,45 @@ public class SpriteSeedBatch extends CollectionIterator{
 	}
 	
 	
-	public SpriteSeedBatch copy() {
-		SpriteSeedBatch cpy = new SpriteSeedBatch(seedBatchName + "_copy");
-		cpy.seeds = (ArrayList<SpriteSeed>) this.seeds.clone();
+	public SpriteDataBatch copy() {
+		SpriteDataBatch cpy = new SpriteDataBatch(seedBatchName + "_copy");
+		cpy.seeds = (ArrayList<SpriteData>) this.seeds.clone();
 		return cpy;
 	}
 	
-	public void addSpriteSeed(SpriteSeed s) {
+	public void addSpriteData(SpriteData s) {
 		seeds.add(s);
 	}
 
 
-	public ArrayList<SpriteSeed> getSpriteSeeds(){
+	public ArrayList<SpriteData> getSpriteDatas(){
 		return seeds;
 	}
 	
 	
-	public void setSpriteSeeds(ArrayList<SpriteSeed> sds) {
+	public void setSpriteDatas(ArrayList<SpriteData> sds) {
 		seeds = sds;
 	}
 	
 	
 	
-	public void append(SpriteSeedBatch otherBatch) {
-		ArrayList<SpriteSeed> otherSeeds = otherBatch.getSpriteSeeds();
-		for(SpriteSeed s : otherSeeds) {
+	public void append(SpriteDataBatch otherBatch) {
+		ArrayList<SpriteData> otherSeeds = otherBatch.getSpriteDatas();
+		for(SpriteData s : otherSeeds) {
 			seeds.add(s);
 		}
 		
 	}
 	
 	public void depthSort() {
-		seeds.sort(Comparator.comparing(SpriteSeed::getDepth).reversed());
+		seeds.sort(Comparator.comparing(SpriteData::getDepth).reversed());
 	}
 	
 	
 
 	public ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
-		for(SpriteSeed s : seeds) {
+		for(SpriteData s : seeds) {
 			points.add(s.getDocPoint());
 		}
 		return points;
@@ -91,7 +91,7 @@ public class SpriteSeedBatch extends CollectionIterator{
 			csvWriter = new FileWriter(fileAndPath);
 
 
-			for(SpriteSeed s: seeds){
+			for(SpriteData s: seeds){
 				csvWriter.append(s.getAsCSVStr());
 			}
 
@@ -116,7 +116,7 @@ public class SpriteSeedBatch extends CollectionIterator{
 			while ((row = csvReader.readLine()) != null) {
 
 				// do something with the data
-				SpriteSeed s = new SpriteSeed();
+				SpriteData s = new SpriteData();
 				s.setWithCSVStr(row);
 				seeds.add(s);
 			}
@@ -145,8 +145,8 @@ public class SpriteSeedBatch extends CollectionIterator{
 	}
 
 
-	public SpriteSeed getNextSeed() {
-		return (SpriteSeed) getNextItem();
+	public SpriteData getNextSeed() {
+		return (SpriteData) getNextItem();
 	}
 
 }

@@ -6,8 +6,8 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 
 import MOMaths.PVector;
-import MOSpriteSeed.SpriteSeed;
-import MOSpriteSeed.SpriteSeedBatch;
+import MOSprite.SpriteData;
+import MOSprite.SpriteDataBatch;
 import MOUtils.KeyValuePairList;
 
 public class SpriteCropDecisionList{
@@ -19,17 +19,17 @@ public class SpriteCropDecisionList{
 	}
 
 
-	public void removeNonContributingSpriteSeeds(SpriteSeedBatch seedbatch) {
+	public void removeNonContributingSprite(SpriteDataBatch seedbatch) {
 		// this removes the seeds from the incoming list so is destructive
-		ArrayList<SpriteSeed> seeds = seedbatch.getSpriteSeeds();
-		ArrayList<SpriteSeed> croppedSeeds = new ArrayList<SpriteSeed>();
-		for(SpriteSeed seed: seeds) {
+		ArrayList<SpriteData> seeds = seedbatch.getSpriteDatas();
+		ArrayList<SpriteData> croppedSeeds = new ArrayList<SpriteData>();
+		for(SpriteData seed: seeds) {
 			if(cropDecisionList.stream().anyMatch(o -> o.spriteID == seed.id)) {
 				croppedSeeds.add(seed);
 			} 
 		}
 		System.out.println("removeNonContributingSpriteSeeds before " + seeds.size() + " after " + croppedSeeds.size());
-		seedbatch.setSpriteSeeds(croppedSeeds);
+		seedbatch.setSpriteDatas(croppedSeeds);
 	}
 
 	

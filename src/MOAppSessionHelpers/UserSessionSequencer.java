@@ -95,6 +95,16 @@ public class UserSessionSequencer {
 		currentSequenceState = NOTSTARTED;
 	}
 	
+	public void forceEndCurrentSequence() {
+		// so the user can abort a current render halfway through, and invoke the current sequence's theUserSession.finaliseSequence() methid,
+		// in order to tidy up/save images etc.
+		// The forceEnd starts with clicking "End". This calls surface.endUserSession(), whihc in turn makes the 
+		// event loop call surface.finaliseUserSession(). In here, you can detect if the session has been aborted
+		// by the boolean surface.userSessionAborted, the user can then call this method from userSession.finaliseUserSession()
+		// which will do the tidying up/saving etc,
+		theUserSession.finaliseSequence(getCurrentSequenceName());
+	}
+	
 	void jumpTo(String sqnc) {
 		// tbd
 		
@@ -114,5 +124,8 @@ public class UserSessionSequencer {
 		}
 		return false;
 	}
+	
+	
+	
 	
 }

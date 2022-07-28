@@ -96,18 +96,27 @@ public class VectorShapeDrawer{
 	  
   }
   
+  public void setStrokeCapJoin(int cap, int join) {
+	  currentDrawingStyle.strokeCap = cap;
+	  currentDrawingStyle.strokeJoin = join;
+	  
+  }
+  
   private void setStrokeStyle(float w){
 	  //currentDrawingStyle.strokeStyle = new BasicStroke(w);
-	  currentDrawingStyle.strokeStyle = new BasicStroke(w, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f, null, 0.0f);
+	  currentDrawingStyle.strokeStyle = new BasicStroke(w, currentDrawingStyle.strokeCap, currentDrawingStyle.strokeJoin, 1.0f, null, 0.0f);
 	  graphics2D.setStroke(currentDrawingStyle.strokeStyle);
 	  }
+  
+ 
+  
   
   private void setStrokeStyle(float w, float[] dashPattern){
 	  //currentDrawingStyle.strokeStyle = new BasicStroke(w);
 	  float weight =  currentDrawingStyle.strokeWeight;
 	    currentDrawingStyle.strokeStyle = new BasicStroke(weight, 
-	        BasicStroke.CAP_BUTT, 
-	        BasicStroke.JOIN_ROUND, 
+	    	currentDrawingStyle.strokeCap, 
+	    	currentDrawingStyle.strokeJoin, 
 	        1.0f, 
 	        dashPattern,
 	        0f);

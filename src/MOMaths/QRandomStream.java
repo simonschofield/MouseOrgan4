@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-public /////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 //QRandomStream class provides a computationally fast way of generating random numbers
 //where the authenticity of the random number sequence is not paramount
 //All instances of QRandomStream share the same list of (1  million) random integers (0... listSize-1)
 //but each different seed uses a different visitation-order to the list, which still guarantees every one is visited,
 //so using a different seed produced a completely different order.
 //
-class QRandomStream {
+public  class QRandomStream {
 	
 	private static ArrayList<Integer> visitationOrder;
 	private static ArrayList<Integer> randomNumbers;
@@ -33,7 +33,7 @@ class QRandomStream {
 	}
 	
 	public QRandomStream copy() {
-		// returns a completely independent copy, but exactly the same stream sequence
+		// returns a completely independent copy, but exactly the same stream sequence and current position
 		QRandomStream newCopy = new QRandomStream(seed);
 		newCopy.sequencePosition = sequencePosition;
 		return newCopy;
@@ -42,10 +42,21 @@ class QRandomStream {
 	///////////////////////////////////////////////
 	// seed and sequencePosition methods
 	void setSeedAndPosition(Integer s, Integer p) {
-		if(s != null) seed = s;
+		if(s != null) {
+			seed = s;
+		}
 		if(p != null) {
 			sequencePosition = p%getMaxSequencePosition();
 		}
+	}
+	
+	///////////////////////////////////////////////
+	// call this before any random number call to guarantee
+	// the same result for that i num.
+	// The same input i will always generate the same random number sequence
+	// If you want different results, then re-seed the stream
+	public void setState(int i) {
+		setSeedAndPosition(null, i);
 	}
 	
 	

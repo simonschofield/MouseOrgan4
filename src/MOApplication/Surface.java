@@ -41,7 +41,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		  LOAD,
 		  UPDATE,
 		  FINALISE,
-		  FINISHED
+		  FINISHED, 
 		}
 	
 	UserSessionState theUserSessionState = UserSessionState.INITIALISE;
@@ -67,6 +67,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	
 
 	boolean userSessionPaused = false;
+	protected boolean userSessionAborted = false;
 	private int userSessionUpdateCount = 0;
 	
 	// this is the frequency with which the canvas is updated
@@ -241,6 +242,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		}
 		
 		if (uied.eventIsFromWidget("End")) {
+			userSessionAborted = true;
 			endUserSession();
 		}
 

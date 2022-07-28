@@ -8,6 +8,10 @@ public class Range {
 	public float limit1;
 	public float limit2;
 
+	// for working out the mean
+	int numExtremaSamples = 0;
+	float sumExtremaSamples = 0;
+	
 	public Range() {
 		limit1 = 0.0f;
 		limit2 = 0.0f;
@@ -21,7 +25,8 @@ public class Range {
 	public void initialiseForExtremaSearch() {
 		limit1 = Float.MAX_VALUE;
 		limit2 = -Float.MAX_VALUE;
-
+		numExtremaSamples = 0;
+		sumExtremaSamples = 0;
 	}
 
 	public float getLower() {
@@ -46,8 +51,13 @@ public class Range {
 		return getUpper() - getLower();
 	}
 
-	float getMidValue() {
+	public float getMidValue() {
 		return (getLower() + getUpper()) / 2.0f;
+	}
+	
+	public float getMeanExtremaValue() {
+		
+		return sumExtremaSamples/numExtremaSamples;
 	}
 
 	public void addExtremaCandidate(float v) {
@@ -55,6 +65,9 @@ public class Range {
 		if (v == -Float.MAX_VALUE || v == Float.MAX_VALUE)
 			return;
 
+		numExtremaSamples ++;
+		sumExtremaSamples += v;
+		
 		if (limit1 == 0 && limit2 == 0) {
 			limit1 = v;
 			limit2 = v;

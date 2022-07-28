@@ -109,7 +109,7 @@ public class Rect{
 		return 1;
 	}
 
-	float area(){
+	public float area(){
 		return getWidth()*getHeight();
 	}
 	

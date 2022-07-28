@@ -153,21 +153,21 @@ public class ScaledMOImageGroup extends MOImageGroup{
 	//
 	public void scaleAll(float x, float y) {
 		
-		for (MOImage moImage: theImageList) {
+		for (ImageAsset moImage: theImageList) {
 			moImage.image = ImageProcessing.scaleImage(moImage.image, x, y);
 		}
 	}
 
 	public void rotateAll(float rot) {
 		
-		for (MOImage moImage: theImageList) {
+		for (ImageAsset moImage: theImageList) {
 			moImage.image = ImageProcessing.rotateImage(moImage.image, rot);
 		}
 	}
 
 	public void resizeToAll(int x, int y) {
 		
-		for (MOImage moImage: theImageList) {
+		for (ImageAsset moImage: theImageList) {
 			moImage.image = ImageProcessing.resizeTo(moImage.image, x, y);
 		}
 	}
@@ -175,7 +175,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 	public void cropAll(Rect cropRect) {
 		if (cropRect.equals(new Rect())) return;
 		
-		for (MOImage moImage: theImageList) {
+		for (ImageAsset moImage: theImageList) {
 			moImage.image = ImageProcessing.cropImageWithNormalisedRect(moImage.image, cropRect);
 		}
 	}
@@ -183,7 +183,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 	public void addBoarderProportionAll(float left, float top, float right, float bottom) {
 		//calculates the new additions as a proportion of the existing width or height
 
-		for (MOImage moImage: theImageList) {
+		for (ImageAsset moImage: theImageList) {
 			int w = moImage.image.getWidth();
 			int h = moImage.image.getHeight();
 			int leftAddition = (int) (w * left);
@@ -205,7 +205,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 		//		ImageProcessing.COLORTRANSFORM_LEVELS = 5;
 		//		ImageProcessing.COLORTRANSFORM_BLENDWITHCOLOR = 6;
 		//		ImageProcessing.COLORTRANSFORM_SET_DOMINANT_HUE = 7;
-		for (MOImage moImage: theImageList) {
+		for (ImageAsset moImage: theImageList) {
 			moImage.image = ImageProcessing.colorTransform(moImage.image, function, p1, p2, p3);
 			moImage.calculateStats();
 		}
@@ -244,7 +244,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 	private void assertImageTYPE_INT_ARGB() {
 		// all image content items should be of type INT_ARGB for all the
 		// operations to work OK. This makes sure they are.		
-		for (MOImage moImage : theImageList) {
+		for (ImageAsset moImage : theImageList) {
 			moImage.image = ImageProcessing.assertImageTYPE_INT_ARGB(moImage.image);
 			}
 		

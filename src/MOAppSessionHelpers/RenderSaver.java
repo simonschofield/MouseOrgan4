@@ -9,7 +9,7 @@ import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
 //////////////////////////////////////////////////////////////////////////////////
-// Helps manage the saving process for renders, either directly to the userSession directory, or in a specially created sub-directory
+// Helps manage the saving process for renders, either directly to the userSession directory, or in a specially created sub-directory within the userSession directory.
 // The user decides if images and directories from subsequent sessions are overwritten, or saved as new (automatically enumerated) files/directories by
 // setting the mode to either RenderSaver.FILENAME_OVERWRITE or RenderSaver.FILENAME_INCREMENT
 //
@@ -32,15 +32,16 @@ import MOUtils.GlobalSettings;
 // 		GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + fileExtension
 //
 // SAVING LAYERS
-// Layers can only be generated from the Document's Main() render. Layers are always saved in an assigned sub-directory.
-// calling saveLayer(finalLayerBoolean) causes the following
+// Layers are always saved in an assigned sub-directory.
+// Layers can be generated from the Document's Main() render and by the supplementary renders (if any) if asked to do so using  saveLayer(boolean finalLayer, boolean saveSupplementaryImagesAtEachLayer) 
+// If saveSupplementaryImagesAtEachLayer==TRUE, the sup layer is cleared on each render. If saveSupplementaryImagesAtEachLayer==FALSE the supp layer is only saved at the end of the session. 
+// The finalLayerBoolean causes the final layer to be NOT deleted, so the user can see the result.
 // 
 // the Layer filename follows the convention 
 // GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + "_Layer_" + (num increasing or decreasing) + ".png"
 // 
-// Once saved, the render is cleared, unless it is the final one. Upon saving the final layer, any other supplementary renders from the Document are saved as whole images following the 
-// USING A SUB DIRECTORY protocol
-// Utilising reverse layer naming enable the correctly ordered import of layers using Photoshop's File->Scripts->Load Files into Stack for depth sorted layers
+// Use num-decreasing if you want to use Photoshop's File->Scripts->Load Files into Stack for layers sorted first-layers topmost, use num-increasing is you want first-layer bottom-most
+//
 public class RenderSaver {
 	
 	

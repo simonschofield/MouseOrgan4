@@ -21,7 +21,7 @@ import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
-import MOSpriteSeed.Sprite;
+import MOSprite.Sprite;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
@@ -115,6 +115,11 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	public void fillBackground(Color c) {
 		getGraphics2D().setBackground(c);
 		getGraphics2D().clearRect(0, 0, coordinateSystem.getBufferWidth(), coordinateSystem.getBufferHeight());
+	}
+	
+	public void fillBackground_BufferSpace(Rect r, Color c) {
+		getGraphics2D().setBackground(c);
+		getGraphics2D().clearRect((int)r.left, (int) r.top, (int) r.getWidth(), (int) r.getHeight());
 	}
 	
 	public void fillBackgroundWithImage(BufferedImage img, float alpha) {
@@ -290,6 +295,35 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		shapeDrawer.drawEllipse(left, top, w, w);
 
 	}
+	
+	public void clearRect(Rect r) {
+		fillBackground_DocSpace( r, new Color(0,0,0,0));
+	}
+	
+	public void clearOutsideRect(Rect r) {
+		float dW = coordinateSystem.getDocumentWidth();
+		float dH = coordinateSystem.getDocumentHeight();
+		float rl = r.left;
+		float rt = r.top;
+		float rw = r.getWidth();
+		float rh = r.getHeight();
+		// the top rect
+		Rect topRect = new Rect(0,0,dW,rt); 
+		Rect leftRect = new Rect(0,rt,rl,rh);
+		Rect rightRect = new Rect(rl+rw, rt, dW-(rl+rw), rh);
+		Rect bottomRect = new Rect(0,rt+rh, dW, dH-(rt+rh));
+		clearRect(topRect);
+		clearRect(leftRect);
+		clearRect(rightRect);
+		clearRect(bottomRect);
+	}
+	
+	public void fillBackground_DocSpace(Rect r, Color fillColor) {
+		// not the same as drawing a rect, as it uses Graphics2D.clearBackground()
+		// which has no line styles etc....
+		Rect bufferRect = coordinateSystem.docSpaceToBufferSpace(r);
+		fillBackground_BufferSpace(bufferRect, fillColor);
+	}
 
 	//////////////////////////////////////////
 	// debug drawing operations other than paste
@@ -306,11 +340,11 @@ public class RenderTarget implements MainDocumentRenderTarget{
 
 	}
 
-	public void drawPoint(PVector docSpacePoint, Color c, float size) {
-		//Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+	public void drawPoint(PVector docSpacePoint, Color c, float pixelRadius) {
+		float r = pixelRadius * GlobalSettings.getSessionScale();
 		shapeDrawer.setDrawingStyle(c, c, 2);
 		PVector bufpt = coordinateSystem.docSpaceToBufferSpace(docSpacePoint);
-		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, size, size);
+		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, r, r);
 
 	}
 
@@ -376,6 +410,9 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		textShape.setTextShape(bufferX, bufferY, str, c, size);
 		shapeDrawer.drawDrawnShape(textShape);
 	}
+	
+	
+	
 	
 	public VectorShapeDrawer getVectorShapeDrawer() {
 		return shapeDrawer;

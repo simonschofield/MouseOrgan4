@@ -25,7 +25,7 @@ import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
-import MOSpriteSeed.Sprite;
+import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.WordBank;
 
@@ -99,9 +99,9 @@ public class TextRenderer {
 		// so that the background sprite has the correct blocking of text
 		// i.e. between the baseline and the meanline of the font
 		//
-		String trimmedText = text.trim();
+		//String trimmedText = text.trim();
 		//System.out.println("createBackgroundSprite====" + text + "==");
-		BufferedImage img = this.drawText(trimmedText);
+		BufferedImage img = this.drawText(text);
 
 		BufferedImage bkgrndImg = ImageProcessing.createEmptyCopy(img);
 		Graphics2D backgroundGraphics = bkgrndImg.createGraphics();	
@@ -135,7 +135,7 @@ public class TextRenderer {
 	Sprite mapToLine(Sprite sprite, float docSpaceFontHeight, Line2 line) {
 		
 		sprite.rotate(-90);
-		sprite.data.origin = new PVector(0.5f,0.0f);
+		sprite.spriteData.origin = new PVector(0.5f,0.0f);
 		sprite.scaleToSizeInDocSpace(docSpaceFontHeight, line.getLength());
 		float r = line.getRotation();
 		sprite.rotate(r);
@@ -169,7 +169,7 @@ public class TextRenderer {
 		
 		int w = (int)textBounds.getWidth();
 		int h = (int)textBounds.getHeight();
-	    //System.out.println("font size = " + font.getSize() + " wdth = " + w + "  heigh= " + h);
+	    //System.out.println("String *" + s + "* font size = " + font.getSize() + " wdth = " + w + "  heigh= " + h);
 
 		createRenderBuffer( w,  h);
 
@@ -348,7 +348,7 @@ public class TextRenderer {
 		//ImageSprite sprite = new ImageSprite();
 		//sprite.setImage(bufferedImage);
 	    Sprite sprite = new Sprite(bufferedImage);
-		sprite.data.origin = new PVector(0.0f,0.0f);
+		sprite.spriteData.origin = new PVector(0.0f,0.0f);
 		sprite.setDocPoint(topLeftDocSpace);
 		
 		return sprite;

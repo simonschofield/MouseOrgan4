@@ -30,6 +30,11 @@ public class Line2 {
 		this.p2 = new PVector(endX, endY);
 	}
 	
+	public Line2 copy() {
+		
+		return new Line2(p1,p2);
+	}
+	
 	public String toStr() {
 		return p1.toStr() + "," + p2.toStr();
 	}

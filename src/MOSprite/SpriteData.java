@@ -1,36 +1,34 @@
-package MOSpriteSeed;
+package MOSprite;
 
-import java.awt.image.BufferedImage;
 
-import MOImageCollections.ScaledMOImageGroup;
-import MOImageCollections.ScaledMOImageGroupManager;
 import MOMaths.PVector;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
 import MOUtils.UniqueID;
 //////////////////////////////////////////////////////////////////////////////////
-//A lightweight representation of everything you need to make a Sprite
-// The strite has a SpriteSeed in it to store the "live sprite" data
+//
+// A lightweight representation of everything you need to make a Sprite
+// The strite has a SpriteData in it to store the "live sprite" data
 // Can be saved as seedbatches
 //
 
-public class SpriteSeed {
+public class SpriteData {
 	
 	static UniqueID uniqueID;
 	
 
 	/////////////////////////////////////////////////////
-	// This part: Sprite "Font" data, all instances are set with  this data from a specific SpriteSeedMaker
+	// This part: Sprite "Font" data, all instances are set with  this data from a specific SpriteDataMaker
 	//
 	
 	////////////////////////////////////////////////////
 	// For Identification purposes
 	// this enables the user to identify seeds from different batches, and sprite fonts within biomes (or individually) 
-	public String spriteSeedBatchName = "";
-	public String spriteSeedFontName = "";
-	public String spriteImageGroupName = "";
+	public String SpriteDataBatchName = "";
+	public String SpriteFontName = "";
+	public String ImageGroupName = "";
 	
-	// the id is a unique integer. It is set by the SpriteSeed constructor from the static UniqueID class declared above. 
+	// the id is a unique integer. It is set by the SpriteData constructor from the static UniqueID class declared above. 
 	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
 	// regardless of previous random events
 	// It is also used in optimisations such as registering whether or not a seed is used in a render.
@@ -39,8 +37,8 @@ public class SpriteSeed {
 	// the name of the image sample group to be used by
 	// the number of the item within that group
 	// The short name, which is derived usually from the file name (without extension)
-	public int spriteImageGroupItemNumber = 0;
-	public String spriteImageGroupItemShortName= "";
+	public int ImageGroupItemNumber = 0;
+	public String ImageGroupItemShortName= "";
 	
 	
 	
@@ -81,24 +79,24 @@ public class SpriteSeed {
 	// This is not saved/loaded to/from file
 	public boolean isActive = true;
 	
-	public SpriteSeed() {
+	public SpriteData() {
 		if(uniqueID == null) {
 			uniqueID = new UniqueID();
 		}
 		this.id = uniqueID.getUniqueID();
 	}
 	
-	public SpriteSeed copy() {
-		SpriteSeed cpy = new SpriteSeed();
-		cpy.spriteSeedBatchName = this.spriteSeedBatchName;
-		cpy.spriteSeedFontName = this.spriteSeedFontName;
-		cpy.spriteImageGroupName = this.spriteImageGroupName;
+	public SpriteData copy() {
+		SpriteData cpy = new SpriteData();
+		cpy.SpriteDataBatchName = this.SpriteDataBatchName;
+		cpy.SpriteFontName = this.SpriteFontName;
+		cpy.ImageGroupName = this.ImageGroupName;
 		cpy.sizeInScene = this.sizeInScene;
 		cpy.useRelativeSizes = this.useRelativeSizes;
 		cpy.origin = this.origin.copy();
 		
-		cpy.spriteImageGroupItemNumber = this.spriteImageGroupItemNumber;
-		cpy.spriteImageGroupItemShortName= this.spriteImageGroupItemShortName;
+		cpy.ImageGroupItemNumber = this.ImageGroupItemNumber;
+		cpy.ImageGroupItemShortName= this.ImageGroupItemShortName;
 		
 		cpy.docPointX = this.docPointX;
 		cpy.docPointY = this.docPointY;
@@ -149,11 +147,11 @@ public class SpriteSeed {
 
 
 		KeyValuePairList kvlist = new KeyValuePairList();
-		kvlist.addKeyValue("SeedBatchName", spriteSeedBatchName);
-		kvlist.addKeyValue("SeedFontName", spriteSeedFontName);
-		kvlist.addKeyValue("spriteImageGroupName", spriteImageGroupName);
-		kvlist.addKeyValue("spriteImageGroupItemNumber", spriteImageGroupItemNumber);
-		kvlist.addKeyValue("spriteImageGroupItemShortName", spriteImageGroupItemShortName);
+		kvlist.addKeyValue("SpriteDataBatchName", SpriteDataBatchName);
+		kvlist.addKeyValue("SeedFontName", SpriteFontName);
+		kvlist.addKeyValue("ImageGroupName", ImageGroupName);
+		kvlist.addKeyValue("ImageGroupItemNumber", ImageGroupItemNumber);
+		kvlist.addKeyValue("ImageGroupItemShortName", ImageGroupItemShortName);
 		
 		kvlist.addKeyValue("SizeInScene",sizeInScene);
 		kvlist.addKeyValue("UseRelativeSizes",useRelativeSizes);
@@ -181,11 +179,11 @@ public class SpriteSeed {
 		// It is then down to the application to translate this to the vehicle locations
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.ingestCSVLine(csvStr);
-		spriteSeedBatchName = kvlist.getString("SeedBatchName");
-		spriteSeedFontName = kvlist.getString("SeedFontName");
-		spriteImageGroupName = kvlist.getString("spriteImageGroupName");
-		spriteImageGroupItemNumber = kvlist.getInt("spriteImageGroupItemNumber");
-		spriteImageGroupItemShortName = kvlist.getString("spriteImageGroupItemShortName");
+		SpriteDataBatchName = kvlist.getString("SpriteDataBatchName");
+		SpriteFontName = kvlist.getString("SeedFontName");
+		ImageGroupName = kvlist.getString("ImageGroupName");
+		ImageGroupItemNumber = kvlist.getInt("ImageGroupItemNumber");
+		ImageGroupItemShortName = kvlist.getString("ImageGroupItemShortName");
 		
 		sizeInScene = kvlist.getFloat("SizeInScene");
 		useRelativeSizes = kvlist.getBoolean("UseRelativeSizes");

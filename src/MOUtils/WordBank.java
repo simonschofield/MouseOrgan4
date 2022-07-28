@@ -16,11 +16,13 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import MOCompositing.TextRenderer;
+
 public class WordBank extends CollectionIterator{
 
 	ArrayList<String> wordList = new ArrayList<String>();
 	
-	
+	TextRenderer textRenderer = null;
 	
 	public void addAll(ArrayList<String> wordsIn){
 		wordList.addAll(wordsIn);
@@ -38,6 +40,8 @@ public class WordBank extends CollectionIterator{
 		    try {
 		      BufferedReader textFileReader = new BufferedReader(new FileReader(pathandfilename));
 		      String textLine;
+		      
+		      
 		      
 		      while ((textLine = textFileReader.readLine()) != null) {
 

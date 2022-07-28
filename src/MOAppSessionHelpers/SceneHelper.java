@@ -14,8 +14,8 @@ import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
-import MOSpriteSeed.Sprite;
-import MOSpriteSeed.SpriteSeedFont;
+import MOSprite.Sprite;
+import MOSprite.SpriteFont;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageDimensions;
 

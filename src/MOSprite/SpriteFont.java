@@ -1,4 +1,4 @@
-package MOSpriteSeed;
+package MOSprite;
 
 
 import MOImageCollections.ScaledMOImageGroup;
@@ -8,7 +8,7 @@ import MOMaths.Range;
 import MOUtils.GlobalSettings;
 
 ////////////////////////////////////////////////////////////////////
-// Can generate an instance of a Sprite or SpriteSeed from its association with the SessionScaledImageGroup
+// Can generate an instance of a Sprite or SpriteData from its association with the SessionScaledImageGroup
 // 
 // Does not have any positional data after generation, so this needs another process afterwards
 
@@ -18,7 +18,7 @@ import MOUtils.GlobalSettings;
 // whether its a biome or a single SeedFont, the seedFontName is valid for this type of seed, the name extends to seedbatches as they have come from this font.
 
 
-public class SpriteSeedFont implements SpriteSourceInterface{
+public class SpriteFont implements SpriteSourceInterface{
 	
 
 	
@@ -31,14 +31,14 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 	public boolean useRelativeSizes = false;
 	public PVector origin = new PVector(0.5f, 0.5f);
 	
-	// only used when this SpriteSeedFont is within a SpriteSeedFontBiome
-	public float spriteSeedFontBiomeProbability = 1f;
+	// only used when this SpriteDataFont is within a SpriteDataFontBiome
+	public float SpriteFontBiomeProbability = 1f;
 	
 	private String instancenameMustContain = "";
 	private Range hueMustBeBetween;
 	
 	
-	public SpriteSeedFont(String sdFontName, String imageSampleGroupName,
+	public SpriteFont(String sdFontName, String imageSampleGroupName,
 			float sizeInScene, boolean useRelativeSizes, PVector origin, int rseed) {
 		
 		randomStream = new QRandomStream(rseed);
@@ -68,11 +68,11 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// getting SpriteSeed and Sprite instances using stochastics
+	// getting SpriteData and Sprite instances using stochastics
 	//
-	public SpriteSeed getSpriteSeedInstance() {
+	public SpriteData getSpriteDataInstance() {
 		int n = getRandomSpriteImageGroupItemNumber();
-		return getSpriteSeedInstance(n);
+		return getSpriteDataInstance(n);
 	}
 
 	public Sprite getSpriteInstance() {
@@ -80,30 +80,37 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 		return getSpriteInstance(n);
 	}
 	
+	// if you wan to guarantee the exact same instance result, regardless of previous calls,
+	// set the state with a reliable integer. e.g. the uniqueID of the sprite data, or the number of the polygon in a list your are compositing.
+	// The same integer will always generate the same random result. 
+	public void setRandomState(int i) {
+		randomStream.setState(i);
+	}
+	
 	//////////////////////////////////////////////////////////////////////////
-	// getting specific SpriteSeed and Sprite instances based on their SpriteImageGroup number
+	// getting specific SpriteData and Sprite instances based on their SpriteImageGroup number
 	//
-	public SpriteSeed getSpriteSeedInstance(int n) {
+	public SpriteData getSpriteDataInstance(int n) {
 		if(n >= getNumImages()) {
-			System.out.println("SpriteSeedFont::getSpriteSeedInstance number asked for isout of index " + n + " out of maximum " + getNumImages());
+			System.out.println("SpriteDataFont::getSpriteDataInstance number asked for isout of index " + n + " out of maximum " + getNumImages());
 			return null;
 		}
-		SpriteSeed spriteSeed = new SpriteSeed();
+		SpriteData SpriteData = new SpriteData();
 		
-		spriteSeed.spriteSeedFontName = seedFontName;
-		spriteSeed.spriteImageGroupName = imageSampleGroupName;
-		spriteSeed.sizeInScene = sizeInScene;
-		spriteSeed.useRelativeSizes = useRelativeSizes;
-		spriteSeed.origin = origin.copy();
+		SpriteData.SpriteFontName = seedFontName;
+		SpriteData.ImageGroupName = imageSampleGroupName;
+		SpriteData.sizeInScene = sizeInScene;
+		SpriteData.useRelativeSizes = useRelativeSizes;
+		SpriteData.origin = origin.copy();
 		
-		spriteSeed.spriteImageGroupItemNumber = n;
-		spriteSeed.spriteImageGroupItemShortName = getSpriteImageGroup().getImageName(n);
-		return spriteSeed;
+		SpriteData.ImageGroupItemNumber = n;
+		SpriteData.ImageGroupItemShortName = getSpriteImageGroup().getImageName(n);
+		return SpriteData;
 	}
 	
 	
 	public Sprite getSpriteInstance(int n) {
-		SpriteSeed s = getSpriteSeedInstance(n);
+		SpriteData s = getSpriteDataInstance(n);
 		return new Sprite(s);
 	}
 	
@@ -146,7 +153,7 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 			if( shortName.contains(instancenameMustContain)) return num;
 			bailCount--;
 		}
-		System.out.println("ERROR: SpriteSeedFont::getRandomSpriteImageGroupItemNumber_NameConstraint cannot fins an image with name containing the string " + instancenameMustContain);
+		System.out.println("ERROR: SpriteDataFont::getRandomSpriteImageGroupItemNumber_NameConstraint cannot fins an image with name containing the string " + instancenameMustContain);
 		return num;
 		
 	}
@@ -160,7 +167,7 @@ public class SpriteSeedFont implements SpriteSourceInterface{
 			if( hueMustBeBetween.isBetweenInc(hue)) return num;
 			bailCount--;
 		}
-		System.out.println("ERROR: SpriteSeedFont::getRandomSpriteImageGroupItemNumber_HueConstraint cannot fins an image containing a dominant hue between " + hueMustBeBetween.toStr());
+		System.out.println("ERROR: SpriteDataFont::getRandomSpriteImageGroupItemNumber_HueConstraint cannot fins an image containing a dominant hue between " + hueMustBeBetween.toStr());
 		return num;
 		
 	}

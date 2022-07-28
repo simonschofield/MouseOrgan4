@@ -91,6 +91,8 @@ public class GlobalSettings {
 	}
 	
 	
+	
+	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// public data access methods
 	//
@@ -126,6 +128,15 @@ public class GlobalSettings {
 		return 2;
 	}
 	
+	public static boolean isSessionName(String s) {
+		return mainSessionName.contentEquals(s);
+	}
+	
+	public static boolean sessionNameContains(String s) {
+		return mainSessionName.contains(s);
+	
+	}
+	
 
 	public static boolean isSchemaName(String s) {
 		return currentSchemea.contentEquals(s);
@@ -137,6 +148,7 @@ public class GlobalSettings {
 	}
 	
 	public static String getDocumentName() {
+		if(currentSchemea.equals("")) return mainSessionName;
 		return mainSessionName + "_" + currentSchemea;
 	}
 	

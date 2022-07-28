@@ -11,7 +11,8 @@ import MOMaths.Rect;
 import MOMaths.Vertices2;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
-
+// REDUNDANT - network classes can all return as geometry objects (line2, vertices2 etc) and should be drawn by a standard
+// document drawer.
 // a class containing common useful methods used in processing NNetwork
 // Attribute searching, so you can select a sub-group of the network for processing based on attribute.
 // Drawing the network - this has been primarily for debugging, but could be extended to me more polished.

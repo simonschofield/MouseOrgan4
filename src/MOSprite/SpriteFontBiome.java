@@ -1,4 +1,4 @@
-package MOSpriteSeed;
+package MOSprite;
 
 import java.util.ArrayList;
 
@@ -11,40 +11,40 @@ import MOMaths.QRandomStream;
 //  can be named individually, so as to identify sprites from  and treat different fonts
 //
 
-public class SpriteSeedFontBiome  implements SpriteSourceInterface{
+public class SpriteFontBiome  implements SpriteSourceInterface{
 
 	
 	ScaledMOImageGroupManager theImageSampleGroupManager;
-	ArrayList<SpriteSeedFont> biomeItems = new ArrayList<SpriteSeedFont>();
+	ArrayList<SpriteFont> biomeItems = new ArrayList<SpriteFont>();
 	boolean probabilitiesNormalised = false;
 	QRandomStream randomStream;
 	
 	
-	public SpriteSeedFontBiome(int biomeRanSeed) {
+	public SpriteFontBiome(int biomeRanSeed) {
 		
 		
 		randomStream = new QRandomStream(biomeRanSeed);
 	}
 
-	public void addSpriteSeedFont( String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
-		SpriteSeedFont seedFont = new SpriteSeedFont(sdFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  origin, fontRanSeed);
-		seedFont.spriteSeedFontBiomeProbability = probability;
-		biomeItems.add(seedFont);
+	public void addSpriteFont( String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
+		SpriteFont spriteFont = new SpriteFont(sdFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  origin, fontRanSeed);
+		spriteFont.SpriteFontBiomeProbability = probability;
+		biomeItems.add(spriteFont);
 		probabilitiesNormalised = false;
 	}
 	
-	public void addSpriteSeedFont(SpriteSeedFont ssf) {
+	public void addSpriteFont(SpriteFont ssf) {
 		biomeItems.add(ssf);
 	}
 	
-	// uses stochastics to select a particular SpriteSeed
-	public SpriteSeed getSpriteSeedInstance() {
-		SpriteSeedFont ssf = getSpriteSeedFontInstance();
-		return ssf.getSpriteSeedInstance();
+	// uses stochastics to select a particular SpriteData
+	public SpriteData getSpriteDataInstance() {
+		SpriteFont ssf = getSpriteFontInstance();
+		return ssf.getSpriteDataInstance();
 	}
 	
 	public Sprite getSpriteInstance() {
-		SpriteSeedFont ssf = getSpriteSeedFontInstance();
+		SpriteFont ssf = getSpriteFontInstance();
 		return ssf.getSpriteInstance();
 	}
 	
@@ -57,7 +57,7 @@ public class SpriteSeedFontBiome  implements SpriteSourceInterface{
 	//
 	
 	// uses stochastics to select a particular SpriteSeedFont
-	private SpriteSeedFont getSpriteSeedFontInstance() {
+	private SpriteFont getSpriteFontInstance() {
 		// called by the seed batch upon making a batch
 		// only needs docPoint if an influenceImage is set
 		if (probabilitiesNormalised == false) normaliseProbabilities();
@@ -68,14 +68,14 @@ public class SpriteSeedFontBiome  implements SpriteSourceInterface{
 
 		
 		float r = randomStream.randRangeF(0f, 1f);
-		return getSpriteSeedFontFromProbabilityStack(r);
+		return getSpriteFontFromProbabilityStack(r);
 	}
 
-	private SpriteSeedFont getSpriteSeedFontFromProbabilityStack(float f) {
+	private SpriteFont getSpriteFontFromProbabilityStack(float f) {
 		float sumOfProbs = 0f;
 
-		for (SpriteSeedFont isbi : biomeItems) {
-			sumOfProbs += isbi.spriteSeedFontBiomeProbability;
+		for (SpriteFont isbi : biomeItems) {
+			sumOfProbs += isbi.SpriteFontBiomeProbability;
 			if (f <= sumOfProbs) {
 				return isbi;
 			}
@@ -88,12 +88,12 @@ public class SpriteSeedFontBiome  implements SpriteSourceInterface{
 	private void normaliseProbabilities() {
 
 		float sumOfProbs = 0f;
-		for (SpriteSeedFont isbi : biomeItems) {
-			sumOfProbs += isbi.spriteSeedFontBiomeProbability;
+		for (SpriteFont isbi : biomeItems) {
+			sumOfProbs += isbi.SpriteFontBiomeProbability;
 		}
 
-		for (SpriteSeedFont isbi : biomeItems) {
-			isbi.spriteSeedFontBiomeProbability = isbi.spriteSeedFontBiomeProbability / sumOfProbs;
+		for (SpriteFont isbi : biomeItems) {
+			isbi.SpriteFontBiomeProbability = isbi.SpriteFontBiomeProbability / sumOfProbs;
 		}
 
 		probabilitiesNormalised = true;

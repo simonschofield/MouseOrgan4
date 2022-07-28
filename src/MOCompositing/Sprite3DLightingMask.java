@@ -5,7 +5,7 @@ import java.awt.image.DataBufferByte;
 
 import MOMaths.PVector;
 import MOScene3D.ProjectedLight3D;
-import MOSpriteSeed.Sprite;
+import MOSprite.Sprite;
 
 public class Sprite3DLightingMask {
 	int maskScale;
@@ -33,7 +33,7 @@ public class Sprite3DLightingMask {
 			for(int x = 0; x < buffWdth; x++) {
 				PVector spriteBufferPoint = new PVector(x,y);
 				PVector docSpace = sprt.spriteBufferSpaceToDocSpace(spriteBufferPoint);
-				byte val = (byte)(solidTexture.getValue01(docSpace, sprt.data.depth)*255);
+				byte val = (byte)(solidTexture.getValue01(docSpace, sprt.spriteData.depth)*255);
 				
 				dstBuff[y*buffWdth + x] = val;
 			}

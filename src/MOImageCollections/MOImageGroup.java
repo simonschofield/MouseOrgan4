@@ -26,7 +26,7 @@ public class MOImageGroup {
 
 	protected DirectoryFileNameScanner directoryFileNameScanner;
 	
-	protected ArrayList<MOImage> theImageList = new ArrayList<MOImage>();
+	protected ArrayList<ImageAsset> theImageList = new ArrayList<ImageAsset>();
 	
 	
 	protected Range widthExtrema = new Range();
@@ -43,7 +43,7 @@ public class MOImageGroup {
 	}
 	
 	public void calculateImageStats() {
-		for (MOImage thisImage : theImageList) {
+		for (ImageAsset thisImage : theImageList) {
 			thisImage.calculateStats();
 		}
 	}
@@ -64,7 +64,7 @@ public class MOImageGroup {
 	
 	
 	void clearImageAssets() {
-		theImageList = new ArrayList<MOImage>();
+		theImageList = new ArrayList<ImageAsset>();
 	}
 	
 	
@@ -147,7 +147,7 @@ public class MOImageGroup {
 		
 		if(checkUniqueName(shortName)==false) return;
 		
-		MOImage namedImage = new MOImage();
+		ImageAsset namedImage = new ImageAsset();
 		namedImage.image = img;
 		namedImage.name = shortName;
 		
@@ -189,7 +189,7 @@ public class MOImageGroup {
 		return theImageList.size();
 	}
 	
-	public MOImage getMOImage(int n) {
+	public ImageAsset getMOImage(int n) {
 		if( checkLegalIndex(n)==false) return null;
 		return theImageList.get(n);
 	}
@@ -208,7 +208,7 @@ public class MOImageGroup {
 
 	public BufferedImage getImage(String shortName) {
 		int n = 0;
-		for (MOImage thisImage : theImageList) {
+		for (ImageAsset thisImage : theImageList) {
 			if (thisImage.name.contentEquals(shortName))
 				return thisImage.image;
 			n++;
@@ -226,7 +226,7 @@ public class MOImageGroup {
 
 	public int getIndexOfMOImage(String shortName) {
 		int n = 0;
-		for (MOImage thisImage : theImageList) {
+		for (ImageAsset thisImage : theImageList) {
 			if (thisImage.name.contentEquals(shortName))
 				return n;
 			n++;
@@ -237,7 +237,7 @@ public class MOImageGroup {
 	
 	public ArrayList<String> getMOImageNamesList() {
 		ArrayList<String> imageNames = new ArrayList<String>();
-		for (MOImage thisImage : theImageList) {
+		for (ImageAsset thisImage : theImageList) {
 			imageNames.add(thisImage.name);
 		}
 		return imageNames;
@@ -247,7 +247,7 @@ public class MOImageGroup {
 		// replaces an image, but keeps the exiting name the same
 		if( checkLegalIndex(n)==false) return;
 		
-		MOImage moImg = theImageList.get(n);
+		ImageAsset moImg = theImageList.get(n);
 		moImg.image = img;
 		moImg.name = name;
 		moImg.calculateStats();
@@ -277,7 +277,7 @@ public class MOImageGroup {
 
 	private boolean checkUniqueName(String newName) {
 
-		for (MOImage thisImage : theImageList) {
+		for (ImageAsset thisImage : theImageList) {
 			if (thisImage.name.contentEquals(newName))
 			{
 				System.out.println("ImageGroup:checkUniqueName- attempting to add duplicate named image " + newName);

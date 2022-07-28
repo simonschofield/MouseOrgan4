@@ -11,10 +11,10 @@ import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
 import MOPointGeneration.PointGenerator_RadialPackSurface3D;
 import MOScene3D.SceneData3D;
-import MOSpriteSeed.SpriteSeed;
-import MOSpriteSeed.SpriteSeedBatch;
-import MOSpriteSeed.SpriteSeedFont;
-import MOSpriteSeed.SpriteSeedFontBiome;
+import MOSprite.SpriteData;
+import MOSprite.SpriteDataBatch;
+import MOSprite.SpriteFont;
+import MOSprite.SpriteFontBiome;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
@@ -24,18 +24,16 @@ import MOUtils.GlobalSettings;
 //
 //
 
-public class SpriteSeedBatchHelper_Scene3D {
-
-
+public class SpriteDataBatchHelper_Scene3D {
 	SceneData3D sceneData3D;
 	
 	PointGenerator_RadialPackSurface3D pointGenerator;
-	SpriteSeedFontBiome seedFontBiome;
+	SpriteFontBiome seedFontBiome;
 	
 	boolean saveOutContributingSeedReport = false;
 
-	public SpriteSeedBatchHelper_Scene3D( SceneData3D sd3d, int biomeRanSeed) {
-		seedFontBiome = new SpriteSeedFontBiome(biomeRanSeed);
+	public SpriteDataBatchHelper_Scene3D( SceneData3D sd3d, int biomeRanSeed) {
+		seedFontBiome = new SpriteFontBiome(biomeRanSeed);
 		sceneData3D = sd3d;
 		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
 	}
@@ -56,20 +54,20 @@ public class SpriteSeedBatchHelper_Scene3D {
 	
 	
 	
-	public SpriteSeedFontBiome getSeedFontBiome() {
+	public SpriteFontBiome getSeedFontBiome() {
 		return seedFontBiome;
 	}
 	
 	
-	public void addSpriteSeedFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
+	public void addSpriteFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
 	
-		seedFontBiome.addSpriteSeedFont(sdFontName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, fontRanSeed, probability);
+		seedFontBiome.addSpriteFont(sdFontName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, fontRanSeed, probability);
 	
 	}
 	
-	public void addSpriteSeedFont(SpriteSeedFont ssf) {
+	public void addSpriteFont(SpriteFont ssf) {
 		
-		seedFontBiome.addSpriteSeedFont(ssf);
+		seedFontBiome.addSpriteFont(ssf);
 	
 	}
 	
@@ -78,7 +76,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 	//}
 	
 	
-	public SpriteSeedBatch generateSpriteSeedBatch(String batchName) {
+	public SpriteDataBatch generateSpriteDataBatch(String batchName) {
 		if(pointGenerator == null) {
 			System.out.println("SeedBatchFactory_Scene3D::generateSeedBatch -  point packing is undefined , please call definePointPacking before using this method");
 			return null;
@@ -87,7 +85,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		//SpriteSeedFont seedFont = imageSampleSelector.getSpriteSeedFontInstance();
 		
 		
-		SpriteSeedBatch seedbatch = new SpriteSeedBatch(batchName);
+		SpriteDataBatch seedbatch = new SpriteDataBatch(batchName);
 		
 		String pathAndFileName = GlobalSettings.getUserSessionPath() + "seeds\\" + batchName + ".sds";
 		
@@ -97,11 +95,11 @@ public class SpriteSeedBatchHelper_Scene3D {
 		int n=0;
 		for(PVector p: points) {
 			
-			SpriteSeed seedInstance = seedFontBiome.getSpriteSeedInstance();
+			SpriteData seedInstance = seedFontBiome.getSpriteDataInstance();
 			seedInstance.setDocPoint(p);
-			seedInstance.spriteSeedBatchName = batchName;
+			seedInstance.SpriteDataBatchName = batchName;
 			seedInstance.setDepth(p.z);
-			seedbatch.addSpriteSeed(seedInstance);
+			seedbatch.addSpriteData(seedInstance);
 			n++;
 		}
 		System.out.println("generateSeedBatch::has made a batch called " + batchName + " of " + seedbatch.getNumItems() + " seeds ");
@@ -123,11 +121,11 @@ public class SpriteSeedBatchHelper_Scene3D {
 	// This is sort-of stand alone method that used to belong to an overcomplex class called SeedBatchManager
 	// It is used to adjust the sees locations into the ROI space defined in the SceneData3D
 	//
-	public SpriteSeedBatch applyROIToSeeds(ROIHelper roiHelper, SpriteSeedBatch seedbatch) {
+	public SpriteDataBatch applyROIToSpriteDataBatch(ROIHelper roiHelper, SpriteDataBatch seedbatch) {
 		if(roiHelper.isUsingMaster()) return seedbatch;
 		
 		
-		removeNoncontributingSeedsInROI( roiHelper,   seedbatch);
+		removeNoncontributingSpritesInROI( roiHelper,   seedbatch);
 		// adjusts the document point of seeds from a seed batch of a whole scene (no ROI)
 		// to a specific ROI within that scene by mapping the original doc points into the nw
 		// doc space represented by the ROI
@@ -145,11 +143,11 @@ public class SpriteSeedBatchHelper_Scene3D {
 		Rect theROI = sceneData3D.getROIRect();
 		
 		System.out.println("apply ROI to seeds " + theROI.toStr());
-		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch(seedbatch.getName());
+		SpriteDataBatch seedbatchOut = new SpriteDataBatch(seedbatch.getName());
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
 			
-			SpriteSeed s = seedbatch.getNextSeed().copy();
+			SpriteData s = seedbatch.getNextSeed().copy();
 			PVector newSceneDocPoint = s.getDocPoint();
 			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(newSceneDocPoint);
 			//if(theROI.isPointInside(normalisedPoint)==false) continue;
@@ -159,7 +157,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 			//System.out.println("applyROIToSeeds: seeds docpoint before appplication of ROI " + newSceneDocPoint.toString() + ". Adjusted by ROI " + newDocSpacePt.toString());
 			s.setDocPoint(newDocSpacePt);
 			
-			seedbatchOut.addSpriteSeed(s);
+			seedbatchOut.addSpriteData(s);
 			
 		}
 		
@@ -174,13 +172,13 @@ public class SpriteSeedBatchHelper_Scene3D {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// call this if you alter the depth-gamma of the scene after the seeds have been made
 	//
-	public void updateSeedDepthsAgainstScene(SpriteSeedBatch seedbatch) {
+	public void updateSpriteDataBatchDepthsAgainstScene(SpriteDataBatch seedbatch) {
 		
 		// call this if you are changing to a different depth filter
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
 			
-			SpriteSeed s = seedbatch.getNextSeed();
+			SpriteData s = seedbatch.getNextSeed();
 			float d = sceneData3D.getDepthNormalised(s.getDocPoint());
 			s.setDepth(d);
 		}
@@ -189,7 +187,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 	}
 	
 	
-	public boolean removeNoncontributingSeedsInROI(ROIHelper roiHelper, SpriteSeedBatch seedbatch) {
+	public boolean removeNoncontributingSpritesInROI(ROIHelper roiHelper, SpriteDataBatch seedbatch) {
 		// this only removed seeds if a "contributing sprite" file has been saved for this ROI (i.e. with the ROI's name) in the seeds folder
 		// if the file cannot be found, then the class is alerted to save one out at the end of this session
 		if(roiHelper.isUsingMaster()) return false;
@@ -201,11 +199,11 @@ public class SpriteSeedBatchHelper_Scene3D {
 			saveOutContributingSeedReport = true;
 			return false;
 		}
-		spriteCropList.removeNonContributingSpriteSeeds(seedbatch);
+		spriteCropList.removeNonContributingSprite(seedbatch);
 		return true;
 	}
 	
-	public void saveContributingSeedsReport(ROIHelper roiHelper, MainDocument theDocument, boolean forcesave) {
+	public void saveContributingSpritesReport(ROIHelper roiHelper, MainDocument theDocument, boolean forcesave) {
 		// called at the end of the session
 		if(roiHelper.isUsingMaster()) return;
 		if(forcesave) saveOutContributingSeedReport = true;

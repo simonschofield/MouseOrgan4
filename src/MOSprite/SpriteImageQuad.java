@@ -1,4 +1,4 @@
-package MOSpriteSeed;
+package MOSprite;
 
 
 

@@ -15,6 +15,8 @@ import MOMaths.Vertices2;
 import MOUtils.KeyValuePairList;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+// REDUNDANT - use NNetworkEdgeRunFinder to collect all the edges as Vertices2, then use a Vertices2Crawler on each vertices.
+//
 // Extracts the edge runs from a collection of edges using a NNetworkEdgeRunExtractor or from the regions
 // stores them as a list of Vertices2
 // Once extracted, the network is not consulted any more. You are just dealing with Vertices2

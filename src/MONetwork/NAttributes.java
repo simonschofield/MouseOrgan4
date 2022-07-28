@@ -59,7 +59,7 @@ public class NAttributes {
 		id = i;
 	}
 
-	int getID() {
+	public int getID() {
 		return id;
 	}
 

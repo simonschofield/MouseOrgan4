@@ -11,7 +11,7 @@ import MOMaths.PVector;
 import MOMaths.Plane3D;
 import MOScene3D.ProjectedLight3D;
 import MOScene3D.SceneData3D;
-import MOSpriteSeed.Sprite;
+import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 

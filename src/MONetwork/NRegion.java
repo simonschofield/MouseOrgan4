@@ -88,10 +88,17 @@ public class NRegion  extends NAttributes {
 	void splitEdge(NEdge oldEdge, NEdge newEdge1, NEdge newEdge2){
 		if( containsEdge(oldEdge) == false) return;
 		ArrayList<NEdge> newEdges = (ArrayList)edgeReferences.clone();
+		int oldSize = newEdges.size();
 		newEdges.remove(oldEdge);
 		newEdges.add(newEdge1);
 		newEdges.add(newEdge2);
 		isValid = tryToConstructFromEdges(newEdges);
+		if(isValid) {
+			//System.out.println("regions spilt edge successful, regions had " + oldSize + " now has " + newEdges.size());
+		} else {
+			System.out.println("regions spilt edge Failed ");
+		}
+		
 	}
 
 	///////////////////////////////////////////////////////////////////

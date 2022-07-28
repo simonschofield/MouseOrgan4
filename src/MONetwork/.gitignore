@@ -16,3 +16,8 @@
 /NNetworkRegionFinder.class
 /NNetworkHelper.class
 /NNetworkAddBoundaryEdges.class
+/TextVerticesCrawler.class
+/TextRibbon.class
+/TextRibbonManager.class
+/RibbonLetter.class
+/NNetworkAddEdgeDetail.class

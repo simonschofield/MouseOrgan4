@@ -10,7 +10,7 @@ import MOMaths.PVector;
 // and the ImageStats, all of which can be used to select the image
 // In naming conventions of classes and methods, this is shortened to "Image"
 //
-public class MOImage{
+public class ImageAsset{
 	BufferedImage image;
 	String name = "";
 	public ImageStats stats;

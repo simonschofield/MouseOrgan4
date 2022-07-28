@@ -15,6 +15,8 @@ public class VectorDrawingStyle{
 	boolean strokeVisible = true;
 	boolean fillVisible = true;
 	BasicStroke strokeStyle = new BasicStroke();
+	int strokeCap = BasicStroke.CAP_ROUND;
+	int strokeJoin = BasicStroke.JOIN_ROUND;
 	public float strokeWeight = 1;
 	int textSize = 8;
 
@@ -71,6 +73,12 @@ public class VectorDrawingStyle{
 	}
 		
 
+	void setStrokeCapJoin(int cap, int join) {
+		strokeCap = cap;
+		strokeJoin = join;
+		
+	}
+	
 	public void setFillColor(Color fillC) {
 		setStyle( fillC, strokeColor, strokeWeight);
 	}

@@ -1,4 +1,4 @@
-package MOSpriteSeed;
+package MOSprite;
 
 import java.awt.image.BufferedImage;
 
@@ -16,7 +16,7 @@ import MOScene3D.SceneData3D;
 import MOUtils.GlobalSettings;
 
 public class Sprite {
-	public SpriteSeed data;
+	public SpriteData spriteData;
 	
 	// for internal workings
 	public SpriteImageQuad imageQuad;
@@ -27,30 +27,29 @@ public class Sprite {
 	
 	public Sprite(BufferedImage img) {
 		setRandomSeed(1);
-		data = new SpriteSeed();
 		setImage(img);
 	}
 	
-	public Sprite(SpriteSeed sseed) {
-		setRandomSeed(sseed.id);
-		data = sseed.copy();
+	public Sprite(SpriteData sd) {
+		setRandomSeed(sd.id);
+		spriteData = sd.copy();
 		
 
 		// This method is called by Sprite initialisation to
 		// fully make a sprite from a seed.
 		ScaledMOImageGroupManager sigm = GlobalSettings.getTheSpriteImageGroupManager();
-		if(data==null) System.out.println("ERROR Sprite::data == null");
+		if(spriteData==null) System.out.println("ERROR Sprite::data == null");
 		if(sigm==null) System.out.println("ERROR Sprite::SpriteImageGroupManager == null");
-		ScaledMOImageGroup sig = sigm.getMOImageGroup(data.spriteImageGroupName);
+		ScaledMOImageGroup sig = sigm.getMOImageGroup(spriteData.ImageGroupName);
 		if (sig == null) {
-			System.out.println("ERROR Sprite::SpriteSeed constructor - cannot find spriteImageGroup called "
-					+ data.spriteImageGroupName);
+			System.out.println("ERROR Sprite::Sprite constructor - cannot find spriteImageGroup called "
+					+ spriteData.ImageGroupName);
 			return;
 		}
-		BufferedImage img = sig.getImage(data.spriteImageGroupItemNumber);
+		BufferedImage img = sig.getImage(spriteData.ImageGroupItemNumber);
 		if (img == null) {
-			System.out.println("ERROR Sprite::SpriteSeed constructor - cannot find image number "
-					+ data.spriteImageGroupItemNumber + " in " + data.spriteImageGroupName);
+			System.out.println("ERROR Sprite::Sprite constructor - cannot find image number "
+					+ spriteData.ImageGroupItemNumber + " in " + spriteData.ImageGroupName);
 			return;
 		}
 		setImage(img);
@@ -58,7 +57,7 @@ public class Sprite {
 	
 	public Sprite copy() {
 		
-		Sprite cpy = new Sprite(this.data);
+		Sprite cpy = new Sprite(this.spriteData);
 		cpy.setImage(ImageProcessing.copyImage(this.image));
 		cpy.imageQuad = this.imageQuad.copy(cpy);
 		
@@ -119,33 +118,33 @@ public class Sprite {
 	}
 	
 	public PVector getDocPoint() {
-		return data.getDocPoint();
+		return spriteData.getDocPoint();
 	}
 	
 	public void setDocPoint(PVector p) {
-		data.setDocPoint(p);
+		spriteData.setDocPoint(p);
 	}
 	
 	void setOrigin(PVector p) {
-		data.origin = p.copy();
+		spriteData.origin = p.copy();
 	}
 	
 	public PVector getOrigin() {
-		return data.origin.copy();
+		return spriteData.origin.copy();
 	}
 	
 	boolean spriteImageGroupEquals(String s) {
-		return data.spriteImageGroupName.contentEquals(s);
+		return spriteData.ImageGroupName.contentEquals(s);
 	}
 	
 	public boolean seedBatchEquals(String s) {
 		//System.out.println("seedFontis " + data.spriteSeedFontName + " testing " + s);
-		return data.spriteSeedBatchName.contentEquals(s);
+		return spriteData.SpriteDataBatchName.contentEquals(s);
 	}
 	
 	public boolean seedFontEquals(String s) {
 		//System.out.println("seedFontis " + data.spriteSeedFontName + " testing " + s);
-		return data.spriteSeedFontName.contentEquals(s);
+		return spriteData.SpriteDataBatchName.contentEquals(s);
 	}
 	
 	public QRandomStream getRandomStream() {
@@ -223,7 +222,7 @@ public class Sprite {
 	// needed by the RenderTarget to paste
 	PVector getOriginInSpriteBufferSpace() {
 			
-		return new PVector( (data.origin.x * getImageWidth()), (data.origin.y * getImageHeight()) );
+		return new PVector( (spriteData.origin.x * getImageWidth()), (spriteData.origin.y * getImageHeight()) );
 	}
 		
 	
@@ -231,8 +230,8 @@ public class Sprite {
 	PVector getSpriteOriginOffsetBufferSpace() {
 		// this is the amount you add in pixels to shift the sprite according to its normalised origin
 		// so an origin of (1,1) (bottom right hand corner) would result in a subtraction of the whole width and height of sprite pos.
-		int offsetX = (int) - ( data.origin.x * getImageWidth() );
-		int offsetY = (int) - ( data.origin.y * getImageHeight() );
+		int offsetX = (int) - ( spriteData.origin.x * getImageWidth() );
+		int offsetY = (int) - ( spriteData.origin.y * getImageHeight() );
 		
 		return new PVector(offsetX, offsetY);
 	}
@@ -272,12 +271,12 @@ public class Sprite {
 	}
 	
 	String getImageName() {
-		return data.spriteImageGroupItemShortName;
+		return spriteData.ImageGroupItemShortName;
 	}
 	
 	
 	boolean imageNameContains(String s) {
-		return data.spriteImageGroupItemShortName.contains(s);
+		return spriteData.ImageGroupItemShortName.contains(s);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,16 +313,16 @@ public class Sprite {
 	
 		// the rest is about rotating the origin point.
 		// Rotate rotation point around (0,0) in image-pixel space
-		float rx = oldBufferWidth * (data.origin.x - 0.5f);
-		float ry = oldBufferHeight * (data.origin.y - 0.5f);
+		float rx = oldBufferWidth * (spriteData.origin.x - 0.5f);
+		float ry = oldBufferHeight * (spriteData.origin.y - 0.5f);
 
 		float newX = (float) (rx * Math.cos(toRad) - ry * Math.sin(toRad));
 		float newY = (float) (ry * Math.cos(toRad) + rx * Math.sin(toRad));
 
 		
 
-		data.origin.x = (newX / getImageWidth()) + 0.5f;
-		data.origin.y = (newY / getImageHeight()) + 0.5f;
+		spriteData.origin.x = (newX / getImageWidth()) + 0.5f;
+		spriteData.origin.y = (newY / getImageHeight()) + 0.5f;
 		
 		imageQuad.applyRotation(degrees, oldCentre);
 		
@@ -334,11 +333,11 @@ public class Sprite {
 	public void mirror(boolean inX) {
 		if (inX) {
 			setImage(ImageProcessing.mirrorImage(getImage(), true, false));
-			data.origin.x = 1.0f - data.origin.x;
+			spriteData.origin.x = 1.0f - spriteData.origin.x;
 		} else {
 			// in Y
 			setImage(ImageProcessing.mirrorImage(getImage(), false, true));
-			data.origin.y = 1.0f - data.origin.y;
+			spriteData.origin.y = 1.0f - spriteData.origin.y;
 		}
 		imageQuad.applyMirror(inX);
 	}
@@ -356,10 +355,10 @@ public class Sprite {
 		imageQuad.applyHorizontalTopShear(Math.abs(shift));
 		
 		// have to recalculate the origin.x to compensate for the image width getting wider
-		data.origin.x = data.origin.x * (oldWidth/getImageWidth());
+		spriteData.origin.x = spriteData.origin.x * (oldWidth/getImageWidth());
 		if(bendAmt < 0) {
 			// flip the origin
-			data.origin.x = 1 - data.origin.x;
+			spriteData.origin.x = 1 - spriteData.origin.x;
 			imageQuad.applyMirror(true);
 		}
 		
@@ -378,7 +377,7 @@ public class Sprite {
 	public void scaleToSizeInScene(float scaleModifier) {
 		// The height of the sample image is set using pre-set sizeInScene member variable as a documentSpace measurement.
 		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
-		float scale = scaleModifier * data.sizeInScene;
+		float scale = scaleModifier * spriteData.sizeInScene;
 		//System.out.println("scaleToSizeInScene  scaleModifier " + scaleModifier + "  sizeInScene " + data.sizeInScene + " result " + scale);
 		scaleToSizeInDocSpace(null, scale);
 	}
@@ -409,7 +408,7 @@ public class Sprite {
 			
 			if (scaleX > 2) {
 				System.out.println(
-						data.spriteImageGroupName + "/" + data.spriteImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
+						spriteData.ImageGroupName + "/" + spriteData.ImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
 								+ getImageWidth() + " to be scale to " + widthInPixels + " scale " + scaleX);
 			}
 		}
@@ -421,7 +420,7 @@ public class Sprite {
 
 			if (scaleY > 2) {
 				System.out.println(
-						data.spriteImageGroupName + "/" + data.spriteImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
+						spriteData.ImageGroupName + "/" + spriteData.ImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
 								+ getImageHeight() + " to be scale to " + heightInPixels + " scale " + scaleY);
 			}
 			
@@ -463,7 +462,7 @@ public class Sprite {
 	// The other end gets mapped to line.p2  . The sprite is scaled so that it is as high as the line p1->p2
 	// The sprite is rotated into the same direction as the line p1-p2
 	public void mapToLine2(Line2 line, float overlap) {
-		data.origin = new PVector(0.5f, 1.0f);
+		spriteData.origin = new PVector(0.5f, 1.0f);
 		float r = line.getRotation();
 		float len = line.getLength()*overlap;
 		
@@ -483,7 +482,7 @@ public class Sprite {
 		// the line
 		// overlap is also dealt with in a better way, in that the sprite is scaled to overlap the line in either directions. The overlap amounts is a proportion of the initial line length
 		// where 0 is no overlap added, and 1 is the whole line length added at either start or end.
-		data.origin = new PVector(0.5f, 1.0f);
+		spriteData.origin = new PVector(0.5f, 1.0f);
 		float r = line.getRotation();
 		float len = line.getLength();
 		
@@ -526,7 +525,7 @@ public class Sprite {
 		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
 		float scale = (heightInPixels / getImageHeight()) * scaleModifier;
 		if (scale > 1) {
-			System.out.println(data.spriteImageGroupItemShortName + " overscaled, original size in pixels " + getImageHeight()
+			System.out.println(spriteData.ImageGroupItemShortName + " overscaled, original size in pixels " + getImageHeight()
 			+ " to be scale to " + heightInPixels + " scale " + scale);
 		}
 
@@ -536,8 +535,8 @@ public class Sprite {
 	}
 
 	float getHeightInRenderTargetPixels3D(SceneData3D sceneData) {
-		float scale3D = sceneData.get3DScale(data.getDocPoint());
-		float heightDocSpace = data.sizeInScene * scale3D;
+		float scale3D = sceneData.get3DScale(spriteData.getDocPoint());
+		float heightDocSpace = spriteData.sizeInScene * scale3D;
 		
 				//System.out.println("getHeightInRenderTargetPixels3D: scale3D " + scale3D );
 		float docSizeInPixels =  docSizeToRenderTargetPixels2D(heightDocSpace);

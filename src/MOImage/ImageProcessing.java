@@ -534,6 +534,7 @@ public class ImageProcessing {
 		}else {
 			scalefactor = rectW/imageW;
 		}
+		System.out.println("ImageProcessin scaleImageToFitRect:: scale factor "+scalefactor);
 		return ImageProcessing.scaleImage(img, scalefactor, scalefactor);
 	}
 	

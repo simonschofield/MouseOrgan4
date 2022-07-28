@@ -22,7 +22,7 @@ import MOSimpleUI.TextInputBox;
 //import MOSimpleUI.Slider;
 //import MOSimpleUI.TextInputBox;
 import MOSimpleUI.UIEventData;
-import MOSpriteSeed.Sprite;
+import MOSprite.Sprite;
 
 
 
