@@ -15,5 +15,9 @@ public class Func {
 		if(printOn) System.out.println(s);
 	}
 	
+	public static void print(String s) {
+		if(printOn) System.out.print(s);
+	}
+	
 	
 }

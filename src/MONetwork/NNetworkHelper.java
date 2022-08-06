@@ -21,7 +21,7 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 import MOUtils.MOStringUtils;
-import MOUtils.SortObjectWithValue;
+import MOUtils.ObjectWithValueList;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // common network operations
@@ -34,28 +34,39 @@ public class NNetworkHelper {
 	//
 	static QRandomStream randomStream = new QRandomStream(1);
 	
-	static NNetwork theCurrentNetwork;
+
 	
-	public static void setCurrentNetwork(NNetwork ntwk) {
-		theCurrentNetwork = ntwk.copy();
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// DRAWING
+	//
+	//
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Drawing Points
+	//
+	public static void drawPoint(NPoint np, Color c, float radiusDocSpace, RenderTarget rt) {
+		//Rect viewPort = GlobalObjects.theSurface.getViewPortDocSpace();
+		float lineThicknessDocSpace = radiusDocSpace/3f;
+		PVector docPoint = np.getPt();
+		//if(viewPort.isPointInside(docPoint)==false) return;
+		rt.drawCircle(docPoint, radiusDocSpace, c, c, lineThicknessDocSpace );
 	}
+
 	
-	public static KeyValuePair getDescriptor(String key, String val) {
-		return new KeyValuePair(key, val);
-	}
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Drawing Edges
+	//
 	public static void drawEdges(NNetwork ntwk, KeyValuePair descriptor, Color c, float fullScaleWidth) {
-		// in this method the width is set as the full-scale width of the 
-		
-		
+
 		ArrayList<NEdge> edges;
 		if(descriptor != null) {
 			edges = ntwk.getEdgesMatchingQuery(descriptor);
 		} else {
-			edges = theCurrentNetwork.getEdges();
+			edges = ntwk.getEdges();
 		}
-		
-		
+
 		float scaledWidth = fullScaleWidth * GlobalSettings.getSessionScale();
 		drawEdges(edges, c, scaledWidth, GlobalSettings.getMainDocument().getMain());
 	}
@@ -79,63 +90,25 @@ public class NNetworkHelper {
 		rt.drawLine(p1, p2, c, width);
 	}
 	
-	public static void drawPoint(NPoint np, Color c, float radiusDocSpace, RenderTarget rt) {
-		//Rect viewPort = GlobalObjects.theSurface.getViewPortDocSpace();
-		float lineThicknessDocSpace = radiusDocSpace/3f;
-		PVector docPoint = np.getPt();
-		//if(viewPort.isPointInside(docPoint)==false) return;
-		rt.drawCircle(docPoint, radiusDocSpace, c, c, lineThicknessDocSpace );
-	}
-	
-	
-	
-	public ArrayList<NRegion> sortRegionsByArea(ArrayList<NRegion> regionsIn, boolean smallestFirst) {
-		// if smallestFirst == true, the regions are sorted with smallest regions first
-		// if smallestFirst == false, the regions are sorted with largest regions first
-		SortObjectWithValue objectValueSorter = new SortObjectWithValue();
+	public static void drawEdgesRandomColorWithPoints(ArrayList<NEdge> edges, float w, RenderTarget rt) {
+		for(NEdge e: edges) {
+			drawEdgeRandomColorWithPoints( e,  w,  rt);
+		}
 		
-		for(NRegion nr : regionsIn) {
-			float area = nr.getVertices().getArea();
-			
-			objectValueSorter.add(nr,area);
-		}
-
-		if(smallestFirst) {
-			return objectValueSorter.getSorted();
-		} else {
-			return objectValueSorter.getReverseSorted();
-		}
-
 	}
 	
-	public static void drawRegions(NNetwork ntwk, float dilation, float width, float[] dashPattern) {
+	public static void drawEdgeRandomColorWithPoints(NEdge e, float w, RenderTarget rt) {
+		Color c = MOColor.getRandomRGB();		
+		drawEdge(e, c, w, rt);
 		
-		ArrayList<Vertices2> verts  = convertRegionsToVertices2(ntwk.getRegions());
-		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
-		if(dilation != 0) {
-			verts = dilateVertices2(verts, dilation, false);
-		}
-		for(Vertices2 v: verts) {
-			rt.drawVertices2NoFill(v, Color.BLACK, width, dashPattern);
-		}
+		drawPoint(e.p1, Color.RED, 0.001f, rt);
+		drawPoint(e.p2, Color.RED, 0.001f, rt);
 	}
 	
-	public static void drawVertices2NoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
-		// if dashPattern is nulled, then uses default line
-		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
-		for(Vertices2 v: verts) {
-			rt.drawVertices2NoFill(v, c, width, dashPattern);
-		}
-	}
-	
-	public static void drawVertices2NoFill(Vertices2 verts, float width, Color c, float[] dashPattern) {
-		// if dashPattern is nulled, then uses default line
-		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
-		rt.drawVertices2NoFill(verts, c, width, dashPattern);
-	}
-	
-	public static void renderEdgesAndSave(NNetwork theNetwork, float Awidth, float Bwidth, float Cwidth, float regionEdgesWidth, float boundaryWidth, Rect boundaryRect, boolean saveAsLayers) {
-
+	public static void renderEdgesAndSave(NNetwork theNetwork, float Awidth, float Bwidth, float Cwidth, float regionEdgesWidth, float boundaryWidth, Rect boundaryRect, boolean saveRender) {
+		// very high-level method for rendering out the whole 
+		// of the edges in a network
+		//
 		String sessPth = GlobalSettings.getUserSessionPath();
 		String sessName = GlobalSettings.mainSessionName;
 		int CwidthI = (int)Cwidth ;
@@ -149,40 +122,186 @@ public class NNetworkHelper {
 		
 		//String directoryPath = directoryname + "\\";
 		
-		KeyValuePair descriptorC = NNetworkHelper.getDescriptor("ROAD", "C");  
+		KeyValuePair descriptorC = NNetworkHelper.getKVP("ROAD", "C");  
 		drawEdges(theNetwork, descriptorC, Color.BLACK, Cwidth);
 		
 		
 
-		KeyValuePair descriptoB = NNetworkHelper.getDescriptor("ROAD", "B");  
+		KeyValuePair descriptoB = NNetworkHelper.getKVP("ROAD", "B");  
 		drawEdges(theNetwork, descriptoB, Color.BLACK, Bwidth);
 		
 		
 
-		KeyValuePair descriptorA = NNetworkHelper.getDescriptor("ROAD", "A");
+		KeyValuePair descriptorA = NNetworkHelper.getKVP("ROAD", "A");
 		drawEdges(theNetwork, descriptorA, Color.BLACK, Awidth);
 		
 		
 
-		KeyValuePair seaDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "SEA");
+		KeyValuePair seaDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "SEA");
 		drawEdges(theNetwork, seaDescriptor, Color.BLACK, regionEdgesWidth); 
-		KeyValuePair riverDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "RIVER");
+		KeyValuePair riverDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "RIVER");
 		drawEdges(theNetwork, riverDescriptor, Color.BLACK, regionEdgesWidth); 
-		KeyValuePair parksDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "PARK");
+		KeyValuePair parksDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "PARK");
 		drawEdges(theNetwork, parksDescriptor, Color.BLACK, regionEdgesWidth); 
-		KeyValuePair lakeDescriptor = NNetworkHelper.getDescriptor("REGIONEDGE", "LAKE");
+		KeyValuePair lakeDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "LAKE");
 		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, regionEdgesWidth); 
 		
 		// now remove everything outside the boundaryRect (gets rid of wide-line cap-butts extending over the boundary line)
-		GlobalSettings.getMainDocument().getMain().clearOutsideRect(boundaryRect);
+		if(boundaryRect!=null) {
+			GlobalSettings.getMainDocument().getMain().clearOutsideRect(boundaryRect);
+		}
 		
-		KeyValuePair docEdge = NNetworkHelper.getDescriptor("REGIONEDGE", "document");
+		KeyValuePair docEdge = NNetworkHelper.getKVP("REGIONEDGE", "document");
 		drawEdges(theNetwork, docEdge, Color.BLACK, boundaryWidth); 
 		
-		if(saveAsLayers) {
+		if(saveRender) {
 			GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + sessName+ "_edges_" + edgeWidths + "_.png");
 		}
 
+	}
+	
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Drawing Regions
+	//
+	public static void drawRegions(NNetwork ntwk, float dilation, float width, float[] dashPattern) {
+
+		ArrayList<Vertices2> verts  = convertRegionsToVertices2(ntwk.getRegions());
+		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		if(dilation != 0) {
+			verts = dilateVertices2(verts, dilation, false);
+		}
+		for(Vertices2 v: verts) {
+			rt.drawVertices2NoFill(v, Color.BLACK, width, dashPattern);
+		}
+	}
+	
+	public void drawRegionsByType(NNetwork ntwk, RenderTarget rt) {
+		// for debug only
+		
+		ArrayList<NRegion> regions = ntwk.getRegions();
+
+		int colNum = 0;
+		for(NRegion r: regions) {
+			Color c = getRegionDefaultColour(r);
+	    	
+			drawRegionFill(r, c, rt);
+			if(colNum>10) colNum = 0;
+		}
+	}
+	
+	
+	public static void drawRegionFill(NRegion r, Color c, RenderTarget rt) {
+		Vertices2 verts = r.getVertices();
+		rt.drawVertices2(verts, c, c, 1);
+	}
+
+	public static void drawVertices2NoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
+		// if dashPattern is nulled, then uses default line
+		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		for(Vertices2 v: verts) {
+			rt.drawVertices2NoFill(v, c, width, dashPattern);
+		}
+	}
+
+	public static void drawVertices2NoFill(Vertices2 verts, float width, Color c, float[] dashPattern) {
+		// if dashPattern is nulled, then uses default line
+		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		rt.drawVertices2NoFill(verts, c, width, dashPattern);
+	}
+	
+	
+
+
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Geometric stuff
+	//
+	public static ArrayList<NEdge> findCrossingEdges(NEdge thisEdge, ArrayList<NEdge> otherEdges) {
+		ArrayList<NEdge> crossingEdges = new ArrayList<NEdge>();
+		Line2 thisLine = thisEdge.getLine2();
+		Line2 otherLine;
+		for(NEdge e: otherEdges) {
+			if(e == thisEdge) continue;
+			otherLine = e.getLine2();
+			if( thisLine.isIntersectionPossible(otherLine) == false ) continue;
+			
+			if( thisLine.calculateIntersection(otherLine) && thisLine.isConnected(otherLine) == false) {
+				crossingEdges.add(e);
+			}
+		}
+		
+		return crossingEdges;
+	}
+	
+	public ArrayList<NRegion> sortRegionsByArea(ArrayList<NRegion> regionsIn, boolean smallestFirst) {
+		// if smallestFirst == true, the regions are sorted with smallest regions first
+		// if smallestFirst == false, the regions are sorted with largest regions first
+		ObjectWithValueList objectValueSorter = new ObjectWithValueList();
+		
+		for(NRegion nr : regionsIn) {
+			float area = nr.getVertices().getArea();
+			objectValueSorter.add(nr,area);
+		}
+
+		if(smallestFirst) {
+			return objectValueSorter.getSorted();
+		} else {
+			return objectValueSorter.getReverseSorted();
+		}
+
+	}
+
+	public static ArrayList<Vertices2> convertRegionsToVertices2(ArrayList<NRegion> regions) {
+		ArrayList<Vertices2> vertices = new ArrayList<Vertices2>();
+		int n=0;
+		for(NRegion  r : regions) {
+
+			Vertices2 v = r.getVertices();
+			if(n < 10) {
+				System.out.println(v.getStats());
+
+			}
+			n++;
+			v.setPolygonWindingDirection(Vertices2.CLOCKWISE);
+			vertices.add( v );
+		}
+		return vertices;
+
+	}
+
+	public static ArrayList<Vertices2> dilateVertices2(ArrayList<Vertices2> vertsIn, float dilation, boolean relativeToOwnSize) {
+		// if relativeToOwnWidth == false, the dilation is in docSpace units
+		// if relativeToOwnWidth == true, the diagonal size is measured. This gives an approximate measure of width and height of the region
+		// This is TBD and is very experimental
+		ArrayList<Vertices2> vertsOut = new ArrayList<Vertices2>();
+
+		for(Vertices2  v : vertsIn) {
+
+			if(relativeToOwnSize) {
+
+
+			}
+
+
+			Vertices2 dilated = v.getDilated( dilation);
+			vertsOut.add( dilated );
+		}
+		return vertsOut;
+
+	}
+
+	
+	
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Utilities to do with KVP types
+	//
+	
+	public static KeyValuePair getKVP(String key, String val) {
+		return new KeyValuePair(key, val);
 	}
 	
 	public static KeyValuePairList getDocumentEdgesKVPList(boolean getDocEdges) {
@@ -203,6 +322,48 @@ public class NNetworkHelper {
     	return kvpl;
     	
     }
+	
+	
+
+
+	public static Color getRegionDefaultColour(NRegion r) {
+		// for debug only
+		Color c = Color.WHITE;
+		
+		KeyValuePair parkAttribute = new KeyValuePair("REGIONTYPE", "PARK");
+		if(r.thisItemContainsMatch(parkAttribute)) {
+			return Color.green;
+		}
+		KeyValuePair lakeAttribute = new KeyValuePair("REGIONTYPE", "LAKE");
+		if(r.thisItemContainsMatch(lakeAttribute)) {
+			return Color.blue;
+		}
+		KeyValuePair riverAttribute = new KeyValuePair("REGIONTYPE", "RIVER");
+		if(r.thisItemContainsMatch(riverAttribute)) {
+			return Color.blue;
+		}
+		
+		KeyValuePair seaAttribute = new KeyValuePair("REGIONTYPE", "SEA");
+		if(r.thisItemContainsMatch(seaAttribute)) {
+			return Color.blue;
+		}
+		
+		KeyValuePair densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_HIGH");
+		if(r.thisItemContainsMatch(densityAttribute)) {
+			return Color.red;
+		}
+		densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_MEDIUM");
+		if(r.thisItemContainsMatch(densityAttribute)) {
+			
+			return Color.orange;
+		}
+		densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_LOW");
+		if(r.thisItemContainsMatch(densityAttribute)) {
+			return Color.yellow;
+		}
+		
+		return c;
+	}
 
 	
 	public static void setRegionAttributeUbanDensity(NNetwork ntwk, String densityImagePathAndName) {
@@ -241,66 +402,14 @@ public class NNetworkHelper {
 	}
 	
 	
-	////
-	
-	public static ArrayList<Vertices2> convertRegionsToVertices2(ArrayList<NRegion> regions) {
-		ArrayList<Vertices2> vertices = new ArrayList<Vertices2>();
-		int n=0;
-		for(NRegion  r : regions) {
-
-			Vertices2 v = r.getVertices();
-			if(n < 10) {
-				System.out.println(v.getStats());
-
-			}
-			n++;
-			v.setPolygonWindingDirection(Vertices2.CLOCKWISE);
-			vertices.add( v );
-		}
-		return vertices;
-
-	}
-	
-	public static ArrayList<Vertices2> dilateVertices2(ArrayList<Vertices2> vertsIn, float dilation, boolean relativeToOwnSize) {
-		// if relativeToOwnWidth == false, the dilation is in docSpace units
-		// if relativeToOwnWidth == true, the diagonal size is measured. This gives an approximate measure of width and height of the region
-		// This is TBD and is very experimental
-		ArrayList<Vertices2> vertsOut = new ArrayList<Vertices2>();
-	
-	    for(Vertices2  v : vertsIn) {
-	    	
-	    	if(relativeToOwnSize) {
-	    		
-	    	
-	    	}
-	    	
-	    	
-	    	Vertices2 dilated = v.getDilated( dilation);
-	    	vertsOut.add( dilated );
-	    }
-	    return vertsOut;
-	
-	}
-	
-	
-	public static void drawEdgesRandomColorWithPoints(ArrayList<NEdge> edges, float w, RenderTarget rt) {
-		for(NEdge e: edges) {
-			drawEdgeRandomColorWithPoints( e,  w,  rt);
-		}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Methods using edge crawler. 
+	//
 		
-	}
 	
-	public static void drawEdgeRandomColorWithPoints(NEdge e, float w, RenderTarget rt) {
-		
-		
-		Color c = MOColor.getRandomRGB();		
-		drawEdge(e, c, w, rt);
-		
-		drawPoint(e.p1, Color.RED, 0.001f, rt);
-		drawPoint(e.p2, Color.RED, 0.001f, rt);
-		
-	}
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//This is use to place items along the road
+	//
 	static boolean updateDrawRoadLines(SpriteSourceInterface spriteFont, EdgeRunVerticesCrawler edgeCrawler, float crawlStep, float overlap1, float overlap2) {
 		// draws the item on the line of the road
 

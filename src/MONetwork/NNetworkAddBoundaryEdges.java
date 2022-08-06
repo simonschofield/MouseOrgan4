@@ -76,6 +76,7 @@ public class NNetworkAddBoundaryEdges {
 		NEdge leftEdge = theNetwork.addEdge(bottomLeft,topLeft);
 		leftEdge.addAttribute(documentEdgeAttribute);
 
+		//System.out.println("addOuterBoundaryEdges here1");
 
 		// get all the intersections of the network with these edges
 		ArrayList<NEdge> allIntersectionsList = new ArrayList<NEdge>();
@@ -84,7 +85,7 @@ public class NNetworkAddBoundaryEdges {
 		allIntersectionsList.addAll(findIntersections(bottomEdge));
 		allIntersectionsList.addAll(findIntersections(leftEdge));
 
-
+		//System.out.println("addOuterBoundaryEdges here2");
 		// so now we have all the intersecting edges with the documentEdges
 		int bailCount = 0;
 
@@ -94,7 +95,7 @@ public class NNetworkAddBoundaryEdges {
 				System.out.println("ERROR addOuterBoundaryEdges::bail count exceeded");
 				break;
 			}
-
+			//if(bailCount%1000 == 0) System.out.println("addOuterBoundaryEdges welding" + bailCount);
 		}
 
 

@@ -10,6 +10,7 @@ import MOMaths.PVector;
 import MOMaths.QRandomStream;
 
 import MOUtils.KeyValuePairList;
+import MOUtils.ObjectWithValueList;
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 // add edge detail using random sections across a  displacement image (up to you, but use a fractal one for nice results). 
@@ -24,12 +25,14 @@ public class NNetworkAddEdgeDetail {
 	
 	QRandomStream qrandom = new QRandomStream(1);
 	
+	KeyValuePairList docEdgeKVPL = new KeyValuePairList();
 	
 	
 	public NNetworkAddEdgeDetail(NNetwork ntwk, BufferedImage displacemntImage) {
 		
 		theNetwork = ntwk.copy();
 		displacementImage = new KeyImageSampler(displacemntImage);
+		docEdgeKVPL.addKeyValue("REGIONEDGE", "document");
 	}
 	
 	
@@ -37,10 +40,71 @@ public class NNetworkAddEdgeDetail {
 		return theNetwork;
 	}
 	
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// displace points
+	//
+	public void displacePoints(float amt) {
+		// works on the basis that a point can be displaced (without changing network topology) is by half distance to nearest neighbour+
+		System.out.println("Displacing points, please wait ...");
+		int moveCount = 0;
+		
+		ArrayList<NPoint> npointList = theNetwork.getPointsWithEdges();
+		for(NPoint np: npointList) {
+			if( isDocumentEdgePoint(np) ) continue;
+			boolean move = tryDisplacePoint(np, amt);
+			if(move) moveCount++;
+		}
+		System.out.println("moved " + moveCount + " out of " + npointList.size());
+		
+	}
 	
 	
+	boolean isDocumentEdgePoint(NPoint np) {
+		ArrayList<NEdge> connectedEdges = np.getEdgeReferences();
+		for(NEdge e: connectedEdges) {
+			if(e.getAttributes().containsEqual(docEdgeKVPL)) return true;
+		}
+		return false;
+	}
 	
-	public void addEdgeDetail(float sectionLength, float maxDisplacement, Float meanNumSections, KeyValuePairList searchCriteria) {
+	
+	boolean tryDisplacePoint(NPoint np, float amt) {
+		PVector undoMove = np.getPt().copy();
+		float displaceX = qrandom.randRangeF(-amt, amt);
+		float displaceY = qrandom.randRangeF(-amt, amt);
+		ArrayList<NEdge> connectedEdges = np.getEdgeReferences();
+		
+			
+		np.coordinates.x += displaceX;
+		np.coordinates.y += displaceY;
+			
+		if( edgesCrossOtherEdges(connectedEdges) ) {
+			
+				np.setPt(undoMove);	
+				return false;
+		}
+		
+		return true;
+
+	}
+	
+	
+	boolean edgesCrossOtherEdges(ArrayList<NEdge> theseEdges) {
+		ArrayList<NEdge> otherEdges = (ArrayList<NEdge>) theNetwork.edges.clone();
+		otherEdges.remove(theseEdges);
+		
+		for(NEdge thisEdge: theseEdges) {
+			ArrayList<NEdge> crossingEdges = NNetworkHelper.findCrossingEdges( thisEdge,  otherEdges);
+			if(crossingEdges.size()>0) return true;
+		}
+		return false;
+	}
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// add edge points and displace
+	//
+	public void addEdgeDetail(float sectionLength, float maxDisplacement, KeyValuePairList searchCriteria) {
 		// anything under minLength is not modified
 		// anything over is broken into the closest number of minSectionLengths (min 2)
 		System.out.println("Adding edge detail, please wait ...");

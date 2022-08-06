@@ -16,7 +16,7 @@ import MOMaths.Vertices2;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
-import MOUtils.SortObjectWithValue;
+import MOUtils.ObjectWithValueList;
 
 //////////////////////////////////////////////////////////////////////////////////////
 // 
@@ -53,7 +53,7 @@ import MOUtils.SortObjectWithValue;
  public class NNetworkRegionFinder{
 
 	NNetwork theNetwork;
-	public NNetworkDrawer networkDrawer;
+	
 	
 	
 	ArrayList<NEdge> startEdgeList = new ArrayList<NEdge>();
@@ -81,7 +81,7 @@ import MOUtils.SortObjectWithValue;
 			ArrayList<NEdge> toRemove = theNetwork.getEdgesMatchingSearchAttributes(false);
 			theNetwork.removeEdges(toRemove);
 		}
-		networkDrawer = new NNetworkDrawer(theNetwork);
+		
 	}
 	
 	
@@ -150,7 +150,7 @@ import MOUtils.SortObjectWithValue;
 	public ArrayList<NRegion> getFoundRegionsSortedByArea(boolean smallestFirst) {
 		// if smallestFirst == true, the regions are sorted with smallest regions first
 		// if smallestFirst == false, the regions are sorted with largest regions first
-		SortObjectWithValue objectValueSorter = new SortObjectWithValue();
+		ObjectWithValueList objectValueSorter = new ObjectWithValueList();
 		
 		for(NRegion nr : theNetwork.regions) {
 			float area = nr.getVertices().getArea();
@@ -399,7 +399,7 @@ import MOUtils.SortObjectWithValue;
 
 	ArrayList<NEdge> sortConnectedEdgesByClockwiseAngle(NEdge referenceEdge, ArrayList<NEdge> connectedEdges) {
 		
-		SortObjectWithValue objectValueSorter = new SortObjectWithValue();
+		ObjectWithValueList objectValueSorter = new ObjectWithValueList();
 		
 		for(NEdge e: connectedEdges) {
 			//float rads = angleBetweenEdges(referenceEdge, e);
@@ -482,157 +482,7 @@ import MOUtils.SortObjectWithValue;
 		theNetwork.removeEdges(toRemove);
 	}
 
-	
-	
-	
-	
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// debug methods - can be removed upon finalisation
-	//
-	
-	
-	public void drawEdgesRandomColorWithPoints(RenderTarget rt) {
-		// for debug only
-		
-		
-		NNetworkDrawer drawer = new NNetworkDrawer(theNetwork);
-		
-		for(NEdge e: theNetwork.edges) {
-			Color c = MOColor.getRandomRGB();
-			
-				
-			drawer.drawEdge(e, c, 20, rt);
-			
-		}
-		
-		for(NPoint p: theNetwork.points) {
-			
-			drawer.drawPoint(p, Color.RED, 0.001f, rt);
-		}
-		
-		printEdgePointNums(" in draw edges ");
-		
-	}
-	
-	void printEdgePointNums(String message) {
-		// for debug only
-		System.out.println(message + " Num edges " + theNetwork.edges.size() + " Num Points " + + theNetwork.points.size());
-	}
-	
-	public void drawEdgeRegionStatus(RenderTarget rt) {
-		// for debug only
-		NNetworkDrawer drawer = new NNetworkDrawer(theNetwork);
-		printEdgePointNums(" in drawEdgeRegionStatus ");
-		for(NEdge e: theNetwork.edges) {
-			Color c = Color.YELLOW;
-			int n = e.getAssociatedRegionCount();
-			if(n == 0) c = Color.red;
-			if(n == 1) c = Color.blue;
-			if(n == 2) c = Color.black;
-				
-				drawer.drawEdge(e, c, 20, rt);
-		}
-		
-		
-	}
-	
-	
-	
-	public void drawResult(RenderTarget rt) {
-		// for debug only
-		
-		ArrayList<NRegion> regions = theNetwork.getRegions();
-		
-		Color[] cols = MOColor.getBasic12ColorPalette();
-		//Color.BLACK;
-		//Color.RED;
-		//Color.GREEN;
-		//Color.CYAN;
-		//Color.DARK_GRAY;
-		//Color.MAGENTA;
-		//Color.YELLOW;
-		//Color.BLUE;
-		//Color.LIGHT_GRAY;
-		//Color.ORANGE;
-		//Color.GRAY;
-		//Color.PINK;
-		
-		int colNum = 0;
-		for(NRegion r: regions) {
-	    
-	    	
-			networkDrawer.drawRegionFill(r, cols[colNum++], rt);
-			if(colNum>10) colNum = 0;
-		}
-		
-		for(NRegion r: regions) {
-			networkDrawer.drawRegionEdges(r, Color.blue, 5, rt);
-		}
-		networkDrawer.draw(rt, Color.WHITE);
-		//theNetwork.save("C:\\simon\\Artwork\\MouseOrgan4\\Maps\\Network Maps\\London Flowers\\regionFindTest.csv");
-	}
 
-	
-	public void drawRegionsByType(RenderTarget rt) {
-		// for debug only
-		
-		ArrayList<NRegion> regions = theNetwork.getRegions();
-		
-		
-		
-		int colNum = 0;
-		for(NRegion r: regions) {
-			Color c = getRegionDefaultColour(r);
-	    	
-			networkDrawer.drawRegionFill(r, c, rt);
-			if(colNum>10) colNum = 0;
-		}
-		
-		
-		System.out.println("drawn " + parkCounter + " park regions ," + lakeCounter + " lake regions ," + riverCounter + " river regions ");
-	}
-
-	
-	public Color getRegionDefaultColour(NRegion r) {
-		// for debug only
-		Color c = Color.WHITE;
-		
-		KeyValuePair parkAttribute = new KeyValuePair("REGIONTYPE", "PARK");
-		if(r.thisItemContainsMatch(parkAttribute)) {
-			parkCounter++;
-			return Color.green;
-		}
-		KeyValuePair lakeAttribute = new KeyValuePair("REGIONTYPE", "LAKE");
-		if(r.thisItemContainsMatch(lakeAttribute)) {
-			lakeCounter++;
-			return Color.CYAN;
-		}
-		KeyValuePair riverAttribute = new KeyValuePair("REGIONTYPE", "RIVER");
-		if(r.thisItemContainsMatch(riverAttribute)) {
-			riverCounter++;
-			return Color.blue;
-		}
-		
-		KeyValuePair densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_HIGH");
-		if(r.thisItemContainsMatch(densityAttribute)) {
-			riverCounter++;
-			return Color.red;
-		}
-		densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_MEDIUM");
-		if(r.thisItemContainsMatch(densityAttribute)) {
-			riverCounter++;
-			return Color.orange;
-		}
-		densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_LOW");
-		if(r.thisItemContainsMatch(densityAttribute)) {
-			riverCounter++;
-			return Color.yellow;
-		}
-		
-		return c;
-	}
-	
 }
  
  

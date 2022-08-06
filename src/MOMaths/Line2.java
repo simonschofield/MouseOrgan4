@@ -82,11 +82,16 @@ public class Line2 {
 
 	public boolean calculateIntersection(Line2 l)
 	{
-		// returns true if this line segment intersects with other line segemnt
+		// returns true if this line segment intersects with other line2
+		// To remove any ambiguity, lines that touch because they are "connected" at an end are dismissed as NOT intersecting
 		// The intersection point can be recovered after the test via intersection_point
 		// Even if the two segments do not intersect intersection_point will be set to the
 		// intersection of the two infinte lines, unless they are parallel, in which case
 		// intersection_point is set to null
+		
+		//if(isConnected(l)) return false;
+		
+		
 		intersection_segmentsIntersect = false;
 
 		PVector p3 = l.p1.copy();
@@ -136,13 +141,22 @@ public class Line2 {
 	}
 
 	public boolean isIntersectionPossible(Line2 otherLine) {
-		// this is a trivial check to see if 2 lines can intersect, might speed things up
-		PVector otherp1 = otherLine.p1;
-		PVector otherp2 = otherLine.p2;
-	    if((otherp1.x < p1.x && otherp2.x < p2.x) || // other is wholly left of this
-	       (otherp1.x > p1.x && otherp2.x > p2.x) || // other is wholly right of this
-	       (otherp1.y < p1.y && otherp2.y < p2.y) || // other is wholly above of this
-	       (otherp1.y > p1.y && otherp2.x > p2.y)    // other is wholly below of this
+		// this is a trivial check to see if 2 lines can intersect by using their bounding boxes
+		float thisMinX = Math.min(p1.x, p2.x);
+		float thisMaxX = Math.max(p1.x, p2.x);
+		float otherMinX = Math.min(otherLine.p1.x, otherLine.p2.x);
+		float otherMaxX = Math.max(otherLine.p1.x, otherLine.p2.x);
+		
+		float thisMinY = Math.min(p1.y, p2.y);
+		float thisMaxY = Math.max(p1.y, p2.y);
+		float otherMinY = Math.min(otherLine.p1.y, otherLine.p2.y);
+		float otherMaxY = Math.max(otherLine.p1.y, otherLine.p2.y);
+		
+		
+	    if((otherMaxX < thisMinX) || // other is wholly left of this
+	       (otherMinX > thisMaxX) || // other is wholly right of this
+	       (otherMaxY < thisMinY) || // other is wholly above of this
+	       (otherMinY > thisMaxY)    // other is wholly below of this
 	       ) return false;
 	    
 	       return true;
@@ -153,9 +167,15 @@ public class Line2 {
 		return false;
 	}
 
-	boolean isSimilar(Line2 otherLine) {
-		// will return true for a line with similar end points
+	boolean isCoincident(Line2 otherLine) {
+		// will return true for a line with same end points
 		if ( equals(otherLine) || (  p1.equals(otherLine.p2) && p2.equals(otherLine.p1)  )  ) return true;
+		return false;
+	}
+	
+	public boolean isConnected(Line2 otherLine) {
+		if( isCoincident(otherLine) ) return true;
+		if( p1.equals(otherLine.p1) || p1.equals(otherLine.p2) || p2.equals(otherLine.p1) || p2.equals(otherLine.p2)) return true;
 		return false;
 	}
 

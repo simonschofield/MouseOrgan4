@@ -246,6 +246,10 @@ public class NNetwork {
 	public ArrayList<NRegion> getRegionsMatchingSearchAttributes(boolean match){
 
 		ArrayList<NRegion> regionList = this.getRegions();
+		
+		System.out.println("getRegionsMatchingSearchAttributes::regionList " + regionList.size() );
+		
+		
 		ArrayList<NRegion> matchingRegions = new ArrayList<NRegion>();
 		for (int n = 0; n < regionList.size(); n++) {
 			NRegion r = regionList.get(n);
@@ -303,9 +307,12 @@ public class NNetwork {
 		//}
 	}
 	
-	void removeEdgesNotMatchingSearchAttribute() {
-		
-		
+	public ArrayList<NPoint> getPointsWithEdges() {
+		ArrayList<NPoint> pointsWithEdges = new ArrayList<NPoint>();
+		for (NPoint np : points) {
+			if(np.getEdgeReferences().size()>0) pointsWithEdges.add(np);
+		}
+		return pointsWithEdges;
 	}
 
 	public void removeEdges(ArrayList<NEdge> toRemove) {
@@ -409,6 +416,10 @@ public class NNetwork {
 		}
 		return null;
 	}
+	
+	
+	
+	
 
 	NPoint getNearestNPoint(PVector mapLoc) {
 		NPoint currentClosestNPoint = null;

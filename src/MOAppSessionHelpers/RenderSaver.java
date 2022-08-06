@@ -48,7 +48,9 @@ public class RenderSaver {
 	MainDocument theDocument;
 	
 	int currentSessionEnumerator = 0;
+	
 	boolean useSubDirectory = false;
+	boolean subDirectoryCreated = false;
 	
 	String subDirectoryPath;
 	
@@ -72,9 +74,9 @@ public class RenderSaver {
 		layerCounter = 0;
 		
 		updateCurrentSessionEnumerator();
-		if(useSubDirectory) {
-			subDirectoryPath = MOStringUtils.createDirectory(GlobalSettings.getUserSessionPath(), GlobalSettings.getDocumentName() + getSessionEnumeratorString() + "\\", false);
-		}
+		//if(useSubDirectory) {
+		//	subDirectoryPath = MOStringUtils.createDirectory(GlobalSettings.getUserSessionPath(), GlobalSettings.getDocumentName() + getSessionEnumeratorString() + "\\", false);
+		//}
 	}
 	
 	public void useReverseLayerNumbering(int startNum) {
@@ -83,7 +85,13 @@ public class RenderSaver {
 	}
 	
 
-	
+	void createSubDirectory() {
+		
+		if(useSubDirectory && subDirectoryCreated==false) {
+			subDirectoryPath = MOStringUtils.createDirectory(GlobalSettings.getUserSessionPath(), GlobalSettings.getDocumentName() + getSessionEnumeratorString() + "\\", false);
+			subDirectoryCreated = true;
+		}
+	}
 	
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +105,7 @@ public class RenderSaver {
 			// if useSubDirectory==true assume : 
 			// if FILENAME_INCREMENT an new enumerated directory has been created at instantiation of this object and subDirectoryPath set to this
 			// if FILENAME_OVERWRITE then the previously-saved highest-numbered session directory has been set as the subDirectoryPath, so the files within are overwritten
+			createSubDirectory();
 			saveDocumentMainImage(subDirectoryPath,"");
 			saveDocumentSupplementaryImages(subDirectoryPath,"");
 			
@@ -130,7 +139,7 @@ public class RenderSaver {
 			System.out.println("RenderSaver: saveLayer - cannot save layers without setting a sub directory first - set third argument of constructor to true");
 			return;
 		}
-		
+		createSubDirectory();
 		String name = theDocument.getMain().getFullSessionName();
 		
 		String layerCounterString = MOStringUtils.getPaddedNumberString(layerCounter,2);
