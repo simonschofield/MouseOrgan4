@@ -4,10 +4,15 @@ import MOCompositing.TextRenderer;
 import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.Rect;
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// Contains the description of an individual letter (character) contained within a "TextRibbon"
+// The position of the letter is defined by the line between charStartPos and charEndPos, which contains no kerning.
+// Letter kerning is taken care of by the text ribbon, which generates the letter locations in th first place
+//
 public class RibbonLetter{
 	TextRibbon theOwningTextRibbon;
 	public String theChar;
+	public int wordNumber; // this is the set by the text ribbon, and is the numerical order of the words within the ribbon 0...upward
 	
 	PVector charStartPos;
 	PVector charEndPos; // i.e. just the character no kerning
@@ -52,9 +57,7 @@ public class RibbonLetter{
 		return getCharLine().getLength();
 	}
 	
-	public float getPriority() {
-		return theOwningTextRibbon.ribbonPriority;
-	}
+	
 	
 	
 }

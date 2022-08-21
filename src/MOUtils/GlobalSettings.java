@@ -3,6 +3,7 @@ package MOUtils;
 import java.io.File;
 
 import MOApplication.MainDocument;
+import MOApplication.Surface;
 import MOImage.ImageProcessing;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // This is a repository for all common data that needs to accessed across the application, partially in order to avoid complex passing of objects around but
@@ -30,6 +31,7 @@ public class GlobalSettings {
 	private static ImageCoordinateSystem theDocumentCoordSystem;
 	private static ScaledMOImageGroupManager  theSpriteImageGroupManager;
 	private static MainDocument theDocument;
+	private static Surface theSurface;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// paths used by the system
@@ -61,7 +63,7 @@ public class GlobalSettings {
 	// Initialisation	
 	// Called from UserSession->initialiseUserSession() which must contain a call to Surface.initialiseSystem(....)
 	// Surface.initialiseSystem(....) calls init(...), instantiates the MainDocument then calls setTheDocumentCoordSystem(...)
-	public static void init(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl){
+	public static void init(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, Surface surf){
 		// only called in Surface.initialiseSystem()
 		GlobalSettings.userSessionPath = userSessionPth;
 		sessionScale = sessionScl; 
@@ -73,6 +75,7 @@ public class GlobalSettings {
 		
 		// for your convenience, and because we don't want a null one
 		theSpriteImageGroupManager = new ScaledMOImageGroupManager();
+		theSurface = surf;
 		}
 	
 	public static void setTheDocumentCoordSystem(MainDocument md) {
@@ -105,8 +108,12 @@ public class GlobalSettings {
 		return sessionScale;
 	}
 	
-	public static MainDocument getMainDocument() {
+	public static MainDocument getDocument() {
 		return theDocument;
+	}
+	
+	public static Surface getTheApplicationSurface() {
+		return theSurface;
 	}
 
 	public static ImageCoordinateSystem getTheDocumentCoordSystem() {
@@ -151,6 +158,8 @@ public class GlobalSettings {
 		if(currentSchemea.equals("")) return mainSessionName;
 		return mainSessionName + "_" + currentSchemea;
 	}
+	
+	
 	
 	
 	public static ImageDimensions getFullScaleDocumentDimension() {

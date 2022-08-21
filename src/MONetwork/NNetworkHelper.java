@@ -5,13 +5,16 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOAppSessionHelpers.SceneHelper;
 import MOCompositing.RenderTarget;
+import MOCompositing.TextRenderer;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
 import MOImage.MOColor;
 import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
+import MOMaths.RandomStream;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
 import MOSprite.Sprite;
@@ -22,6 +25,7 @@ import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 import MOUtils.MOStringUtils;
 import MOUtils.ObjectWithValueList;
+import MOUtils.TextBank;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // common network operations
@@ -68,7 +72,7 @@ public class NNetworkHelper {
 		}
 
 		float scaledWidth = fullScaleWidth * GlobalSettings.getSessionScale();
-		drawEdges(edges, c, scaledWidth, GlobalSettings.getMainDocument().getMain());
+		drawEdges(edges, c, scaledWidth, GlobalSettings.getDocument().getMain());
 	}
 	
 	public static void drawEdges(ArrayList<NEdge> edges, Color c, float width, RenderTarget rt) {
@@ -146,19 +150,208 @@ public class NNetworkHelper {
 		KeyValuePair lakeDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "LAKE");
 		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, regionEdgesWidth); 
 		
+		GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+		
 		// now remove everything outside the boundaryRect (gets rid of wide-line cap-butts extending over the boundary line)
 		if(boundaryRect!=null) {
-			GlobalSettings.getMainDocument().getMain().clearOutsideRect(boundaryRect);
+			GlobalSettings.getDocument().getMain().clearOutsideRect(boundaryRect);
 		}
 		
 		KeyValuePair docEdge = NNetworkHelper.getKVP("REGIONEDGE", "document");
 		drawEdges(theNetwork, docEdge, Color.BLACK, boundaryWidth); 
 		
 		if(saveRender) {
-			GlobalSettings.getMainDocument().getMain().saveRenderToFile(sessPth + sessName+ "_edges_" + edgeWidths + "_.png");
+			GlobalSettings.getDocument().getMain().saveRenderToFile(sessPth + sessName+ "_edges_" + edgeWidths + "_.png");
 		}
 
 	}
+	
+	
+	
+	public static void renderDashedEdges(NNetwork theNetwork, float baseLineWidth, float dashScale,  boolean saveImage) {
+		
+		
+	    	float[] singlePhaseA = { 11f,4f };
+	    	float[] dashPatternA = stochasticDashPattern(singlePhaseA, 0.2f, 5, dashScale);
+	    	
+	    	float[] singlePhaseB = { 9f,4f,6f,4f };
+	    	float[] dashPatternB = stochasticDashPattern(singlePhaseB, 0.2f, 5, dashScale);
+	    	
+	    	float[] singlePhaseC = { 7f,4f };
+	    	float[] dashPatternC = stochasticDashPattern(singlePhaseC, 0.2f, 5, dashScale);
+	    	
+	    	float[] singlePhaseOthers = { 7f,3f,4f,3f };
+	    	float[] dashPatternOthers = stochasticDashPattern(singlePhaseOthers, 0.2f, 5, dashScale);
+	    	
+
+	    	float lineWidth = baseLineWidth;
+	    	float dashProjection = baseLineWidth * 2f;
+	    	
+	    	// draw the dashed lines
+	    	NNetworkEdgeRunFinder edgeRunFinder = new NNetworkEdgeRunFinder(theNetwork, null);
+	    	ArrayList<Vertices2> verts;
+	    	KeyValuePairList edgeType = new KeyValuePairList();
+	    	
+	    	edgeType.addKeyValue("ROAD", "A");
+	    	verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+	    	drawVertices2ListNoFill(verts, lineWidth*4 + dashProjection + 2, Color.BLACK, dashPatternA);
+	    	
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("ROAD", "B");
+	    	verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+	    	drawVertices2ListNoFill(verts, lineWidth*3 + dashProjection, Color.BLACK, dashPatternB);
+	    	
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("ROAD", "C");
+	    	verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+	    	 
+	    	drawVertices2ListNoFill(verts, lineWidth*2 + dashProjection-2, Color.BLACK, dashPatternC);
+	    	
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("REGIONEDGE", "RIVER");
+			edgeType.addKeyValue("REGIONEDGE", "PARK");
+			edgeType.addKeyValue("REGIONEDGE", "LAKE");
+			edgeType.addKeyValue("REGIONEDGE", "SEA");
+			verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+			drawVertices2ListNoFill(verts, lineWidth*2 + dashProjection-2, Color.BLACK, dashPatternOthers);
+	    	
+	    	
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("REGIONEDGE", "document");
+	    	verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+	    	drawVertices2ListNoFill(verts, lineWidth*4 + dashProjection , Color.BLACK, dashPatternA);
+	    	
+	    	GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+	    	
+	    	if(saveImage) {
+	    		
+	    		GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + "dashed edges.png");
+	    		GlobalSettings.getDocument().getMain().clearImage();
+	    	
+	    	}
+
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("ROAD", "A");
+	    	verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+	    	drawVertices2ListNoFill(verts, lineWidth*4, Color.WHITE, null);
+	    	
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("ROAD", "B");
+	    	verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+	    	drawVertices2ListNoFill(verts, lineWidth*3, Color.WHITE, null);
+	    	
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("ROAD", "C");
+	    	verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+	    	drawVertices2ListNoFill(verts, lineWidth*2, Color.WHITE, null);
+	    	
+	    	
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("REGIONEDGE", "RIVER");
+			edgeType.addKeyValue("REGIONEDGE", "PARK");
+			edgeType.addKeyValue("REGIONEDGE", "LAKE");
+			edgeType.addKeyValue("REGIONEDGE", "SEA");
+			verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+			drawVertices2ListNoFill(verts, lineWidth*2 , Color.WHITE, null);
+	    	
+	    	
+	    	edgeType.removeAll();
+	    	edgeType.addKeyValue("REGIONEDGE", "document");
+	    	verts = edgeRunFinder.extractAllEdgeRunVertices(edgeType);
+	    	drawVertices2ListNoFill(verts, lineWidth*4, Color.WHITE, null);
+	    	
+	    	//GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+	    	
+	    	
+	    	if(saveImage) GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + "dashed edges white background.png");
+	    	
+		
+	}
+	
+	private static float[] stochasticDashPattern(float[] singlePhase, float perturb, int numRepeats, float masterScale) {
+		RandomStream ran = new RandomStream(1);
+		// perturbation is the fractional part of the dash, so min_length = dash - (dash*perturb) , max_len = dash + (dash*perturb)
+		
+		// first build the full pattern
+		int lenSinglePhase = singlePhase.length;
+		float[] pattern = new float[lenSinglePhase*numRepeats];
+		
+		for(int n=0; n < pattern.length; n++) {
+			float dash = singlePhase[n%lenSinglePhase]*masterScale;
+			
+			float rdash = dash; //ran.perturb(dash, perturb);
+			System.out.print(rdash + " ");
+			pattern[n]=rdash;
+		}
+		System.out.println(" dashes");
+		return pattern;
+	}
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Doing text ribbons
+	// 
+	public static void drawTextRibbons(NNetwork theNetwork, KeyValuePairList searchCriteria, String textPath, float fontheight, float minimumRibbonLength) {
+		TextBank textbank = new TextBank();
+	    String textPathAndName = GlobalSettings.getDataAssetsPath(null) + "text documents\\Heart of darkness.txt";
+	    
+	    System.out.println(" loading text " + textPathAndName);	 
+	    
+	    textbank.load(textPathAndName);
+	    textbank.setIterator(0);
+
+	    TextRenderer textRenderer = new TextRenderer();
+	    textRenderer.setFont("Serif", 0, 250, Color.BLACK);
+
+	    float backingRoadWidth = SceneHelper.docSpaceToFullScalePixels(fontheight)*0.4f;
+	    //System.out.println("Road width is " + backingRoadWidth);
+	    //System.out.println("search criteria is " + searchCriteria.getAsCSVLine());
+	   // System.out.println("text bank is " + textbank);
+	    
+	    
+	    
+	    TextRibbonManager theTextRibbonManager = new TextRibbonManager();
+	    ArrayList<Vertices2> edgeRunVertices = theTextRibbonManager.createVerticesFromNetworkEdges(theNetwork, searchCriteria, 0.015f);
+		
+		
+	    
+		boolean test = false;
+	    if(test) {
+	    	NNetworkHelper.drawVertices2ListNoFill(edgeRunVertices, 10, null, null);
+	    	GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+	    	return;
+	    }
+	    
+	   
+	    theTextRibbonManager.createTextRibbons(edgeRunVertices, textbank, textRenderer, fontheight, fontheight);
+
+	    
+	      
+	    float currentRibbonlength = 1;
+
+		while(true) {
+
+			RibbonLetter ribbonLetter = theTextRibbonManager.getNextRibbonLetter();
+			if(ribbonLetter==null) return;
+
+			float len = ribbonLetter.theOwningTextRibbon.theVertices.getTotalLength();
+			
+			Sprite sprite =  textRenderer.getSprite(ribbonLetter.theChar, fontheight, ribbonLetter.getCharLine(), null);
+			GlobalSettings.getDocument().getMain().pasteSprite(sprite);
+			
+			
+			if(len < minimumRibbonLength) return;
+			
+			
+			if(len !=  currentRibbonlength) {
+				GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+				currentRibbonlength = len;
+				System.out.println("current ribbon length = " + len);
+			}
+		}
+		
+	}
+	
+	
 	
 	
 	
@@ -168,7 +361,7 @@ public class NNetworkHelper {
 	public static void drawRegions(NNetwork ntwk, float dilation, float width, float[] dashPattern) {
 
 		ArrayList<Vertices2> verts  = convertRegionsToVertices2(ntwk.getRegions());
-		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		RenderTarget rt = GlobalSettings.getDocument().getMain();
 		if(dilation != 0) {
 			verts = dilateVertices2(verts, dilation, false);
 		}
@@ -177,16 +370,16 @@ public class NNetworkHelper {
 		}
 	}
 	
-	public void drawRegionsByType(NNetwork ntwk, RenderTarget rt) {
+	public static void drawRegionsByType(NNetwork ntwk,  boolean randomiseUrbanCol) {
 		// for debug only
 		
 		ArrayList<NRegion> regions = ntwk.getRegions();
 
 		int colNum = 0;
 		for(NRegion r: regions) {
-			Color c = getRegionDefaultColour(r);
+			Color c = getRegionDefaultColour(r, randomiseUrbanCol);
 	    	
-			drawRegionFill(r, c, rt);
+			drawRegionFill(r, c, GlobalSettings.getDocument().getMain());
 			if(colNum>10) colNum = 0;
 		}
 	}
@@ -197,17 +390,31 @@ public class NNetworkHelper {
 		rt.drawVertices2(verts, c, c, 1);
 	}
 
-	public static void drawVertices2NoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
+	public static void drawVertices2ListNoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
 		// if dashPattern is nulled, then uses default line
-		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		// if color is nulled the uses a random color (for debug probably)
+		RenderTarget rt = GlobalSettings.getDocument().getMain();
+		Color col;
 		for(Vertices2 v: verts) {
-			rt.drawVertices2NoFill(v, c, width, dashPattern);
+			
+			if(c==null) {
+				col = MOColor.getRandomRGB();
+			} else {
+				col = c;
+			}
+			
+			rt.drawVertices2NoFill(v, col, width, dashPattern);
+			//rt.drawPoint(v.get(0), col, width+2);
 		}
 	}
 
 	public static void drawVertices2NoFill(Vertices2 verts, float width, Color c, float[] dashPattern) {
 		// if dashPattern is nulled, then uses default line
-		RenderTarget rt = GlobalSettings.getMainDocument().getMain();
+		RenderTarget rt = GlobalSettings.getDocument().getMain();
+		
+		if(c==null) c = MOColor.getRandomRGB();
+		
+		
 		rt.drawVertices2NoFill(verts, c, width, dashPattern);
 	}
 	
@@ -324,9 +531,16 @@ public class NNetworkHelper {
     }
 	
 	
+	public static KeyValuePairList  getTaggedRegionsKVPList() {
+		KeyValuePairList regType = new KeyValuePairList();
+		regType.addKeyValue("REGIONEDGE", "RIVER");
+		regType.addKeyValue("REGIONEDGE", "PARK");
+		regType.addKeyValue("REGIONEDGE", "LAKE");
+		regType.addKeyValue("REGIONEDGE", "SEA");
+		return regType;
+	}
 
-
-	public static Color getRegionDefaultColour(NRegion r) {
+	public static Color getRegionDefaultColour(NRegion r, boolean randomiseUrbanColours) {
 		// for debug only
 		Color c = Color.WHITE;
 		
@@ -343,27 +557,36 @@ public class NNetworkHelper {
 			return Color.blue;
 		}
 		
+		
+		
 		KeyValuePair seaAttribute = new KeyValuePair("REGIONTYPE", "SEA");
 		if(r.thisItemContainsMatch(seaAttribute)) {
 			return Color.blue;
+
 		}
 		
+		
+		Color randomRGB = MOColor.getRandomRGB();
+		float blendAmt = 0;
+		if(randomiseUrbanColours) blendAmt = 0.5f;
 		KeyValuePair densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_HIGH");
 		if(r.thisItemContainsMatch(densityAttribute)) {
-			return Color.red;
+			return MOColor.blendColor(blendAmt, Color.red, randomRGB);
 		}
 		densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_MEDIUM");
 		if(r.thisItemContainsMatch(densityAttribute)) {
 			
-			return Color.orange;
+			return MOColor.blendColor(blendAmt, Color.orange, randomRGB);
 		}
 		densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_LOW");
 		if(r.thisItemContainsMatch(densityAttribute)) {
-			return Color.yellow;
+			return MOColor.blendColor(blendAmt, Color.yellow, randomRGB);
 		}
 		
 		return c;
 	}
+	
+	
 
 	
 	public static void setRegionAttributeUbanDensity(NNetwork ntwk, String densityImagePathAndName) {
@@ -429,7 +652,7 @@ public class NNetworkHelper {
 		sprite.mapToLine2(line,  overlap1, overlap2, 0.005f);
 
 
-		if( GlobalSettings.getMainDocument().cropSpriteToBoarder(sprite) ) GlobalSettings.getMainDocument().getMain().pasteSprite(sprite);
+		if( GlobalSettings.getDocument().cropSpriteToBoarder(sprite) ) GlobalSettings.getDocument().getMain().pasteSprite(sprite);
 
 		return true;
 		//theDocument.getMain().drawLine(line.p1, line.p2, Color.RED, 5);
@@ -473,7 +696,7 @@ public class NNetworkHelper {
 			sprite.rotate(rot);
 			sprite.setDocPoint(line.p1);
 			//SceneHelper.addRandomHSV( sprite,  0.1f,  0.2f,  0.0f);
-			if( GlobalSettings.getMainDocument().cropSpriteToBoarder(sprite) ) GlobalSettings.getMainDocument().getMain().pasteSprite(sprite);
+			if( GlobalSettings.getDocument().cropSpriteToBoarder(sprite) ) GlobalSettings.getDocument().getMain().pasteSprite(sprite);
 
 		}
 

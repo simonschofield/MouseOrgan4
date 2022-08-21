@@ -35,13 +35,16 @@ public class NNetworkEdgeRunFinder{
 	ArrayList<NEdge> theEdgeList;
 
 	float angleTolleranceDegrees = 45;
-	
+	boolean runsCanOverlap = true;
 
 	RandomStream randomStream = new RandomStream(1);
 
 	ArrayList<Vertices2> extractedVertices;
 
-	// common to this and region extractor
+	// this is only used to check for overlap
+	ArrayList<NEdge> extractedEdges;
+	
+	
 	public NNetworkEdgeRunFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
 		
 		theNetwork = ntwk;
@@ -83,7 +86,11 @@ public class NNetworkEdgeRunFinder{
 	}
 	
 	
-	
+	public void setRunsCanOverlap(boolean overlap) {
+		// If set to false, then runs will end when they find another point that has been used in a previous edge run.
+		// Hence all the runs are broken up.
+		runsCanOverlap = overlap;
+	}
 	
 	
 	public ArrayList<Vertices2> extractAllEdgeRunVertices(){
@@ -91,7 +98,10 @@ public class NNetworkEdgeRunFinder{
 		// Use this method to get all the edge runs with
 		// the existing search criteria, as a list of Vertices2
 		//
-		ArrayList<Vertices2> edgeRunVertices = new ArrayList<Vertices2>();
+		
+		extractedVertices = new ArrayList<Vertices2>();
+		extractedEdges = new ArrayList<NEdge>();
+		
 		while(true) {
 			Vertices2 verts = extractEdgeRunVertices();
 			if(verts==null) {
@@ -99,13 +109,13 @@ public class NNetworkEdgeRunFinder{
 				break;
 			}
 
-			edgeRunVertices.add(verts);
+			extractedVertices.add(verts);
 			//System.out.println("extractNetworkEdgeVertices: found " + edgeRunVertices.size() + " runs");
 		}
 
-		System.out.println("preExtractEdgeRuns: found " + edgeRunVertices.size() + " runs");
-		extractedVertices = edgeRunVertices;
-		return edgeRunVertices;
+		System.out.println("preExtractEdgeRuns: found " + extractedVertices.size() + " runs");
+		
+		return extractedVertices;
 	}
 	
 	public ArrayList<Vertices2> extractAllEdgeRunVertices(KeyValuePairList searchCriteria){
@@ -165,18 +175,24 @@ public class NNetworkEdgeRunFinder{
 
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	// private??? methods This method returns an ordered list of connected edges, starting at a random
+	// private??? methods 
+	//
+	//This method returns an ordered list of connected edges, starting at a random
 	// available edge. These edges are removed from the initial
 	// edgeList, so cannot be re-used in any other search
 	//
 	// common to this and region extractor
 	Vertices2 extractEdgeRunVertices() {
-
+		 
 		ArrayList<NEdge> edgeRun = extractEdgeRun_RandomStart();
+		
+		
 		if(edgeRun==null){
 			System.out.println("NNetworkEdgeRunExtractor:extractEdgeRunVertices  - no more edge runs");
 			return null;
 		}
+		extractedEdges.addAll(edgeRun);
+		
 		return getVertices(edgeRun);
 	}
 	
@@ -327,11 +343,20 @@ public class NNetworkEdgeRunFinder{
 			otherPointInConnectedEdge = connectedEdge.getOtherPoint(connectionPoint);
 			connectedEdges.add(connectedEdge);
 			currentEdge = connectedEdge;
+			
+			if(runsCanOverlap == false && (pointIntersectsPreviouslyExtractedRun(otherPointInConnectedEdge) || pointIntersectsPreviouslyExtractedRun(connectionPoint)) ) break;
+			
 		}
 		return connectedEdges;
 	}
 
-
+	boolean pointIntersectsPreviouslyExtractedRun(NPoint np) {
+		if(extractedEdges==null) return false;
+		for(NEdge e: extractedEdges) {
+			if(e.containsPoint(np)) return true;
+		}
+		return false;
+	}
 
 	private NEdge getConnectedEdge(NEdge thisEdge, NPoint usingThisPoint) {
 		//finds an single edge connected to either end of thisEdge
@@ -349,6 +374,9 @@ public class NNetworkEdgeRunFinder{
 			//System.out.println("getConnectedEdge: best connected edge is at too great an angle");
 			return null;
 		}
+		
+		
+		
 
 		popFromEdgeList(foundEdge);
 		return foundEdge;

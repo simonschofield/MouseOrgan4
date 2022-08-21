@@ -34,8 +34,7 @@ import MOUtils.GlobalSettings;
 @SuppressWarnings("serial")
 public abstract class Surface extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
 	
-	// upate to test git
-	int abc = 4;
+	
 	enum UserSessionState {
 		  INITIALISE,
 		  LOAD,
@@ -48,6 +47,9 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	
 	public JFrame parentApp = null;
 
+	//Graphics theGraphics;
+	
+	
 	//private float globalSessionScale = 1.0f;
 
 	//protected MainDocumentRenderTarget theDocument;
@@ -126,7 +128,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	// the user can use theDocument as a reference to the MainDocument
 	public void initialiseSystem(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, int mainDocumentRenderType) {
 		// this is the only place this method is called
-		GlobalSettings.init(userSessionPth, fullScaleRenderW, fullScaleRenderH, sessionScl);
+		GlobalSettings.init(userSessionPth, fullScaleRenderW, fullScaleRenderH, sessionScl, this);
 		
 		theDocument = new MainDocument((int)(fullScaleRenderW * GlobalSettings.getSessionScale()), (int) (fullScaleRenderH * GlobalSettings.getSessionScale()), mainDocumentRenderType);
 		//GlobalSettings.setTheDocumentCoordSystem(theDocument);
@@ -302,6 +304,10 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	private void updateCanvasDisplay(Graphics g) {
 
 		Graphics2D g2d = (Graphics2D) g.create();
+		
+		//if(theGraphics==null) theGraphics = g;
+		
+		
 		if(theViewControl!=null) theViewControl.updateDisplay(g2d);
 		g2d.dispose();
 	}
@@ -342,7 +348,12 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	}
 
 	
-	
+	// the user can call this to force redraw the display
+	// from inside a tight operation. 
+	public void forceRefreshDisplay() {
+		//theGraphics = getGraphics();
+		updateCanvasDisplay(getGraphics());
+	}
 	
 	
 	////////////////////////////////////////////////////////////////////////

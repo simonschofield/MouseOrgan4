@@ -45,7 +45,11 @@ public class Vertices2 {
 		return new Vertices2(this.vertices);
 	}
 
-
+	boolean isValid() {
+		if(vertices==null) return false;
+		if(vertices.size() < 2) return false;
+		return true;
+	}
 
 	public boolean setWithLine2List(ArrayList<Line2> lines) {
 		// assumes lines are connected
@@ -267,6 +271,58 @@ public class Vertices2 {
 		return a/2f;
 	}
 	
+	
+	public Vertices2 getClipped_Length(float startLengthRemoved, float endLengthRemoved) {
+		float totalLen = this.getTotalLength();
+		
+		if(totalLen < startLengthRemoved+endLengthRemoved ) return this.copy();
+		
+		
+		float startParametric = startLengthRemoved/totalLen;
+		float endParametric = 1 - (endLengthRemoved/totalLen);
+		
+		
+		
+		
+		System.out.println("params " + startParametric + " " + endParametric);
+		
+		return getClipped_Lerp( startParametric,  endParametric);
+	}
+	
+	public Vertices2 getClipped_Lerp(float startParametric, float endParametric) {
+		
+		Vertices2 vcopy = this.copy();
+		int startLineIndex = 0;
+		int endLineIndex = vcopy.getNumLines();
+		
+		// start point
+		if(startParametric > 0) {
+			PVector newStartPoint =  vcopy.lerp(startParametric);
+			startLineIndex = vcopy.getLineNumber(startParametric);
+			vcopy.addAt(startLineIndex+1,newStartPoint);
+		}
+		
+		if(endParametric < 1) {
+			PVector newEndPoint =  vcopy.lerp(endParametric);
+			endLineIndex = vcopy.getLineNumber(endParametric);
+			vcopy.addAt(endLineIndex,newEndPoint);
+		}
+		
+		// now remove all points before startLineIndex and after endLineIndex
+		
+		Vertices2 clipped = new Vertices2();
+		
+		for(int n = startLineIndex+1; n <= endLineIndex; n++) {
+			PVector p = vcopy.get(n).copy();
+			clipped.add(p);
+		}
+		
+		return clipped;
+	}
+	
+	
+	
+	
 	/////////////////////////////////////////////////////////////////////////////////////
 	// run direction preferences
 	//
@@ -390,6 +446,22 @@ public class Vertices2 {
 		}
 		return getEndPoint();
 	}
+	
+	public int getLineNumber(float param) {
+		// returns the line segment number on which the interpolating parameter lies
+		float totalLength =  getTotalLength();
+		float targetLength = totalLength*param;
+
+		float traversedLength = 0;
+		for(int n = 0; n < getNumLines(); n++) {
+			Line2 thisLine = getLine(n);
+			traversedLength += thisLine.getLength();
+			if(traversedLength > targetLength) {
+				return n;
+			}
+		}
+		return getNumLines();
+	}
 
 
 
@@ -412,7 +484,7 @@ public class Vertices2 {
 
 		PVector topleft = getExtents().getTopLeft();
 
-
+		if(isValid()==false) return null;
 
 		PVector p = vertices.get(0).copy();
 

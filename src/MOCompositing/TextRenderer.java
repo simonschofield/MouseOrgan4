@@ -165,7 +165,7 @@ public class TextRenderer {
 	 void createRenderBuffer(String s) {
 		
 		 
-		Rect textBounds = getStringBoundsBufferSpace(s, getGraphics2D());
+		Rect textBounds = getStringBoundsBufferSpace(s);
 		
 		int w = (int)textBounds.getWidth();
 		int h = (int)textBounds.getHeight();
@@ -190,15 +190,16 @@ public class TextRenderer {
 	 }
 	 
 	 Rect getStringBoundsDocSpace(String s) {
-		 Rect textBoundsBufferSpace =  getStringBoundsBufferSpace(s, getGraphics2D());
+		 Rect textBoundsBufferSpace =  getStringBoundsBufferSpace(s);
 		 PVector docSpaceExtents = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace((int)textBoundsBufferSpace.getWidth(), (int)textBoundsBufferSpace.getHeight());
 		 return new Rect(0,0,docSpaceExtents.x,docSpaceExtents.y);
 	 }
 	 
 	 
-	 public Rect getStringBoundsBufferSpace(String s, Graphics2D g2d) {
+	 public Rect getStringBoundsBufferSpace(String s) {
+		 Graphics2D g2d = graphics2D;
 		 FontMetrics fontMetrics = g2d.getFontMetrics(font);
-		 Rectangle2D r2d = fontMetrics.getStringBounds(s, g2d);
+		 Rectangle2D r2d = fontMetrics.getStringBounds(s, g2d); 
 		 double bufferSpaceWidth = r2d.getWidth();
 		 double bufferSpaceHeight = r2d.getHeight();
 		 //bufferSpaceHeight += bufferSpaceHeight*0.1; // to fit descenders

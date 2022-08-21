@@ -16,6 +16,7 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import MOAppSessionHelpers.SceneHelper;
 import MOImage.ImageProcessing;
 import MOMaths.Line2;
 import MOMaths.PVector;
@@ -127,13 +128,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		pasteImage_BufferCoordinates(resizedImage,0,0,alpha);
 	}
 
-	
-	
-	
-	
 
-	
-	
 	
 	////////////////////////////////////////////////////////////////////////////////////
 	// Generic sprite paste used by all sub-classes. Pastes the pixel values of the image
@@ -191,8 +186,8 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	
 	////////////////////////////////////////////////////////////////////////////////////
 	// Experimental erase operation
-	// Rather than adding to what is already there, this method reduces the alpha of pixels within the existing targetRenderImage
-	// subtracts the sprite's alpha from the existing alpha. The sprite's colour is ignored. 
+	// Rather than adding to what is already there, this method reduces the alpha of pixels within the existing targetRenderImage.
+	// It subtracts the sprite's alpha from the existing alpha. The sprite's colour is ignored. 
 	public void pasteSpriteErase(Sprite sprite) {
 		PVector topLeftDocSpace = sprite.getDocSpaceRect().getTopLeft();
 		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(topLeftDocSpace);
@@ -264,11 +259,14 @@ public class RenderTarget implements MainDocumentRenderTarget{
 
 	
 	
-	//////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// scaled drawing operations
-	// All units are in documentSpace, including lineThickness
+	// All units are in documentSpace, including lineThickness and circle radius
 	// so, in this case, radius and lineThickness are fractions of the longest edge.
-	
+	// As this is not very human-friendly, use SceneHelper.millimeterToDocspace(mmInFinalPrintedImage) to help
+	//
+	//
+	//
 	public void drawCircle(PVector docPoint, float radiusDocSpace, Color fillColor, Color lineColor,
 			float lineThicknessDocSpace) {
 
@@ -280,7 +278,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 
 		PVector bufpt = coordinateSystem.docSpaceToBufferSpace(docPoint);
 
-		int lineThicknessInPixels = (int) (lineThicknessDocSpace * coordinateSystem.getLongestBufferEdge());
+		float lineThicknessInPixels = lineThicknessDocSpace * coordinateSystem.getLongestBufferEdge();
 		shapeDrawer.setDrawingStyle(fillColor, lineColor, lineThicknessInPixels);
 
 		//shapeDrawer.setDrawingStyle(fillColor, Color.BLACK, 4);
@@ -297,10 +295,12 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	}
 	
 	public void clearRect(Rect r) {
+		// deletes everything inside of the rect
 		fillBackground_DocSpace( r, new Color(0,0,0,0));
 	}
 	
 	public void clearOutsideRect(Rect r) {
+		// deletes everything outside of the rect
 		float dW = coordinateSystem.getDocumentWidth();
 		float dH = coordinateSystem.getDocumentHeight();
 		float rl = r.left;
@@ -344,8 +344,17 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		float r = pixelRadius * GlobalSettings.getSessionScale();
 		shapeDrawer.setDrawingStyle(c, c, 2);
 		PVector bufpt = coordinateSystem.docSpaceToBufferSpace(docSpacePoint);
-		shapeDrawer.drawEllipse(bufpt.x, bufpt.y, r, r);
+		float halfRadius = r/2;
+		shapeDrawer.drawEllipse(bufpt.x-halfRadius, bufpt.y-halfRadius, r, r);
 
+	}
+	
+	void drawLine(Line2 l, Color c, float w) {
+		//Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
+		shapeDrawer.setDrawingStyle(c, c, w);
+		PVector bufStart = coordinateSystem.docSpaceToBufferSpace(l.p1);
+		PVector bufEnd = coordinateSystem.docSpaceToBufferSpace(l.p2);
+		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
 
 	public void drawLine(PVector start, PVector end, Color c, float w) {
@@ -357,28 +366,41 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	}
 	
 	
-	void drawLine(Line2 l, Color c, float w) {
-		//Color ca = new Color(c.getRed(), c.getGreen(), c.getBlue(), 255);
-		shapeDrawer.setDrawingStyle(c, c, w);
-		PVector bufStart = coordinateSystem.docSpaceToBufferSpace(l.p1);
-		PVector bufEnd = coordinateSystem.docSpaceToBufferSpace(l.p2);
+	public void drawLine(PVector start, PVector end, Color c, float w, float[] dashPattern) {
+		if(dashPattern == null) {
+			//System.out.println("setting plain style");
+			shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), c, w);
+		}else {
+			//System.out.println("setting dashed style");
+			float[] scaledDashPattern = sessionScaleDashPattern(dashPattern);
+			shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), c, w, scaledDashPattern);		
+		}
+		PVector bufStart = coordinateSystem.docSpaceToBufferSpace(start);
+		PVector bufEnd = coordinateSystem.docSpaceToBufferSpace(end);
 		shapeDrawer.drawLine(bufStart.x, bufStart.y, bufEnd.x, bufEnd.y);
 	}
 	
 	
 	public void drawVertices2NoFill(Vertices2 v, Color lineCol, float w, float[] dashPattern) {
 		// for the sake of ease of use, dash pattern styles are in 100% render pixel dimensions, so if the render is 
-		// scaled-don, so should the dash styles
+		// scaled-down, so should the dash styles
 		
 		
 		// draws the lines only, has an option for dashes
 		if(dashPattern == null) {
+			//System.out.println("setting plain style");
 			shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), lineCol, w);
 		}else {
+			//System.out.println("setting dashed style");
 			float[] scaledDashPattern = sessionScaleDashPattern(dashPattern);
+			shapeDrawer.setStrokeCapJoin(BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
 			shapeDrawer.setDrawingStyle(MOImage.MOColor.invisibleCol(), lineCol, w, scaledDashPattern);		
 			}
+		
+
 		Vertices2 vbuff = v.getInBufferSpace(false);
+		if(vbuff==null) return;
+		
 		shapeDrawer.drawVertices2(vbuff);
 	}
 	

@@ -26,7 +26,8 @@ public class Sprite {
 	public float alpha = 1;
 	
 	public Sprite(BufferedImage img) {
-		setRandomSeed(1);
+		spriteData = new SpriteData();
+		setRandomSeed(spriteData.id);
 		setImage(img);
 	}
 	
