@@ -200,6 +200,7 @@ public class TextRenderer {
 		 Graphics2D g2d = graphics2D;
 		 FontMetrics fontMetrics = g2d.getFontMetrics(font);
 		 Rectangle2D r2d = fontMetrics.getStringBounds(s, g2d); 
+		 
 		 double bufferSpaceWidth = r2d.getWidth();
 		 double bufferSpaceHeight = r2d.getHeight();
 		 //bufferSpaceHeight += bufferSpaceHeight*0.1; // to fit descenders

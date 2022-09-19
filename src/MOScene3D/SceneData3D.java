@@ -8,7 +8,7 @@ import MOImage.FloatImage;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
 import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.MOImageGroup;
+import MOImageCollections.ImageAssetGroup;
 import MOMaths.Fustrum3D;
 import MOMaths.PVector;
 import MOMaths.Range;
@@ -59,7 +59,7 @@ public class SceneData3D {
 	
 	
 	// this reads in and contains all the png files within the input folder
-	MOImageGroup renderImages;
+	ImageAssetGroup renderImages;
 	BufferedImage currentRenderKeyImage;
 	boolean currentRenderKeyImageHasAlpha;
 	
@@ -96,7 +96,7 @@ public class SceneData3D {
 		
     public void load(){
     	DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(directoryPath, "png");
-    	renderImages = new MOImageGroup();
+    	renderImages = new ImageAssetGroup();
     	renderImages.setDirectoryFileNameScanner(dfns);
 		renderImages.loadImages();
 		
@@ -176,7 +176,7 @@ public class SceneData3D {
 	
 	
 	public ArrayList<String> getRenderImageNames(){
-		return renderImages.getMOImageNamesList();
+		return renderImages.getImageAssetNamesList();
 	}
 
 	public BufferedImage setCurrentRenderImage(String shortName) {
@@ -187,7 +187,7 @@ public class SceneData3D {
 	
 	public void setCurrentRenderImage(int  n) {
 		currentRenderKeyImage = renderImages.getImage(n);
-		String shortName = renderImages.getImageName(n);
+		String shortName = renderImages.getImageAssetName(n);
 		System.out.println("curren render image is " + shortName);
 		currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentRenderKeyImage);
 	}

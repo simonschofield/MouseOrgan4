@@ -46,7 +46,7 @@ public class SecondsTimer{
 	  
 	  // returns the average elapsed time, based on cumulative elapsed times
 	  // so, gets more accurate the longer it runs
-	  float getAverageElapsedTime() {
+	  public float getAverageElapsedTime() {
 		  getElapsedTime();
 		  float now =  getTimeSinceStart();
 		  return (now/counter);

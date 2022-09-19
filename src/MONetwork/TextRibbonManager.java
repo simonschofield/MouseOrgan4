@@ -33,8 +33,8 @@ public class TextRibbonManager {
 	
 	
 	
-	public ArrayList<Vertices2> createVerticesFromNetworkEdges(NNetwork ntwk, KeyValuePairList searchCriteria, Float shortestlength) {
-		// Convenience method for creating the correct type of vertices from a nework
+	public ArrayList<Vertices2> createVerticesFromNetworkEdges(NNetwork ntwk, KeyValuePairList searchCriteria, float shortestlength) {
+		// Convenience method for creating the correct type of vertices from a set of text ribbons
 		// 45 degree run-angle tolerance
 		// sets canOverlap to false, so runs do not inter-penetrate
 		// sorts longest to shortest
@@ -47,7 +47,7 @@ public class TextRibbonManager {
 		
 		edgeRunExtractor.sortEdgeRuns(false); // longest first
 		edgeRunExtractor.setRunDirectionPreference(Vertices2.LEFTRIGHT); // running in the human-readable direction!
-		if(shortestlength!=null) edgeRunExtractor.removeShortEdgeRuns(shortestlength); // suggest 0.005f
+		edgeRunExtractor.removeShortEdgeRuns(shortestlength); // suggest 0.005f
 	    
 		
 		return edgeRunExtractor.getEdgeRunVertices();
@@ -58,9 +58,10 @@ public class TextRibbonManager {
 	
 
 	public void createTextRibbons(ArrayList<Vertices2> unclippedVertices, TextBank textBank, TextRenderer textRenderer, float docSpaceFontHeight, float verticesClippingAmt) {
-		// RibbonVerts should be assed in un-clipped, as the association between continuous ribbons works on the
+		// RibbonVerts should be added in unclipped, as the association between continuous ribbons works on the
+		// basis of connected ribbons sharing a similar end points. If they are preclipped then no association can be made.
 		// They should also be set in their run direction Left to right, as this is used in associating continuous text across joined runs
-		// basis of connected ribbons sharing a similar end points. If they are pre-clipped then no association can be made.
+		
 		//theTextRenderer = textRenderer;
 		//theDocSpaceFontHeight = docSpaceFontHeight;
 		
@@ -68,7 +69,7 @@ public class TextRibbonManager {
 		// they have NOT calculated the text on the vertices yet
 	    for(Vertices2 verts: unclippedVertices) {
 	    	// this makes the TextRibbon, and populated it with RibbonLetters
-	    	TextRibbon rib = new TextRibbon(textBank, textRenderer, verts, docSpaceFontHeight);
+	    	TextRibbon rib = new TextRibbon(this, textBank, textRenderer, verts, docSpaceFontHeight);
 	    	theTextRibbonList.add(rib);
 	    }
 	    
@@ -76,16 +77,50 @@ public class TextRibbonManager {
 	    for(TextRibbon rib: theTextRibbonList) {
 	    	rib.findTailLinkedRibbons(theTextRibbonList);
 	    }
-	    
-	    // now clip the vertices (optional) and then create the text on the ribbon
+	    // now you can clip the vertices
 	    for(TextRibbon rib: theTextRibbonList) {
 	    	rib.clipVertices(verticesClippingAmt);
-	    	rib.precalculateTextOnVertices();
-	    	theRibbonLetterList.addAll(rib.theRibbonLetters);
-	    	System.out.println("adding text ribbon size " + rib.getNumLetters());
 	    }
 	    
+	    // This is the bit to alter to make tail-linked text work.
+	    // Rather than doing it sequentially, you need to
+	    // 1/ rib = getNextUnprocessedTextRibbon() (if null then you have finished)
+	    // 2/ rib.precalculateTextOnVertices();
+	    // 3/ if there is a tail linked next ribbon, get it and remove nextrib from all the textRibbonLists, else go to 1  
+	    // 4/ go to 2
+	    TextRibbon rib = getNextUnprocessedTextRibbon();
+	    while(rib!=null) {
+	    	
+	    	rib.precalculateTextOnVertices();
+	    	
+	    	theRibbonLetterList.addAll(rib.theRibbonLetters);
+	    	
+	    	TextRibbon linkedRib = rib.getUnprocessedTailLinkedRibbon();
+	    	
+	    	if(linkedRib==null) {
+	    		rib = getNextUnprocessedTextRibbon();
+	    	}else {
+	    		rib = linkedRib;
+	    	}
+	    	
+	    }
+	    
+	    
 
+	}
+	
+	
+	
+	
+	TextRibbon getNextUnprocessedTextRibbon() {
+		for(TextRibbon rib: theTextRibbonList) {
+	    	if(rib.isProcessed()==false) {
+	    		rib.setProcessed(true);
+	    		return rib;
+	    	}
+	    	//System.out.println("adding text ribbon size " + rib.getNumLetters());
+	    }
+		return null;
 	}
 	
 
@@ -113,6 +148,13 @@ public class TextRibbonManager {
 	
 	public int getCurrentTextRibbonNumLetters() {
 		return theRibbonLetterList.size();
+	}
+	
+	
+	
+	float getRibbonLetterIterationProgress() {
+		// used just for seeing how far through the list we are to give visual feedback to user in long operations
+		return getCurrentTextRibbonLetterNumber()/(float) getCurrentTextRibbonNumLetters();
 	}
 	
 	

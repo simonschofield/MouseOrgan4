@@ -48,8 +48,14 @@ public class ROIHelper {
 		}
 		
 		
+		
+		
 		public void setCurrentROIName(String s) {
-			currentROIName = s;
+			if(s.contains("master" ) || s.contains("Master" )) {
+				currentROIName = "master";
+			} else {
+				currentROIName = s;
+			}
 			
 		}
 		
@@ -117,7 +123,7 @@ public class ROIHelper {
 		}
 		
 		public boolean isUsingMaster() {
-			if(currentROIName.equals("master")) return true;
+			if(currentROIName.contains("master") || currentROIName.contains("Master")) return true;
 			return false;
 		}
 		

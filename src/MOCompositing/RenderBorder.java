@@ -1,12 +1,14 @@
 package MOCompositing;
 
+
+
 import java.awt.AlphaComposite;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.ScaledMOImageGroup;
+import MOImageCollections.ScaledImageAssetGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
@@ -55,7 +57,7 @@ public class RenderBorder {
 	int rightEdgeAction = CROP_ACTION_NONE;
 	int bottomEdgeAction = CROP_ACTION_NONE;
 
-	ScaledMOImageGroup bespokeCropImages;
+	ScaledImageAssetGroup bespokeCropImages;
 	
 	// this is for selecting the particular edge-mask
 	QRandomStream qRandomStream = new QRandomStream(1);
@@ -86,7 +88,7 @@ public class RenderBorder {
 	
 	public void setBespokeCropImageSampleGroup(String pathandfilename, int unscaledWidth, int unscaledHeight) {
 		DirectoryFileNameScanner cropdfns = new DirectoryFileNameScanner(pathandfilename, "png");
-		bespokeCropImages = new ScaledMOImageGroup("cropImages");
+		bespokeCropImages = new ScaledImageAssetGroup("cropImages");
 		bespokeCropImages.setDirectoryFileNameScanner(cropdfns);
 		bespokeCropImages.loadImages();
 		float sessionScale = GlobalSettings.getSessionScale();
@@ -104,8 +106,9 @@ public class RenderBorder {
 	private boolean logSpriteCropDecision(Sprite sprite, boolean contributes) {
 		// this is used to echo the crop decision in the above method, and log it
 		// to a list, which is saved as a file at the end of the render. This can
-		// then be used to speed up subsequent renders by not bothering with sprites that do not
+		// then be used to speed up subsequent renders by culling sprites that do not
 		// contribute to the image (e.g. totally outside the renderBoarder, or the document bounds if no render boarder has been set)
+		//System.out.println("crop report id " + sprite.spriteData.id + " contribues? " + contributes);
 		if(contributes) spriteCropDecisionList.addDecision(sprite.spriteData.id, contributes);
 		return contributes;
 	}
@@ -153,8 +156,12 @@ public class RenderBorder {
 		
 		//if(isActive()==false) return logSpriteCropDecision( sprite, true);
 		
+		
+		
+		
 		String overlapReport = sprite.getDocSpaceRect().reportIntersection(boarderRect);
 		
+		//System.out.println("cropSprite " + overlapReport);
 		
 		// do the trivial non-cropping actions if the image is wholly inside or outside the boarderRect
 		// or is fully excluded, or there is no action to be taken
@@ -271,7 +278,7 @@ public class RenderBorder {
 
 	// alters the preCroppedImage
 	private boolean addBespokeCropToEdge(BufferedImage preCroppedImage, String theEdge) {
-		int numCropImages = bespokeCropImages.getNumMOImages();
+		int numCropImages = bespokeCropImages.getNumImageAssets();
 		int n = qRandomStream.randRangeInt(0, numCropImages-1);
 		BufferedImage croppingMask = bespokeCropImages.getImage(n);
 		int sourceImageW = preCroppedImage.getWidth();

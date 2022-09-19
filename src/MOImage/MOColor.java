@@ -30,12 +30,12 @@ public class MOColor {
 		return new Color(0,0,0,0);
 	}
 	
-	public static Color getRandomRGB() {
+	public static Color getRandomRGB(int alpha) {
 		int r = ranStream.randRangeInt(0, 255);
 		int g = ranStream.randRangeInt(0, 255);
 		int b = ranStream.randRangeInt(0, 255);
 		
-		return new Color(r,g,b);
+		return new Color(r,g,b, alpha);
 	}
 	
 	public static Color getRandomRGB(int loR, int hiR, int loG, int hiG, int loB, int hiB) {

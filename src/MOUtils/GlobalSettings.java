@@ -18,7 +18,7 @@ import MOImage.ImageProcessing;
 // ROI helper (Optional) - this generates the full size render dims
 // in UserSession initialiseUserSession you MUST call initialsieSystem(....)
 // RenderSaver (Optional)
-import MOImageCollections.ScaledMOImageGroupManager;
+import MOImageCollections.ScaledImageAssetGroupManager;
 
 public class GlobalSettings {
 	
@@ -29,7 +29,7 @@ public class GlobalSettings {
 	// The theDocumentCoordSystem is set as soon as the MainDocument is instantiated
 	private static float sessionScale = 0;
 	private static ImageCoordinateSystem theDocumentCoordSystem;
-	private static ScaledMOImageGroupManager  theSpriteImageGroupManager;
+	private static ScaledImageAssetGroupManager  theImageAssetGroupManager;
 	private static MainDocument theDocument;
 	private static Surface theSurface;
 	
@@ -74,7 +74,7 @@ public class GlobalSettings {
 		setDefaultSessionName();
 		
 		// for your convenience, and because we don't want a null one
-		theSpriteImageGroupManager = new ScaledMOImageGroupManager();
+		theImageAssetGroupManager = new ScaledImageAssetGroupManager();
 		theSurface = surf;
 		}
 	
@@ -187,13 +187,17 @@ public class GlobalSettings {
 		return mouseOrganImageCachePath;
 	}
 
-	public static ScaledMOImageGroupManager getTheSpriteImageGroupManager() {
-		return theSpriteImageGroupManager;
+	public static ScaledImageAssetGroupManager getImageAssetGroupManager() {
+		if(theImageAssetGroupManager==null) {
+			System.out.println("GlobalSettings theImageAssetGroupManager has not been set!");
+			
+		}
+		return theImageAssetGroupManager;
 	}
 
-	public static void setImageGroupManager(ScaledMOImageGroupManager theSpriteImageGroupManager) {
+	public static void setImageAssetGroupManager(ScaledImageAssetGroupManager theSpriteImageGroupManager) {
 		// only set by the SpriteImageGroupManager when instantiated
-		GlobalSettings.theSpriteImageGroupManager = theSpriteImageGroupManager;
+		GlobalSettings.theImageAssetGroupManager = theSpriteImageGroupManager;
 	}
 
 }

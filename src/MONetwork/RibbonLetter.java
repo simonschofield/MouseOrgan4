@@ -53,7 +53,7 @@ public class RibbonLetter{
 		return ( otherLetter.theOwningTextRibbon == this.theOwningTextRibbon );
 	}
 	
-	public float getDocSpaceLength() {
+	public float getLength_DocSpace() {
 		return getCharLine().getLength();
 	}
 	

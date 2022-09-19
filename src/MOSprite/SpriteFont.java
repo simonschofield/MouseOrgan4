@@ -1,7 +1,7 @@
 package MOSprite;
 
 
-import MOImageCollections.ScaledMOImageGroup;
+import MOImageCollections.ScaledImageAssetGroup;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Range;
@@ -104,7 +104,7 @@ public class SpriteFont implements SpriteSourceInterface{
 		SpriteData.origin = origin.copy();
 		
 		SpriteData.ImageGroupItemNumber = n;
-		SpriteData.ImageGroupItemShortName = getSpriteImageGroup().getImageName(n);
+		SpriteData.ImageGroupItemShortName = getSpriteImageGroup().getImageAssetName(n);
 		return SpriteData;
 	}
 	
@@ -115,14 +115,15 @@ public class SpriteFont implements SpriteSourceInterface{
 	}
 	
 	public int getNumImages() {
-		return getSpriteImageGroup().getNumMOImages();
+		return getSpriteImageGroup().getNumImageAssets();
 		
 	}
 	
 	
-	protected ScaledMOImageGroup getSpriteImageGroup() {
-		//System.out.println("getSpriteImageGroup SprietImage group is " + imageSampleGroupName );
-		return GlobalSettings.getTheSpriteImageGroupManager().getMOImageGroup(imageSampleGroupName);
+	protected ScaledImageAssetGroup getSpriteImageGroup() {
+		System.out.println("getSpriteImageGroup SpriteImage group is " + imageSampleGroupName );
+		
+		return GlobalSettings.getImageAssetGroupManager().getScaledImageAssetGroup(imageSampleGroupName);
 	}
 	
 	
@@ -149,7 +150,7 @@ public class SpriteFont implements SpriteSourceInterface{
 		int num = 0;
 		while(bailCount > 0) {
 			num =  randomStream.randRangeInt(0, getNumImages() - 1);
-			String shortName = getSpriteImageGroup().getImageName(num);
+			String shortName = getSpriteImageGroup().getImageAssetName(num);
 			if( shortName.contains(instancenameMustContain)) return num;
 			bailCount--;
 		}
@@ -163,7 +164,7 @@ public class SpriteFont implements SpriteSourceInterface{
 		int num = 0;
 		while(bailCount > 0) {
 			num =  randomStream.randRangeInt(0, getNumImages() - 1);
-			float hue = getSpriteImageGroup().getMOImage(num).stats.dominantHue;
+			float hue = getSpriteImageGroup().getImageAsset(num).stats.dominantHue;
 			if( hueMustBeBetween.isBetweenInc(hue)) return num;
 			bailCount--;
 		}

@@ -284,7 +284,7 @@ public class Vertices2 {
 		
 		
 		
-		System.out.println("params " + startParametric + " " + endParametric);
+		//System.out.println("params " + startParametric + " " + endParametric);
 		
 		return getClipped_Lerp( startParametric,  endParametric);
 	}

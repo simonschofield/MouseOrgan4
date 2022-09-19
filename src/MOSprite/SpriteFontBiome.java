@@ -2,19 +2,19 @@ package MOSprite;
 
 import java.util.ArrayList;
 
-import MOImageCollections.ScaledMOImageGroupManager;
+import MOImageCollections.ScaledImageAssetGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 //
 //
-// contains a number of seed fonts in a probability stack (may also contain only one). The individual seed fonts within 
+//  contains a number of SpriteFonts in a probability stack (may also contain only one). The individual seed fonts within 
 //  can be named individually, so as to identify sprites from  and treat different fonts
 //
 
 public class SpriteFontBiome  implements SpriteSourceInterface{
 
 	
-	ScaledMOImageGroupManager theImageSampleGroupManager;
+	ScaledImageAssetGroupManager theImageSampleGroupManager;
 	ArrayList<SpriteFont> biomeItems = new ArrayList<SpriteFont>();
 	boolean probabilitiesNormalised = false;
 	QRandomStream randomStream;

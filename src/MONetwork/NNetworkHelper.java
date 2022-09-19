@@ -102,7 +102,7 @@ public class NNetworkHelper {
 	}
 	
 	public static void drawEdgeRandomColorWithPoints(NEdge e, float w, RenderTarget rt) {
-		Color c = MOColor.getRandomRGB();		
+		Color c = MOColor.getRandomRGB(255);		
 		drawEdge(e, c, w, rt);
 		
 		drawPoint(e.p1, Color.RED, 0.001f, rt);
@@ -290,19 +290,20 @@ public class NNetworkHelper {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Doing text ribbons
 	// 
-	public static void drawTextRibbons(NNetwork theNetwork, KeyValuePairList searchCriteria, String textPath, float fontheight, float minimumRibbonLength) {
+	public static void drawTextRibbons(NNetwork theNetwork, KeyValuePairList searchCriteria, String textPath, float fontheight, float minimumRibbonLength, boolean updateGraphicsDuring) {
 		TextBank textbank = new TextBank();
 	    String textPathAndName = GlobalSettings.getDataAssetsPath(null) + "text documents\\Heart of darkness.txt";
 	    
-	    System.out.println(" loading text " + textPathAndName);	 
+	    System.out.println("Drawing text ribbons ");	 
 	    
 	    textbank.load(textPathAndName);
 	    textbank.setIterator(0);
 
+
 	    TextRenderer textRenderer = new TextRenderer();
 	    textRenderer.setFont("Serif", 0, 250, Color.BLACK);
 
-	    float backingRoadWidth = SceneHelper.docSpaceToFullScalePixels(fontheight)*0.4f;
+	   // float backingRoadWidth = SceneHelper.docSpaceToFullScalePixels(fontheight)*0.4f;
 	    //System.out.println("Road width is " + backingRoadWidth);
 	    //System.out.println("search criteria is " + searchCriteria.getAsCSVLine());
 	   // System.out.println("text bank is " + textbank);
@@ -310,23 +311,23 @@ public class NNetworkHelper {
 	    
 	    
 	    TextRibbonManager theTextRibbonManager = new TextRibbonManager();
-	    ArrayList<Vertices2> edgeRunVertices = theTextRibbonManager.createVerticesFromNetworkEdges(theNetwork, searchCriteria, 0.015f);
+	    ArrayList<Vertices2> edgeRunVertices = theTextRibbonManager.createVerticesFromNetworkEdges(theNetwork, searchCriteria, 0.00f);
 		
 		
 	    
-		boolean test = false;
-	    if(test) {
+		boolean showUnderlyingVertices = false;
+	    if(showUnderlyingVertices) {
 	    	NNetworkHelper.drawVertices2ListNoFill(edgeRunVertices, 10, null, null);
 	    	GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
-	    	return;
+	    	//return;
 	    }
 	    
 	   
-	    theTextRibbonManager.createTextRibbons(edgeRunVertices, textbank, textRenderer, fontheight, fontheight);
+	    theTextRibbonManager.createTextRibbons(edgeRunVertices, textbank, textRenderer, fontheight, fontheight/2f);
 
 	    
 	      
-	    float currentRibbonlength = 1;
+	    int lastProgress=-1;
 
 		while(true) {
 
@@ -341,11 +342,14 @@ public class NNetworkHelper {
 			
 			if(len < minimumRibbonLength) return;
 			
-			
-			if(len !=  currentRibbonlength) {
-				GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
-				currentRibbonlength = len;
-				System.out.println("current ribbon length = " + len);
+			int progress = (int)(theTextRibbonManager.getRibbonLetterIterationProgress()*20);
+			if(progress!=lastProgress) {
+				System.out.println("progress "+ progress*5 + "%");
+				if(updateGraphicsDuring) {
+					GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+				}
+				lastProgress= progress;
+				
 			}
 		}
 		
@@ -398,7 +402,8 @@ public class NNetworkHelper {
 		for(Vertices2 v: verts) {
 			
 			if(c==null) {
-				col = MOColor.getRandomRGB();
+				col = MOColor.getRandomRGB(100);
+			
 			} else {
 				col = c;
 			}
@@ -412,7 +417,7 @@ public class NNetworkHelper {
 		// if dashPattern is nulled, then uses default line
 		RenderTarget rt = GlobalSettings.getDocument().getMain();
 		
-		if(c==null) c = MOColor.getRandomRGB();
+		if(c==null) c = MOColor.getRandomRGB(100);
 		
 		
 		rt.drawVertices2NoFill(verts, c, width, dashPattern);
@@ -566,7 +571,7 @@ public class NNetworkHelper {
 		}
 		
 		
-		Color randomRGB = MOColor.getRandomRGB();
+		Color randomRGB = MOColor.getRandomRGB(255);
 		float blendAmt = 0;
 		if(randomiseUrbanColours) blendAmt = 0.5f;
 		KeyValuePair densityAttribute = new KeyValuePair("REGIONTYPE", "URBAN_DENSITY_HIGH");

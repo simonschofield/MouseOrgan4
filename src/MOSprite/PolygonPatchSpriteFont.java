@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 
 import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
-import MOImageCollections.ScaledMOImageGroup;
+import MOImageCollections.ScaledImageAssetGroup;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;

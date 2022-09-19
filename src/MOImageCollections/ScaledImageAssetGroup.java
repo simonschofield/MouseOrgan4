@@ -14,7 +14,7 @@ import MOUtils.MOStringUtils;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-// SessionScaledImageAssetGroup
+// ScaledImageAssetGroup
 // Inherits from ImageAssetGroup. 
 // but the images are scaled by the global SessionScale upon load.
 // The scaled items are cached for rapid reload next time.
@@ -23,21 +23,21 @@ import MOUtils.MOStringUtils;
 // A SpriteSeed + A SpriteImage = Sprite
 
 
-public class ScaledMOImageGroup extends MOImageGroup{
+public class ScaledImageAssetGroup extends ImageAssetGroup{
 	// this is the global session scale as set by the userSession
 	// it cannot be different between objects, so is a static
 	static float sessionScale = 1;
 	
 	private String groupName = "";
 	
-	public ScaledMOImageGroup(String name) {
+	public ScaledImageAssetGroup(String name) {
 		sessionScale = GlobalSettings.getSessionScale();
 		groupName = name;
 	}
 	
 	
-	public ScaledMOImageGroup copy(String copyName) {
-		ScaledMOImageGroup cpy = new ScaledMOImageGroup(copyName);
+	public ScaledImageAssetGroup copy(String copyName) {
+		ScaledImageAssetGroup cpy = new ScaledImageAssetGroup(copyName);
 		
 		
 		cpy.widthExtrema = this.widthExtrema.copy();
@@ -47,7 +47,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 		cpy.cropRect = this.cropRect.copy();
 		cpy.preScale = this.preScale;
 
-		cpy.copyMOImagesFromOtherGroup(this);
+		cpy.copyImageAssetsFromOtherGroup(this);
 		
 		return cpy;
 	}
@@ -153,21 +153,21 @@ public class ScaledMOImageGroup extends MOImageGroup{
 	//
 	public void scaleAll(float x, float y) {
 		
-		for (ImageAsset moImage: theImageList) {
+		for (ImageAsset moImage: theImageAssetList) {
 			moImage.image = ImageProcessing.scaleImage(moImage.image, x, y);
 		}
 	}
 
 	public void rotateAll(float rot) {
 		
-		for (ImageAsset moImage: theImageList) {
+		for (ImageAsset moImage: theImageAssetList) {
 			moImage.image = ImageProcessing.rotateImage(moImage.image, rot);
 		}
 	}
 
 	public void resizeToAll(int x, int y) {
 		
-		for (ImageAsset moImage: theImageList) {
+		for (ImageAsset moImage: theImageAssetList) {
 			moImage.image = ImageProcessing.resizeTo(moImage.image, x, y);
 		}
 	}
@@ -175,7 +175,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 	public void cropAll(Rect cropRect) {
 		if (cropRect.equals(new Rect())) return;
 		
-		for (ImageAsset moImage: theImageList) {
+		for (ImageAsset moImage: theImageAssetList) {
 			moImage.image = ImageProcessing.cropImageWithNormalisedRect(moImage.image, cropRect);
 		}
 	}
@@ -183,7 +183,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 	public void addBoarderProportionAll(float left, float top, float right, float bottom) {
 		//calculates the new additions as a proportion of the existing width or height
 
-		for (ImageAsset moImage: theImageList) {
+		for (ImageAsset moImage: theImageAssetList) {
 			int w = moImage.image.getWidth();
 			int h = moImage.image.getHeight();
 			int leftAddition = (int) (w * left);
@@ -205,7 +205,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 		//		ImageProcessing.COLORTRANSFORM_LEVELS = 5;
 		//		ImageProcessing.COLORTRANSFORM_BLENDWITHCOLOR = 6;
 		//		ImageProcessing.COLORTRANSFORM_SET_DOMINANT_HUE = 7;
-		for (ImageAsset moImage: theImageList) {
+		for (ImageAsset moImage: theImageAssetList) {
 			moImage.image = ImageProcessing.colorTransform(moImage.image, function, p1, p2, p3);
 			moImage.calculateStats();
 		}
@@ -233,7 +233,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 		img = applyPreScaleAndCrop(img);
 		
 		// NOW add the image to the list
-		addMOImage( img, thisShortFileName);
+		addImageAsset( img, thisShortFileName);
 	}
 	
 	
@@ -244,7 +244,7 @@ public class ScaledMOImageGroup extends MOImageGroup{
 	private void assertImageTYPE_INT_ARGB() {
 		// all image content items should be of type INT_ARGB for all the
 		// operations to work OK. This makes sure they are.		
-		for (ImageAsset moImage : theImageList) {
+		for (ImageAsset moImage : theImageAssetList) {
 			moImage.image = ImageProcessing.assertImageTYPE_INT_ARGB(moImage.image);
 			}
 		

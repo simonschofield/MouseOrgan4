@@ -9,7 +9,12 @@ import MOMaths.PVector;
 import MOSprite.SpriteData;
 import MOSprite.SpriteDataBatch;
 import MOUtils.KeyValuePairList;
-
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// This is used to speed up the rendering process of ROIs within a previously larger image,
+// by culling non-contributing SpriteData (seeds).
+// The sprite crop decision and contribution result is registered and saved by the RenderBoarder class. However, for ease of use, this functionality
+// is wrapped inside SpriteDataBatchHelper_Scene3D, which does both saving and loading and culling upon application of the ROI to the sprite data.
+//
 public class SpriteCropDecisionList{
 	ArrayList<SpriteCropDecision> cropDecisionList = new ArrayList<SpriteCropDecision>();
 

@@ -7,8 +7,8 @@ import java.awt.image.BufferedImage;
 import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.ScaledMOImageGroup;
-import MOImageCollections.ScaledMOImageGroupManager;
+import MOImageCollections.ScaledImageAssetGroup;
+import MOImageCollections.ScaledImageAssetGroupManager;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
@@ -23,14 +23,14 @@ public class SceneHelper {
 	
 	// load a SpriteImageGroup and add it to the ImageGroupManager (ImageGroupManager must be instantiated before calling this)
 	public static void loadSpriteImageGroup(String spriteImageGroupSamplePath, String spriteImageGroupName, String fileNameContains) {
-		    ScaledMOImageGroup spriteImageGroup = new ScaledMOImageGroup(spriteImageGroupName);
+		    ScaledImageAssetGroup spriteImageGroup = new ScaledImageAssetGroup(spriteImageGroupName);
 		    DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(spriteImageGroupSamplePath);
 		    if(fileNameContains != null) {
 		    	dfns.setFileNameContains(fileNameContains);
 		    }
 		    spriteImageGroup.setDirectoryFileNameScanner(dfns);
 		    spriteImageGroup.loadSessionScaledImages();
-		    GlobalSettings.getTheSpriteImageGroupManager().addImageGroup(spriteImageGroup);
+		    GlobalSettings.getImageAssetGroupManager().addImageAssetGroup(spriteImageGroup);
 		}
 	
 	

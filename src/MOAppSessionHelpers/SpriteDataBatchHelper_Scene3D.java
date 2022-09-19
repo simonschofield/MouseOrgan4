@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import MOApplication.MainDocument;
 import MOCompositing.SpriteCropDecisionList;
-import MOImageCollections.ScaledMOImageGroupManager;
+import MOImageCollections.ScaledImageAssetGroupManager;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
@@ -19,9 +19,9 @@ import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Bundles and single seed font biome with a 3D point generator
-// This can then generate a seed batch from the biome, that can be used directly or saved and reloaded by this class
-//
+// Bundles a single seed font biome with a 3D point generator
+// This can then generate a seed batch from that biome, that can be used directly or saved and reloaded by this class
+// If you need more than one biome, then declare more than one of this class
 //
 
 public class SpriteDataBatchHelper_Scene3D {

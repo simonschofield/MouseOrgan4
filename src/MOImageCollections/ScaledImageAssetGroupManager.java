@@ -17,24 +17,24 @@ import MOUtils.GlobalSettings;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-// SpriteImageGroupManager contains many SpriteImageGroups, and provides the main user-interface to them
-// via the SpriteImageGroup's name. 
+// ScaledImageAssetGroupManager contains many ScaledImageAssetGroups
+// These then can be made visible to any class through the GlobalSettings.getImageGroupManager() method
+// 
 //
-//
-public class ScaledMOImageGroupManager {
+public class ScaledImageAssetGroupManager {
 
-	ArrayList<ScaledMOImageGroup> theMOImageGroupList = new ArrayList<ScaledMOImageGroup>();
+	ArrayList<ScaledImageAssetGroup> theScaledImageAssetGroupList = new ArrayList<ScaledImageAssetGroup>();
 	//Surface parentSurface;
 
-	public ScaledMOImageGroupManager() {
-		GlobalSettings.setImageGroupManager(this);
+	public ScaledImageAssetGroupManager() {
+		GlobalSettings.setImageAssetGroupManager(this);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
 	//
 	//
-	public ScaledMOImageGroup getMOImageGroup(String name) {
-		for (ScaledMOImageGroup cc : theMOImageGroupList) {
+	public ScaledImageAssetGroup getScaledImageAssetGroup(String name) {
+		for (ScaledImageAssetGroup cc : theScaledImageAssetGroupList) {
 			if (cc.isNamed(name))
 				return cc;
 		}
@@ -45,11 +45,11 @@ public class ScaledMOImageGroupManager {
 	
 	
 
-	int getNumItems(String name) {
-		ScaledMOImageGroup cc = getMOImageGroup(name);
+	int getNumImageAssetsInGroup(String name) {
+		ScaledImageAssetGroup cc = getScaledImageAssetGroup(name);
 		if (cc == null)
 			return 0;
-		return cc.getNumMOImages();
+		return cc.getNumImageAssets();
 	}
 
 	
@@ -81,7 +81,7 @@ public class ScaledMOImageGroupManager {
 	 *                             normalised coords
 	                     
 	 */
-	void loadImageGroup(String spriteImageGroupName, String targetDirectory, String fileNameMustEndWith,
+	void loadImageAssetGroup(String spriteImageGroupName, String targetDirectory, String fileNameMustEndWith,
 			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect) {
 
 		
@@ -90,22 +90,22 @@ public class ScaledMOImageGroupManager {
     	dfns.setFileNameContains(fileNameMustContain);
     	dfns.setFileListRange(from, to);
     	
-    	ScaledMOImageGroup newSpriteImageGroup  = new ScaledMOImageGroup(spriteImageGroupName);
+    	ScaledImageAssetGroup newSpriteImageGroup  = new ScaledImageAssetGroup(spriteImageGroupName);
 		
 		newSpriteImageGroup.setDirectoryFileNameScanner(dfns);
 		newSpriteImageGroup.setPreScale(preScale);
 		newSpriteImageGroup.setCrop(cropRect);
 		
 		newSpriteImageGroup.loadSessionScaledImages();
-		theMOImageGroupList.add(newSpriteImageGroup);
+		theScaledImageAssetGroupList.add(newSpriteImageGroup);
 
 	}
 
 	/////////////////////////////////////////////////////////////////////////////
 	// this is the short-hand method of the above
-	public void loadImageGroup(String name, String targetDirectory, Integer from, Integer to) {
+	public void loadImageAssetGroup(String name, String targetDirectory, Integer from, Integer to) {
 
-		loadImageGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect());
+		loadImageAssetGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect());
 
 	}
 	
@@ -113,15 +113,15 @@ public class ScaledMOImageGroupManager {
 	// creates a completely independent copy of an already loaded sample group, 
 	// the new group has a different name,so users can rescale or colour treat this group separately
 	///////////////////////////////////////////////////////////////////////////// first
-    public void cloneImageGroup(String existingGroupname, String newGroupName) {
-    	ScaledMOImageGroup cc = getMOImageGroup(existingGroupname);
+    public void cloneImageAssetGroup(String existingGroupname, String newGroupName) {
+    	ScaledImageAssetGroup cc = getScaledImageAssetGroup(existingGroupname);
     	if(cc==null) {
 
     	}
-    	ScaledMOImageGroup newGroup = cc.copy(newGroupName);
+    	ScaledImageAssetGroup newGroup = cc.copy(newGroupName);
 
-    	System.out.println("Cloned " + existingGroupname + " with " + cc.getNumMOImages() + " into " + newGroupName + " with " + newGroup.getNumMOImages());
-    	theMOImageGroupList.add(newGroup);
+    	System.out.println("Cloned " + existingGroupname + " with " + cc.getNumImageAssets() + " into " + newGroupName + " with " + newGroup.getNumImageAssets());
+    	theScaledImageAssetGroupList.add(newGroup);
     }
     
     
@@ -146,9 +146,9 @@ public class ScaledMOImageGroupManager {
 	*/
 
 	
-     public void addImageGroup(ScaledMOImageGroup sig) {
+     public void addImageAssetGroup(ScaledImageAssetGroup sig) {
     	 // TBD check unique name
-    	 theMOImageGroupList.add(sig);
+    	 theScaledImageAssetGroupList.add(sig);
      }
 	
 
@@ -157,8 +157,8 @@ public class ScaledMOImageGroupManager {
 	//
 	///////////////////////////////////////////////////////////////////////////// first
 
-	public void scaleImageGroup(String name, float inx, float iny) {
-		ScaledMOImageGroup ic = getMOImageGroup(name);
+	public void scaleImageAssetGroup(String name, float inx, float iny) {
+		ScaledImageAssetGroup ic = getScaledImageAssetGroup(name);
 		if (ic == null)
 			return;
 		ic.scaleAll(inx, iny);
@@ -176,8 +176,8 @@ public class ScaledMOImageGroupManager {
 	 * @param p3        third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
-	public void colorTransformImageGroup(String groupname, int function, float p1, float p2, float p3) {
-		ScaledMOImageGroup ic = getMOImageGroup(groupname);
+	public void colorTransformImageAssetGroup(String groupname, int function, float p1, float p2, float p3) {
+		ScaledImageAssetGroup ic = getScaledImageAssetGroup(groupname);
 		if (ic == null)
 			return;
 		ic.colorTransformAll(function, p1, p2, p3);
@@ -195,13 +195,13 @@ public class ScaledMOImageGroupManager {
 	}
 
 	void paradeContent(String groupName, int effect, float p1, float p2, float p3, RenderTarget rt) {
-		ScaledMOImageGroup sampleGroup = this.getMOImageGroup(groupName).copy(groupName + "copy");
+		ScaledImageAssetGroup sampleGroup = this.getScaledImageAssetGroup(groupName).copy(groupName + "copy");
 		
-		int numItems = sampleGroup.getNumMOImages();
+		int numItems = sampleGroup.getNumImageAssets();
 		// get them in portrait mode
 		for(int n = 0; n < numItems; n++) {
 			BufferedImage img = sampleGroup.getImage(n);
-			String exisitingName = sampleGroup.getImageName(n);
+			String exisitingName = sampleGroup.getImageAssetName(n);
 			int w = img.getWidth();
 			int h = img.getHeight();
 			if(w > h) {
@@ -255,7 +255,7 @@ public class ScaledMOImageGroupManager {
 
 					img = ImageProcessing.colorTransform(img, effect, p1, p2, p3);
 
-					String itemName = sampleGroup.getImageName(itemCounter);
+					String itemName = sampleGroup.getImageAssetName(itemCounter);
 					int imgW = img.getWidth();
 					int imgH = img.getHeight();
 					float imgAspect = imgW / (float) imgH;
@@ -280,7 +280,7 @@ public class ScaledMOImageGroupManager {
 	}
 
 
-}// end of class SpriteImageGroupManager
+}// end of class 
 
 
 
