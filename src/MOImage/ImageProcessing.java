@@ -43,6 +43,7 @@ public class ImageProcessing {
 	public static final int	COLORTRANSFORM_LEVELS = 5;
 	public static final int	COLORTRANSFORM_BLENDWITHCOLOR = 6;
 	public static final int	COLORTRANSFORM_SET_DOMINANT_HUE = 7;
+	public static final int	COLORTRANSFORM_GREYSCALE = 8;
 	
 	
 	
@@ -690,6 +691,9 @@ public class ImageProcessing {
 			case COLORTRANSFORM_SET_DOMINANT_HUE:{
 				return ImageProcessing.setDominantHue(img, p1);
 			}
+			case COLORTRANSFORM_GREYSCALE:{
+				return ImageProcessing.makeGreyscale(img);
+			}
 			default:
 				return img;
 			}
@@ -765,6 +769,27 @@ public class ImageProcessing {
 			data[3][n] = (byte) n;
 		}
 		return pointFunction(image, data);
+	}
+	
+	public static BufferedImage makeGreyscale(BufferedImage image) {
+		// replaces existing rgb values with grey value
+		BufferedImage img = copyImage(image);
+		 int width = img.getWidth();
+	        int height = img.getHeight();
+	        for(int y = 0; y < height; y++){
+	            for(int x = 0; x < width; x++){
+	                int p = img.getRGB(x,y);
+	                int a = (p>>24) & 0xFF;
+	                if(a<1) continue;
+	                int r = (p>>16) & 0xFF;
+	                int g = (p>>8) & 0xFF;
+	                int b = p & 0xFF;
+	                int avg = (r + g + b)/3;
+	                p = (a<<24) | (avg<<16) | (avg<<8) |  avg;
+	                img.setRGB(x, y, p);
+	            }
+	        }
+		return img;
 	}
 	
 	

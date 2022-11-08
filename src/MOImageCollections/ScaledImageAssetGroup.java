@@ -205,6 +205,7 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		//		ImageProcessing.COLORTRANSFORM_LEVELS = 5;
 		//		ImageProcessing.COLORTRANSFORM_BLENDWITHCOLOR = 6;
 		//		ImageProcessing.COLORTRANSFORM_SET_DOMINANT_HUE = 7;
+		//		ImageProcessing.COLORTRANSFORM_GREYSCALE = 8;
 		for (ImageAsset moImage: theImageAssetList) {
 			moImage.image = ImageProcessing.colorTransform(moImage.image, function, p1, p2, p3);
 			moImage.calculateStats();
