@@ -5,7 +5,7 @@ package MOUtils;
 public abstract class CollectionIterator {
 	int itemIteratorCounter = 0;
 	
-	boolean justfinishedFlag = false;
+	
 	boolean isFinishedFlag = false;
 	
 	public boolean areItemsRemaining() {
@@ -17,20 +17,10 @@ public abstract class CollectionIterator {
 	
 	public void reset() {
 		itemIteratorCounter = 0;
-		justfinishedFlag = false;
 		isFinishedFlag = false;
 	}
 	
-	public boolean isJustFinished() {
-		// returns true just once upon finishing the iteration
-		if(areItemsRemaining()) return false;
-		if(justfinishedFlag == false) {
-			justfinishedFlag = true;
-			isFinishedFlag = true;
-			return true;
-		}
-		return false;
-	}
+	
 	
 	public boolean isFinished() {
 		return isFinishedFlag;
@@ -41,6 +31,7 @@ public abstract class CollectionIterator {
 	}
 
 	public Object getNextItem() {
+		
 		if (itemIteratorCounter >= getNumItems()) {
 			isFinishedFlag = true;
 			return null;
@@ -62,7 +53,6 @@ public abstract class CollectionIterator {
 			return;
 		}
 		itemIteratorCounter = n;
-		if(areItemsRemaining()) justfinishedFlag = false;
 	}
 	
 	
@@ -72,7 +62,6 @@ public abstract class CollectionIterator {
 
 	public void resetItemIterator() {
 		itemIteratorCounter = 0;
-		justfinishedFlag = false;
 		isFinishedFlag = false;
 	}
 	
