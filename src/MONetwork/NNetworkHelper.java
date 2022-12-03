@@ -150,6 +150,9 @@ public class NNetworkHelper {
 		KeyValuePair lakeDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "LAKE");
 		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, regionEdgesWidth); 
 		
+		KeyValuePair undefinedDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "UNDEFINED");
+		drawEdges(theNetwork, undefinedDescriptor, Color.BLACK, regionEdgesWidth); 
+		
 		GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
 		
 		// now remove everything outside the boundaryRect (gets rid of wide-line cap-butts extending over the boundary line)
