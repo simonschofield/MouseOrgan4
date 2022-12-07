@@ -10,13 +10,13 @@ import MOUtils.KeyValuePairList;
 //////////////////////////////////////////////////////////////////////////////////////
 //NRegion
 //To make a region, you submit a list of NEdges to it. 
-//If the list is valid, in that it forms a closed loop, then the region is "valid".
+//If the list is valid, in that it forms a closed loop (stored in edgeReferences) , then the region is "valid".
 //You can make in-valid regions, but these should be rejected by the NNetwork class, and not added to the regions list.
 //Any stray edges, not required to make the loop are not stored in the region.
-//Any bizarr topology (such as figure-eights) will probably result in only the first loop found being stored.
+//Any bizarre topology (such as figure-eights) will probably result in only the first loop found being stored.
 //
 //The initialisation process, from a bag of unsorted edges, results in these edges being sorted sequentially
-//This may then be used to get the sequential vertices of the region.
+//This is then be used to get the sequential vertices of the region stored in vertices.
 
 public class NRegion  extends NAttributes {
 	ArrayList<NEdge> edgeReferences = new ArrayList<NEdge>();
@@ -42,9 +42,18 @@ public class NRegion  extends NAttributes {
 	int getNumEdges() {
 		return edgeReferences.size();
 	}
+	
+	
+	
 
 	NEdge getEdge(int n) {
 		return edgeReferences.get(n);
+	}
+	
+	
+	ArrayList<NEdge> getEdges(){
+		// returns a copy. This will be used for the "smart polygon"
+		return (ArrayList)edgeReferences.clone();
 	}
 
 	boolean containsEdge(NEdge e){
@@ -102,8 +111,9 @@ public class NRegion  extends NAttributes {
 	}
 
 	///////////////////////////////////////////////////////////////////
-	//
-	//
+	// Starts with a collection of edges that make a region. This collection is not ordered inot a loop.
+	// The algorithm findLoop orders the edges into a loop(or fails). This loped set of edges
+	// then becomes the edgeReferences for the region So the edges are sequenced correctly.
 	boolean tryToConstructFromEdges(ArrayList<NEdge> edgesIn) {
 		//System.out.println("building a loop from these....K ");
 		//printEdges(edgesIn);

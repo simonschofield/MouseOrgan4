@@ -555,6 +555,22 @@ public class Vertices2 {
 		return v;
 	}
 	
+	public Vertices2 getDilated(float[] displacements) {
+		// this method uses an array of displacements - one for each vertices 
+		// has to be same size as the numVertices
+		if(isClosed()==false) return null;
+		
+		ArrayList<PVector> displacedPoints = new ArrayList<PVector>();
+		for(int n = 0; n < getNumVertices()-1; n++) {
+			float displacement = displacements[n];
+			PVector dp = getBiscectorDisplacedPoint(n, displacement);
+			displacedPoints.add(dp);
+		}
+		Vertices2 v = new Vertices2(displacedPoints);
+		v.close();
+		return v;
+	}
+	
 	
 	public PVector getBiscectorDisplacedPoint(int n, float dist) {
 		// returns a point that is moved along the bisector of the lines connecting

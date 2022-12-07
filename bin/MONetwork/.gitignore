@@ -9,3 +9,16 @@
 /NRegion.class
 /WordVerticeCrawler.class
 /NNetworkAutoRegionFinder.class
+/NNetworkAutoRegionFinder$NEdgeWithValue.class
+/EdgeRunVerticesCrawler.class
+/NNetworkDrawer.class
+/NNetworkEdgeRunFinder.class
+/NNetworkRegionFinder.class
+/NNetworkHelper.class
+/NNetworkAddBoundaryEdges.class
+/TextVerticesCrawler.class
+/TextRibbon.class
+/TextRibbonManager.class
+/RibbonLetter.class
+/NNetworkAddEdgeDetail.class
+/NNetworkSimplify.class
