@@ -86,9 +86,9 @@ public class Line2 {
 		// To remove any ambiguity, lines that touch because they are "connected" at an end are dismissed as NOT intersecting
 		// The intersection point can be recovered after the test via intersection_point
 		// Even if the two segments do not intersect intersection_point will be set to the
-		// intersection of the two infinte lines, unless they are parallel, in which case
+		// intersection of the two infinite lines, unless they are parallel, in which case
 		// intersection_point is set to null
-		
+		//
 		//if(isConnected(l)) return false;
 		
 		
@@ -127,6 +127,29 @@ public class Line2 {
 		// The segments intersect if t1 and t2 are between 0 and 1.
 		intersection_segmentsIntersect = ((intersection_t1 >= 0) && (intersection_t1 <= 1) && (intersection_t2 >= 0) && (intersection_t2 <= 1));
 		return intersection_segmentsIntersect;
+	}
+	
+	boolean isParallel(Line2 otherLine) {
+		
+
+		PVector p3 = otherLine.p1.copy();
+		PVector p4 = otherLine.p2.copy();
+
+		// Get the segments' parameters.
+		float dx12 = p2.x - p1.x;
+		float dy12 = p2.y - p1.y;
+		float dx34 = p4.x - p3.x;
+		float dy34 = p4.y - p3.y;
+
+		float denominator = (dy12 * dx34 - dx12 * dy34);
+
+		// check if lines are parallel
+		if (Math.abs(denominator) < 0.000001)
+		{
+			return true;
+		}
+		
+		return false;
 	}
 	
 	boolean isJustTouching() {

@@ -501,7 +501,7 @@ public class NNetworkHelper {
 			}
 
 
-			Vertices2 dilated = v.getDilated( dilation);
+			Vertices2 dilated = v.getDilatedVertices( dilation);
 			vertsOut.add( dilated );
 		}
 		return vertsOut;

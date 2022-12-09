@@ -7,6 +7,7 @@ import MOUtils.GlobalSettings;
 import java.awt.Shape;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 
@@ -386,7 +387,7 @@ public class Vertices2 {
 			return false;
 		}
 		float a = getAreaSigned();
-		if(a < 0) return true;
+		if(a <= 0) return true;
 		return false;
 	}
 
@@ -539,15 +540,40 @@ public class Vertices2 {
 	// expandAmount is in the same units as the vertices e.g. document space
 	// A +ve expand makes the polygon bigger by displacing the vertices along the bisector line by that distance
 	// hence a -ve displacement shrinks the poly
-	// so, how does the algorithm know which way is shrinking, and which way is growing? If the poly was guaranteed to be ordered in a clockwise manner
-	// then toward the centre of the polygon would be 
+	// 
 	
-	public Vertices2 getDilated(float displacement) {
+	////////////////////////////////////////////////////////////////////////
+	// Dilate Vertices work by moving the vertices along the bisector of the adjacent edges 
+	// 
+	//
+	public Vertices2 getDilatedVertices(float displacement) {
+		
+		
+		int n = this.getNumVertices();
+	    float[] displacements = new float[n];
+	    Arrays.fill(displacements, displacement);
+	    return getDilatedVertices(displacements);
+	}
+	
+	public Vertices2 getDilatedVertices(float[] displacements) {
 		if(isClosed()==false) return null;
 		
+		
+		Vertices2 copyOfThis = this.copy();
+		copyOfThis.setPolygonWindingDirection(CLOCKWISE);
+		
+		
+		if(displacements.length != copyOfThis.getNumVertices()) {
+			System.out.println("Vertices2::getDilatedVertices the displacements array is the wrong size");
+			return null;
+		}
+		
 		ArrayList<PVector> displacedPoints = new ArrayList<PVector>();
+		
+		
+		
 		for(int n = 0; n < getNumVertices()-1; n++) {
-			PVector dp = getBiscectorDisplacedPoint(n, displacement);
+			PVector dp = getBiscectorDisplacedPoint(copyOfThis, n, displacements[n]*-1f);
 			displacedPoints.add(dp);
 		}
 		Vertices2 v = new Vertices2(displacedPoints);
@@ -555,39 +581,22 @@ public class Vertices2 {
 		return v;
 	}
 	
-	public Vertices2 getDilated(float[] displacements) {
-		// this method uses an array of displacements - one for each vertices 
-		// has to be same size as the numVertices
-		if(isClosed()==false) return null;
-		
-		ArrayList<PVector> displacedPoints = new ArrayList<PVector>();
-		for(int n = 0; n < getNumVertices()-1; n++) {
-			float displacement = displacements[n];
-			PVector dp = getBiscectorDisplacedPoint(n, displacement);
-			displacedPoints.add(dp);
-		}
-		Vertices2 v = new Vertices2(displacedPoints);
-		v.close();
-		return v;
-	}
-	
-	
-	public PVector getBiscectorDisplacedPoint(int n, float dist) {
+	private PVector getBiscectorDisplacedPoint(Vertices2 cpy, int n, float dist) {
 		// returns a point that is moved along the bisector of the lines connecting
 		PVector vA = new PVector();
 		PVector vB = new PVector();
 		if(n == 0 ) {
 			// find the first and previous (i.e.) last line
-			vA = getLine(getNumLines()-1).getNormalisedVector();
-			vB = getLine(0).getNormalisedVector();
+			vA = cpy.getLine(getNumLines()-1).getNormalisedVector();
+			vB = cpy.getLine(0).getNormalisedVector();
 		} 
 
 		if(n >0 && n < getNumLines()) {
-			vA =  getLine(n-1).getNormalisedVector();
-			vB =  getLine(n).getNormalisedVector();
+			vA =  cpy.getLine(n-1).getNormalisedVector();
+			vB =  cpy.getLine(n).getNormalisedVector();
 		}
 		
-		if(n < 0 || n > getNumLines()) {
+		if(n < 0 || n > cpy.getNumLines()) {
 			// error
 			return null;
 		}
@@ -595,10 +604,83 @@ public class Vertices2 {
 		PVector orthogVector =  MOMaths.bisector(vA, vB);
 		orthogVector.normalize();
 		PVector displacement = PVector.mult(orthogVector, dist);
-		PVector p = this.get(n);
+		PVector p = cpy.get(n);
 		return PVector.add(p, displacement);
 	}
 
+	
+	////////////////////////////////////////////////////////////////////////
+	// Dilate edges work by moving the edge in an out and recalculating the intersection
+	// with the previous (dilated) edge
+	//
+	public Vertices2 getDilatedEdges(float displacement) {
+		// to replace the one above eventually
+	    int n = this.getNumLines();
+	    float[] displacements = new float[n];
+	    Arrays.fill(displacements, displacement);
+	    return getDilatedEdges(displacements);
+	}
+	
+	public Vertices2 getDilatedEdges(float[] displacements) {
+		// this method uses an array of displacements - one for each edge line - 
+		// has to be same size as the numVertices
+		if(isClosed()==false) return null;
+		
+		Vertices2 copyOfThis = this.copy();
+		copyOfThis.setPolygonWindingDirection(CLOCKWISE);
+		
+		ArrayList<Line2> polygonEdges = copyOfThis.getAsLine2List();
+		if(displacements.length != polygonEdges.size()) {
+			System.out.println("Vertices2::getDilatedEdges the displacements array is the wrong size");
+			return null;
+		}
+		
+		ArrayList<Line2> displacedLines = new ArrayList<Line2>();
+		for(int n = 0; n < polygonEdges.size(); n++) {
+			
+			Line2 thisPolyLine = polygonEdges.get(n).copy();
+			PVector nv = thisPolyLine.getNormalisedVector(); // the vector along the line start->end
+			PVector orth = MOMaths.orthogonal(nv); // the clockwise-rotated normal to nv
+			PVector thisDisplacement = PVector.mult(orth, displacements[n]); // the displacement in direction orth
+			
+			PVector newP1 = PVector.add(thisPolyLine.p1, thisDisplacement); // the new displaced points;
+			PVector newP2 = PVector.add(thisPolyLine.p2, thisDisplacement);
+			
+			Line2 displacedLine = new Line2(newP1, newP2);
+			displacedLines.add(displacedLine);
+		}
+		
+		ArrayList<PVector> intersectionPoints = new ArrayList<PVector>();
+		for(int n = 0; n < displacedLines.size(); n++) {
+			Line2 trailingLine = displacedLines.get(n);
+			Line2 leadingLine;
+			if(n == displacedLines.size()-1) {
+				leadingLine = displacedLines.get(0);
+			}else {
+				leadingLine = displacedLines.get(n+1);
+			}
+			
+			
+			if(trailingLine.isParallel(leadingLine)) {
+				// if are co-linear then just use the joining point
+				intersectionPoints.add(trailingLine.p2.copy());
+			} else {
+				// else work out the intersection
+				trailingLine.calculateIntersection(leadingLine);
+				intersectionPoints.add(trailingLine.intersection_point);
+			}
+		}
+		
+		Vertices2 v = new Vertices2(intersectionPoints);
+		v.close();
+		return v;
+	}
+	
+	
+	
+	
+	
+	
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
