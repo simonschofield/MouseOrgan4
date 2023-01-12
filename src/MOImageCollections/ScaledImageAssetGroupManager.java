@@ -97,6 +97,7 @@ public class ScaledImageAssetGroupManager {
 		newSpriteImageGroup.setCrop(cropRect);
 		
 		newSpriteImageGroup.loadSessionScaledImages();
+		
 		theScaledImageAssetGroupList.add(newSpriteImageGroup);
 
 	}

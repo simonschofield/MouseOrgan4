@@ -88,7 +88,7 @@ public class ImageAssetGroup {
 			System.out.println("ImageGroup:loadImages -directoryFineNameScanner = null ");
 			return;
 		}
-		
+		//System.out.println("here loadImages");
 		ArrayList<String> allPathAndNames = directoryFileNameScanner.getFullPathAndFileNamesList();
 		loadImages(allPathAndNames);
 	}
@@ -101,6 +101,7 @@ public class ImageAssetGroup {
 	protected void loadImages(ArrayList<String> allPathAndNames) {
 		
 		for(String thisFilePathAndName: allPathAndNames) {
+			//System.out.println("loading " + thisFilePathAndName);
 			loadImage(thisFilePathAndName);
 		}
 		

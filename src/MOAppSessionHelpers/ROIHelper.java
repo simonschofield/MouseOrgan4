@@ -3,7 +3,14 @@ import java.util.ArrayList;
 // The process of using a master image and ROIs within the master image works thus: The master image is rendered out
 // say at sale 0.2. This generates an output image - The master image - of 1200 x 2400 pixels. This is the master height and width. The rscale is 0.2.
 
+import MOApplication.MainDocument;
+import MOCompositing.SpriteCropDecisionList;
+import MOMaths.PVector;
 import MOMaths.Rect;
+import MOScene3D.SceneData3D;
+import MOSprite.SpriteData;
+import MOSprite.SpriteDataBatch;
+import MOUtils.GlobalSettings;
 import MOUtils.ImageDimensions;
 //The process of using a master image and ROIs within the master image works thus: The master image is rendered out
 //say at sale 0.2. This generates an output image - The master image - of 1200 x 2400 pixels. This is the master height and width. The rscale is 0.2.
@@ -33,7 +40,7 @@ public class ROIHelper {
 		
 		String currentROIName;
 		
-		
+		boolean saveOutContributingSeedReport;
 		
 		public ROIHelper(int masterWidth, int masterHeight, float rScale){
 			// This is established before the render document is initialised in initialiseSession()
@@ -144,6 +151,125 @@ public class ROIHelper {
 			System.out.println("_________________");
 			
 		}
+		
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// SpriteBatch methods. To do with cropping out a ROI from a larger "master" spriteBatch
+		// Use the collated seeds for this only. 
+		//
+		//
+		
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// 
+		// It is used to adjust the sees locations into the ROI space 
+		//
+		public SpriteDataBatch applyROIToSpriteDataBatch(SpriteDataBatch seedbatch) {
+			if(isUsingMaster()) return seedbatch;
+
+
+			SpriteDataBatch contributingSpriteData = removeNoncontributingSpritesInROI(seedbatch);
+			// adjusts the document point of seeds from a seed batch of a whole scene (no ROI)
+			// to a specific ROI within that scene by mapping the original doc points into the nw
+			// doc space represented by the ROI
+
+			// as this is quite destructive this method returns a new SeedBatch
+
+			// when seeds are saved the locations are saved in normalised form
+			// This is converted to the doc space of the host session upon loading
+
+			// The ROIRect is stored in normalised form
+			// so to convert into the the ROI of the host session
+			// 1/ convert the master seed location's doc point to normalised form within the current coord system system
+			// 2/ 
+
+			Rect theROI = getNormalisedROIExtentsRect();
+
+			System.out.println("apply ROI to seeds " + theROI.toStr());
+			SpriteDataBatch seedbatchOut = new SpriteDataBatch(seedbatch.getName());
+			contributingSpriteData.resetItemIterator();
+			while( contributingSpriteData.areItemsRemaining()) {
+
+				SpriteData s = contributingSpriteData.getNextSeed().copy();
+				PVector newSceneDocPoint = s.getDocPoint();
+				PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(newSceneDocPoint);
+				
+
+				PVector newROIPoint = theROI.norm(normalisedPoint); // convert to normalised space within the roi
+				PVector newDocSpacePt = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(newROIPoint);
+				//System.out.println("applyROIToSeeds: seeds docpoint before appplication of ROI " + newSceneDocPoint.toString() + ". Adjusted by ROI " + newDocSpacePt.toString());
+				s.setDocPoint(newDocSpacePt);
+
+				seedbatchOut.addSpriteData(s);
+
+			}
+
+
+
+			seedbatchOut.resetItemIterator();
+
+			System.out.println("applyROIToSeeds: seeds before appplication of ROI " + seedbatch.getNumItems() + ". Adjusted number of seeds in ROI " + seedbatchOut.getNumItems());
+			return seedbatchOut;
+		}
+		
+		
+		public SpriteDataBatch removeNoncontributingSpritesInROI(SpriteDataBatch seedbatch) {
+			// this only removed seeds if a "contributing sprite" file has been saved for this ROI (i.e. with the ROI's name) in the seeds folder
+			// if the file cannot be found, then the class is alerted to save one out at the end of this session
+			if(isUsingMaster()) return seedbatch;
+			//SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
+			SpriteCropDecisionList spriteCropList = new SpriteCropDecisionList();
+			
+			String fname = getContributingSpritesFilePathAndName();
+			boolean loadResult = spriteCropList.load(fname);
+			if(loadResult == false) {
+				saveOutContributingSeedReport = true;
+				return seedbatch;
+			}
+			return spriteCropList.removeNonContributingSprite(seedbatch);
+			
+		}
+		
+		public void saveContributingSpritesReport(MainDocument theDocument, boolean forcesave) {
+			// called at the end of the session
+			
+			if(isUsingMaster()) return;
+			
+			if(forcesave) saveOutContributingSeedReport = true;
+			
+			if(saveOutContributingSeedReport==false) return;
+			
+			
+			String fname = getContributingSpritesFilePathAndName();
+			
+			System.out.println("saveContributingSpritesReport: saving" + fname);
+			
+			
+			theDocument.getRenderBorder().getSpriteCropDecisionList().save( fname );
+			
+		}
+		
+		
+		private String getContributingSpritesFilePathAndName() {
+			String roiname = getCurrentROIName();
+			return GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + roiname + ".csv";
+		}
+		
+		
+		
+		public void updateSpriteDataBatchDepthsAgainstScene(SpriteDataBatch seedbatch, SceneData3D sceneData3D) {
+			
+			// call this if you are changing to a different depth filter
+			seedbatch.resetItemIterator();
+			while(seedbatch.areItemsRemaining()) {
+				
+				SpriteData s = seedbatch.getNextSeed();
+				float d = sceneData3D.getDepthNormalised(s.getDocPoint());
+				s.setDepth(d);
+			}
+			seedbatch.resetItemIterator();
+			
+		}
+		
+		
 		
 		// private
 		ROIInfo getCurrentROIInfo() {

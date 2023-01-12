@@ -22,7 +22,7 @@ import MOUtils.MOStringUtils;
 public class SpriteDataBatch extends CollectionIterator{
 	
 	
-	private ArrayList<SpriteData> seeds = new ArrayList<SpriteData>();
+	private ArrayList<SpriteData> spriteDataList = new ArrayList<SpriteData>();
 	String seedBatchName = "";
 	
 	public SpriteDataBatch(String name){
@@ -36,22 +36,22 @@ public class SpriteDataBatch extends CollectionIterator{
 	
 	public SpriteDataBatch copy() {
 		SpriteDataBatch cpy = new SpriteDataBatch(seedBatchName + "_copy");
-		cpy.seeds = (ArrayList<SpriteData>) this.seeds.clone();
+		cpy.spriteDataList = (ArrayList<SpriteData>) this.spriteDataList.clone();
 		return cpy;
 	}
 	
 	public void addSpriteData(SpriteData s) {
-		seeds.add(s);
+		spriteDataList.add(s);
 	}
 
 
 	public ArrayList<SpriteData> getSpriteDatas(){
-		return seeds;
+		return spriteDataList;
 	}
 	
 	
 	public void setSpriteDatas(ArrayList<SpriteData> sds) {
-		seeds = sds;
+		spriteDataList = sds;
 	}
 	
 	
@@ -59,20 +59,20 @@ public class SpriteDataBatch extends CollectionIterator{
 	public void append(SpriteDataBatch otherBatch) {
 		ArrayList<SpriteData> otherSeeds = otherBatch.getSpriteDatas();
 		for(SpriteData s : otherSeeds) {
-			seeds.add(s);
+			spriteDataList.add(s);
 		}
 		
 	}
 	
 	public void depthSort() {
-		seeds.sort(Comparator.comparing(SpriteData::getDepth).reversed());
+		spriteDataList.sort(Comparator.comparing(SpriteData::getDepth).reversed());
 	}
 	
 	
 
 	public ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
-		for(SpriteData s : seeds) {
+		for(SpriteData s : spriteDataList) {
 			points.add(s.getDocPoint());
 		}
 		return points;
@@ -91,7 +91,7 @@ public class SpriteDataBatch extends CollectionIterator{
 			csvWriter = new FileWriter(fileAndPath);
 
 
-			for(SpriteData s: seeds){
+			for(SpriteData s: spriteDataList){
 				csvWriter.append(s.getAsCSVStr());
 			}
 
@@ -118,7 +118,7 @@ public class SpriteDataBatch extends CollectionIterator{
 				// do something with the data
 				SpriteData s = new SpriteData();
 				s.setWithCSVStr(row);
-				seeds.add(s);
+				spriteDataList.add(s);
 			}
 			csvReader.close();
 		} catch(Exception e){
@@ -135,13 +135,13 @@ public class SpriteDataBatch extends CollectionIterator{
 	@Override
 	public int getNumItems() {
 		// TODO Auto-generated method stub
-		return seeds.size();
+		return spriteDataList.size();
 	}
 
 	@Override
 	public Object getItem(int n) {
 		// TODO Auto-generated method stub
-		return seeds.get(n);
+		return spriteDataList.get(n);
 	}
 
 

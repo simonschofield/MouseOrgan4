@@ -184,9 +184,13 @@ public class Sprite {
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	// Image sprite coordinate methods
-	//
-	//
+	// Once the sprite's docPoint has been set, these methods return the document-space, or render-target
+	// buffer-space point of a point within the sprite
+	// 
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	// returns the document space position of a normalised point within the sprite.
+	// If the sprite's docPoint has been set, then this is taken into account.
 	public PVector spriteNormalisedSpaceToDocumentSpace(PVector spriteNormSpace) {
 		PVector spriteBufferPoint = spriteNormalisedSpaceToSpriteBufferSpace( spriteNormSpace);
 		PVector docBufferPoint = spriteBufferSpaceToDocumentBufferSpace( spriteBufferPoint);
@@ -476,7 +480,7 @@ public class Sprite {
 	}
 
 	public void mapToLine2(Line2 line, float overlapAtStart, float overlapAtEnd, float minLength) {
-		// This version tries to deal with problem short lines, i.e. where the line is considerably shorter than the desired line length (in network crawling, the targetCrawlStepDistance)
+		// This version tries to deal with problem short lines, i.e. where the line is considerably shorter than the desired minLength (in network crawling, the targetCrawlStepDistance)
 		// Short lines result in a noticeably small sprite.
 		// Here, short lines are caught using the minLength parameter. If short, the line is scaled to the minlength, preserving aspect,
 		// then scaled only in Y to the correct length, preserving the X, therefore making a squat version of the shape but fitted to

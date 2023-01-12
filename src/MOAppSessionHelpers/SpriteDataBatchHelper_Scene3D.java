@@ -19,21 +19,24 @@ import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Bundles a single seed font biome with a 3D point generator
+// Bundles a single SpriteFontBiome with a 3D point generator
 // This can then generate a seed batch from that biome, that can be used directly or saved and reloaded by this class
 // If you need more than one biome, then declare more than one of this class
 //
 
 public class SpriteDataBatchHelper_Scene3D {
+	String thisHelperName;
+	
 	SceneData3D sceneData3D;
 	
 	PointGenerator_RadialPackSurface3D pointGenerator;
-	SpriteFontBiome seedFontBiome;
+	SpriteFontBiome spriteFontBiome;
 	
 	boolean saveOutContributingSeedReport = false;
 
-	public SpriteDataBatchHelper_Scene3D( SceneData3D sd3d, int biomeRanSeed) {
-		seedFontBiome = new SpriteFontBiome(biomeRanSeed);
+	public SpriteDataBatchHelper_Scene3D(String name,  SceneData3D sd3d, int biomeRanSeed) {
+		this.thisHelperName = name;
+		spriteFontBiome = new SpriteFontBiome(biomeRanSeed);
 		sceneData3D = sd3d;
 		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
 	}
@@ -54,20 +57,19 @@ public class SpriteDataBatchHelper_Scene3D {
 	
 	
 	
-	public SpriteFontBiome getSeedFontBiome() {
-		return seedFontBiome;
+	public SpriteFontBiome getSpriteFontBiome() {
+		return spriteFontBiome;
 	}
 	
 	
-	public void addSpriteFont(String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
-	
-		seedFontBiome.addSpriteFont(sdFontName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, fontRanSeed, probability);
+	public void addSpriteFont(String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
+		spriteFontBiome.addSpriteFont(thisHelperName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, fontRanSeed, probability);
 	
 	}
 	
 	public void addSpriteFont(SpriteFont ssf) {
 		
-		seedFontBiome.addSpriteFont(ssf);
+		spriteFontBiome.addSpriteFont(ssf);
 	
 	}
 	
@@ -88,14 +90,14 @@ public class SpriteDataBatchHelper_Scene3D {
 		SpriteDataBatch seedbatch = new SpriteDataBatch(batchName);
 		
 		String pathAndFileName = GlobalSettings.getUserSessionPath() + "seeds\\" + batchName + ".sds";
-		
+		System.out.println("generateSpriteDataBatch::has made a batch called " + pathAndFileName);
 		
 		ArrayList<PVector> points = pointGenerator.generatePoints();
 		
 		int n=0;
 		for(PVector p: points) {
 			
-			SpriteData seedInstance = seedFontBiome.getSpriteDataInstance();
+			SpriteData seedInstance = spriteFontBiome.getSpriteDataInstance();
 			seedInstance.setDocPoint(p);
 			seedInstance.SpriteDataBatchName = batchName;
 			seedInstance.setDepth(p.z);
@@ -121,6 +123,7 @@ public class SpriteDataBatchHelper_Scene3D {
 	// This is sort-of stand alone method that used to belong to an overcomplex class called SeedBatchManager
 	// It is used to adjust the sees locations into the ROI space defined in the SceneData3D
 	//
+	
 	public SpriteDataBatch applyROIToSpriteDataBatch(ROIHelper roiHelper, SpriteDataBatch seedbatch) {
 		if(roiHelper.isUsingMaster()) return seedbatch;
 		
@@ -169,6 +172,7 @@ public class SpriteDataBatchHelper_Scene3D {
 		return seedbatchOut;
 	}
 	
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// call this if you alter the depth-gamma of the scene after the seeds have been made
 	//
@@ -191,10 +195,11 @@ public class SpriteDataBatchHelper_Scene3D {
 		// this only removed seeds if a "contributing sprite" file has been saved for this ROI (i.e. with the ROI's name) in the seeds folder
 		// if the file cannot be found, then the class is alerted to save one out at the end of this session
 		if(roiHelper.isUsingMaster()) return false;
-		String roiname = roiHelper.getCurrentROIName();
 		//SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
 		SpriteCropDecisionList spriteCropList = new SpriteCropDecisionList();
-		boolean loadResult = spriteCropList.load(GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + roiname + ".csv");
+		
+		String fname = getContributingSpritesFilePathAndName(roiHelper);
+		boolean loadResult = spriteCropList.load(fname);
 		if(loadResult == false) {
 			saveOutContributingSeedReport = true;
 			return false;
@@ -205,15 +210,28 @@ public class SpriteDataBatchHelper_Scene3D {
 	
 	public void saveContributingSpritesReport(ROIHelper roiHelper, MainDocument theDocument, boolean forcesave) {
 		// called at the end of the session
+		System.out.println("saveContributingSpritesReport:" + thisHelperName + "here1");
 		if(roiHelper.isUsingMaster()) return;
+		System.out.println("saveContributingSpritesReport:" + thisHelperName + "here2");
 		if(forcesave) saveOutContributingSeedReport = true;
+		System.out.println("saveContributingSpritesReport:" + thisHelperName + "here3");
 		if(saveOutContributingSeedReport==false) return;
-		String roiname = roiHelper.getCurrentROIName();
-		theDocument.getRenderBorder().getSpriteCropDecisionList().save(GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + roiname + ".csv");
+		
+		System.out.println("saveContributingSpritesReport:" + thisHelperName + "here4");
+		String fname = getContributingSpritesFilePathAndName(roiHelper);
+		
+		System.out.println("saveContributingSpritesReport: saving" + fname);
+		
+		
+		theDocument.getRenderBorder().getSpriteCropDecisionList().save( fname );
 		
 	}
 	
 	
+	private String getContributingSpritesFilePathAndName(ROIHelper roiHelper) {
+		String roiname = roiHelper.getCurrentROIName();
+		return GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + thisHelperName + "_" + roiname + ".csv";
+	}
 	
 	
 }

@@ -24,7 +24,7 @@ public class SpriteCropDecisionList{
 	}
 
 
-	public void removeNonContributingSprite(SpriteDataBatch seedbatch) {
+	public SpriteDataBatch removeNonContributingSprite(SpriteDataBatch seedbatch) {
 		// this removes the seeds from the incoming list so is destructive
 		ArrayList<SpriteData> seeds = seedbatch.getSpriteDatas();
 		ArrayList<SpriteData> croppedSeeds = new ArrayList<SpriteData>();
@@ -34,7 +34,9 @@ public class SpriteCropDecisionList{
 			} 
 		}
 		System.out.println("removeNonContributingSpriteSeeds before " + seeds.size() + " after " + croppedSeeds.size());
-		seedbatch.setSpriteDatas(croppedSeeds);
+		SpriteDataBatch croppedDataBatch = new SpriteDataBatch(seedbatch.getName());
+		croppedDataBatch.setSpriteDatas(croppedSeeds);
+		return croppedDataBatch;
 	}
 
 	

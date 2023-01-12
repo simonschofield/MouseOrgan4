@@ -46,9 +46,32 @@ public class ConvolutionFilter {
 		// should probably set the identity matrix
 	}
 	
+	
+	
 	public ConvolutionFilter(String type) {
 		setCurrentFilter(type);
 	}
+	
+	BufferedImage convolveBufferedImage(BufferedImage sourceImage) {
+	    int w = sourceImage.getWidth();
+	    int h = sourceImage.getHeight();
+	    BufferedImage outputImage = new BufferedImage(sourceImage.getWidth(), sourceImage.getHeight(), sourceImage.getType());
+	    
+	    
+	   
+	      for(int y = 0; y < h; y++){
+	        for(int x = 0; x < w; x++){
+	        
+	        int c = convolvePixel(x, y, sourceImage);
+	        
+	        outputImage.setRGB(x,y,c);
+	        
+	        }
+	      }
+	    
+	    return outputImage;
+	  }
+	  
 
 	void setCurrentFilter(String type) {
 		if (type.toLowerCase() == "edge") {
@@ -131,10 +154,12 @@ public class ConvolutionFilter {
 	}
 	
 	
-	float convolvePixel(int x, int y, BufferedImage img) {
-
+	int convolvePixel(int x, int y, BufferedImage img) {
+		// Ignores the alpha channel if there is one, and returns a solid image (no transparency)
 		// x,y is the central pixel of the floatimage in the convolution
-		float total = 0.0f;
+		float totalR = 0.0f;
+		float totalG = 0.0f;
+		float totalB = 0.0f;
 		int offset = currentMatrixDim / 2;
 
 		// println("current matrix dim ",currentMatrixDim);
@@ -143,16 +168,22 @@ public class ConvolutionFilter {
 				// get the image pixel clamped to the dims
 				int xloc = x + j - offset;
 				int yloc = y + i - offset;
-				float imgval = ImageProcessing.getValue01Clamped(img, xloc, yloc);
-
-				// Calculate the convolution
-				total += (imgval * currentMatrix[i][j]);
+				int sourcePix = img.getRGB(xloc, yloc);
+				
+				float rVal = ImageProcessing.getRed(sourcePix);
+				float gVal = ImageProcessing.getGreen(sourcePix);
+				float bVal = ImageProcessing.getBlue(sourcePix);
+				
+				totalR += (rVal * currentMatrix[i][j]);
+				totalG += (gVal * currentMatrix[i][j]);
+				totalB += (bVal * currentMatrix[i][j]);
+				
 				// println("loc total",loc,total);
 			}
 		}
 
 		// Return the resulting color
-		return total;
+		return ImageProcessing.packARGB(255, (int)totalR,(int)totalG,(int)totalB);
 	}
 	
 	

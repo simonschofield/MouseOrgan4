@@ -397,6 +397,21 @@ public class NNetworkHelper {
 		Vertices2 verts = r.getVertices();
 		rt.drawVertices2(verts, c, c, 1);
 	}
+	
+	public static void fillRegionsRandomColor(NNetwork ntwk) {
+		// just for debug really
+		ArrayList<NRegion> regions = ntwk.getRegions();
+
+		int colNum = 0;
+		for(NRegion r: regions) {
+			Color c = MOColor.getRandomRGB(255);
+	    	
+			drawRegionFill(r, c, GlobalSettings.getDocument().getMain());
+			if(colNum>10) colNum = 0;
+		}
+		
+		
+	}
 
 	public static void drawVertices2ListNoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
 		// if dashPattern is nulled, then uses default line
@@ -475,10 +490,11 @@ public class NNetworkHelper {
 		for(NRegion  r : regions) {
 
 			Vertices2 v = r.getVertices();
-			if(n < 10) {
-				System.out.println(v.getStats());
-
-			}
+			/*
+			 * if(n < 10) { System.out.println(v.getStats());
+			 * 
+			 * }
+			 */
 			n++;
 			v.setPolygonWindingDirection(Vertices2.CLOCKWISE);
 			vertices.add( v );
