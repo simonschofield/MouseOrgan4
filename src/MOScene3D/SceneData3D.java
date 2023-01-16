@@ -7,6 +7,7 @@ import MOImage.ConvolutionFilter;
 import MOImage.FloatImage;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
+import MOImage.MOPackedColor;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.ImageAssetGroup;
 import MOMaths.Fustrum3D;
@@ -260,7 +261,7 @@ public class SceneData3D {
 		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
 		int packedCol = currentRenderKeyImage.getRGB((int)coord.x, (int)coord.y);
 		
-		return ImageProcessing.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
+		return MOPackedColor.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
 	}
 	
 	public PVector getCurrentRenderGradiant(PVector docSpace) {
@@ -276,7 +277,7 @@ public class SceneData3D {
 		
 		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
 		int packedCol = geometryBuffer3d.substanceImage.getRGB((int)coord.x, (int)coord.y);
-		Color c = ImageProcessing.packedIntToColor(packedCol, true);
+		Color c = MOPackedColor.packedIntToColor(packedCol, true);
 		if( c.getRed() > 0) return true;
 		return false;
 	}

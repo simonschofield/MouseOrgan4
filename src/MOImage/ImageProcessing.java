@@ -327,10 +327,10 @@ public class ImageProcessing {
         //int length = width*height;
         for (int i = 0; i < sourceImagePixels.length; i++) {
             
-        	int[] exisitingCol = unpackARGB(sourceImagePixels[i]);
-            int maskAlpha = getGreen(maskPixels[i]); 
+        	int[] exisitingCol = MOPackedColor.unpackARGB(sourceImagePixels[i]);
+            int maskAlpha = MOPackedColor.getGreen(maskPixels[i]); 
             int newAlpha = Math.min(exisitingCol[0], maskAlpha);
-            imageOutPixels[i] = packARGB(newAlpha, exisitingCol[1], exisitingCol[2], exisitingCol[3]);
+            imageOutPixels[i] = MOPackedColor.packARGB(newAlpha, exisitingCol[1], exisitingCol[2], exisitingCol[3]);
         }
 
         return imageOut;
@@ -378,7 +378,7 @@ public class ImageProcessing {
 	static float getValue01(BufferedImage src, int x, int y) {
 		int packedCol = src.getRGB(x, y);
 		boolean hasAlpha = hasAlpha(src);
-		return packedIntToVal01( packedCol,  hasAlpha);
+		return MOPackedColor.packedIntToVal01( packedCol,  hasAlpha);
 	}
 	
 	
@@ -386,7 +386,7 @@ public class ImageProcessing {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// pixel transforms
 	//	
-	
+	/*
 	static int[] unpackARGB(int packedCol) {
 		int[] col = new int[4];
 		col[0] = (packedCol >> 24) & 0xFF;// alpha
@@ -467,7 +467,7 @@ public class ImageProcessing {
 		return new Color(r,g,b,a);
 	}
 	
-	
+	*/
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -744,7 +744,7 @@ public class ImageProcessing {
 		for (int n = 0; n < 256; n++) {
 			//data[0][n] = (byte) n;
 			float amt = n/255.0f;
-			Color c = ImageProcessing.blendColor(darkCol, lightCol, amt);
+			Color c = MOColor.blendColor(amt, darkCol, lightCol);
 			data[0][n] = (byte) c.getRed();
 			data[1][n] = (byte) c.getGreen();
 			data[2][n] = (byte) c.getBlue();
@@ -1002,7 +1002,7 @@ public class ImageProcessing {
 		int newRGBPacked;
 		for (int i = 0; i < pixelsIn.length; i++) {
 
-			unpackARGB(pixelsIn[i], unpacked);
+			MOPackedColor.unpackARGB(pixelsIn[i], unpacked);
 
 			// if alpha is 0 then we don't need to process this pixel
 			if (unpacked[0] == 0)
@@ -1018,8 +1018,8 @@ public class ImageProcessing {
 
 			// convert the hsb back to rgb
 			newRGBPacked = Color.HSBtoRGB(hsv[0], hsv[1], hsv[2]);
-			newRGBUnpacked = unpackARGB(newRGBPacked);
-			pixelsOut[i] = packARGB(unpacked[0], newRGBUnpacked[1], newRGBUnpacked[2], newRGBUnpacked[3]);
+			newRGBUnpacked = MOPackedColor.unpackARGB(newRGBPacked);
+			pixelsOut[i] = MOPackedColor.packARGB(unpacked[0], newRGBUnpacked[1], newRGBUnpacked[2], newRGBUnpacked[3]);
 
 		}
 
@@ -1051,7 +1051,7 @@ public class ImageProcessing {
 		int numPixelsProcessed = 0;
 		for (int i = 0; i < pixelsIn.length; i++) {
 
-			unpackARGB(pixelsIn[i], unpacked);
+			MOPackedColor.unpackARGB(pixelsIn[i], unpacked);
 
 			// if alpha is 0 then we don't need to process this pixel
 			if (unpacked[0] == 0)
@@ -1099,8 +1099,8 @@ public class ImageProcessing {
 
 		for (int i = 0; i < pixelsIn1.length; i++) {
 
-			int[] unpacked1 = unpackARGB(pixelsIn1[i]);
-			int[] unpacked2 = unpackARGB(pixelsIn2[i]);
+			int[] unpacked1 = MOPackedColor.unpackARGB(pixelsIn1[i]);
+			int[] unpacked2 = MOPackedColor.unpackARGB(pixelsIn2[i]);
 
 			// if both alphas are 0 then we don't need to process this pixel
 			if (unpacked1[0] == 0 && unpacked2[0] == 0)
@@ -1134,7 +1134,7 @@ public class ImageProcessing {
 		int g = (int)((unpacked1[2] * unpacked2[2]) / 255f);
 		int b = (int)((unpacked1[3] * unpacked2[3]) / 255f);
 		
-		return packARGB(a,r,g,b);
+		return MOPackedColor.packARGB(a,r,g,b);
 	}
 
 	

@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
 import MOImage.ImageProcessing;
+import MOImage.MOPackedColor;
 import MOUtils.Histogram;
 
 public class ImageStats {
@@ -47,7 +48,7 @@ public class ImageStats {
 		
 		for (int i = 0; i < pixelsIn.length; i++) {
 
-			ImageProcessing.unpackARGB(pixelsIn[i], unpacked);
+			MOPackedColor.unpackARGB(pixelsIn[i], unpacked);
 
 			// if alpha is 0 then we don't need to process this pixel
 			if (unpacked[0] == 0)

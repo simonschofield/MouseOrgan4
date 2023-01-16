@@ -69,7 +69,7 @@ public class KeyImageSampler{
 	public Color getPixelNormalisedSpace(PVector p) {
 		PVector pixelLoc = normalisedSpaceToBufferSpace(p);
 		int packedColor =  bufferedImage.getRGB((int)pixelLoc.x, (int)pixelLoc.y);
-		return ImageProcessing.packedIntToColor(packedColor, sourceHasAlpha);
+		return MOPackedColor.packedIntToColor(packedColor, sourceHasAlpha);
 	}
 	
 	

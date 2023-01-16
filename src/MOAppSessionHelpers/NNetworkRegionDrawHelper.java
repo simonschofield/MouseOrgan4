@@ -14,6 +14,7 @@ import MONetwork.NNetwork;
 import MONetwork.NRegion;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
+import MOUtils.KeyValuePairList;
 import MOUtils.ObjectWithValueList;
 
 public class NNetworkRegionDrawHelper {
@@ -33,7 +34,7 @@ public class NNetworkRegionDrawHelper {
 	}
 
 	public static void drawRegionsByType(NNetwork ntwk,  boolean randomiseUrbanCol) {
-		// for debug only
+		// want to set
 
 		ArrayList<NRegion> regions = ntwk.getRegions();
 
@@ -45,6 +46,22 @@ public class NNetworkRegionDrawHelper {
 			if(colNum>10) colNum = 0;
 		}
 	}
+	
+	/*
+	public static void drawRegionsByType(NNetwork ntwk, KeyValuePairList kvpl, boolean saveLayers) {
+		// want to set
+
+		ArrayList<NRegion> regions = ntwk.getRegions();
+
+		int colNum = 0;
+		for(NRegion r: regions) {
+			Color c = getRegionDefaultColour(r, randomiseUrbanCol);
+
+			drawRegionFill(r, c, GlobalSettings.getDocument().getMain());
+			if(colNum>10) colNum = 0;
+		}
+	}
+	*/
 
 
 	public static void drawRegionFill(NRegion r, Color c, RenderTarget rt) {

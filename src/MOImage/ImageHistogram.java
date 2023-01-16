@@ -18,7 +18,7 @@ public class ImageHistogram {
 		for(int y=0; y < img.getHeight(); y++) {
 			for(int x = 0; x < img.getWidth(); x++) {
 				int c = img.getRGB(x, y);
-				int val = ImageProcessing.getChannelFromARGB(c,2);
+				int val = MOPackedColor.getChannelFromARGB(c,2);
 				histogramData[val]++;
 			}
 		}

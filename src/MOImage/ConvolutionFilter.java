@@ -170,9 +170,9 @@ public class ConvolutionFilter {
 				int yloc = y + i - offset;
 				int sourcePix = img.getRGB(xloc, yloc);
 				
-				float rVal = ImageProcessing.getRed(sourcePix);
-				float gVal = ImageProcessing.getGreen(sourcePix);
-				float bVal = ImageProcessing.getBlue(sourcePix);
+				float rVal = MOPackedColor.getRed(sourcePix);
+				float gVal = MOPackedColor.getGreen(sourcePix);
+				float bVal = MOPackedColor.getBlue(sourcePix);
 				
 				totalR += (rVal * currentMatrix[i][j]);
 				totalG += (gVal * currentMatrix[i][j]);
@@ -183,7 +183,7 @@ public class ConvolutionFilter {
 		}
 
 		// Return the resulting color
-		return ImageProcessing.packARGB(255, (int)totalR,(int)totalG,(int)totalB);
+		return MOPackedColor.packARGB(255, (int)totalR,(int)totalG,(int)totalB);
 	}
 	
 	

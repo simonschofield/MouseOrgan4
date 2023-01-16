@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import MOImage.FloatImage;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
+import MOImage.MOPackedColor;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
@@ -122,8 +123,8 @@ public class GeometryBuffer3D{
 		depthBufferExtrema = new Range();
 		depthBufferExtrema.initialiseForExtremaSearch();
 		
-		int BLACK = ImageProcessing.packARGB(255, 0, 0, 0);
-		int WHITE = ImageProcessing.packARGB(255, 255, 255, 255);
+		int BLACK = MOPackedColor.packARGB(255, 0, 0, 0);
+		int WHITE = MOPackedColor.packARGB(255, 255, 255, 255);
 		substanceImage = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
 		
 		depthBuffer = new FloatImage(width,height);

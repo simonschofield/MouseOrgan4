@@ -27,15 +27,15 @@ public class ImageMask {
 		int h = sourceImage.getHeight();
 		BufferedImage outputImage = new BufferedImage(sourceImage.getWidth(), sourceImage.getHeight(), sourceImage.getType());
 
-		int WHITE = ImageProcessing.packARGB(255, 255,255,255);
-		int BLACK = ImageProcessing.packARGB(255, 0,0,0);
+		int WHITE = MOPackedColor.packARGB(255, 255,255,255);
+		int BLACK = MOPackedColor.packARGB(255, 0,0,0);
 
 		for(int y = 0; y < h; y++){
 			for(int x = 0; x < w; x++){
 
 				int sourcePix = sourceImage.getRGB(x, y);
 
-				int aVal = ImageProcessing.getAlpha(sourcePix);
+				int aVal = MOPackedColor.getAlpha(sourcePix);
 				
 				if(aVal < maskThreashold) {
 					outputImage.setRGB(x,y,BLACK);

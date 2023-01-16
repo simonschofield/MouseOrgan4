@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOImage.ImageProcessing;
+import MOImage.MOPackedColor;
 import MOMaths.Fustrum3D;
 import MOMaths.Intersection3D;
 import MOMaths.MOMaths;
@@ -164,7 +165,7 @@ public class ProjectedLight3D {
 			PVector uv = point3DToPlaneUV(thisFustrumVertex);
 			PVector bufferLoc = UVToTextureImageBufferLoc(uv);
 			//System.out.println("normPoint " + normPoint + "map to x y " + mapBufferPointX + "," + mapBufferPointY);
-			int red = ImageProcessing.packARGB(255, 255, 0, 0); 
+			int red = MOPackedColor.packARGB(255, 255, 0, 0); 
 			textureImage.setRGB((int) bufferLoc.x, (int) bufferLoc.y,red);
 		}
 		
@@ -209,7 +210,7 @@ public class ProjectedLight3D {
 				PVector docPoint = sprite.spriteNormalisedSpaceToDocumentSpace(normPoint);
 				int lightingVal = (int)(getValue01(docPoint, normalisedSpriteDepth)*255);
 				
-				int pixelVal = ImageProcessing.packARGB(255, lightingVal, lightingVal, lightingVal);
+				int pixelVal = MOPackedColor.packARGB(255, lightingVal, lightingVal, lightingVal);
 				lightMask.setRGB(x, y, pixelVal);
 			}
 		}

@@ -1,6 +1,7 @@
 package MOImage;
 
 import java.awt.Color;
+import java.util.ArrayList;
 
 import MOMaths.MOMaths;
 import MOMaths.QRandomStream;
@@ -69,3 +70,4 @@ public class MOColor {
 	}
 	
 }
+

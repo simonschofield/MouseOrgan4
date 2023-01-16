@@ -6,6 +6,7 @@ import java.util.Comparator;
 
 import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
+import MOImage.MOColor;
 import MOMaths.AABox3D;
 import MOMaths.EyeSpaceVolume3D;
 import MOMaths.MOMaths;
@@ -103,7 +104,7 @@ public class PointGenerator_Volume3D extends CollectionIterator {
 			float n = MOMaths.norm(p.z, nearDepth, farDepth);
 
 			//System.out.println("in draw points near depth " + nearDepth + " far " + farDepth + " p "+ p + " n "+ n + " " );
-			Color thisCol = ImageProcessing.blendColor(nearCol, farCol, n);
+			Color thisCol = MOColor.blendColor(n, nearCol, farCol);
 			rt.drawPoint(p, thisCol, 10);
 		}
 	}
