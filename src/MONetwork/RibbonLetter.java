@@ -10,7 +10,7 @@ import MOMaths.Rect;
 // Letter kerning is taken care of by the text ribbon, which generates the letter locations in th first place
 //
 public class RibbonLetter{
-	TextRibbon theOwningTextRibbon;
+	public TextRibbon theOwningTextRibbon;
 	public String theChar;
 	public int wordNumber; // this is the set by the text ribbon, and is the numerical order of the words within the ribbon 0...upward
 	

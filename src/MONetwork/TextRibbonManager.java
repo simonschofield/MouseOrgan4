@@ -152,7 +152,7 @@ public class TextRibbonManager {
 	
 	
 	
-	float getRibbonLetterIterationProgress() {
+	public float getRibbonLetterIterationProgress() {
 		// used just for seeing how far through the list we are to give visual feedback to user in long operations
 		return getCurrentTextRibbonLetterNumber()/(float) getCurrentTextRibbonNumLetters();
 	}

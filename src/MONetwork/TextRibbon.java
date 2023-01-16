@@ -22,7 +22,7 @@ public class TextRibbon{
 	TextRenderer theTextRenderer = null;
 	
 	
-	Vertices2 theVertices;
+	private Vertices2 theVertices;
 	
 	float characterHeightDocSpace = 0.001f;
 	float letterKerning = 0.0001f;
@@ -52,7 +52,7 @@ public class TextRibbon{
 		theTextRenderer = tr;
 		characterHeightDocSpace = docSpaceFontHeight;
 		currentRibbonLetterIndex=0;
-		theVertices = v;
+		setTheVertices(v);
 		currentVericesTraversalPosition = 0;
 		
 		
@@ -79,11 +79,11 @@ public class TextRibbon{
 		// will only work if the ribbons' vertices have NOT been clipped
 		//
 		tailLinkedRibbonsList = new ArrayList<TextRibbon>();
-		PVector myEndPoint = theVertices.getEndPoint();
+		PVector myEndPoint = getTheVertices().getEndPoint();
 		for(int n = 0; n < otherRibbons.size(); n++) {
 			TextRibbon tr = otherRibbons.get(n);
 			if(tr==this) continue;
-			PVector otherStartPt = tr.theVertices.getStartPoint();
+			PVector otherStartPt = tr.getTheVertices().getStartPoint();
 			
 			if(  myEndPoint.equals(otherStartPt)) {
 				
@@ -123,7 +123,7 @@ public class TextRibbon{
 	
 	
 	public void clipVertices(float amt) {
-		theVertices = theVertices.getClipped_Length(amt, amt);
+		setTheVertices(getTheVertices().getClipped_Length(amt, amt));
 	}
 
 	// to replace the two above methods
@@ -152,7 +152,7 @@ public class TextRibbon{
 		
 		
 		// estimate the number of characters you need to fill the vertices
-		float totalVertexLength = theVertices.getTotalLength();
+		float totalVertexLength = getTheVertices().getTotalLength();
 		
 		int targetNumChrs = (int)(totalVertexLength/meanLetterLength);
 		
@@ -223,8 +223,8 @@ private RibbonLetter getRibbonLetter(float totalVertexLength, float currentTextP
 		float normalisedPositionOnVertexCharStartPt = currentTextPosition/totalVertexLength;
 		float normalisedPositionOnVertexCharEndPt = (currentTextPosition+thisCharLength)/totalVertexLength;
 		
-		PVector charStartPos = theVertices.lerp(normalisedPositionOnVertexCharStartPt);
-		PVector charEndPos = theVertices.lerp(normalisedPositionOnVertexCharEndPt);
+		PVector charStartPos = getTheVertices().lerp(normalisedPositionOnVertexCharStartPt);
+		PVector charEndPos = getTheVertices().lerp(normalisedPositionOnVertexCharEndPt);
 		RibbonLetter  rl = new RibbonLetter(this, c, charStartPos, charEndPos);
 		
 		return rl;
@@ -259,6 +259,24 @@ private RibbonLetter getRibbonLetter(float totalVertexLength, float currentTextP
 		
 		theTextBank.setIterator(textPos);
 		return mean;
+	}
+
+
+
+
+
+
+	public Vertices2 getTheVertices() {
+		return theVertices;
+	}
+
+
+
+
+
+
+	public void setTheVertices(Vertices2 theVertices) {
+		this.theVertices = theVertices;
 	}
 	
 }

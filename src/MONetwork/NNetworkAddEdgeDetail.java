@@ -3,6 +3,7 @@ package MONetwork;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOAppSessionHelpers.NNetworkEdgeDrawHelper;
 import MOImage.KeyImageSampler;
 import MOMaths.Line2;
 import MOMaths.MOMaths;
@@ -94,10 +95,29 @@ public class NNetworkAddEdgeDetail {
 		otherEdges.remove(theseEdges);
 		
 		for(NEdge thisEdge: theseEdges) {
-			ArrayList<NEdge> crossingEdges = NNetworkHelper.findCrossingEdges( thisEdge,  otherEdges);
+			ArrayList<NEdge> crossingEdges = findCrossingEdges( thisEdge,  otherEdges);
 			if(crossingEdges.size()>0) return true;
 		}
 		return false;
+	}
+	
+	
+	private static ArrayList<NEdge> findCrossingEdges(NEdge thisEdge, ArrayList<NEdge> otherEdges) {
+		// returns a list of all edges in otherEdges list that cross thisEdge
+		ArrayList<NEdge> crossingEdges = new ArrayList<NEdge>();
+		Line2 thisLine = thisEdge.getLine2();
+		Line2 otherLine;
+		for(NEdge e: otherEdges) {
+			if(e == thisEdge) continue;
+			otherLine = e.getLine2();
+			if( thisLine.isIntersectionPossible(otherLine) == false ) continue;
+			
+			if( thisLine.calculateIntersection(otherLine) && thisLine.isConnected(otherLine) == false) {
+				crossingEdges.add(e);
+			}
+		}
+		
+		return crossingEdges;
 	}
 	
 	

@@ -114,7 +114,7 @@ public class NAttributes {
 		return attributes.getNumItems();
 	}
 	
-	boolean thisItemContainsMatch( KeyValuePair query ) {
+	public boolean thisItemContainsMatch( KeyValuePair query ) {
 		// returns true if this item contains a KVP matching query
 		return attributes.containsEqual(query);
 	}

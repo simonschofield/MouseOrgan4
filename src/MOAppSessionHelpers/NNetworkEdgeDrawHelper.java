@@ -1,11 +1,10 @@
-package MONetwork;
+package MOAppSessionHelpers;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOAppSessionHelpers.SceneHelper;
 import MOCompositing.RenderTarget;
 import MOCompositing.TextRenderer;
 import MOImage.ImageProcessing;
@@ -17,6 +16,14 @@ import MOMaths.QRandomStream;
 import MOMaths.RandomStream;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
+import MONetwork.EdgeRunVerticesCrawler;
+import MONetwork.NEdge;
+import MONetwork.NNetwork;
+import MONetwork.NNetworkEdgeRunFinder;
+import MONetwork.NPoint;
+import MONetwork.NRegion;
+import MONetwork.RibbonLetter;
+import MONetwork.TextRibbonManager;
 import MOSprite.Sprite;
 import MOSprite.SpriteFont;
 import MOSprite.SpriteSourceInterface;
@@ -32,7 +39,7 @@ import MOUtils.TextBank;
 //
 //
 //
-public class NNetworkHelper {
+public class NNetworkEdgeDrawHelper {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//This is use to draw the roads as lines
 	//
@@ -126,31 +133,31 @@ public class NNetworkHelper {
 		
 		//String directoryPath = directoryname + "\\";
 		
-		KeyValuePair descriptorC = NNetworkHelper.getKVP("ROAD", "C");  
+		KeyValuePair descriptorC = NNetworkEdgeDrawHelper.getKVP("ROAD", "C");  
 		drawEdges(theNetwork, descriptorC, Color.BLACK, Cwidth);
 		
 		
 
-		KeyValuePair descriptoB = NNetworkHelper.getKVP("ROAD", "B");  
+		KeyValuePair descriptoB = NNetworkEdgeDrawHelper.getKVP("ROAD", "B");  
 		drawEdges(theNetwork, descriptoB, Color.BLACK, Bwidth);
 		
 		
 
-		KeyValuePair descriptorA = NNetworkHelper.getKVP("ROAD", "A");
+		KeyValuePair descriptorA = NNetworkEdgeDrawHelper.getKVP("ROAD", "A");
 		drawEdges(theNetwork, descriptorA, Color.BLACK, Awidth);
 		
 		
 
-		KeyValuePair seaDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "SEA");
+		KeyValuePair seaDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "SEA");
 		drawEdges(theNetwork, seaDescriptor, Color.BLACK, regionEdgesWidth); 
-		KeyValuePair riverDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "RIVER");
+		KeyValuePair riverDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "RIVER");
 		drawEdges(theNetwork, riverDescriptor, Color.BLACK, regionEdgesWidth); 
-		KeyValuePair parksDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "PARK");
+		KeyValuePair parksDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "PARK");
 		drawEdges(theNetwork, parksDescriptor, Color.BLACK, regionEdgesWidth); 
-		KeyValuePair lakeDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "LAKE");
+		KeyValuePair lakeDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "LAKE");
 		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, regionEdgesWidth); 
 		
-		KeyValuePair undefinedDescriptor = NNetworkHelper.getKVP("REGIONEDGE", "UNDEFINED");
+		KeyValuePair undefinedDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "UNDEFINED");
 		drawEdges(theNetwork, undefinedDescriptor, Color.BLACK, regionEdgesWidth); 
 		
 		
@@ -161,7 +168,7 @@ public class NNetworkHelper {
 			GlobalSettings.getDocument().getMain().clearOutsideRect(boundaryRect);
 		}
 		
-		KeyValuePair docEdge = NNetworkHelper.getKVP("REGIONEDGE", "document");
+		KeyValuePair docEdge = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "document");
 		drawEdges(theNetwork, docEdge, Color.BLACK, boundaryWidth); 
 		
 		if(saveRender) {
@@ -321,7 +328,7 @@ public class NNetworkHelper {
 	    
 		boolean showUnderlyingVertices = false;
 	    if(showUnderlyingVertices) {
-	    	NNetworkHelper.drawVertices2ListNoFill(edgeRunVertices, 10, null, null);
+	    	NNetworkEdgeDrawHelper.drawVertices2ListNoFill(edgeRunVertices, 10, null, null);
 	    	GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
 	    	//return;
 	    }
@@ -338,7 +345,7 @@ public class NNetworkHelper {
 			RibbonLetter ribbonLetter = theTextRibbonManager.getNextRibbonLetter();
 			if(ribbonLetter==null) return;
 
-			float len = ribbonLetter.theOwningTextRibbon.theVertices.getTotalLength();
+			float len = ribbonLetter.theOwningTextRibbon.getTheVertices().getTotalLength();
 			
 			Sprite sprite =  textRenderer.getSprite(ribbonLetter.theChar, fontheight, ribbonLetter.getCharLine(), null);
 			GlobalSettings.getDocument().getMain().pasteSprite(sprite);
@@ -361,7 +368,7 @@ public class NNetworkHelper {
 	
 	
 	
-	
+/*	
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Drawing Regions
@@ -412,6 +419,7 @@ public class NNetworkHelper {
 		
 		
 	}
+	*/
 
 	public static void drawVertices2ListNoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
 		// if dashPattern is nulled, then uses default line
@@ -443,13 +451,14 @@ public class NNetworkHelper {
 	}
 	
 	
+	
 
 
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Geometric stuff
 	//
-	public static ArrayList<NEdge> findCrossingEdges(NEdge thisEdge, ArrayList<NEdge> otherEdges) {
+	/*public static ArrayList<NEdge> findCrossingEdges(NEdge thisEdge, ArrayList<NEdge> otherEdges) {
 		ArrayList<NEdge> crossingEdges = new ArrayList<NEdge>();
 		Line2 thisLine = thisEdge.getLine2();
 		Line2 otherLine;
@@ -484,17 +493,14 @@ public class NNetworkHelper {
 
 	}
 
+	
 	public static ArrayList<Vertices2> convertRegionsToVertices2(ArrayList<NRegion> regions) {
 		ArrayList<Vertices2> vertices = new ArrayList<Vertices2>();
 		int n=0;
 		for(NRegion  r : regions) {
 
 			Vertices2 v = r.getVertices();
-			/*
-			 * if(n < 10) { System.out.println(v.getStats());
-			 * 
-			 * }
-			 */
+			
 			n++;
 			v.setPolygonWindingDirection(Vertices2.CLOCKWISE);
 			vertices.add( v );
@@ -503,6 +509,7 @@ public class NNetworkHelper {
 
 	}
 
+		
 	public static ArrayList<Vertices2> dilateVertices2(ArrayList<Vertices2> vertsIn, float dilation, boolean relativeToOwnSize) {
 		// if relativeToOwnWidth == false, the dilation is in docSpace units
 		// if relativeToOwnWidth == true, the diagonal size is measured. This gives an approximate measure of width and height of the region
@@ -523,7 +530,7 @@ public class NNetworkHelper {
 		return vertsOut;
 
 	}
-
+	 */
 	
 	
 	
@@ -564,7 +571,7 @@ public class NNetworkHelper {
 		regType.addKeyValue("REGIONEDGE", "SEA");
 		return regType;
 	}
-
+	/*
 	public static Color getRegionDefaultColour(NRegion r, boolean randomiseUrbanColours) {
 		// for debug only
 		Color c = Color.WHITE;
@@ -648,6 +655,8 @@ public class NNetworkHelper {
 		regions.removeAll(alreadyDefinedRegions);
 		return regions;
 	}
+	
+	*/
 	
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////

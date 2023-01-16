@@ -12,8 +12,8 @@ import MOUtils.KeyValuePairList;
 //
 public class NEdge extends NAttributes {
 
-	NPoint p1 = null;
-	NPoint p2 = null;
+	public NPoint p1 = null;
+	public NPoint p2 = null;
 
 	private Line2 line2 = null;
 	
@@ -53,7 +53,7 @@ public class NEdge extends NAttributes {
 		return null;
 	}
 
-	PVector getEndCoordinate(int n) {
+	public PVector getEndCoordinate(int n) {
 		return getEndNPoint(n).getPt();
 	}
 	
