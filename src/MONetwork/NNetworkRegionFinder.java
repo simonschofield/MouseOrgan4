@@ -212,6 +212,18 @@ import MOUtils.ObjectWithValueList;
 		System.out.println("setRegionAttributeWithRegionMarker:: found " + n + " regions matching " + regionType);
 		
 	}
+	
+	
+	
+	public ArrayList<String> getListRegionTypes() {
+		// returns a list of all the different regiontypes allocated with no duplication
+		ArrayList<String> regiontypes =  new ArrayList<String>();
+		for (NRegion nr : theNetwork.regions) {
+			String s = nr.getAttributeStringVal("REGIONTYPE");
+			if(regiontypes.contains(s)==false) regiontypes.add(s);
+		}
+		return regiontypes;
+	}
 
 	
 

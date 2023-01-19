@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
+import MOImage.MONamedColors;
 import MOImage.KeyImageSampler;
 import MOImage.MOColor;
 import MOMaths.PVector;
@@ -21,7 +22,7 @@ public class NNetworkRegionDrawHelper {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Drawing Regions
 	//
-	public static void drawRegions(NNetwork ntwk, float dilation, float width, float[] dashPattern) {
+	public static void drawRegionEdges(NNetwork ntwk, float dilation, float width, float[] dashPattern) {
 
 		ArrayList<Vertices2> verts  = convertRegionsToVertices2(ntwk.getRegions());
 		RenderTarget rt = GlobalSettings.getDocument().getMain();
@@ -33,35 +34,67 @@ public class NNetworkRegionDrawHelper {
 		}
 	}
 
-	public static void drawRegionsByType(NNetwork ntwk,  boolean randomiseUrbanCol) {
-		// want to set
+	
+	
+	
+	public static void drawRegionFillsByType(NNetwork ntwk, String[] regionTypeColorPairs, float[] hsvVariance,  boolean saveImage, boolean clearImage) {
+		// enables the drawing of regions with a color fill based on regionType/namedColor pairs
+		// After which the render may be saved
+		// hsvVariance is nullable
+		
+		
+		KeyValuePairList regionTypeColors = createRegionTypeColorKVP(regionTypeColorPairs);// these are in the KV form ["PARK", "GREEN"],["RIVER", "BLUE"],...
+		regionTypeColors.printMe();
+		
+		KeyValuePairList regionTypes = createRegionTypeKVP(regionTypeColorPairs);// these are in the KV form ["REGIONTYPE", "PARK"],["REGIONTYPE", "RIVER"],...
+		regionTypes.printMe();
+		// for each regionTypeColors, find all the regions that match. Color regions with new method, save layer
+		ArrayList<NRegion> regions = getRegionsMatchingKVPList( ntwk,  regionTypes);
 
-		ArrayList<NRegion> regions = ntwk.getRegions();
 
-		int colNum = 0;
 		for(NRegion r: regions) {
-			Color c = getRegionDefaultColour(r, randomiseUrbanCol);
-
-			drawRegionFill(r, c, GlobalSettings.getDocument().getMain());
-			if(colNum>10) colNum = 0;
+			String colorname = getNamedColorOfRegion(r,  regionTypeColors);
+			Color c = MONamedColors.getColor(colorname);
+			
+			if(hsvVariance!=null) {
+				c =  MOColor.perturbHSV(c, hsvVariance[0], hsvVariance[1], hsvVariance[2]);
+			}
+			
+			drawRegionFill(r,  c, GlobalSettings.getDocument().getMain()) ;
 		}
+		
+		if(saveImage) {
+			String combinedNames = getCombinedRegionNames(regionTypeColorPairs);
+    		GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + "ColoredRegions_" + combinedNames + ".png");
+    	}
+		
+		if(clearImage) {
+    		GlobalSettings.getDocument().getMain().clearImage();
+    	}
+		
+		
 	}
 	
-	/*
-	public static void drawRegionsByType(NNetwork ntwk, KeyValuePairList kvpl, boolean saveLayers) {
-		// want to set
-
-		ArrayList<NRegion> regions = ntwk.getRegions();
-
-		int colNum = 0;
-		for(NRegion r: regions) {
-			Color c = getRegionDefaultColour(r, randomiseUrbanCol);
-
-			drawRegionFill(r, c, GlobalSettings.getDocument().getMain());
-			if(colNum>10) colNum = 0;
-		}
+	static String getNamedColorOfRegion(NRegion r, KeyValuePairList regionTypeColors) {
+		String v = r.getAttributeStringVal("REGIONTYPE");
+		if(v == null) return "NOCOLOR";
+		String colName = regionTypeColors.getString(v);
+		if(colName.equals("")) return "NOCOLOR";
+		return colName;
 	}
-	*/
+	
+	
+	
+	public static ArrayList<NRegion> getRegionsMatchingKVPList(NNetwork ntwk, KeyValuePairList regionTypes){
+		
+		ArrayList<NRegion> regions = new ArrayList<NRegion>();
+		for(int n = 0; n < regionTypes.getNumItems(); n++) {
+			KeyValuePair kvp = regionTypes.getItem(n);
+			ArrayList<NRegion> thisKVPRegions = ntwk.getRegionsMatchingQuery(kvp);
+			regions.addAll(thisKVPRegions);
+		}
+		return regions;
+	}
 
 
 	public static void drawRegionFill(NRegion r, Color c, RenderTarget rt) {
@@ -84,36 +117,45 @@ public class NNetworkRegionDrawHelper {
 
 	}
 
-		/*
-	public static void drawVertices2ListNoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
-		// if dashPattern is nulled, then uses default line
-		// if color is nulled the uses a random color (for debug probably)
-		RenderTarget rt = GlobalSettings.getDocument().getMain();
-		Color col;
-		for(Vertices2 v: verts) {
-
-			if(c==null) {
-				col = MOColor.getRandomRGB(100);
-
-			} else {
-				col = c;
-			}
-
-			rt.drawVertices2NoFill(v, col, width, dashPattern);
-			//rt.drawPoint(v.get(0), col, width+2);
+	static KeyValuePairList createRegionTypeColorKVP(String[] regionTypeColorPairs) {
+		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a KVPList with the form ["PARK", "GREEN"],["RIVER", "BLUE"],...
+		KeyValuePairList regionTypeColorKVPList= new KeyValuePairList();
+		for(int n = 0; n < regionTypeColorPairs.length; n+=2) {
+			int keyIndex = n;
+			int valIndex = n+1;
+			String k = regionTypeColorPairs[keyIndex];
+			String v = regionTypeColorPairs[valIndex];
+			regionTypeColorKVPList.addKeyValue(k, v);
 		}
+		return regionTypeColorKVPList;
 	}
-
-	public static void drawVertices2NoFill(Vertices2 verts, float width, Color c, float[] dashPattern) {
-		// if dashPattern is nulled, then uses default line
-		RenderTarget rt = GlobalSettings.getDocument().getMain();
-
-		if(c==null) c = MOColor.getRandomRGB(100);
-
-
-		rt.drawVertices2NoFill(verts, c, width, dashPattern);
-	}*/
 	
+	
+	static KeyValuePairList createRegionTypeKVP(String[] regionTypeColorPairs) {
+		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a KVPList with the form ["REGIONTYPE", "PARK"],["REGIONTYPE", "RIVER"],...
+		KeyValuePairList regionTypeColorKVPList= new KeyValuePairList();
+		for(int n = 0; n < regionTypeColorPairs.length; n+=2) {
+			int keyIndex = n;
+			int valIndex = n+1;
+			String k = "REGIONTYPE";
+			String v = regionTypeColorPairs[keyIndex];
+			regionTypeColorKVPList.addKeyValue(k, v);
+		}
+		return regionTypeColorKVPList;
+	}
+	
+	
+	static String getCombinedRegionNames(String[] regionTypeColorPairs) {
+		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a KVPList with the form ["PARK", "GREEN"],["RIVER", "BLUE"],...
+		String combinedNames = "";
+		for(int n = 0; n < regionTypeColorPairs.length; n+=2) {
+			int keyIndex = n;
+			
+			String regionName = regionTypeColorPairs[keyIndex];
+			combinedNames += regionName + "_";
+		}
+		return combinedNames;
+	}
 	
 	
 	public static Color getRegionDefaultColour(NRegion r, boolean randomiseUrbanColours) {

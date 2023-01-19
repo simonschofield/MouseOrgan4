@@ -167,8 +167,12 @@ public  class QRandomStream {
 		float r = nextFloat();
 		return (lo + r * (hi - lo));
 	}
-
+	
 	public float perturb(float v, float amt) {
+		return v + (randRangeF(-amt, amt));
+	}
+
+	public float perturbProportional(float v, float amt) {
 		return v + (randRangeF(-v, v) * amt);
 	}
 

@@ -105,7 +105,7 @@ public class NAttributes {
 		return kvp.getBoolean();
 	}
 	
-	String getAttributeStringVal(String k) {
+	public String getAttributeStringVal(String k) {
 		KeyValuePair kvp =  attributes.findKeyValue(k);
 		return kvp.getString();
 	}

@@ -63,6 +63,21 @@ public class MOMaths {
 
 	public static float wrap(float val, float lower, float upper) {
 		return ((val - lower) % (upper - lower)) + lower;
+		
+	}
+	
+	
+	public static float wrap01(float val) {
+		
+		if(val < 0) {
+			val += 1;
+			return val;
+		}
+		if(val > 1) {
+			val -= 1;
+			return val;
+		}
+		return val;
 	}
 
 	public static float sin(float theta) {

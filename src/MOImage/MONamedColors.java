@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 
 
-class MONamedColors {
+public class MONamedColors {
 
     /**
      * Initialize the color list that we have.
@@ -163,10 +163,7 @@ class MONamedColors {
 		
 	}
 	
-	MONamedColors(){
-		
-        
-    }
+	
 
     
     public static Color getColor(String name) {

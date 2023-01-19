@@ -89,8 +89,8 @@ public class Scene3DHelper {
 			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
 			
 			QRandomStream ranStream = sprite.getRandomStream();
-			degreesLeft = ranStream.perturb(degreesLeft, noise);
-			degreesRight = ranStream.perturb(degreesRight, noise);
+			degreesLeft = ranStream.perturbProportional(degreesLeft, noise);
+			degreesRight = ranStream.perturbProportional(degreesRight, noise);
 			
 			float rotationDegrees = MOMaths.lerp(v,-degreesLeft,degreesRight);
 			
@@ -108,7 +108,7 @@ public class Scene3DHelper {
 			if(noise > 0.001) {
 				
 			QRandomStream ranStream = sprite.getRandomStream();
-			v = ranStream.perturb(v, noise);
+			v = ranStream.perturbProportional(v, noise);
 			}
 			
 			float brightness = MOMaths.lerp(v, dark, bright);

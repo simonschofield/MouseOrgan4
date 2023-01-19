@@ -92,7 +92,7 @@ public class KeyValuePairList{
     return keyValuePairs.size();
   }
   
-  KeyValuePair getItem(int n){
+  public KeyValuePair getItem(int n){
     return keyValuePairs.get(n);
   }
 
