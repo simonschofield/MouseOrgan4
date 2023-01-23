@@ -222,7 +222,8 @@ public class Vertices2 {
 	}
 	// end point inside
 
-
+	
+	
 	public Rect getExtents() {
 		float minx = Float.MAX_VALUE;
 		float miny = Float.MAX_VALUE;

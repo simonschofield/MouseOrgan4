@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import MOCompositing.RenderTarget;
 import MOImage.ImageProcessing;
 import MOImage.MONamedColors;
+import MOImage.MOPackedColor;
 import MOImage.KeyImageSampler;
 import MOImage.MOColor;
+import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Vertices2;
 import MONetwork.NNetwork;
@@ -72,6 +74,35 @@ public class NNetworkRegionDrawHelper {
     		GlobalSettings.getDocument().getMain().clearImage();
     	}
 		
+		
+	}
+	
+	
+	public static void drawRegionsVignetted(NNetwork ntwk, PVector centre, float[] hsvVariance,  boolean saveImage ) {
+		ArrayList<NRegion> regions = ntwk.getRegions();
+		for(NRegion r: regions) {
+			
+			PVector rpos = r.getVertices().getExtents().getCentre();
+			float d = centre.dist(rpos);
+			
+			// max dist = 0.707 in a square image
+			float edgeProximity = MOMaths.map(d,0,0.707f,1,0);
+			int tone = (int) (edgeProximity * 255);
+			int packedTone = MOPackedColor.packARGB(255, tone, tone, tone) ;
+			Color c = new Color(packedTone);
+			
+			if(hsvVariance!=null) {
+				c =  MOColor.perturbHSV(c, hsvVariance[0], hsvVariance[1], hsvVariance[2]);
+			}
+			
+			drawRegionFill(r,  c, GlobalSettings.getDocument().getMain()) ;
+		}
+		
+		
+		if(saveImage) {
+			String imageName = "regions_vignetted.png";
+    		GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + imageName);
+    	}
 		
 	}
 	
@@ -297,5 +328,5 @@ public class NNetworkRegionDrawHelper {
 
 	}
 
-
+	
 }
