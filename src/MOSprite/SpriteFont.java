@@ -98,7 +98,7 @@ public class SpriteFont implements SpriteSourceInterface{
 		SpriteData SpriteData = new SpriteData();
 		
 		SpriteData.SpriteFontName = seedFontName;
-		SpriteData.ImageGroupName = imageSampleGroupName;
+		SpriteData.ImageAssetGroupName = imageSampleGroupName;
 		SpriteData.sizeInScene = sizeInScene;
 		SpriteData.useRelativeSizes = useRelativeSizes;
 		SpriteData.origin = origin.copy();

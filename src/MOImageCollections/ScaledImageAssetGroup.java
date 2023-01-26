@@ -138,10 +138,18 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		}
 		
 		ArrayList<String> filesToLoad = directoryFileNameScanner.getFullPathAndFileNamesList();		
+		
+		// we need to ensure the cached images are saved with the best quality
+		int currentInterpolationQuality = ImageProcessing.getInterpolationQuality();
+		ImageProcessing.setInterpolationQuality(ImageProcessing.INTERPOLATION_BICUBIC);
+		
+		
 		for(String thisImagePathAndName: filesToLoad) {
 			loadFullSizeImage_SessionScale_Cache_PrescaleCrop(thisImagePathAndName, cachedImagesFolderName);
 		}
 		assertImageTYPE_INT_ARGB();
+		
+		ImageProcessing.setInterpolationQuality(currentInterpolationQuality);
 		
 		// will write a comment to console if no images are loaded
 		isLoaded();

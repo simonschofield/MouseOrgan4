@@ -26,7 +26,7 @@ public class SpriteData {
 	// this enables the user to identify seeds from different batches, and sprite fonts within biomes (or individually) 
 	public String SpriteDataBatchName = "";
 	public String SpriteFontName = "";
-	public String ImageGroupName = "";
+	public String ImageAssetGroupName = "";
 	
 	// the id is a unique integer. It is set by the SpriteData constructor from the static UniqueID class declared above. 
 	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
@@ -90,7 +90,7 @@ public class SpriteData {
 		SpriteData cpy = new SpriteData();
 		cpy.SpriteDataBatchName = this.SpriteDataBatchName;
 		cpy.SpriteFontName = this.SpriteFontName;
-		cpy.ImageGroupName = this.ImageGroupName;
+		cpy.ImageAssetGroupName = this.ImageAssetGroupName;
 		cpy.sizeInScene = this.sizeInScene;
 		cpy.useRelativeSizes = this.useRelativeSizes;
 		cpy.origin = this.origin.copy();
@@ -148,8 +148,8 @@ public class SpriteData {
 
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.addKeyValue("SpriteDataBatchName", SpriteDataBatchName);
-		kvlist.addKeyValue("SeedFontName", SpriteFontName);
-		kvlist.addKeyValue("ImageGroupName", ImageGroupName);
+		kvlist.addKeyValue("SpriteFontName", SpriteFontName);
+		kvlist.addKeyValue("ImageAssetGroupName", ImageAssetGroupName);
 		kvlist.addKeyValue("ImageGroupItemNumber", ImageGroupItemNumber);
 		kvlist.addKeyValue("ImageGroupItemShortName", ImageGroupItemShortName);
 		
@@ -180,8 +180,8 @@ public class SpriteData {
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.ingestCSVLine(csvStr);
 		SpriteDataBatchName = kvlist.getString("SpriteDataBatchName");
-		SpriteFontName = kvlist.getString("SeedFontName");
-		ImageGroupName = kvlist.getString("ImageGroupName");
+		SpriteFontName = kvlist.getString("SpriteFontName");
+		ImageAssetGroupName = kvlist.getString("ImageAssetGroupName");
 		ImageGroupItemNumber = kvlist.getInt("ImageGroupItemNumber");
 		ImageGroupItemShortName = kvlist.getString("ImageGroupItemShortName");
 		

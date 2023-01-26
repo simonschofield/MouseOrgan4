@@ -41,16 +41,16 @@ public class Sprite {
 		ScaledImageAssetGroupManager sigm = GlobalSettings.getImageAssetGroupManager();
 		if(spriteData==null) System.out.println("ERROR Sprite::data == null");
 		if(sigm==null) System.out.println("ERROR Sprite::SpriteImageGroupManager == null");
-		ScaledImageAssetGroup sig = sigm.getScaledImageAssetGroup(spriteData.ImageGroupName);
+		ScaledImageAssetGroup sig = sigm.getScaledImageAssetGroup(spriteData.ImageAssetGroupName);
 		if (sig == null) {
 			System.out.println("ERROR Sprite::Sprite constructor - cannot find spriteImageGroup called "
-					+ spriteData.ImageGroupName);
+					+ spriteData.ImageAssetGroupName);
 			return;
 		}
 		BufferedImage img = sig.getImage(spriteData.ImageGroupItemNumber);
 		if (img == null) {
 			System.out.println("ERROR Sprite::Sprite constructor - cannot find image number "
-					+ spriteData.ImageGroupItemNumber + " in " + spriteData.ImageGroupName);
+					+ spriteData.ImageGroupItemNumber + " in " + spriteData.ImageAssetGroupName);
 			return;
 		}
 		setImage(img);
@@ -135,17 +135,27 @@ public class Sprite {
 	}
 	
 	boolean spriteImageGroupEquals(String s) {
-		return spriteData.ImageGroupName.contentEquals(s);
+		return spriteData.ImageAssetGroupName.contentEquals(s);
 	}
 	
-	public boolean seedBatchEquals(String s) {
+	
+	//SpriteDataBatchName = kvlist.getString("SpriteDataBatchName");
+	//SpriteFontName = kvlist.getString("SpriteFontName");
+	
+	
+	public boolean spriteDataBatchNameEquals(String s) {
 		//System.out.println("seedFontis " + data.spriteSeedFontName + " testing " + s);
 		return spriteData.SpriteDataBatchName.contentEquals(s);
 	}
 	
-	public boolean seedFontEquals(String s) {
+	public boolean spriteFontNameEquals(String s) {
 		//System.out.println("seedFontis " + data.spriteSeedFontName + " testing " + s);
-		return spriteData.SpriteDataBatchName.contentEquals(s);
+		return spriteData.SpriteFontName.contentEquals(s);
+	}
+	
+	public String getSeedFont() {
+		
+		return spriteData.SpriteDataBatchName;
 	}
 	
 	public QRandomStream getRandomStream() {
@@ -413,7 +423,7 @@ public class Sprite {
 			
 			if (scaleX > 2) {
 				System.out.println(
-						spriteData.ImageGroupName + "/" + spriteData.ImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
+						spriteData.ImageAssetGroupName + "/" + spriteData.ImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
 								+ getImageWidth() + " to be scale to " + widthInPixels + " scale " + scaleX);
 			}
 		}
@@ -425,7 +435,7 @@ public class Sprite {
 
 			if (scaleY > 2) {
 				System.out.println(
-						spriteData.ImageGroupName + "/" + spriteData.ImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
+						spriteData.ImageAssetGroupName + "/" + spriteData.ImageGroupItemShortName + " scaleToSizeInDocSpace overscaled in X, original size in pixels "
 								+ getImageHeight() + " to be scale to " + heightInPixels + " scale " + scaleY);
 			}
 			
