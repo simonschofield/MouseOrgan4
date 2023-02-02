@@ -121,10 +121,10 @@ public class SpriteFont implements SpriteSourceInterface{
 	
 	
 	protected ScaledImageAssetGroup getSpriteImageGroup() {
-		System.out.println("getSpriteImageGroup SpriteImage group is " + imageSampleGroupName );
+		//System.out.println("getSpriteImageGroup SpriteImage group is " + imageSampleGroupName );
 		
 		ScaledImageAssetGroup group =  GlobalSettings.getImageAssetGroupManager().getScaledImageAssetGroup(imageSampleGroupName);
-		System.out.println("getSpriteImageGroup SpriteImage group is " + imageSampleGroupName );
+		//System.out.println("getSpriteImageGroup SpriteImage group is " + imageSampleGroupName );
 		return group;
 	}
 	

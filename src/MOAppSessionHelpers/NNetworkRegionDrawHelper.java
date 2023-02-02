@@ -20,10 +20,22 @@ import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 import MOUtils.ObjectWithValueList;
 
+/**
+ * @author User
+ *
+ */
 public class NNetworkRegionDrawHelper {
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Drawing Regions
-	//
+	
+	
+	
+	/**
+	 * draws the edges of a regions as closed polygon. As it is dericed from a closed polygon, rather than a collection of edges, you have the
+	 * opportunity to dilate the regions polygon before drawing
+	 * @param ntwk
+	 * @param dilation
+	 * @param width
+	 * @param dashPattern
+	 */
 	public static void drawRegionEdges(NNetwork ntwk, float dilation, float width, float[] dashPattern) {
 
 		ArrayList<Vertices2> verts  = convertRegionsToVertices2(ntwk.getRegions());
@@ -39,6 +51,14 @@ public class NNetworkRegionDrawHelper {
 	
 	
 	
+	/**
+	 * draws regions in a solid colour defined by region color pairs and hsv variance
+	 * @param ntwk
+	 * @param regionTypeColorPairs
+	 * @param hsvVariance
+	 * @param saveImage
+	 * @param clearImage
+	 */
 	public static void drawRegionFillsByType(NNetwork ntwk, String[] regionTypeColorPairs, float[] hsvVariance,  boolean saveImage, boolean clearImage) {
 		// enables the drawing of regions with a color fill based on regionType/namedColor pairs
 		// After which the render may be saved
@@ -78,6 +98,14 @@ public class NNetworkRegionDrawHelper {
 	}
 	
 	
+	/**
+	 * draws regions which are darker the further they are away from the centre
+	 * @param ntwk - the network being passed in. This is unaltered by the process so is not copied
+	 * @param centre
+	 * @param hsvVariance
+	 * @param saveImage
+	 * 
+	 */
 	public static void drawRegionsVignetted(NNetwork ntwk, PVector centre, float[] hsvVariance,  boolean saveImage ) {
 		ArrayList<NRegion> regions = ntwk.getRegions();
 		for(NRegion r: regions) {
@@ -134,7 +162,7 @@ public class NNetworkRegionDrawHelper {
 	}
 
 	public static void fillRegionsRandomColor(NNetwork ntwk) {
-		// just for debug really
+		// just for debug, really crude
 		ArrayList<NRegion> regions = ntwk.getRegions();
 
 		int colNum = 0;
@@ -148,7 +176,7 @@ public class NNetworkRegionDrawHelper {
 
 	}
 
-	static KeyValuePairList createRegionTypeColorKVP(String[] regionTypeColorPairs) {
+	static private KeyValuePairList createRegionTypeColorKVP(String[] regionTypeColorPairs) {
 		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a KVPList with the form ["PARK", "GREEN"],["RIVER", "BLUE"],...
 		KeyValuePairList regionTypeColorKVPList= new KeyValuePairList();
 		for(int n = 0; n < regionTypeColorPairs.length; n+=2) {
@@ -162,7 +190,7 @@ public class NNetworkRegionDrawHelper {
 	}
 	
 	
-	static KeyValuePairList createRegionTypeKVP(String[] regionTypeColorPairs) {
+	static private KeyValuePairList createRegionTypeKVP(String[] regionTypeColorPairs) {
 		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a KVPList with the form ["REGIONTYPE", "PARK"],["REGIONTYPE", "RIVER"],...
 		KeyValuePairList regionTypeColorKVPList= new KeyValuePairList();
 		for(int n = 0; n < regionTypeColorPairs.length; n+=2) {
@@ -176,7 +204,7 @@ public class NNetworkRegionDrawHelper {
 	}
 	
 	
-	static String getCombinedRegionNames(String[] regionTypeColorPairs) {
+	static private String getCombinedRegionNames(String[] regionTypeColorPairs) {
 		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a KVPList with the form ["PARK", "GREEN"],["RIVER", "BLUE"],...
 		String combinedNames = "";
 		for(int n = 0; n < regionTypeColorPairs.length; n+=2) {
@@ -190,7 +218,7 @@ public class NNetworkRegionDrawHelper {
 	
 	
 	public static Color getRegionDefaultColour(NRegion r, boolean randomiseUrbanColours) {
-		// for debug only
+		// is old, for debug only
 		Color c = Color.WHITE;
 		
 		KeyValuePair parkAttribute = new KeyValuePair("REGIONTYPE", "PARK");
@@ -238,6 +266,12 @@ public class NNetworkRegionDrawHelper {
 	
 
 	
+	/**
+	 * adds in a region marker to each unattributed region based on a "density map". There are 3 levels of density:-
+	 * "URBAN_DENSITY_LOW", "URBAN_DENSITY_MEDIUM", "URBAN_DENSITY_HIGH" generated as the value for the "REGIONTYPE" attribute kvp 
+	 * @param ntwk - adds the density KVP attribute to the regions, so does alter the network
+	 * @param densityImagePathAndName
+	 */
 	public static void setRegionAttributeUbanDensity(NNetwork ntwk, String densityImagePathAndName) {
 		// first, find all the regions that have not yet been defined,
 		ArrayList<NRegion> regions = getUnattributedRegions( ntwk);
@@ -262,7 +296,7 @@ public class NNetworkRegionDrawHelper {
 	
 	
 	
-	static ArrayList<NRegion> getUnattributedRegions(NNetwork ntwk) {
+	static private ArrayList<NRegion> getUnattributedRegions(NNetwork ntwk) {
 		// returns a fresh list of all the regions in the network that do not have a REGIONTYPE attribute
 		ArrayList<NRegion> regions = (ArrayList<NRegion>) ntwk.getRegions().clone();
 		
