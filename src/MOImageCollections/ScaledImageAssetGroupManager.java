@@ -81,7 +81,7 @@ public class ScaledImageAssetGroupManager {
 	 *                             normalised coords
 	                     
 	 */
-	void loadImageAssetGroup(String spriteImageGroupName, String targetDirectory, String fileNameMustEndWith,
+	public void loadImageAssetGroup(String spriteImageGroupName, String targetDirectory, String fileNameMustEndWith,
 			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect) {
 
 		
