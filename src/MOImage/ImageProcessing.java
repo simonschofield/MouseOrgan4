@@ -592,6 +592,12 @@ public class ImageProcessing {
 
 	public static BufferedImage mirrorImage(BufferedImage originalImage, boolean flipInX, boolean flipInY) {
 
+		if(originalImage==null) {
+			System.out.println("ImageProcessing mirrorImage - image is null, returning original");
+			return originalImage;
+			
+		}
+		
 		if (!flipInX && !flipInY) {
 			// probably should catch this to stop time wasting
 			return copyImage(originalImage);
@@ -599,6 +605,7 @@ public class ImageProcessing {
 
 		int w = originalImage.getWidth();
 		int h = originalImage.getHeight();
+		//System.out.println("ImageProcessing mirrorImage - image is size " + w + " " + h);
 		AffineTransform tx = null;
 		AffineTransformOp op;
 

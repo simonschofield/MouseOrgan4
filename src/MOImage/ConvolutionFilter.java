@@ -168,6 +168,8 @@ public class ConvolutionFilter {
 				// get the image pixel clamped to the dims
 				int xloc = x + j - offset;
 				int yloc = y + i - offset;
+				xloc = MOMaths.constrain(xloc, 0,img.getWidth()-1);
+				yloc = MOMaths.constrain(yloc, 0,img.getHeight()-1);
 				int sourcePix = img.getRGB(xloc, yloc);
 				
 				float rVal = MOPackedColor.getRed(sourcePix);
@@ -181,7 +183,12 @@ public class ConvolutionFilter {
 				// println("loc total",loc,total);
 			}
 		}
-
+		totalR = MOMaths.constrain(totalR, 0, 255);
+		totalG = MOMaths.constrain(totalG, 0, 255);
+		totalB = MOMaths.constrain(totalB, 0, 255);
+		
+		
+		
 		// Return the resulting color
 		return MOPackedColor.packARGB(255, (int)totalR,(int)totalG,(int)totalB);
 	}
