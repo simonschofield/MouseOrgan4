@@ -358,7 +358,7 @@ public class Sprite {
 	}
 	
 	
-	void bend(float startBend, float bendAmt, float severity) {
+	public void bend(float startBend, float bendAmt, float severity) {
 		BendImage bendImage = new BendImage();
 		float oldWidth = imageQuad.getImageWidth();
 		this.setImage(bendImage.bendImage(this.getImage(), startBend, bendAmt, severity));

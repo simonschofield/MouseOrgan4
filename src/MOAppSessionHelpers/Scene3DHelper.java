@@ -77,6 +77,7 @@ public class Scene3DHelper {
 			if(mag>0.001) {
 				float rot = grad.heading();
 				float scaledRot = rot*mag*amt;
+				System.out.println("rotation " + scaledRot);
 				if(scaledRot > 0 && flipInDirection) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
 				sprite.rotate((float)Math.toDegrees(scaledRot));
 				return scaledRot;
@@ -84,21 +85,42 @@ public class Scene3DHelper {
 			return 0;
 		}
 		
-		static float addWave(Sprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise) {
-			sceneData3D.setCurrentRenderImage(waveImageName);
-			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
+		
+		public static void addWave(Sprite sprite, float rotationDegrees,  boolean flipInDirection) {
 			
-			QRandomStream ranStream = sprite.getRandomStream();
+			if(rotationDegrees > 0 && flipInDirection) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
+			sprite.rotate(rotationDegrees);
+			
+		}
+		
+		public static float addWave(Sprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise, boolean flipInDirection) {
+			
+			
+			float rotationDegrees =  getWaveRotationDegrees( waveImageName, sprite.getDocPoint(), sprite.getRandomStream(),  degreesLeft,  degreesRight,  noise);
+			
+			
+			if(rotationDegrees > 0 && flipInDirection) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
+			sprite.rotate(rotationDegrees);
+			return rotationDegrees;
+		}
+		
+		
+		public static float getWaveRotationDegrees(String waveImageName, PVector docPt, QRandomStream ranStream, float degreesLeft, float degreesRight, float noise) {
+			// return degrees rotation based on a wave image
+			sceneData3D.setCurrentRenderImage(waveImageName);
+			float v = sceneData3D.getCurrentRender01Value(docPt);
+			
+			
 			degreesLeft = ranStream.perturbProportional(degreesLeft, noise);
 			degreesRight = ranStream.perturbProportional(degreesRight, noise);
 			
 			float rotationDegrees = MOMaths.lerp(v,-degreesLeft,degreesRight);
 			
-			//System.out.println("rotation " + v + " " + rotationDegrees);
-			if(rotationDegrees > 0) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
-			sprite.rotate(rotationDegrees);
+			
 			return rotationDegrees;
 		}
+		
+		
 		
 		////
 		static float addLighting(Sprite sprite, String lightingImage, float dark, float bright, float noise) {

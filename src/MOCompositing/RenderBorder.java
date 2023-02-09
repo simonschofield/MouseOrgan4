@@ -366,9 +366,38 @@ public class RenderBorder {
 
 
 	}
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	// if the user wants to tweak one of the boarders (maybe on the fly for different sprites) then
+	// this function  offers a nullable solution. If argument is set to null then the parameter is not changed
+	public void setBoarderRectWithNomalisedCoords(Float newLeft, Float newTop, Float newRight, Float newBottom) {
+		
+		Rect normRect = getBoarderRectInNormalisedCoords();
+		float left = normRect.left;
+		float top = normRect.top;
+		float right = normRect.right;
+		float bottom = normRect.bottom;
+		
+		if(newLeft != null) left = newLeft;
+		if(newTop != null) top = newTop;
+		if(newRight != null) right = newRight;
+		if(newBottom != null) bottom = newBottom;
+		
+		setBoarderRectWithNomalisedCoords( left,  top,  right,  bottom);
+	}
+	
+	
+	public Rect getBoarderRectInNormalisedCoords() {
+		PVector topleftDocSpace = boarderRect.getTopLeft();
+		PVector bottomRightDocSpace = boarderRect.getBottomRight();
+		PVector topLeftNormSpace = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(topleftDocSpace);
+		PVector bottomRightNormSpace = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(bottomRightDocSpace);
+		return new Rect(topLeftNormSpace, bottomRightNormSpace);
+	}
+	
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	
+	//
 
 	private void setBoarderRectWithNomalisedCoords(float left, float top, float right, float bottom) {
 		PVector topLeftNormSpace = new PVector(left,top);
