@@ -250,7 +250,8 @@ public class ROIHelper {
 		
 		private String getContributingSpritesFilePathAndName() {
 			String roiname = getCurrentROIName();
-			return GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + roiname + ".csv";
+			String sessionname = GlobalSettings.getDocumentName();
+			return GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + sessionname + "_" + roiname + ".csv";
 		}
 		
 		
