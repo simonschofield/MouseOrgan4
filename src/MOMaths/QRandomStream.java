@@ -27,6 +27,8 @@ public  class QRandomStream {
 
 	private void init(int rseed, int streamPosition) {
 		if (randomNumbers == null) {
+			// As randomNumbers is a static, this only gets called once by the first 
+			// QRandomStream to be instantiated 
 			initRandomNumbers();
 		}
 		setSeedAndPosition(rseed, streamPosition);
