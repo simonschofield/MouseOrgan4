@@ -605,6 +605,18 @@ public class Sprite {
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// experimental: A region is extracted from the sprite via the mask image. The mask image is a grey-scale
+	// image that extracts the visible region region of the sprite-image. If the mask image is white then the extraction is 100%, 127 would yield a 50% extraction etc.
+	// The effect is applied to the extracted image and re-merged with the original
+
+	public void applyEffectToMaskedRegion(BufferedImage maskImage, int function, float p1, float p2, float p3) {
+		BufferedImage extractedRegion = ImageProcessing.extractImageUsingGrayscaleMask(getImage(), maskImage);
+		extractedRegion = ImageProcessing.colorTransform(extractedRegion,  function,  p1,  p2,  p3);
+		mergeMaskedImage(extractedRegion);
+	}
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// end of .... experimental: towards applying masked effects
 	// 
 
