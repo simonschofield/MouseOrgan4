@@ -101,6 +101,22 @@ public class SceneHelper {
 		 
 	}
 	
+	public static Rect getDocSpaceRectFromNormalisedRect(float left, float top, float right, float bottom) {
+		Rect nRect = new Rect();
+		nRect.left = left;
+		nRect.top = top;
+		nRect.right = right;
+		nRect.bottom = bottom;
+		
+		return getDocSpaceRectFromNormalisedRect(nRect);
+	}
+	
+	public static Rect getDocSpaceRectFromNormalisedRect(Rect normalisedRect) {
+		PVector topLeft = GlobalSettings.getDocument().getCoordinateSystem().normalisedSpaceToDocSpace(normalisedRect.getTopLeft());
+		PVector bottomRight = GlobalSettings.getDocument().getCoordinateSystem().normalisedSpaceToDocSpace(normalisedRect.getBottomRight());
+		return new Rect(topLeft, bottomRight);
+	}
+	
 	static void randomRotateScaleSprite(Sprite sprite, float scaleAmt, float rotAmount, boolean flipInRotationDirection) {
 		QRandomStream ranStream = sprite.getRandomStream();
 		float rscale = ranStream.randRangeF(1-scaleAmt,1+scaleAmt);

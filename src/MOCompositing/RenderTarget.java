@@ -138,7 +138,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	//
 	//
 	public void pasteSprite(Sprite sprite) {
-		pasteImage(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
+		pasteImage_TopLeftDocPoint(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
 	}
 	
 	
@@ -146,7 +146,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	////////////////////////////////////////////////////////////////////////////////////
 	// pastes the topleft of the image at docSpacePoint
 	// 
-	public void pasteImage(BufferedImage img, PVector docSpaceTopLeftPoint, float alpha) {
+	public void pasteImage_TopLeftDocPoint(BufferedImage img, PVector docSpaceTopLeftPoint, float alpha) {
 		//Rect r = getPasteRectDocSpace(img, docSpacePoint);
 		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(docSpaceTopLeftPoint);
 		pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
@@ -178,10 +178,16 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		pasteImageMask(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha, c);
 	}
 	
-	
+	// replaces the colour of the image with a single colour
 	public void pasteImageMask(BufferedImage img, PVector docSpacePoint, float alpha, Color c) {
 		BufferedImage spriteMaskImage = ImageProcessing.replaceColor(img, c);
-		pasteImage(spriteMaskImage, docSpacePoint, alpha);
+		pasteImage_TopLeftDocPoint(spriteMaskImage, docSpacePoint, alpha);
+	}
+	
+	// uses an alternative image when pasting - this allows the user to process the sprite's
+	// normal image in anyway desired and the used instead of the sprite image
+	public void pasteSpriteAltImage(Sprite sprite, BufferedImage altImage, float alpha) {
+		pasteImage_TopLeftDocPoint(altImage, sprite.getDocSpaceRect().getTopLeft(),  alpha);
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////

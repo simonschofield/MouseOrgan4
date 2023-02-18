@@ -108,7 +108,7 @@ public class CMY_HalftoneImage{
 		// need to convert the topleft of the documentTargetRect, which is in normalised space,
 		// into document space
 		PVector docSpaceTopLeft = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
-		mainDocRenderTarget.pasteImage(composite, docSpaceTopLeft, 1);
+		mainDocRenderTarget.pasteImage_TopLeftDocPoint(composite, docSpaceTopLeft, 1);
 		
 		if(saveOutImages) {
 			String pathAndName = GlobalSettings.getUserSessionPath() + "cmyComposite.png";

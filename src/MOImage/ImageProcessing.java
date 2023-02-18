@@ -25,6 +25,18 @@ import MOMaths.Rect;
 import MOUtils.Histogram;
 
 
+/**
+ * @author cmp3schofs
+ *
+ */
+/**
+ * @author cmp3schofs
+ *
+ */
+/**
+ * @author cmp3schofs
+ *
+ */
 public class ImageProcessing {
 
 	
@@ -290,6 +302,26 @@ public class ImageProcessing {
 		
 		
 		return getMaskedImage( source,  maskFullSize,  0,  0, AlphaComposite.DST_IN);
+	}
+	
+	
+	
+	
+	/**
+	 * replaces the visible pixels in the source image with those in the toReplace image
+	 * The toReplace image is resized to the same image dimensions of the source
+	 * @param source - the sprite-type image with alpha
+	 * @param toReplace - an image, probably without alpha, containing the pixels to be "mapped" onto the source image
+	 * @return - an alpha-d image with its visible pixels changed
+	 */
+	public static BufferedImage replaceVisiblePixels(BufferedImage source,  BufferedImage toReplace) {
+		
+		int newMaskWidth = (int)source.getWidth();
+		int newMaskHeight = (int)source.getHeight();
+		BufferedImage resizedMask = resizeTo(toReplace, newMaskWidth, newMaskHeight);
+		
+		return getMaskedImage(source,  resizedMask, 0, 0, AlphaComposite.SRC_IN);
+	
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
