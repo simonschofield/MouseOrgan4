@@ -90,10 +90,10 @@ public class NNetworkSimplify {
 	
 		autoRegionFinder.findAllRegions();
 
-		autoRegionFinder.setRegionAttributeWithRegionMarker("PARK");
-		autoRegionFinder.setRegionAttributeWithRegionMarker("RIVER");
-		autoRegionFinder.setRegionAttributeWithRegionMarker("LAKE");
-		autoRegionFinder.setRegionAttributeWithRegionMarker("SEA");
+		autoRegionFinder.setRegionAttributeWithRegionMarker("REGIONTYPE","PARK");
+		autoRegionFinder.setRegionAttributeWithRegionMarker("REGIONTYPE","RIVER");
+		autoRegionFinder.setRegionAttributeWithRegionMarker("REGIONTYPE","LAKE");
+		autoRegionFinder.setRegionAttributeWithRegionMarker("REGIONTYPE","SEA");
 		
 		
 		

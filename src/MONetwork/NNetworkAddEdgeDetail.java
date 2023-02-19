@@ -50,10 +50,12 @@ public class NNetworkAddEdgeDetail {
 		int moveCount = 0;
 		
 		ArrayList<NPoint> npointList = theNetwork.getPointsWithEdges();
+		int totalPoints = npointList.size();
 		for(NPoint np: npointList) {
 			if( isDocumentEdgePoint(np) ) continue;
 			boolean move = tryDisplacePoint(np, amt);
 			if(move) moveCount++;
+			if(moveCount%100 == 0) System.out.println("done ..." + moveCount + " out of " + totalPoints);
 		}
 		System.out.println("moved " + moveCount + " out of " + npointList.size());
 		

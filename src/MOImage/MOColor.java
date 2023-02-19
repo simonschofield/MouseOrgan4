@@ -153,7 +153,7 @@ public class MOColor {
 	// expects values in range hue = [0,1], saturation = [0,1], value = [0,1]
 	public static Color HSVtoRGB(float hue, float sat, float val)
 	{
-		System.out.println("HSVtoRGB hsv " + hue + " " + sat + " " + val);
+		//System.out.println("HSVtoRGB hsv " + hue + " " + sat + " " + val);
 	    
 	    int h = (int)(hue * 6);
 	    float f = hue * 6 - h;
@@ -173,7 +173,7 @@ public class MOColor {
 	      case 5: r = val; g = p; b = q; break;
 	      default: r = val; g = t; b = p;
 	    }
-	    System.out.println("HSVtoRGB rgb " + r + " " + g + " " + b);
+	    //System.out.println("HSVtoRGB rgb " + r + " " + g + " " + b);
 	    return new Color((int)(r*255),(int)(g*255),(int)(b*255));
 	}
 	

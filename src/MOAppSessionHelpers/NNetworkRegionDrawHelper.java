@@ -54,10 +54,10 @@ public class NNetworkRegionDrawHelper {
 	/**
 	 * draws regions in a solid colour defined by region color pairs and hsv variance
 	 * @param ntwk
-	 * @param regionTypeColorPairs
-	 * @param hsvVariance
-	 * @param saveImage
-	 * @param clearImage
+	 * @param regionTypeColorPairs - These associate the "REGIONTYPE" attribute with a named color, as defined in the MONamedColor class
+	 * @param hsvVariance - uses a list of 3 float values to create ranges around the centre value as defined by the named color
+	 * @param saveImage - saves the image using the naming convention "ColoredRegions_" + combinedNames + ".png", where combined names are the names of the REGIONTYPES
+	 * @param clearImage - clears the image after saving
 	 */
 	public static void drawRegionFillsByType(NNetwork ntwk, String[] regionTypeColorPairs, float[] hsvVariance,  boolean saveImage, boolean clearImage) {
 		// enables the drawing of regions with a color fill based on regionType/namedColor pairs
@@ -85,12 +85,15 @@ public class NNetworkRegionDrawHelper {
 			drawRegionFill(r,  c, GlobalSettings.getDocument().getMain()) ;
 		}
 		
+		
+		GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+		
 		if(saveImage) {
 			String combinedNames = getCombinedRegionNames(regionTypeColorPairs);
     		GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + "ColoredRegions_" + combinedNames + ".png");
     	}
 		
-		if(clearImage) {
+		if(clearImage && saveImage) {
     		GlobalSettings.getDocument().getMain().clearImage();
     	}
 		
@@ -101,9 +104,9 @@ public class NNetworkRegionDrawHelper {
 	/**
 	 * draws regions which are darker the further they are away from the centre
 	 * @param ntwk - the network being passed in. This is unaltered by the process so is not copied
-	 * @param centre
-	 * @param hsvVariance
-	 * @param saveImage
+	 * @param centre - the brightest point in the vignette
+	 * @param hsvVariance - for each separate region; the amount of variance from the calculated darkness
+	 * @param saveImage - if true save image called "regions_vignetted.png"
 	 * 
 	 */
 	public static void drawRegionsVignetted(NNetwork ntwk, PVector centre, float[] hsvVariance,  boolean saveImage ) {
@@ -205,7 +208,7 @@ public class NNetworkRegionDrawHelper {
 	
 	
 	static private String getCombinedRegionNames(String[] regionTypeColorPairs) {
-		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a KVPList with the form ["PARK", "GREEN"],["RIVER", "BLUE"],...
+		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a list of strings in the form "PARK","RIVER"....
 		String combinedNames = "";
 		for(int n = 0; n < regionTypeColorPairs.length; n+=2) {
 			int keyIndex = n;
@@ -264,7 +267,7 @@ public class NNetworkRegionDrawHelper {
 	}
 	
 	
-
+	
 	
 	/**
 	 * adds in a region marker to each unattributed region based on a "density map". There are 3 levels of density:-

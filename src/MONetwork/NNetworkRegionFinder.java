@@ -189,11 +189,17 @@ import MOUtils.ObjectWithValueList;
 	// if a region contains a region marker, then the region has the regionAttribute added
 	//
 	//
-	public void setRegionAttributeWithRegionMarker(String regionType) {
+	/**
+	 * Finds REGIONMARKER attributed NPonts in the network. These are used to give regions types while authoring the network.
+	 * These are then used to 
+	 * @param attribute - The attribute name you want to use. Usually set to "REGIONTYPE", but generalised anyway
+	 * @param regionType - The Value of the REGIONMARKER searched for. This is also used as the REGIONTYPE attribute name
+	 */
+	public void setRegionAttributeWithRegionMarker(String attribute, String regionType) {
 		// first find all the markers with marker attribute
 		// does not copy network into current network as you want the network passed in to be permanently affected
 		KeyValuePair markerDescriptor = new KeyValuePair("REGIONMARKER", regionType);
-		KeyValuePair newRegionAttribute = new KeyValuePair("REGIONTYPE", regionType);
+		KeyValuePair newRegionAttribute = new KeyValuePair(attribute, regionType);
 
 		ArrayList<NPoint> markers = theNetwork.getPointsMatchingQuery(markerDescriptor);
 		System.out.println("setRegionAttributeWithRegionMarker:: found " + markers.size() + " markers matching " + regionType);
