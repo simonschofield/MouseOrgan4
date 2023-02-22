@@ -3,6 +3,10 @@ package MOImage;
 import java.awt.Color;
 import java.util.ArrayList;
 
+import MOMaths.QRandomStream;
+
+
+
 
 
 public class MONamedColors {
@@ -14,6 +18,8 @@ public class MONamedColors {
 	
 	static ArrayList<NamedColor> colorList;
 	
+	ArrayList<NamedColor> paletteColorList = new ArrayList<NamedColor>();
+	public QRandomStream random = new QRandomStream(1);
 	
 	static {
 		
@@ -164,7 +170,26 @@ public class MONamedColors {
 	}
 	
 	
-
+	
+	void createPalette(String[] colorNames){
+		for(String c: colorNames) {
+			paletteColorList.add( getNamedColor(c) );
+		}
+		
+	}
+	
+	public void addColorToPalette(String s) {
+		paletteColorList.add( getNamedColor(s) );
+	}
+	
+	
+	public Color getRandomColorFomPalette() {
+		int limit = paletteColorList.size();
+		int i = random.randRangeInt(0, limit-1);
+		return paletteColorList.get(i).getColor();
+		
+	}
+	
     
     public static Color getColor(String name) {
 
@@ -172,7 +197,7 @@ public class MONamedColors {
     	return nc.getColor();
     }
     
-    private static NamedColor getNamedColor(String name) {
+    protected static NamedColor getNamedColor(String name) {
     	String lowercaseSearchString = name.toLowerCase();
     	// is deliberately case-insensitive
     	for (NamedColor c : colorList) {
@@ -203,6 +228,14 @@ public class MONamedColors {
             return "No matched color name.";
         }
     }
+    
+    public static String getAllNames() {
+    	String s = "";
+    	for (NamedColor c : colorList) {
+            s += c.name + ",";
+            }
+    	return s;
+    }
 
     /**
      * Convert hexColor to rgb, then call getColorNameFromRgb(r, g, b)
@@ -228,60 +261,66 @@ public class MONamedColors {
     }
     */
 
-    /**
-     * inner class the named color type
-     * 
-     */
-    private static class NamedColor {
-        public int r, g, b;
-        public String name;
+    
+}
 
-        public NamedColor() {
-        	this.r = 0;
-            this.g = 0;
-            this.b = 0;
-            this.name = "NOCOLOR";
-        	
-        }
-        
-        public NamedColor(String name, int r, int g, int b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            this.name = name;
-        }
 
-        public int computeMSE(int pixR, int pixG, int pixB) {
-        	// computes the Mean Squared Error between the incoming value, and this rgb value
-            return (int) (((pixR - r) * (pixR - r) + (pixG - g) * (pixG - g) + (pixB - b)
-                    * (pixB - b)) / 3);
-        }
-        
-        public Color getColor() {
-        	int pc = getPackedInt();
-        	return MOPackedColor.packedIntToColor(pc,false);
-        }
-        
-        public int getPackedInt() {
-        	return MOPackedColor.packARGB(255, this.r, this.g, this.b);
-        }
 
-        public int getR() {
-            return r;
-        }
+/**
+ * inner class the named color type
+ * 
+ */
+class NamedColor {
+    public int r, g, b;
+    public String name;
 
-        public int getG() {
-            return g;
-        }
+    public NamedColor() {
+    	this.r = 0;
+        this.g = 0;
+        this.b = 0;
+        this.name = "NOCOLOR";
+    	
+    }
+    
+    public NamedColor(String name, int r, int g, int b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.name = name;
+    }
 
-        public int getB() {
-            return b;
-        }
+    public int computeMSE(int pixR, int pixG, int pixB) {
+    	// computes the Mean Squared Error between the incoming value, and this rgb value
+        return (int) (((pixR - r) * (pixR - r) + (pixG - g) * (pixG - g) + (pixB - b)
+                * (pixB - b)) / 3);
+    }
+    
+    public Color getColor() {
+    	int pc = getPackedInt();
+    	return MOPackedColor.packedIntToColor(pc,false);
+    }
+    
+    public int getPackedInt() {
+    	return MOPackedColor.packARGB(255, this.r, this.g, this.b);
+    }
 
-        public String getName() {
-            return name;
-        }
+    public int getR() {
+        return r;
+    }
+
+    public int getG() {
+        return g;
+    }
+
+    public int getB() {
+        return b;
+    }
+
+    public String getName() {
+        return name;
     }
 }
+
+
 
 

@@ -10,6 +10,7 @@ import MOImage.MONamedColors;
 import MOImage.MOPackedColor;
 import MOImage.KeyImageSampler;
 import MOImage.MOColor;
+import MOImage.MOColorImagePalette;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Vertices2;
@@ -64,7 +65,6 @@ public class NNetworkRegionDrawHelper {
 		// After which the render may be saved
 		// hsvVariance is nullable
 		
-		
 		KeyValuePairList regionTypeColors = createRegionTypeColorKVP(regionTypeColorPairs);// these are in the KV form ["PARK", "GREEN"],["RIVER", "BLUE"],...
 		regionTypeColors.printMe();
 		
@@ -85,11 +85,43 @@ public class NNetworkRegionDrawHelper {
 			drawRegionFill(r,  c, GlobalSettings.getDocument().getMain()) ;
 		}
 		
-		
 		GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
 		
 		if(saveImage) {
 			String combinedNames = getCombinedRegionNames(regionTypeColorPairs);
+    		GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + "ColoredRegions_" + combinedNames + ".png");
+    	}
+		
+		if(clearImage && saveImage) {
+    		GlobalSettings.getDocument().getMain().clearImage();
+    	}
+		
+		
+	}
+	
+	
+	public static void drawRegionFillWithPalette(NNetwork ntwk, String[] regionTypes, MOColorImagePalette palette, float[] hsvVariance,  boolean saveImage, boolean clearImage) {
+		// give a particular region type This will fill it with random colors selected from an image-based palette
+		
+		KeyValuePairList kvpl = createRegionTypeKVP(regionTypes);
+		ArrayList<NRegion> regions = getRegionsMatchingKVPList( ntwk,  kvpl);
+
+
+		for(NRegion r: regions) {
+			
+			Color c = palette.getRandomImageBasedColor();
+			
+			if(hsvVariance!=null) {
+				c =  MOColor.perturbHSV(c, hsvVariance[0], hsvVariance[1], hsvVariance[2]);
+			}
+			
+			drawRegionFill(r,  c, GlobalSettings.getDocument().getMain()) ;
+		}
+		
+		GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+		
+		if(saveImage) {
+			String combinedNames = getCombinedRegionNames(kvpl);
     		GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + "ColoredRegions_" + combinedNames + ".png");
     	}
 		
@@ -214,6 +246,17 @@ public class NNetworkRegionDrawHelper {
 			int keyIndex = n;
 			
 			String regionName = regionTypeColorPairs[keyIndex];
+			combinedNames += regionName + "_";
+		}
+		return combinedNames;
+	}
+	
+	static private String getCombinedRegionNames(KeyValuePairList kvpl) {
+		// from a list of pairs "PARK","GREEN","RIVER","BLUE", creates a list of strings in the form "PARK","RIVER"....
+		String combinedNames = "";
+		int num = kvpl.getNumItems();
+		for(int n = 0; n < num; n++) {
+			String regionName = kvpl.getItem(n).getString();
 			combinedNames += regionName + "_";
 		}
 		return combinedNames;
