@@ -1,5 +1,10 @@
 package MOAppSessionHelpers;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 import MOApplication.MainDocument;
@@ -64,6 +69,9 @@ public class RenderSaver {
 	int session_filename_mode = FILENAME_INCREMENT; // this is the default as it's safer
 	String session_differentiator_string = "0000";
 	
+	
+	boolean saveUserSessionSourceCode = true;
+	
 	public RenderSaver(int mode, boolean useSubdirectory, MainDocument doc) {
 		
 		this.theDocument = doc;
@@ -101,6 +109,9 @@ public class RenderSaver {
 	// 
 	// 
 	public void saveDocumentImages() {
+		
+		String numerator = getSessionEnumeratorString();
+		
 		if (useSubDirectory) {
 			// if useSubDirectory==true assume : 
 			// if FILENAME_INCREMENT an new enumerated directory has been created at instantiation of this object and subDirectoryPath set to this
@@ -112,12 +123,14 @@ public class RenderSaver {
 		} else {
 			// if FILENAME_INCREMENT the filename generated will use the highest existing + 1 as the enumerator
 			// if FILENAME_OVERWRITE the filename generated will use the highest existing so will overwrite this file
-			
-			String numerator = getSessionEnumeratorString();
 			saveDocumentMainImage(GlobalSettings.getUserSessionPath(),numerator);
 			saveDocumentSupplementaryImages(GlobalSettings.getUserSessionPath(),numerator);
 		}
-
+		
+		
+		if(saveUserSessionSourceCode) saveUserSessionSourceCode(GlobalSettings.getUserSessionPath(),numerator);
+		
+		
 	}
 	
 	
@@ -216,6 +229,31 @@ public class RenderSaver {
 			String fullPathAndName =  fullPath + fullSessionName + enumerator + ext;
 			theDocument.getRenderTarget(n).saveRenderToFile(fullPathAndName);
 		}
+	}
+	
+	
+	
+	private void saveUserSessionSourceCode(String fullPath, String enumerator) {
+		String sourecCodeDir = ensureUserSessionSourceCodeDirectory();
+		String fullSessionName = theDocument.getMain().getFullSessionName();
+		Path srcPath = Paths.get(GlobalSettings.getUserSessionPath() + "UserSession.java");
+		
+		Path destPath = Paths.get(sourecCodeDir + fullSessionName + enumerator + ".txt");
+		try {
+			Files.copy(srcPath, destPath);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("RenderSaver::saveUserSessionSourceCode  problems saving file " + destPath);
+			e.printStackTrace();
+		}
+	}
+	
+	private String ensureUserSessionSourceCodeDirectory() {
+		String dirName = GlobalSettings.getUserSessionPath() + "UserSessionSourceCodeArchive\\";
+		if(MOStringUtils.checkDirectoryExist(dirName)==false) {
+			MOStringUtils.createDirectory(dirName);
+		}
+		return dirName;
 	}
 	
 	private void clearDocumentSupplementaryImages() {

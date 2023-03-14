@@ -96,7 +96,8 @@ public class ImageProcessing {
 		try {
 			img = ImageIO.read(new File(pathAndName));
 		} catch (IOException e) {
-			System.out.println("loadImage: cannot load = " + pathAndName);
+			System.out.println("loadImage: cannot load = " + pathAndName + " " + e.getMessage());
+			
 		}
 		
 		//System.out.println("in loadImage image type = " + img.getType());
