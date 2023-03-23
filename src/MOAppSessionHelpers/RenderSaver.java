@@ -93,7 +93,7 @@ public class RenderSaver {
 	}
 	
 
-	void createSubDirectory() {
+	public void createSubDirectory() {
 		
 		if(useSubDirectory && subDirectoryCreated==false) {
 			subDirectoryPath = MOStringUtils.createDirectory(GlobalSettings.getUserSessionPath(), GlobalSettings.mainSessionName + getSessionEnumeratorString() + "\\", false);

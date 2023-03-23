@@ -40,11 +40,11 @@ public class DepthLayerManager {
 	
 	}
 	
-	void setActive(boolean active) {
+	public void setActive(boolean active) {
 		isActive = active;
 	}
 	
-	boolean isActive() {
+	public boolean isActive() {
 		return isActive;
 	}
 	
@@ -67,7 +67,7 @@ public class DepthLayerManager {
 		currentLayer = layerNum;
 	}
 	
-	boolean isNextLayer(float depthSample) {
+	public boolean isNextLayer(float depthSample) {
 		if (depthSample > previousDepthSample) {
 			System.out.println("DepthLayerManager: isNextLayer - depth values are not sorted in decreasing order!");
 			// equal depth values are allowed, as two equal depth values may conceivably occur in large sample numbers.
@@ -84,7 +84,7 @@ public class DepthLayerManager {
 		return false;
 	}
 	
-	int getCurrentLayerNum() {
+	public int getCurrentLayerNum() {
 		return currentLayer;
 	}
 	
