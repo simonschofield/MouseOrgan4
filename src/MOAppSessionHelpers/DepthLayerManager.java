@@ -84,6 +84,11 @@ public class DepthLayerManager {
 		return false;
 	}
 	
+	public boolean isFinalLayer() {
+		if(currentLayer == numLayers) return true;
+		return false;
+	}
+	
 	public int getCurrentLayerNum() {
 		return currentLayer;
 	}
