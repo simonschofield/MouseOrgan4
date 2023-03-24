@@ -32,7 +32,7 @@ public class DepthLayerManager {
 		}
 		depthLayerDemarkers[depthLayerDemarkers.length - 1] = 0f;
 		numLayers = depthLayerDemarkers.length - 1; // i.e the gaps between the posts
-	
+		System.out.println("DepthLayerManager: number of layers " + numLayers + " current layer " + currentLayer);
 		activeLayers = new boolean[numLayers];
 		for (int n = 0; n < numLayers; n++) {
 			activeLayers[n] = true;
@@ -79,12 +79,13 @@ public class DepthLayerManager {
 	
 		if (depthSample < thisLayerExtents.getLower()) {
 			currentLayer = findCurrentLayer(depthSample);
+			System.out.println("DepthLayerManager: moving to next layer "  + currentLayer);
 			return true;
 		}
 		return false;
 	}
 	
-	public boolean isFinalLayer() {
+	public boolean isFinished() {
 		if(currentLayer == numLayers) return true;
 		return false;
 	}

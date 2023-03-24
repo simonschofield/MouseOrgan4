@@ -110,7 +110,7 @@ public class RenderSaver {
 	// 
 	public void saveDocumentImages() {
 		
-		String numerator = getSessionEnumeratorString();
+		String currentNumeratorString = getSessionEnumeratorString();
 		
 		if (useSubDirectory) {
 			// if useSubDirectory==true assume : 
@@ -123,17 +123,22 @@ public class RenderSaver {
 		} else {
 			// if FILENAME_INCREMENT the filename generated will use the highest existing + 1 as the enumerator
 			// if FILENAME_OVERWRITE the filename generated will use the highest existing so will overwrite this file
-			saveDocumentMainImage(GlobalSettings.getUserSessionPath(),numerator);
-			saveDocumentSupplementaryImages(GlobalSettings.getUserSessionPath(),numerator);
+			saveDocumentMainImage(GlobalSettings.getUserSessionPath(),currentNumeratorString);
+			saveDocumentSupplementaryImages(GlobalSettings.getUserSessionPath(),currentNumeratorString);
 		}
 		
 		
-		if(saveUserSessionSourceCode) saveUserSessionSourceCode(GlobalSettings.getUserSessionPath(),numerator);
+		if(saveUserSessionSourceCode) saveUserSessionSourceCode(GlobalSettings.getUserSessionPath(),currentNumeratorString);
 		
 		
 	}
 	
 	
+	
+	public void saveUserSessionSourceCode() {
+		String currentNumeratorString = getSessionEnumeratorString();
+		saveUserSessionSourceCode(GlobalSettings.getUserSessionPath(),currentNumeratorString);
+	}
 	
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////
