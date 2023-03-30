@@ -4,7 +4,7 @@ import MOMaths.MOMaths;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Class PackingInterpolationScheme
-//is used to define a radius-based distribution against a control input (e.g. point of distribution against image value)
+//is used to define a radius-based distribution against a control input (e.g. point of distribution against image value, or Z)
 //The packing radius is calculated against an input control value, (probably an image pixel value 0...1)
 //getRadius() always returns a the packing radius, as this is used to calculate possible neighbouring point spacings and their "exclusion zones" by the utilising packing algorithm. 
 //The user sets the desired packing radius, and this is used to calculate the internal Interpolation Units using either RADIUS, SURFACE_AREA or VOLUME options (default is SA) .
@@ -21,15 +21,20 @@ import MOMaths.MOMaths;
 //
 
 public class PackingInterpolationScheme {
-	public static final int EXCLUDE = 0; // excluded() returns true is the input is under the inputMin, or over the
-	// inputMax, value is clamped at limit.
-	public static final int CLAMP = 1; // returns false from outsideLimit, value is clamped at limit
-	public static final int EXTRAPOLATE = 2; // returns false from outsideLimit, value continues to be extrapolated
-	public static final int RANGE_UNITS_RADIUS = 3; // the output range is regarded as a simple linear interpolation, so left
-	// alone
-	public static final int RANGE_UNITS_SURFACE_AREA = 4; // The output value range is the radius derived from a linear
-	// interpolation of surface areas.
-	public static final int RANGE_UNITS_VOLUME = 5; // The output value range is the radius derived from a linear interpolation of surface areas.
+	
+    // under and over control val min/max options
+	public static final int EXCLUDE = 0; // Excludes the placement of points if input control val is over or under. excluded() method returns true;
+	public static final int CLAMP = 1; // control value is clamped at limit
+	public static final int EXTRAPOLATE = 2; // control value continues to be extrapolated outside of limits
+	
+	
+	// control value is interpreted as a distance for packing, based on the following schemes
+	public static final int RANGE_UNITS_RADIUS = 3; // the output packing distance is linearly proportional to control value
+	public static final int RANGE_UNITS_SURFACE_AREA = 4; // The output packing distance is proportional to a surface area calculated from the packing distance R i.e. PI(R*R) 
+	public static final int RANGE_UNITS_VOLUME = 5; // The output packing distance is proportional to a volume area calculated from the packing distance R i.e. (4/3)PI(R*R*R) 
+	
+	
+	
 
 	float radiusAtControlMin;
 	float radiusAtControlMax; 

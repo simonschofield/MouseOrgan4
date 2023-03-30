@@ -3,6 +3,7 @@ package MOPointGeneration;
 import java.util.ArrayList;
 
 import MOMaths.AABox3D;
+import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOScene3D.SceneData3D;
 
@@ -26,7 +27,10 @@ import MOScene3D.SceneData3D;
 
 public class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
 
-
+	float farDistanceMultiplier = 1;
+	float nearDistanceThreshold = 0.5f;
+	
+	
 
 
 	// a list of 3d points for the 3d packing algorithm
@@ -39,12 +43,34 @@ public class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPac
 		super(rseed);
 		sceneData = sd;
 	}
+	
+	
+	
+	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
+		// when the distance is 1, the value out == radiusIn*farMultimpler
+		// when the distance is nearDistanceThreshold value out == radius
+
+		farDistanceMultiplier = farMultiplier;
+		nearDistanceThreshold = nearThreshold;
+	}
+	
+	float getDepthSensitiveRadius(float radiusIn, float normDepth) {
+		if(farDistanceMultiplier==1) return radiusIn;
+		if(normDepth < nearDistanceThreshold) return radiusIn;
+		// when the distance is 1, the value out == radiusIn*farMultimpler
+		// when the distance is nearDistanceThreshold value out == radius
+		
+		return MOMaths.map(normDepth, 1, nearDistanceThreshold, radiusIn*farDistanceMultiplier, radiusIn);
+	}
 
 
 	boolean tryAddDistributedPoint(PVector docSpcPt, float radius) {
-
-
-
+		// the radius is coming in from an image based-calculation
+		// we have the opportunity to impose a tweak to the radius here based on z depth interpolation.
+	
+		
+		
+		
 
 
 		PVector thisPoint3d = sceneData.get3DSurfacePoint(docSpcPt);
@@ -53,6 +79,9 @@ public class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPac
 		// using sceneData.get3DVolumePoint(docSpcPt, invented depth);
 		float normDepth = sceneData.getDepthNormalised(docSpcPt);
 
+		radius = getDepthSensitiveRadius(radius, normDepth);
+		
+		
 
 		if (pointExistsWithinRadius3d(thisPoint3d, radius))
 			return false;

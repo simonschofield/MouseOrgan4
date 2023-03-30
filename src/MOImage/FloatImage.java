@@ -51,7 +51,7 @@ public class FloatImage{
     }
   }
   
-  void setMaskValue(float val, boolean useMask) {
+  public void setMaskValue(float val, boolean useMask) {
 	  maskValueSet = useMask; 
 	  maskValue = val;
   }
@@ -473,7 +473,7 @@ public class FloatImage{
   }
 
   
-  void normalize(){
+  public void normalize(){
     // equalises the image so all values are in range 0..1
     
     updateExtrema();

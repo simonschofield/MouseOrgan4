@@ -55,7 +55,9 @@ public class SpriteDataBatchHelper_Scene3D {
 		return pointField;
 	}
 	
-	
+	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
+		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
+	}
 	
 	public SpriteFontBiome getSpriteFontBiome() {
 		return spriteFontBiome;
