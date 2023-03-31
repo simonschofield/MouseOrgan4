@@ -208,9 +208,9 @@ public class SceneData3D {
 		}
 		
 		
-		// used to convert the doc space of the section you are re-rendering into the correct
-		// point within the ROI
-		public PVector getROILoc(PVector docSpace) {
+		// IF you are using a ROI as a smaller region of the MASTER document, then this method converts between the
+		// docSpace in the ROI to the docSpace in the MASTER
+		public PVector ROIDocSpaceToMasterDocSpace(PVector docSpace) {
 			
 			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
 			// scale down docspace into the roi
@@ -221,6 +221,16 @@ public class SceneData3D {
 			return GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(roiIterpolatedPoint);
 			
 		}
+		
+		// less used than above. If you happen to have calculated anything in Master Doc space, and want to convert that to
+		// the ROIs docSpace...
+		public PVector masterDocSpaceToROIDocSpace(PVector docSpace) {
+			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
+			PVector newROIPoint = roiRect.norm(normalisedPoint); // convert to normalised space within the roi
+			return GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(newROIPoint);
+			
+		}
+		
 		
 		
 		////////////////////////////////////////////////////////////////
@@ -238,7 +248,7 @@ public class SceneData3D {
 		
 		
 		Color getCurrentRenderColor(PVector docSpace) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
 			int packedCol = currentRenderKeyImage.getRGB((int)coord.x, (int)coord.y);
@@ -247,7 +257,7 @@ public class SceneData3D {
 		}
 		
 		public PVector getCurrentRenderGradiant(PVector docSpace) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			ConvolutionFilter cf = new ConvolutionFilter();
 			
 			PVector grad = cf.getGradient(roiSpace, currentRenderKeyImage);
@@ -255,7 +265,7 @@ public class SceneData3D {
 		}
 		
 		public boolean isSubstance(PVector docSpace) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
 			int packedCol = geometryBuffer3d.substanceImage.getRGB((int)coord.x, (int)coord.y);
@@ -265,13 +275,13 @@ public class SceneData3D {
 		}
 		
 		public PVector get3DSurfacePoint(PVector docSpace) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			return geometryBuffer3d.docSpaceToWorld3D(roiSpace);
 		}
 		
 		PVector get3DVolumePoint(PVector docSpace, float normDepth) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			// needs to take angle into consideration but OK for the moment
 			float realDistance = geometryBuffer3d.normalisedDepthToRealDepth(normDepth);
@@ -303,7 +313,7 @@ public class SceneData3D {
 		}
 		
 		public float get3DScale(PVector docSpace) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			float relativeAssetScale = 1;
 			if(maintainRelativeScaling) {
@@ -312,21 +322,21 @@ public class SceneData3D {
 			}
 			
 			float geomScale3D =  geometryBuffer3d.get3DScale(roiSpace) * relativeAssetScale;
-			System.out.println("get3DScale: docSpace " + docSpace.toString() + " roiPoint point " + roiSpace.toString() + " relativeAssetScale = " + relativeAssetScale + "geom svcale 3d " + geomScale3D);
+			//System.out.println("get3DScale: docSpace " + docSpace.toString() + " roiPoint point " + roiSpace.toString() + " relativeAssetScale = " + relativeAssetScale + "geom svcale 3d " + geomScale3D);
 			
 			return geomScale3D;
 		}
 		
 		
 		public float getDepth(PVector docSpace) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			return geometryBuffer3d.getDepth(roiSpace);
 		}
 		
 		
 		public float getDepthNormalised(PVector docSpace) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			return geometryBuffer3d.getDepthNormalised(roiSpace);
 		}
@@ -336,7 +346,7 @@ public class SceneData3D {
 		
 		
 		public float getDistance(PVector docSpace) {
-			PVector roiSpace = getROILoc(docSpace);
+			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			return geometryBuffer3d.getDistance(roiSpace);
 		}
