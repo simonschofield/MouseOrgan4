@@ -193,10 +193,7 @@ public class GeometryBuffer3D{
 		return distanceBuffer.getPixelBilin(x, y); 
 	}
 	
-	public float getUnfilteredDistance(PVector docSpace) {
-		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
-		return distanceBuffer.getPixelBilin(coord.x, coord.y); 
-	}
+	
 
 	public float getDepth(PVector docSpace) {
 		PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(docSpace);
@@ -204,9 +201,17 @@ public class GeometryBuffer3D{
 		return d;
 	}
 	
+	
+	
 	public float getDepthNormalised(PVector docSpace) {
 		float d = getDepth( docSpace);
 		return depthBufferExtrema.norm(d);
+	}
+	
+	public float getDepthNormalised(int x, int y) {
+		// using absolute buffer coords
+		 float d = depthBuffer.get(x, y); 
+		 return depthBufferExtrema.norm(d);
 	}
 	
 	public float normalisedDepthToRealDepth(float normDist) {

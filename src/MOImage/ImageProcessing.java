@@ -79,12 +79,20 @@ public class ImageProcessing {
 
 	private static void setInterpolationQuality(Graphics2D g) {
 		// this is called during all scale and rotation functions and sets the interpolation to the current global interpolation scheme
-		if (interpolationQuality == 0)
+		if (interpolationQuality == 0) {
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-		if (interpolationQuality == 1)
+		}
+		if (interpolationQuality == 1) {
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		if (interpolationQuality == 2)
+		}
+		if (interpolationQuality == 2) {
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		}
+		
+		
+		//System.out.println("interpolation quality " + interpolationQuality);
 
 	}
 	
@@ -527,8 +535,36 @@ public class ImageProcessing {
 		g.dispose(); // release used resources before g is garbage-collected
 		return rotatedImage;
 	}
-
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Public Scale image methods
+	//
 	public static BufferedImage scaleImage(BufferedImage originalImage, float inx, float iny) {
+		//
+		
+		if(interpolationQuality==2 && inx==iny && inx < 1) {
+			return scaleImage_Progressive(originalImage, inx);
+		}else {
+			return scaleImage_NonUniform(originalImage, inx, iny);
+		}
+		
+	}
+	
+	
+	public static BufferedImage scaleImage(BufferedImage originalImage, float sc) {
+		//
+		
+		if(interpolationQuality==2 && sc < 1) {
+			return scaleImage_Progressive(originalImage, sc);
+		}else {
+			return scaleImage_NonUniform(originalImage, sc,sc);
+		}
+		
+	}
+	
+
+	private static BufferedImage scaleImage_NonUniform(BufferedImage originalImage, float inx, float iny) {
+		// if inx != iny the you have to use this
 		int w = originalImage.getWidth();
 		int h = originalImage.getHeight();
 
@@ -538,16 +574,71 @@ public class ImageProcessing {
 		if(scaledWidth == 0) scaledWidth = 1;
 		if(scaledHeight == 0) scaledHeight = 1;
 		
-		BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, originalImage.getType());
 		Graphics2D g = scaledImage.createGraphics();
 
 		setInterpolationQuality(g);
-		// System.out.println("Current rendering hint is " + g.getRenderingHints());
+		//System.out.println("Current rendering hint is " + g.getRenderingHints());
+		
 		g.scale(inx, iny);
 		g.drawImage(originalImage, 0, 0, null);
 		g.dispose(); // release used resources before g is garbage-collected
 		return scaledImage;
 	}
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	//
+	private static BufferedImage scaleImage_Progressive(BufferedImage before, float scale ) {
+		// Multi-step rescale operation
+        // This technique is described in Chris Campbell’s blog The Perils of Image.getScaledInstance(). As Chris mentions, when 
+        // downscaling to something less than factor 0.5, you get the best result by doing multiple downscaling with a minimum factor of 0.5 
+        // (in other words: each scaling operation should scale to maximum half the size).
+		// Currently can only work with uniform scaling
+		int w = before.getWidth();
+		int h = before.getHeight();
+		int targetW = (int) (w*scale);
+		int targetH = (int) (h*scale);
+		Integer longestSideLength = Math.max(targetW, targetH);
+		
+		
+	   
+		Double ratio = h > w ? longestSideLength.doubleValue() / h : longestSideLength.doubleValue() / w;
+		while (ratio < 0.5) {
+			BufferedImage tmp = progressiveScale(before, 0.5);
+			before = tmp;
+			w = before.getWidth();
+			h = before.getHeight();
+			ratio = h > w ? longestSideLength.doubleValue() / h : longestSideLength.doubleValue() / w;
+		}
+		BufferedImage after = progressiveScale(before, ratio);
+		return after;
+	}
+
+	private static BufferedImage progressiveScale(BufferedImage imageToScale, Double ratio) {
+	    Integer dWidth = ((Double) (imageToScale.getWidth() * ratio)).intValue();
+	    Integer dHeight = ((Double) (imageToScale.getHeight() * ratio)).intValue();
+	    BufferedImage scaledImage = new BufferedImage(dWidth, dHeight, imageToScale.getType());
+	    Graphics2D graphics2D = scaledImage.createGraphics();
+	    
+	    Object interpolation = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+	    if(ratio!=0.5) interpolation = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
+	    
+	    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolation);
+	    graphics2D.drawImage(imageToScale, 0, 0, dWidth, dHeight, null);
+	    graphics2D.dispose();
+	    return scaledImage;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	
 	public static BufferedImage scaleImageToFitRect(BufferedImage img, Rect rect) {
@@ -575,8 +666,16 @@ public class ImageProcessing {
 	
 	public static BufferedImage resizeTo(BufferedImage originalImage, int scaledWidth, int scaledHeight)
 	{
-		if(originalImage.getWidth()==scaledWidth && originalImage.getHeight()==scaledHeight) return originalImage;
-		//System.out.println("resizeTo " + scaledWidth + " " + scaledHeight + " type " + originalImage.getColorModel());	 
+		int w = originalImage.getWidth();
+		int h = originalImage.getHeight();
+		if(w==scaledWidth && h==scaledHeight) return originalImage;
+		
+		float scaleX = scaledWidth/(float)w;
+		float scaleY = scaledHeight/(float)h;
+		return ImageProcessing.scaleImage(originalImage, scaleX, scaleY);
+		
+		//System.out.println("resizeTo " + scaledWidth + " " + scaledHeight + " type " + originalImage.getColorModel());
+		/*
         BufferedImage outputImage = new BufferedImage(scaledWidth, scaledHeight, originalImage.getType());
  
         // scales the input image to the output image
@@ -586,12 +685,14 @@ public class ImageProcessing {
         g2d.dispose();
  
         return outputImage;
+        */
     }
 	
 	public static BufferedImage scaleToTarget(BufferedImage originalImage, BufferedImage target) {
 		return resizeTo(originalImage, target.getWidth(),  target.getHeight());
 	}
 
+		/*
 	public static BufferedImage scaleRotateImage(BufferedImage originalImage, float scalex, float scaley,
 			float rotateDegs) {
 		int w = originalImage.getWidth();
@@ -621,7 +722,7 @@ public class ImageProcessing {
 		g.dispose(); // release used resources before g is garbage-collected
 		return scaledImage;
 
-	}
+	}*/
 
 	public static BufferedImage mirrorImage(BufferedImage originalImage, boolean flipInX, boolean flipInY) {
 

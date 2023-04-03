@@ -301,8 +301,13 @@ public class Sprite {
 	public void scale(float scaleW, float scaleH) {
 		//imageQuad.theImage = image;
 		imageQuad.applyScale(scaleW, scaleH);
-		setImage(ImageProcessing.scaleImage(getImage(), scaleW, scaleH));
 		
+		if(scaleW==scaleH) {
+			// chance to use double scaling on very big scale reductions
+			setImage(ImageProcessing.scaleImage(getImage(), scaleW));
+		}else {
+			setImage(ImageProcessing.scaleImage(getImage(), scaleW, scaleH));
+		}
 		
 		
 	}
@@ -545,7 +550,7 @@ public class Sprite {
 		}
 
 		scale(scale, scale);
-		//System.out.println("target size in pixels " + heightInActualPixels + " scale " + scale + " resultant height " + bufferHeight);
+		//System.out.println(" scaled by "  + scale );
 		return scale;
 	}
 

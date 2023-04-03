@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOAppSessionHelpers.Scene3DHelper;
+
 import MOImage.ConvolutionFilter;
 import MOImage.FloatImage;
 import MOImage.ImageProcessing;
@@ -67,10 +67,13 @@ public class SceneData3D {
 		
 		// if you want to focus in on a region of the 
 		// sceneData to be the extents of the image you
-		// are rendering then set the roiRect
+		// are rendering then set the roiRect. 
+		// The roiRect is in normalised extents of the master view and is usually
+		// got from the ROIhelper class
 		Rect roiRect = new Rect();
 		boolean maintainRelativeScaling = true;
-		
+		// contains the min and max normalised depth values from the master within the roi
+		Range roiDepthExtrema=null;
 		
 		
 		public SceneData3D() {
@@ -138,6 +141,7 @@ public class SceneData3D {
 	    
 
 		public void setROIRect(Rect r, boolean maintainRelativeAssetScale) {
+			// The roiRect is in normalised extents of the master view
 			roiRect = r.copy();
 			maintainRelativeScaling = maintainRelativeAssetScale;
 		}
@@ -147,10 +151,7 @@ public class SceneData3D {
 		}
 		
 		
-		float getWholeSceneAspect() {
-			// this is the apsect of the whole scene, no roi applied
-			return renderWidth/(float)renderHeight;
-		}
+		
 	    
 		/////////////////////////////////////////////////////////////////////////////////////
 		// The mask image is an image reflecting the sky/land pixels
@@ -231,7 +232,36 @@ public class SceneData3D {
 			
 		}
 		
+		public boolean isUsingROI() {
+			Rect identityRect = new Rect();
+			return !(roiRect.equals(identityRect));
+		}
 		
+		public Range getROIDepthExtrema(boolean forceRecalculation) {
+			
+			if(roiDepthExtrema==null) forceRecalculation = true;
+			if(forceRecalculation==false) return roiDepthExtrema;
+			
+			int left = (int)(roiRect.left*renderWidth);
+			int top = (int)(roiRect.top*renderHeight);
+			int right = (int)(roiRect.right*renderWidth);
+			int bottom = (int)(roiRect.bottom*renderHeight);
+			roiDepthExtrema = new Range();
+			roiDepthExtrema.initialiseForExtremaSearch();
+			for(int y=top; y<bottom; y++) {
+				for(int x = left; x<right; x++) {
+					float d = geometryBuffer3d.getDepthNormalised(x, y);
+					if(isSubstance(x,y)) roiDepthExtrema.addExtremaCandidate(d);
+				}
+			}
+			return roiDepthExtrema;
+		}
+		
+		public float getROINormalisedDepth(PVector docSpace) {
+			float masterNormalisedDepth = getDepthNormalised(docSpace);
+			Range normalisedDepthExtrema = getROIDepthExtrema(false);
+			return normalisedDepthExtrema.norm(masterNormalisedDepth);
+		}
 		
 		////////////////////////////////////////////////////////////////
 		//
@@ -266,9 +296,14 @@ public class SceneData3D {
 		
 		public boolean isSubstance(PVector docSpace) {
 			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			
 			PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
-			int packedCol = geometryBuffer3d.substanceImage.getRGB((int)coord.x, (int)coord.y);
+			return isSubstance((int)coord.x, (int)coord.y);
+		}
+		
+		
+		public boolean isSubstance(int x, int y) {
+			//using absolute master buffer coords
+			int packedCol = geometryBuffer3d.substanceImage.getRGB(x, y);
 			Color c = MOPackedColor.packedIntToColor(packedCol, true);
 			if( c.getRed() > 0) return true;
 			return false;
@@ -336,6 +371,7 @@ public class SceneData3D {
 		
 		
 		public float getDepthNormalised(PVector docSpace) {
+			// this returns the normalised depth of the master view - not the roi.
 			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
 			
 			return geometryBuffer3d.getDepthNormalised(roiSpace);
@@ -353,7 +389,12 @@ public class SceneData3D {
 		
 		
 		
-		
+		public PVector  world3DToDocSpace(PVector world3dPt) {
+			
+			PVector docSpaceInMasterView = geometryBuffer3d.world3DToDocSpace(world3dPt);
+			return masterDocSpaceToROIDocSpace(docSpaceInMasterView);
+			
+		}
 		
 		
 

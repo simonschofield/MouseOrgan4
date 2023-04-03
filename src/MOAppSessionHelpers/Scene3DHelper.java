@@ -11,6 +11,7 @@ import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Plane3D;
 import MOMaths.QRandomStream;
+import MOMaths.Range;
 import MOMaths.Ray3D;
 import MOMaths.Intersection3D;
 import MOMaths.Rect;
@@ -285,19 +286,23 @@ public class Scene3DHelper {
 		PVector p3d = sceneData3D.get3DSurfacePoint(docPt);
 		float distance = sceneData3D.getDistance(docPt);
 		float depth = sceneData3D.getDepth(docPt);
-		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
+		float masterNormalisedDepth = sceneData3D.getDepthNormalised(docPt);
+		//Range normalisedDepthExtrema = sceneData3D.getROIDepthExtrema(false);
+		//float roiNormalisedDepth = normalisedDepthExtrema.norm(masterNormalisedDepth);
+		
+		float roiNormalisedDepth = sceneData3D.getROINormalisedDepth(docPt);
 		
 		float textX = endPt.x;
 		endPt.y -= (worldScale * measuringToolSize);
 		float textY1 = endPt.y + (0.1f);
 		float textY2 = endPt.y + (0.12f);
 		float len = docPt.dist(endPt);
-		//System.out.println("measure: doc pt " + docPt.toStr() + " end pt "  + endPt.toStr() + " len " + len + " world scale " + worldScale);
+		// System.out.println("roi depth extrema = " + normalisedDepthExtrema.toStr() + " masterNormalisedDepth " + masterNormalisedDepth + " ROI normalised depth " + roiNormalisedDepth);
 		// theUI.addCanvasOverlayShape("mouseDot", uied.docSpacePt, radiusOffset, "ellipse", new Color(127, 0, 0, 255), Color.gray, 1);
 		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance + " depth " + depth + "  norm depth = " + normalisedDepth,  Color.red, 20);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr(),  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance + " depth " + depth + " master norm depth = " + masterNormalisedDepth,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr() + " roi norm depth " +  roiNormalisedDepth,  Color.red, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), ,  Color.blue, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);
 		
@@ -307,10 +312,10 @@ public class Scene3DHelper {
 	public static void print3DSceneData(PVector docPt) {
 		float worldScale = sceneData3D.get3DScale(docPt);
 		float distance = sceneData3D.getDistance(docPt);
-		float unfilteredDistance = sceneData3D.geometryBuffer3d.getUnfilteredDistance(docPt);
+		
 		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
 		
-		System.out.println("3DSceneData at:" + docPt.toStr() + " world scale:" + worldScale + " Distance:" + distance + " Unfiltered distance:" + unfilteredDistance + " Normalised depth:" + normalisedDepth);     
+		System.out.println("3DSceneData at:" + docPt.toStr() + " world scale:" + worldScale + " Distance:" + distance +  " Normalised depth:" + normalisedDepth);     
 	}
 	
 }
