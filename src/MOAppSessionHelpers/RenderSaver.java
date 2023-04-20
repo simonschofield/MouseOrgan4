@@ -245,7 +245,7 @@ public class RenderSaver {
 		
 		Path destPath = Paths.get(sourecCodeDir + fullSessionName + enumerator + ".txt");
 		try {
-			Files.copy(srcPath, destPath);
+			Files.copy(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			System.out.println("RenderSaver::saveUserSessionSourceCode  problems saving file " + destPath);

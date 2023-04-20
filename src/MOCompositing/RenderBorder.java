@@ -265,11 +265,13 @@ public class RenderBorder {
 	// alters the preCroppedImage
 	private boolean doBespokeCrop( BufferedImage preCroppedImage, String edgeCropReport) {
 		// do the bespoke crop using the selected crop image
+		//System.out.println("Bespoke crop " + edgeCropReport);
 		String splitEdgeReport[] = edgeCropReport.split(",");
 		for(String edge:splitEdgeReport) {
 			boolean result = addBespokeCropToEdge(preCroppedImage, edge);
 			if(result == false) {
 				// the addBespokeCropToEdge crop obliterated the image
+				//System.out.println("Bespoke crop resulted in no image");
 				return false;
 			}
 		}
@@ -283,33 +285,33 @@ public class RenderBorder {
 		BufferedImage croppingMask = bespokeCropImages.getImage(n);
 		int sourceImageW = preCroppedImage.getWidth();
 		int sourceImageH = preCroppedImage.getHeight();
-
+		//System.out.println("addBespokeCropToEdge " + theEdge + " cropping mask width " + croppingMask.getWidth() + " cropping mask hgt " + croppingMask.getHeight() + " image w " + sourceImageW + " image h " + sourceImageH);
 		if(theEdge.contentEquals("LEFT")) {
 			// don't need to rotate the crop image
 			if(croppingMask.getWidth() > sourceImageW) return false;
 			croppingMask = stretchCroppingMaskToFitEdge(croppingMask, croppingMask.getWidth(), sourceImageH);
-			applyCroppingMask(preCroppedImage, croppingMask, 0, 0);
+			applyCroppingMask(preCroppedImage, croppingMask, 0, 0,theEdge);
 			return true;
 		}
 		if(theEdge.contentEquals("RIGHT")) {
 			croppingMask = ImageProcessing.rotate90(croppingMask, 2);
 			if(croppingMask.getWidth() > sourceImageW) return false;
 			croppingMask = stretchCroppingMaskToFitEdge(croppingMask, croppingMask.getWidth(), sourceImageH);
-			applyCroppingMask(preCroppedImage, croppingMask, preCroppedImage.getWidth()-croppingMask.getWidth(), 0);
+			applyCroppingMask(preCroppedImage, croppingMask, preCroppedImage.getWidth()-croppingMask.getWidth(), 0, theEdge);
 			return true;
 		}
 		if(theEdge.contentEquals("TOP")) {
 			croppingMask = ImageProcessing.rotate90(croppingMask, 1);
 			if(croppingMask.getHeight() > sourceImageH) return false;
 			croppingMask = stretchCroppingMaskToFitEdge(croppingMask, sourceImageW, croppingMask.getHeight());
-			applyCroppingMask(preCroppedImage, croppingMask, 0, 0);
+			applyCroppingMask(preCroppedImage, croppingMask, 0, 0,theEdge);
 			return true;
 		}
 		if(theEdge.contentEquals("BOTTOM")) {
 			croppingMask = ImageProcessing.rotate90(croppingMask, 3);
 			if(croppingMask.getHeight() > sourceImageH) return false;
 			croppingMask = stretchCroppingMaskToFitEdge(croppingMask, sourceImageW, croppingMask.getHeight());
-			applyCroppingMask(preCroppedImage, croppingMask, 0, preCroppedImage.getHeight()-croppingMask.getHeight());
+			applyCroppingMask(preCroppedImage, croppingMask, 0, preCroppedImage.getHeight()-croppingMask.getHeight(),theEdge);
 			return true;
 		}
 
@@ -322,7 +324,7 @@ public class RenderBorder {
 	// if the existing size in h or w is larger than h,w then crop in that dimension
 	// if it is larger then scale in that dimension
 	private BufferedImage stretchCroppingMaskToFitEdge(BufferedImage source, int newW, int newH) {
-
+		
 		if( source.getWidth() > newW ) {
 			Rect r = new Rect(0,0,newW, source.getHeight());
 			source = ImageProcessing.cropImage(source, r);
@@ -330,9 +332,9 @@ public class RenderBorder {
 		if( source.getHeight() > newH ) {
 			Rect r = new Rect(0,0,source.getWidth(), newH);
 			source = ImageProcessing.cropImage(source, r);
-		}
+		} 
 
-
+       
 		if( source.getWidth() < newW) {
 			source = ImageProcessing.resizeTo(source,newW, source.getHeight());
 		}
@@ -340,14 +342,14 @@ public class RenderBorder {
 			source = ImageProcessing.resizeTo(source,source.getWidth(), newH);
 		}
 
-		//System.out.println("matchImageSize: postScaledSize " + outimg.getWidth() + " " + outimg.getHeight());
+		//System.out.println("matchImageSize: postScaledSize " + source.getWidth() + " " + source.getHeight());
 		return source;
 	}
 
 
 
 
-	private void applyCroppingMask(BufferedImage preCroppedImage, BufferedImage maskImage, int offsetX, int offsetY) {
+	private void applyCroppingMask(BufferedImage preCroppedImage, BufferedImage maskImage, int offsetX, int offsetY, String theEdge) {
 		// the mask image uses its own alpha to modify the preCroppedImage
 		// pixels in the preCroopeImage are made transparent (alpha'd out) where the mask image is solid.
 		int maskW = maskImage.getWidth();
@@ -359,7 +361,15 @@ public class RenderBorder {
 		BufferedImage preCroppedImageOverlap = ImageProcessing.cropImage(preCroppedImage, cropR);
 
 		// apply the crop mask. We are preserving those parts of no alpha in the mask - a hole in the mask means the pixels in the image being masked survive.
-		BufferedImage croppedByMaskImage =  ImageProcessing.getMaskedImage(preCroppedImageOverlap,  maskImage,  0, 0, AlphaComposite.DST_OUT);
+		
+		// the fudge is to get rid of straggling border pixels in the cropped image left by...(my guess)... resizing of the mask image creating soft borders???
+		int fudgeX=0,fudgeY=0, fudgeAmt = 4;;
+		if(theEdge.contentEquals("LEFT")) { fudgeX = -fudgeAmt; fudgeY = 0; }
+		if(theEdge.contentEquals("TOP")) { fudgeX = 0; fudgeY = -fudgeAmt; }
+		if(theEdge.contentEquals("RIGHT")) { fudgeX = fudgeAmt; fudgeY = 0; }
+		if(theEdge.contentEquals("BOTTOM")) { fudgeX = 0; fudgeY = fudgeAmt; }
+		
+		BufferedImage croppedByMaskImage =  ImageProcessing.getMaskedImage(preCroppedImageOverlap,  maskImage,  fudgeX, fudgeY, AlphaComposite.DST_OUT);
 
 		// paste back in the masked section, using Porter Duff SRC - i.e. replace everything in target with source including alpha.
 		ImageProcessing.compositeImage_ChangeTarget(croppedByMaskImage, preCroppedImage, offsetX, offsetY, 1.0f, AlphaComposite.SRC);

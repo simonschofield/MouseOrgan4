@@ -74,7 +74,7 @@ public class ViewController {
 		theDocument = surf.theDocument;
 		canvasWindowRect = surf.getCanvasWindowRect();
 		System.out.println(
-				"viewRect width " + canvasWindowRect.getWidth() + " viewRect height " + canvasWindowRect.getWidth());
+				"viewRect width " + canvasWindowRect.getWidth() + " viewRect height " + canvasWindowRect.getHeight());
 		canvasWindowRectAspect = canvasWindowRect.aspect();
 
 		theDocumentWidth = GlobalSettings.getTheDocumentCoordSystem().getBufferWidth();
@@ -193,11 +193,12 @@ public class ViewController {
 	Rect getFitToViewDisplayRect() {
 		Rect fitToWindowRect = new Rect();
 		if (theDocumentAspect > canvasWindowRectAspect) {
+			//System.out.println("getFitToViewDisplayRect: landscape rect");
 			// do "landscape fit" where it needs padding top/bottom for "landscape fit"
 			// work out the scale to shrink the image into this rect
 			float scaleToFit = canvasWindowRect.getWidth() / theDocumentWidth;
-			float scaledImageHeight = theDocumentWidth * scaleToFit;
-			int halfDifferenceInHeight = (int) ((canvasWindowRect.getHeight() - scaledImageHeight) / 2f);
+			float scaledImageHeight = theDocumentHeight * scaleToFit;
+			int halfDifferenceInHeight = (int) Math.abs((canvasWindowRect.getHeight() - scaledImageHeight) / 2f);
 
 			fitToWindowRect.setWithDimensions(canvasWindowRect.left, canvasWindowRect.top + halfDifferenceInHeight, canvasWindowRect.getWidth(), scaledImageHeight);
 		} else {
@@ -205,10 +206,11 @@ public class ViewController {
 			// work out the scale to shrink the image into this rect
 			float scaleToFit = canvasWindowRect.getHeight() / theDocumentHeight;
 			float scaledImageWidth = (theDocumentWidth * scaleToFit);
-			int halfDifferenceInWidth = (int) ((canvasWindowRect.getWidth() - scaledImageWidth) / 2f);
+			int halfDifferenceInWidth = (int) Math.abs((canvasWindowRect.getWidth() - scaledImageWidth) / 2f);
 			
 			fitToWindowRect.setWithDimensions( canvasWindowRect.left + halfDifferenceInWidth, canvasWindowRect.top, scaledImageWidth, canvasWindowRect.getHeight());
 		}
+		//System.out.println("getFitToViewDisplayRect: " + fitToWindowRect.toStr());
 		return fitToWindowRect; 
 	}
 	
@@ -366,9 +368,9 @@ public class ViewController {
 			// then it fits letter box in to the always letter box VDR
 			// so the height of the currentViewRect is set to the height of the document
 			// image
-			// and the width of the currentViewRect this height / viewDisplayRectAspect
+			// and the width of the currentViewRect this height * viewDisplayRectAspect
 			cropBoxHeight = theDocumentHeight * scale;
-			cropBoxWidth = cropBoxHeight / canvasWindowRectAspect;
+			cropBoxWidth = cropBoxHeight * canvasWindowRectAspect;
 		}
 
 		Rect untranslatedViewRect = new Rect(0, 0, cropBoxWidth, cropBoxHeight);

@@ -81,6 +81,10 @@ public class Sprite {
 		qRandomStream = new QRandomStream(rseed);
 	}
 	
+	public int getID() {
+		return spriteData.id;
+	}
+	
 	String toStr() {
 		//return "ImageSprite seed:" + seed.toStr() + " own doc pt:" + docPoint + " Image:" + image;
 		//return "ImageSprite doc pt:" + docPoint + " Image:" + getImageName();
@@ -363,6 +367,13 @@ public class Sprite {
 	}
 	
 	
+	/**
+	 * Bends an image to the left
+     * The bend harshness is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image
+	 * @param startBend -  is always a parametric 0..1, where 0 is the bottom of the image
+	 * @param bendAmt -  0 == no displacement, 1 == the displacement is equivalent to the image height (whihc would be huge)
+	 * @param severity - is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image
+	 */
 	public void bend(float startBend, float bendAmt, float severity) {
 		BendImage bendImage = new BendImage();
 		float oldWidth = imageQuad.getImageWidth();

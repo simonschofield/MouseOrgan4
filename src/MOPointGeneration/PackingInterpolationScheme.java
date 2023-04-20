@@ -51,7 +51,7 @@ public class PackingInterpolationScheme {
 	//userUnits - RADIUS, SURFACE_AREA, VOLUME
 	int interpolationUnitsOption = RANGE_UNITS_SURFACE_AREA;
 
-	PackingInterpolationScheme() {
+	public PackingInterpolationScheme() {
 
 	}
 

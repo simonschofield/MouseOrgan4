@@ -35,7 +35,7 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	// Evenly distributed points with a spacing of radius
 	// (as a proportion of 1, so 0.001 == 1/1000th of the long edge)
 	//
-	void setPackingRadius(float r) {
+	public void setPackingRadius(float r) {
 		fixedRadius = r;
 	}
 	

@@ -231,7 +231,7 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	private void loadFullSizeImage_SessionScale_Cache_PrescaleCrop(String fullSizeImagePathAndName, String cacheDirectoryPath) {
 		BufferedImage img = ImageProcessing.loadImage(fullSizeImagePathAndName);
 		if(sessionScale != 1) {
-			img = ImageProcessing.scaleImage(img,sessionScale,sessionScale);
+			img = ImageProcessing.scaleImage(img,sessionScale);
 		}
 		String thisShortFileName = MOStringUtils.getShortFileNameFromFullPathAndFileName(fullSizeImagePathAndName);
 		String fullCachePathAndName = cacheDirectoryPath + thisShortFileName + ".png";

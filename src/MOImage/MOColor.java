@@ -7,7 +7,7 @@ import MOMaths.MOMaths;
 import MOMaths.QRandomStream;
 
 public class MOColor {
-	static QRandomStream ranStream = new QRandomStream(1);
+	static public QRandomStream ranStream = new QRandomStream(1);
 	
 	static public Color[] getBasic12ColorPalette() {
 		Color[] cols = new Color[12];

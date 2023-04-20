@@ -112,6 +112,14 @@ public class MOMaths {
 
 	// creates a nice S-shaped curve, useful for contrast functions
 
+	/**
+	 * Generates a Gaussian-distribution value (the Y value) based on the input (the X value)
+	 * @param xVal is the distance along the X axis you want the Y value generated
+	 * @param curveHeight is the maximum Y value of the curve
+	 * @param centreVal - is the centre value of the X axis (probably will be zero)
+	 * @param stdDev -  is the drop-off in value from the centre point
+	 * @return
+	 */
 	public static float gaussianCurve(float xVal, float curveHeight, float centreVal, float stdDev) {
 		// returns the Y val on the gaussian curve at xVal
 		float e = 2.71828f;

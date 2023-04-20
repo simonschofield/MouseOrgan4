@@ -4,37 +4,33 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class MOColorImagePalette extends MONamedColors{
+import MOMaths.QRandomStream;
+
+public class MOColorImagePalette{
 	
-	ArrayList<Color> imageBasedPalette = new ArrayList<Color>();
-	
-	public MOColorImagePalette(BufferedImage colorPalette, int numCols){
+	BufferedImage thePalette;
+	QRandomStream  random;
+	public MOColorImagePalette(BufferedImage colorPalette){
 		// uses a vertical image of color bands to create a palete
+		thePalette = colorPalette;
+		random = new QRandomStream(1);
 		
-		
-		int x =  (int)(colorPalette.getWidth()/2f);
-		int height = colorPalette.getHeight();
-		
-		int step = (int)(height/(float)numCols);
-		
-		for(int y = 0; y<height; y+= step) {
-			int ci = colorPalette.getRGB(x, y);
-			Color c = new Color(ci);
-			imageBasedPalette.add(c);
-		}
 	}
 	
 	
-	Color getImageBasedColor(int i) {
-		
-		return imageBasedPalette.get(i);
+	public void setRandomState(int i) {
+		random.setState(i);
 	}
 	
 	
-	public Color getRandomImageBasedColor() {
-		int limit = imageBasedPalette.size();
-		int i = random.randRangeInt(0, limit-1);
-		return imageBasedPalette.get(i);
+	
+	
+	
+	public Color getRandomColor() {
+		int x = random.randRangeInt(3, thePalette.getWidth()-3);
+		int y = random.randRangeInt(3, thePalette.getHeight()-3);
+		int ci =  thePalette.getRGB(x, y);
+		return new Color(ci);
 		
 	}
 	
