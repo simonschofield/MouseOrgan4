@@ -11,3 +11,7 @@
 /MOPackedColor.class
 /MOColorImagePalette.class
 /NamedColor.class
+/GaussianBlurFilter.class
+/AlphaEdgeFilter.class
+/Despeckle.class
+/AlphaEdgeDrawer.class

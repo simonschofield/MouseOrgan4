@@ -33,6 +33,7 @@ public class ArrayListIterator<T>{
 	}
 	
 	public T get(int n) {
+		if(n < 0 || n >= size() ) return null;
 		return arrayList.get(n);
 	}
 	

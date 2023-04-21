@@ -109,7 +109,7 @@ public class NNetworkRegionDrawHelper {
 
 		for(NRegion r: regions) {
 			
-			Color c = palette.getRandomImageBasedColor();
+			Color c = palette.getRandomColor();
 			
 			if(hsvVariance!=null) {
 				c =  MOColor.perturbHSV(c, hsvVariance[0], hsvVariance[1], hsvVariance[2]);
