@@ -352,10 +352,15 @@ public class NNetwork {
 		return np;
 	}
 
-
+	NEdge addEdge(PVector p1, PVector p2) {
+		// this allows for the addition of completely new edges to the NNetwork.
+		NPoint np1 = addPoint(p1);
+		NPoint np2 = addPoint(p2);
+		return addEdge(np1,np2);
+	}
 
 	NEdge addEdge(NPoint p1, NPoint p2) {
-		// the points must exist within the newtwork before this can be called
+		// the points must exist within the network before this can be called
 		if (p1 == p2) {
 			System.out.println("NNetwork:addEdge - both points idetical - cannot add");
 			return null;

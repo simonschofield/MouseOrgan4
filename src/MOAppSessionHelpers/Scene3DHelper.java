@@ -94,7 +94,7 @@ public class Scene3DHelper {
 		public static void shiftSpriteOriginBy3DYAmountV2(Sprite sprite, float shiftY) {
 			// adjusts the anchor point Y of a sprite so that it is lifted or dropped by an amount - shiftY -  in 3D
 			// Hence an image can be used to add height-detail to the sprites.
-			// FYI: Just altering the anchorpoint by an amount will not do, as sprites of differing heights will have inconsistent outcomes wrt the "baseline"
+			// FYI: Just altering the anchor-point by a fixed amount will not do, as sprites of differing heights will have inconsistent outcomes wrt the "baseline"
 			
 			//
 			// work out the new shifted doc point

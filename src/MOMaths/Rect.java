@@ -114,17 +114,23 @@ public class Rect{
 	}
 	
 	public String toStr() {
-		return new String(left + "," + top + "," + right + "," + bottom) ;
+		return new String("x " + left + ", y " + top + ", width " + getWidth() + ", height " + getHeight()) ;
 	}
 	
 	
 	//////////////////////////////////////////////////////////////////////////////////
-	// translation
+	// translation and scale
 	//
 	
 	Rect getTranslated(float dx, float dy){
 		// returns a translated copy
 		return new Rect(left+dx, top+dy, getWidth(), getHeight());
+	}
+	
+	public Rect getScaled(float sx, float sy) {
+		// translates in-place 
+		Rect scaled = new Rect(left*sx, top*sy, getWidth()*sx, getHeight()*sy);
+		return scaled;
 	}
 	
 	
@@ -139,6 +145,8 @@ public class Rect{
 		right+=dx;
 		bottom+=dy; 
 	}
+	
+	
 
 	void moveTopLeftTo(float x, float y) {
 		float w = getWidth();

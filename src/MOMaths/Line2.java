@@ -5,6 +5,11 @@ package MOMaths;
 //Java compliant
 public class Line2 {
 
+	public static final int DIRECTION_UP=0;
+	public static final int DIRECTION_LEFT=1;
+	public static final int DIRECTION_DOWN=2;
+	public static final int DIRECTION_RIGHT=3;
+	
 	// the end points
 	public PVector p1;
 	public PVector p2;
@@ -39,7 +44,51 @@ public class Line2 {
 		return p1.toStr() + "," + p2.toStr();
 	}
 
-
+	
+	/**
+	 * @param direction - this is DIRECTION_UP,DIRECTION_LEFT,DIRECTION_DOWN,DIRECTION_RIGHT and represents the general running direction
+	 * p1->p2. 
+	 * It will swap the points in-place to meet the criteria
+	 */
+	public void enforceDirection(int direction) {
+		if(direction==DIRECTION_UP) {
+			if(p1.y < p2.y) {
+				swapEndPoints();
+				return;
+			}
+		}
+		
+		if(direction==DIRECTION_LEFT) {
+			if(p1.x < p2.x) {
+				swapEndPoints();
+				return;
+			}
+		}
+		
+		if(direction==DIRECTION_DOWN) {
+			if(p1.y > p2.y) {
+				swapEndPoints();
+				return;
+			}
+		}
+		
+		if(direction==DIRECTION_RIGHT) {
+			if(p1.x > p2.x) {
+				swapEndPoints();
+				return;
+			}
+		}
+		
+	}
+	
+	
+	
+	public void swapEndPoints() {
+		PVector tp1 = p1.copy();
+		PVector tp2 = p2.copy();
+		p1 = tp2;
+		p2 = tp1;
+	}
 
 	float distancePointToLine(PVector p)
 	{

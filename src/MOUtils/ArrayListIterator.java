@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class ArrayListIterator<T>{
 	
 	
-	public int counter=0;
+	private int counter=-1;
 	
 	public ArrayList<T> arrayList;
 	
@@ -38,13 +38,27 @@ public class ArrayListIterator<T>{
 	}
 	
 	public T getNext() {
-		return get(counter++);
+		counter++;
+		return get(counter);
 		
 	}
 	
 	
 	public int size() {
 		return arrayList.size();
+	}
+	
+	public int getCurrentItemNum() {
+		// once an item has been retrieved by getNext
+		// the iterator counter gets incremented
+		return counter;
+	}
+	
+	
+	
+	public String toStr() {
+		
+		return "Iterator has " + size() + " elements, the counter is currently at " + counter;
 	}
 	
 

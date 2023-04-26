@@ -367,10 +367,42 @@ public class Sprite {
 	}
 	
 	
+	public void crop(Rect normalisedCropRect, boolean shiftOrigin) {
+		
+		
+		
+		Rect cropRect = normalisedCropRect.getScaled(getImageWidth(), getImageHeight());
+		
+		setImage(ImageProcessing.cropImage( getImage() , cropRect ));
+		if(shiftOrigin==true) {
+			// then work out the shift between the original rect and the croprect
+			// The original rect is (in normalised coords ) (0,0,1,1) i.e. the identity rect
+			// The crop rect will be (x,y,w,h), representing the normalised cropRect
+			// so work out a scale and translate to map the cropRect to the identity rect
+			float tx = -cropRect.left;
+			float ty = -cropRect.top;
+			
+			float scX = 1/cropRect.getWidth();
+			float scY = 1/cropRect.getHeight();
+			
+			PVector existingOrigin = getOrigin();
+			PVector shiftedOrigin = new PVector();
+			
+			shiftedOrigin.x = existingOrigin.x*scX;
+			shiftedOrigin.y = existingOrigin.y*scY;
+			
+			shiftedOrigin.x+=tx;
+			shiftedOrigin.y+=ty;
+			setOrigin(shiftedOrigin);
+		}
+		
+	}
+	
+	
 	/**
 	 * Bends an image to the left
      * The bend harshness is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image
-	 * @param startBend -  is always a parametric 0..1, where 0 is the bottom of the image
+	 * @param startBend -  just set this to 0, as other results are poor. .....is always a parametric 0..1, where 0 is the bottom of the image
 	 * @param bendAmt -  0 == no displacement, 1 == the displacement is equivalent to the image height (whihc would be huge)
 	 * @param severity - is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image
 	 */

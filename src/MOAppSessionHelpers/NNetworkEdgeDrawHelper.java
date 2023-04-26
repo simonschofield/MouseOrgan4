@@ -511,8 +511,17 @@ public class NNetworkEdgeDrawHelper {
 	}
 
 
-
-
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Utilities to do with converting NEdge to Lines
+	//
+	public static ArrayList<Line2> getEdgesAsLines(ArrayList<NEdge> edges){
+		ArrayList<Line2> lines = new ArrayList<Line2>();
+		for(NEdge e: edges) {
+			lines.add(e.getLine2());
+		}
+		return lines;
+	}
+	
 
 
 	
