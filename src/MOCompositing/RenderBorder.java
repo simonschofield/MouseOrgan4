@@ -427,6 +427,13 @@ public class RenderBorder {
 		if(overlapReport.contentEquals("NONE")) return CROP_ACTION_EXCLUDE;
 		
 		ArrayList<Integer> actions = getActionsFromOverlapReport(overlapReport);
+		
+		if(actions.size()==0) {
+			// this is a BUG FIX. Very large sprites create actions list with no elements
+			return CROP_ACTION_EXCLUDE;
+		}
+		
+		
 		if(actions.size()>1) {
 			// if you get this far then the overlapReport must contains two or more edges, and we have to make a decision on this
 			return getDominantAction(actions);

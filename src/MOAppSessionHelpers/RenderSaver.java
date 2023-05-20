@@ -255,6 +255,12 @@ public class RenderSaver {
 	
 	private String ensureUserSessionSourceCodeDirectory() {
 		String dirName = GlobalSettings.getUserSessionPath() + "UserSessionSourceCodeArchive\\";
+		
+		if(useSubDirectory) {
+			dirName = subDirectoryPath + "\\UserSessionSourceCodeArchive\\";
+		}
+		
+		
 		if(MOStringUtils.checkDirectoryExist(dirName)==false) {
 			MOStringUtils.createDirectory(dirName);
 		}

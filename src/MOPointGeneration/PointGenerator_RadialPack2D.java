@@ -21,6 +21,7 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	float fixedRadius = 1;
 
 	KeyImageSampler distributionKeyImageSampler;
+	boolean fitDistributionImageToGenerationAreaRect = false;
 
 	// this is the number of attempts to try and find a point available for adding before the packing
 	// gives up
@@ -56,11 +57,12 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	}
 		
 		
-	ArrayList<PVector> generateUniformlyDistributedPoints(){	
+	public ArrayList<PVector> generateUniformlyDistributedPoints(){	
 		int attempts = 0;
 		
 		while (true) {
 			PVector thisPt = getRandomDocSpacePoint();
+			System.out.println("generateUniformlyDistributedPoints trying point " +  thisPt.toStr() + " fixedRadius " + fixedRadius);
 			boolean success = tryAddDistributedPoint(thisPt, fixedRadius); // for 3D LOD needs to take Z into account
 			if (!success) {
 				attempts++;
@@ -68,7 +70,7 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 				attempts = 0;
 			}
 			if (attempts > attemptsCounter) {
-				System.out.println("SeedPacking: placed " +  getNumItems());
+				System.out.println("SeedPacking: placed " +  getNumItems() + " after attempts " + attempts);
 				break;
 			}
 		}
@@ -77,13 +79,15 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	}
 
 	
-
+    public void fitDistributionImageToGenerationAreaRect(boolean fitToRect) {
+    	fitDistributionImageToGenerationAreaRect = fitToRect;
+    }
 	
 	ArrayList<PVector> generateImageResponsiveDistributedPoints() {
 		int previousBiggestNumberOfAttempts = 0;
 		
 		
-		//distributionImageCoordinateSpaceConverter = new CoordinateSpaceConverter(distributionImage.getWidth(), distributionImage.getHeight(),  aspect);
+		
 		
 		int attempts = 0;
 		while (true) {
@@ -92,13 +96,40 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 			
 			// check against the bitmap lowDistributionThreshold
 			boolean success;
-			float v = distributionKeyImageSampler.getValue01DocSpace(thisPt);
+			float v;
+			
+			
+			// should be in own method.... float getDistributionImageValue(PVector p)
+			//
+			//
+			if(fitDistributionImageToGenerationAreaRect) {
+				// Then map the point normalised within the GenerationAreaRect to the image
+				PVector normalisedToGenerationRect = generationAreaRect.norm(thisPt);
+				
+				if(generationAreaRect.isPointInside(normalisedToGenerationRect)) {
+					v = distributionKeyImageSampler.getValue01NormalisedSpace(normalisedToGenerationRect);
+				} else {
+					v = 0;
+				}
+				
+			} else {
+			
+			
+			   v = distributionKeyImageSampler.getValue01DocSpace(thisPt);
+			}
+			//
+			//
+			//
+			
+			
 			if(  packingInterpolationScheme.isExcluded(v) ) {
 				success = false;
 			} else {
 				
 				float radius = packingInterpolationScheme.getRadius(v); // for 3D LOD, this needs to be packingInterpolationScheme.getRadiusWithLOD(v,z);
+				
 				success = tryAddDistributedPoint(thisPt, radius);
+				//System.out.println("generateImageResponsiveDistributedPoints trying point " +  thisPt.toStr() + " radius " + radius + " success = " + success);
 			}
 			
 			

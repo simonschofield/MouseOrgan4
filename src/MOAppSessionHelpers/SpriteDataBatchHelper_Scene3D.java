@@ -115,6 +115,9 @@ public class SpriteDataBatchHelper_Scene3D {
 	}
 	
 	
+	
+	
+	
 	private void ensureSeedsDirectoryExists(String path) {
 		String alledgedDirectory = path + "seeds";
 		if(MOStringUtils.checkDirectoryExist(alledgedDirectory)) return;
@@ -175,22 +178,6 @@ public class SpriteDataBatchHelper_Scene3D {
 	}
 	
 	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// call this if you alter the depth-gamma of the scene after the seeds have been made
-	//
-	public void updateSpriteDataBatchDepthsAgainstScene(SpriteDataBatch seedbatch) {
-		
-		// call this if you are changing to a different depth filter
-		seedbatch.resetItemIterator();
-		while(seedbatch.areItemsRemaining()) {
-			
-			SpriteData s = seedbatch.getNextSeed();
-			float d = sceneData3D.getDepthNormalised(s.getDocPoint());
-			s.setDepth(d);
-		}
-		seedbatch.resetItemIterator();
-		
-	}
 	
 	
 	public boolean removeNoncontributingSpritesInROI(ROIHelper roiHelper, SpriteDataBatch seedbatch) {

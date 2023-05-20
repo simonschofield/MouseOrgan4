@@ -45,12 +45,13 @@ public class PointGenerator_Random extends CollectionIterator{
 		float w = GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth();
 		float h = GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight();
 		setGenerationArea(new Rect(0,0,w,h));
-		System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
+		//System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
 	}
 	
 
-	void setGenerationArea(Rect r) {
+	public void setGenerationArea(Rect r) {
 		generationAreaRect = r;
+		//System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
 	}
 
 

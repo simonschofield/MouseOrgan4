@@ -38,10 +38,10 @@ public class Sprite {
 
 		// This method is called by Sprite initialisation to
 		// fully make a sprite from a seed.
-		ScaledImageAssetGroupManager sigm = GlobalSettings.getImageAssetGroupManager();
-		if(spriteData==null) System.out.println("ERROR Sprite::data == null");
-		if(sigm==null) System.out.println("ERROR Sprite::SpriteImageGroupManager == null");
-		ScaledImageAssetGroup sig = sigm.getScaledImageAssetGroup(spriteData.ImageAssetGroupName);
+		//ScaledImageAssetGroupManager sigm = GlobalSettings.getImageAssetGroupManager();
+		//if(spriteData==null) System.out.println("ERROR Sprite::data == null");
+		//if(sigm==null) System.out.println("ERROR Sprite::SpriteImageGroupManager == null");
+		ScaledImageAssetGroup sig = getImageAssetGroup();
 		if (sig == null) {
 			System.out.println("ERROR Sprite::Sprite constructor - cannot find spriteImageGroup called "
 					+ spriteData.ImageAssetGroupName);
@@ -55,6 +55,9 @@ public class Sprite {
 		}
 		setImage(img);
 	}
+	
+	
+	
 	
 	public Sprite copy() {
 		
@@ -440,7 +443,7 @@ public class Sprite {
 	public void scaleToSizeInScene(float scaleModifier) {
 		// The height of the sample image is set using pre-set sizeInScene member variable as a documentSpace measurement.
 		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
-		float scale = scaleModifier * spriteData.sizeInScene;
+		float scale = scaleModifier * spriteData.sizeInScene * getRelativeSizeInGroup();
 		//System.out.println("scaleToSizeInScene  scaleModifier " + scaleModifier + "  sizeInScene " + data.sizeInScene + " result " + scale);
 		scaleToSizeInDocSpace(null, scale);
 	}
@@ -451,6 +454,21 @@ public class Sprite {
 
 		scale(1, scaleY);
 		
+	}
+	
+	ScaledImageAssetGroup getImageAssetGroup() {
+		ScaledImageAssetGroupManager sigm = GlobalSettings.getImageAssetGroupManager();
+		if(spriteData==null) System.out.println("ERROR Sprite::getImageAssetGroup   spriteData == null");
+		if(sigm==null) System.out.println("ERROR Sprite::SpriteImageGroupManager == null");
+		ScaledImageAssetGroup sig = sigm.getScaledImageAssetGroup(spriteData.ImageAssetGroupName);
+		return sig;
+	}
+	
+	float getRelativeSizeInGroup() {
+		if(spriteData==null) System.out.println("ERROR Sprite::getRelativeSizeInGroup   spriteData == null");
+		if( spriteData.useRelativeSizes == false ) return 1f;
+		
+		return getImageAssetGroup().getRelativeImageHeight(spriteData.ImageGroupItemNumber);
 	}
 	
 	
@@ -584,12 +602,11 @@ public class Sprite {
 		// scales the image to the correct size using  sizeInScene to represent the
 		// items's size in the 3D scene in world units.
 
-		float heightInPixels = getHeightInRenderTargetPixels3D(sceneData);
+		float heightInPixels = getHeightInRenderTargetPixels3D(sceneData) * scaleModifier * getRelativeSizeInGroup();
 		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
-		float scale = (heightInPixels / getImageHeight()) * scaleModifier;
+		float scale = (heightInPixels / getImageHeight()); 
 		if (scale > 1) {
-			System.out.println(spriteData.ImageGroupItemShortName + " overscaled, original size in pixels " + getImageHeight()
-			+ " to be scale to " + heightInPixels + " scale " + scale);
+			System.out.println(spriteData.ImageGroupItemShortName + " overscaled, original size in pixels " + getImageHeight() + " to be scale to " + heightInPixels + " scale " + scale);
 		}
 
 		scale(scale, scale);

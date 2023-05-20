@@ -39,6 +39,7 @@ public class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPac
 
 	boolean useSurfaceArea = true;
 
+
 	public PointGenerator_RadialPackSurface3D(int rseed, SceneData3D sd) {
 		super(rseed);
 		sceneData = sd;

@@ -60,6 +60,7 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 	private SpriteFont getSpriteFontInstance() {
 		// called by the seed batch upon making a batch
 		// only needs docPoint if an influenceImage is set
+		//System.out.println("SpriteFontBiome::getSpriteFontInstance ... num biomeItems = " + biomeItems.size());
 		if (probabilitiesNormalised == false) normaliseProbabilities();
 
 		if (biomeItems.size() == 1) {

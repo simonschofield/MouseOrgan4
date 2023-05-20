@@ -844,9 +844,9 @@ public class ImageProcessing {
 		byte g = (byte) c.getGreen();
 		byte b = (byte) c.getBlue();
 		for (int n = 0; n < 256; n++) {
-			data[0][n] = b;
+			data[0][n] = r;
 			data[1][n] = g;
-			data[2][n] = r;
+			data[2][n] = b;
 		}
 		return pointFunction(image, data);
 	}

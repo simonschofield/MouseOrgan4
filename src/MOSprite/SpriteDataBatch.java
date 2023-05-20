@@ -8,6 +8,7 @@ import java.util.Comparator;
 
 
 import MOMaths.PVector;
+import MOMaths.Range;
 import MOUtils.CollectionIterator;
 import MOUtils.MOStringUtils;
 
@@ -24,6 +25,7 @@ public class SpriteDataBatch extends CollectionIterator{
 	
 	private ArrayList<SpriteData> spriteDataList = new ArrayList<SpriteData>();
 	String seedBatchName = "";
+	
 	
 	public SpriteDataBatch(String name){
 		seedBatchName = name;
@@ -68,7 +70,17 @@ public class SpriteDataBatch extends CollectionIterator{
 		spriteDataList.sort(Comparator.comparing(SpriteData::getDepth).reversed());
 	}
 	
-	
+	public Range getDepthExtrema() {
+		Range depthExtrema = new Range();
+		depthExtrema.initialiseForExtremaSearch();
+		
+		for(SpriteData s : spriteDataList) {
+			float d = s.getDepth();
+			depthExtrema.addExtremaCandidate(d);
+		}
+		System.out.println("getting sprite batch depth extrema " + depthExtrema.toStr());
+		return depthExtrema;
+	}
 
 	public ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
