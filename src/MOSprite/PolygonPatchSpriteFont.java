@@ -79,7 +79,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 		
 		BufferedImage polygonMask = createMask(spriteBufferSpacePolygon);
 
-		Sprite sprite = getSpriteInstance(true);
+		Sprite sprite = getSpriteInstance(false);
 		sprite.setSpriteFontDataAndSelectImage(this);
 		
 		BufferedImage chosenTexture = sprite.getImage();
