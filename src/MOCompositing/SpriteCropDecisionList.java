@@ -6,8 +6,9 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 
 import MOMaths.PVector;
-import MOSprite.SpriteData;
-import MOSprite.SpriteDataBatch;
+
+import MOSprite.SpriteSeed;
+import MOSprite.SpriteSeedBatch;
 import MOUtils.KeyValuePairList;
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // This is used to speed up the rendering process of ROIs within a previously larger image,
@@ -24,18 +25,21 @@ public class SpriteCropDecisionList{
 	}
 
 
-	public SpriteDataBatch removeNonContributingSprite(SpriteDataBatch seedbatch) {
+	
+	
+	
+	public SpriteSeedBatch removeNonContributingSprites(SpriteSeedBatch seedbatch) {
 		// this removes the seeds from the incoming list so is destructive
-		ArrayList<SpriteData> seeds = seedbatch.getSpriteDatas();
-		ArrayList<SpriteData> croppedSeeds = new ArrayList<SpriteData>();
-		for(SpriteData seed: seeds) {
+		ArrayList<SpriteSeed> seeds = seedbatch.getSpriteSeeds();
+		ArrayList<SpriteSeed> croppedSeeds = new ArrayList<SpriteSeed>();
+		for(SpriteSeed seed: seeds) {
 			if(cropDecisionList.stream().anyMatch(o -> o.spriteID == seed.id)) {
 				croppedSeeds.add(seed);
 			} 
 		}
-		System.out.println("removeNonContributingSpriteSeeds before " + seeds.size() + " after " + croppedSeeds.size());
-		SpriteDataBatch croppedDataBatch = new SpriteDataBatch(seedbatch.getName());
-		croppedDataBatch.setSpriteDatas(croppedSeeds);
+		System.out.println("removeNonContributingSprites before " + seeds.size() + " after " + croppedSeeds.size());
+		SpriteSeedBatch croppedDataBatch = new SpriteSeedBatch(seedbatch.getName());
+		croppedDataBatch.setSpriteSeeds(croppedSeeds);
 		return croppedDataBatch;
 	}
 

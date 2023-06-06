@@ -17,7 +17,7 @@ public  class QRandomStream {
 	private static ArrayList<Integer> randomNumbers;
 	private int arraySize = 1000000;
 	private int seed = 1;
-
+	private Integer preKeyedCachedPosition = null;
 	private int sequencePosition = 0;
 
 	public QRandomStream(int rseed) {
@@ -57,8 +57,12 @@ public  class QRandomStream {
 	// the same result for that i num.
 	// The same input i will always generate the same random number sequence
 	// If you want different results, then re-seed the stream
-	public void setState(int i) {
+	public void setPosition(int i) {
 		setSeedAndPosition(null, i);
+	}
+	
+	public void setSeed(int i) {
+		setSeedAndPosition(i, null);
 	}
 	
 	
@@ -195,6 +199,47 @@ public  class QRandomStream {
 	    float fac = (float) Math.sqrt(-2.0 * Math.log(S) / S);
 	    return u * fac;
 	}
+	
+	//////////////////////////////////////////////////////////////
+	// keyed random functions always return the same random number for the particular input key-number, so can be
+	// regarded as a "reliable" random number generator. If the stream is re-seeded, then a different but reliable number will be
+	// returned for the same input key.
+	// It does not reposition the sequence position
+	
+	int keyedInt(int keyNumber, int lo, int hi) {
+		startKeyedPosition(keyNumber);
+		int val = randRangeInt( lo,  hi);
+		endKeyedPosition();
+		return val;
+	}
+	
+	float keyedFloat(int keyNumber, float lo, float hi) {
+		startKeyedPosition(keyNumber);
+		float val = randRangeF( lo,  hi);
+		endKeyedPosition();
+		return val;
+	}
+	
+	
+	public void startKeyedPosition(int keyNumber) {
+		if(preKeyedCachedPosition!=null) {
+			//System.out.println("QRandomStream:startKeyedPosition is already in use - ignoring");
+			//return;
+		}
+		preKeyedCachedPosition = getPosition();
+		setPosition(keyNumber);
+	}
+	
+	public void endKeyedPosition() {
+		if(preKeyedCachedPosition==null) {
+			return;
+		}
+		setPosition(preKeyedCachedPosition);
+		preKeyedCachedPosition=null;
+	}
+	
+	
+	
 	
 	//////////////////////////////////////////////////////////////
 	// Generates an random sequence independent SNum from this stream

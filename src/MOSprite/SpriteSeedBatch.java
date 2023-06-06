@@ -20,14 +20,14 @@ import MOUtils.MOStringUtils;
 // Can save/load to file
 // adds a "unique ID" - this is to seed events in the Sprite, so as to secure repeatability.
 
-public class SpriteDataBatch extends CollectionIterator{
+public class SpriteSeedBatch extends CollectionIterator{
 	
 	
-	private ArrayList<SpriteData> spriteDataList = new ArrayList<SpriteData>();
+	private ArrayList<SpriteSeed> spriteSeedList = new ArrayList<SpriteSeed>();
 	String seedBatchName = "";
 	
 	
-	public SpriteDataBatch(String name){
+	public SpriteSeedBatch(String name){
 		seedBatchName = name;
 	}
 	
@@ -36,45 +36,45 @@ public class SpriteDataBatch extends CollectionIterator{
 	}
 	
 	
-	public SpriteDataBatch copy() {
-		SpriteDataBatch cpy = new SpriteDataBatch(seedBatchName + "_copy");
-		cpy.spriteDataList = (ArrayList<SpriteData>) this.spriteDataList.clone();
+	public SpriteSeedBatch copy() {
+		SpriteSeedBatch cpy = new SpriteSeedBatch(seedBatchName + "_copy");
+		cpy.spriteSeedList = (ArrayList<SpriteSeed>) this.spriteSeedList.clone();
 		return cpy;
 	}
 	
-	public void addSpriteData(SpriteData s) {
-		spriteDataList.add(s);
+	public void addSpriteSeed(SpriteSeed s) {
+		spriteSeedList.add(s);
 	}
 
 
-	public ArrayList<SpriteData> getSpriteDatas(){
-		return spriteDataList;
+	public ArrayList<SpriteSeed> getSpriteSeeds(){
+		return spriteSeedList;
 	}
 	
 	
-	public void setSpriteDatas(ArrayList<SpriteData> sds) {
-		spriteDataList = sds;
+	public void setSpriteSeeds(ArrayList<SpriteSeed> sds) {
+		spriteSeedList = sds;
 	}
 	
 	
 	
-	public void append(SpriteDataBatch otherBatch) {
-		ArrayList<SpriteData> otherSeeds = otherBatch.getSpriteDatas();
-		for(SpriteData s : otherSeeds) {
-			spriteDataList.add(s);
+	public void append(SpriteSeedBatch otherBatch) {
+		ArrayList<SpriteSeed> otherSeeds = otherBatch.getSpriteSeeds();
+		for(SpriteSeed s : otherSeeds) {
+			spriteSeedList.add(s);
 		}
 		
 	}
 	
 	public void depthSort() {
-		spriteDataList.sort(Comparator.comparing(SpriteData::getDepth).reversed());
+		spriteSeedList.sort(Comparator.comparing(SpriteSeed::getDepth).reversed());
 	}
 	
 	public Range getDepthExtrema() {
 		Range depthExtrema = new Range();
 		depthExtrema.initialiseForExtremaSearch();
 		
-		for(SpriteData s : spriteDataList) {
+		for(SpriteSeed s : spriteSeedList) {
 			float d = s.getDepth();
 			depthExtrema.addExtremaCandidate(d);
 		}
@@ -84,26 +84,37 @@ public class SpriteDataBatch extends CollectionIterator{
 
 	public ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
-		for(SpriteData s : spriteDataList) {
+		for(SpriteSeed s : spriteSeedList) {
 			points.add(s.getDocPoint());
 		}
 		return points;
 	}
 
-
+	
+	public void copySeedBatchNameToSeeds() {
+		// overwrites the seedbatch name with this name
+		for(SpriteSeed s: spriteSeedList){
+			s.SeedBatchName = this.seedBatchName;
+		}
+		
+	}
 
 	///////////////////////////////////////////////////////
 	// load and save seeds using csv
-	public void saveSeeds(String fileAndPath) {
+	public void saveSeeds(String fileAndPath, boolean setSeedBatchName) {
 		// there should be a directory in the project folder called seeds
-
+		
+		
+		if(setSeedBatchName) {
+			copySeedBatchNameToSeeds();
+		}
 
 		FileWriter csvWriter = null;
 		try{
 			csvWriter = new FileWriter(fileAndPath);
 
 
-			for(SpriteData s: spriteDataList){
+			for(SpriteSeed s: spriteSeedList){
 				csvWriter.append(s.getAsCSVStr());
 			}
 
@@ -128,14 +139,14 @@ public class SpriteDataBatch extends CollectionIterator{
 			while ((row = csvReader.readLine()) != null) {
 
 				// do something with the data
-				SpriteData s = new SpriteData();
+				SpriteSeed s = new SpriteSeed();
 				s.setWithCSVStr(row);
-				spriteDataList.add(s);
+				spriteSeedList.add(s);
 			}
 			csvReader.close();
 		} catch(Exception e){
 
-			System.out.println("SeedBatch.loadSeedsAsCSV: csv reader failed - " + fileAndPath + e);
+			System.out.println("SpriteSeedBatch.loadSeedsAsCSV: csv reader failed - " + fileAndPath + e);
 		}
 
 	}
@@ -147,26 +158,21 @@ public class SpriteDataBatch extends CollectionIterator{
 	@Override
 	public int getNumItems() {
 		// TODO Auto-generated method stub
-		return spriteDataList.size();
+		return spriteSeedList.size();
 	}
 
 	@Override
 	public Object getItem(int n) {
 		// TODO Auto-generated method stub
-		return spriteDataList.get(n);
+		return spriteSeedList.get(n);
 	}
 
 
-	public SpriteData getNextSeed() {
-		return (SpriteData) getNextItem();
+	public SpriteSeed getNextSeed() {
+		return (SpriteSeed) getNextItem();
 	}
 
 }
-
-
-
-
-
 
 
 

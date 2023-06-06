@@ -19,7 +19,7 @@ public class MOColorImagePalette{
 	
 	
 	public void setRandomState(int i) {
-		random.setState(i);
+		random.setPosition(i);
 	}
 	
 	

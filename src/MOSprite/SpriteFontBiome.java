@@ -26,8 +26,8 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 		randomStream = new QRandomStream(biomeRanSeed);
 	}
 
-	public void addSpriteFont( String sdFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
-		SpriteFont spriteFont = new SpriteFont(sdFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  origin, fontRanSeed);
+	public void addSpriteFont( String spriteFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector pivotPoint, int fontRanSeed, float probability) {
+		SpriteFont spriteFont = new SpriteFont(spriteFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  pivotPoint, fontRanSeed);
 		spriteFont.SpriteFontBiomeProbability = probability;
 		biomeItems.add(spriteFont);
 		probabilitiesNormalised = false;
@@ -37,19 +37,18 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 		biomeItems.add(ssf);
 	}
 	
-	// uses stochastics to select a particular SpriteData
-	public SpriteData getSpriteDataInstance() {
-		SpriteFont ssf = getSpriteFontInstance();
-		return ssf.getSpriteDataInstance();
-	}
-	
-	public Sprite getSpriteInstance() {
-		SpriteFont ssf = getSpriteFontInstance();
-		return ssf.getSpriteInstance();
+
+	public Sprite getSpriteInstance(boolean setRandomStreamKeyPositionWithID) {
+		SpriteFont spriteFont = getSpriteFontInstance();
+		return spriteFont.getSpriteInstance(setRandomStreamKeyPositionWithID);
 	}
 	
 	
-	
+	public Sprite getSpriteInstance(SpriteSeed s, boolean setRandomStreamKeyPositionWithID)  {
+		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.id);
+		SpriteFont spriteFont = getSpriteFontInstance();
+		return spriteFont.getSpriteInstance(s, false);
+	}
 	
 	
 	///////////////////////////////////////////////////////////////////////////////
@@ -99,5 +98,12 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 
 		probabilitiesNormalised = true;
 	}
+
+	@Override
+	public void setRandomStreamKeyPosition(int keyPos) {
+		randomStream.startKeyedPosition(keyPos);
+	}
+	
+	
 	
 }

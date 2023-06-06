@@ -33,7 +33,7 @@ public class Sprite3DLightingMask {
 			for(int x = 0; x < buffWdth; x++) {
 				PVector spriteBufferPoint = new PVector(x,y);
 				PVector docSpace = sprt.spriteBufferSpaceToDocSpace(spriteBufferPoint);
-				byte val = (byte)(solidTexture.getValue01(docSpace, sprt.spriteData.depth)*255);
+				byte val = (byte)(solidTexture.getValue01(docSpace, sprt.depth)*255);
 				
 				dstBuff[y*buffWdth + x] = val;
 			}

@@ -8,17 +8,19 @@ import java.util.ArrayList;
 public class ArrayListIterator<T>{
 	
 	
-	private int counter=-1;
+	public int counter=0;
 	
 	public ArrayList<T> arrayList;
 	
 	
 	public ArrayListIterator() {
 		arrayList = new ArrayList<T>();
+		counter=0;
 	}
 	
 	public ArrayListIterator(ArrayList<T> list) {
 		arrayList = list;
+		counter=0;
 	}
 	
 	public void add(T e)
@@ -38,8 +40,10 @@ public class ArrayListIterator<T>{
 	}
 	
 	public T getNext() {
+		
+		T obj = get(counter);
 		counter++;
-		return get(counter);
+		return obj;
 		
 	}
 	

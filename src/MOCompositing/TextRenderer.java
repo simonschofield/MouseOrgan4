@@ -135,7 +135,7 @@ public class TextRenderer {
 	Sprite mapToLine(Sprite sprite, float docSpaceFontHeight, Line2 line) {
 		
 		sprite.rotate(-90);
-		sprite.spriteData.origin = new PVector(0.5f,0.0f);
+		sprite.pivotPoint = new PVector(0.5f,0.0f);
 		sprite.scaleToSizeInDocSpace(docSpaceFontHeight, line.getLength());
 		float r = line.getRotation();
 		sprite.rotate(r);
@@ -350,7 +350,7 @@ public class TextRenderer {
 		//ImageSprite sprite = new ImageSprite();
 		//sprite.setImage(bufferedImage);
 	    Sprite sprite = new Sprite(bufferedImage);
-		sprite.spriteData.origin = new PVector(0.0f,0.0f);
+		sprite.pivotPoint = new PVector(0.0f,0.0f);
 		sprite.setDocPoint(topLeftDocSpace);
 		
 		return sprite;

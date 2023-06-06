@@ -585,7 +585,7 @@ public class NNetworkEdgeDrawHelper {
 			return false;
 		}
 
-		Sprite sprite =  spriteFont.getSpriteInstance();
+		Sprite sprite =  spriteFont.getSpriteInstance(true);
 
 		if(randomStream.randomEvent(0.5f)) sprite.mirror(true);
 
@@ -617,7 +617,7 @@ public class NNetworkEdgeDrawHelper {
 
 
 
-		Sprite sprite = currentSpriteFont.getSpriteInstance();
+		Sprite sprite = currentSpriteFont.getSpriteInstance(true);
 
 		// do this by loaded 2 different sprite fonts, one for side on
 		//if( sprite.data.spriteImageGroupItemShortName.contains("side")) {

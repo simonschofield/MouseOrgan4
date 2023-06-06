@@ -86,7 +86,7 @@ public class Scene3DHelper {
 			
 			float newY = (shiftBufferSpace+spriteheight)/spriteheight;   
 			//System.out.println("sprite type " + sprite.spriteData.ImageAssetGroupName + " buffer height " + spriteheight + " new Y " + newY );
-		    sprite.spriteData.origin.y = newY; 
+		    sprite.pivotPoint.y = newY; 
 		    
 		    
 		}
@@ -128,7 +128,7 @@ public class Scene3DHelper {
 			
 			float newY = (shiftBufferSpace+spriteheight)/spriteheight;   
 			//System.out.println("sprite type " + sprite.spriteData.ImageAssetGroupName + " buffer height " + spriteheight + " new Y " + newY );
-		    sprite.spriteData.origin.y = newY; 
+		    sprite.pivotPoint.y = newY; 
 		    
 		    
 		}

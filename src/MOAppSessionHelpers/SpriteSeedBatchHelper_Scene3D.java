@@ -1,20 +1,19 @@
 package MOAppSessionHelpers;
 
+
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOApplication.MainDocument;
 import MOCompositing.SpriteCropDecisionList;
-import MOImageCollections.ScaledImageAssetGroupManager;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
 import MOPointGeneration.PointGenerator_RadialPackSurface3D;
 import MOScene3D.SceneData3D;
-import MOSprite.SpriteData;
-import MOSprite.SpriteDataBatch;
-import MOSprite.SpriteFont;
-import MOSprite.SpriteFontBiome;
+
+import MOSprite.SpriteSeed;
+import MOSprite.SpriteSeedBatch;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
@@ -24,19 +23,19 @@ import MOUtils.GlobalSettings;
 // If you need more than one biome, then declare more than one of this class
 //
 
-public class SpriteDataBatchHelper_Scene3D {
+public class SpriteSeedBatchHelper_Scene3D {
 	String thisHelperName;
 	
 	SceneData3D sceneData3D;
 	
 	PointGenerator_RadialPackSurface3D pointGenerator;
-	SpriteFontBiome spriteFontBiome;
+	
 	
 	boolean saveOutContributingSeedReport = false;
 
-	public SpriteDataBatchHelper_Scene3D(String name,  SceneData3D sd3d, int biomeRanSeed) {
+	public SpriteSeedBatchHelper_Scene3D(String name,  SceneData3D sd3d) {
 		this.thisHelperName = name;
-		spriteFontBiome = new SpriteFontBiome(biomeRanSeed);
+		
 		sceneData3D = sd3d;
 		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
 	}
@@ -59,56 +58,40 @@ public class SpriteDataBatchHelper_Scene3D {
 		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
 	}
 	
-	public SpriteFontBiome getSpriteFontBiome() {
-		return spriteFontBiome;
-	}
 	
 	
-	public void addSpriteFont(String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector origin, int fontRanSeed, float probability) {
-		spriteFontBiome.addSpriteFont(thisHelperName, imageSampleGroupName, sizeInScene, useRelativeSizes, origin, fontRanSeed, probability);
-	
-	}
-	
-	public void addSpriteFont(SpriteFont ssf) {
-		
-		spriteFontBiome.addSpriteFont(ssf);
-	
-	}
-	
-	//public void clearSampleGroupCandidates() {
-	//	imageSampleSelector.clearContentItemProbabilities();
-	//}
 	
 	
-	public SpriteDataBatch generateSpriteDataBatch(String batchName) {
+	
+	
+	
+	
+	
+	public SpriteSeedBatch generateSpriteSeedBatch(String batchName) {
 		if(pointGenerator == null) {
-			System.out.println("SeedBatchFactory_Scene3D::generateSeedBatch -  point packing is undefined , please call definePointPacking before using this method");
+			System.out.println("SeedBatchFactory_Scene3D::generateSpriteSeedBatch -  point packing is undefined , please call definePointPacking before using this method");
 			return null;
 		}
 		
-		//SpriteSeedFont seedFont = imageSampleSelector.getSpriteSeedFontInstance();
+		
+		SpriteSeedBatch seedbatch = new SpriteSeedBatch(batchName);
 		
 		
-		SpriteDataBatch seedbatch = new SpriteDataBatch(batchName);
-		
-		String pathAndFileName = GlobalSettings.getUserSessionPath() + "seeds\\" + batchName + ".sds";
-		System.out.println("generateSpriteDataBatch::has made a batch called " + pathAndFileName);
 		
 		ArrayList<PVector> points = pointGenerator.generatePoints();
 		
-		int n=0;
+		
 		for(PVector p: points) {
-			
-			SpriteData seedInstance = spriteFontBiome.getSpriteDataInstance();
+			SpriteSeed seedInstance = new SpriteSeed();
 			seedInstance.setDocPoint(p);
-			seedInstance.SpriteDataBatchName = batchName;
+			seedInstance.SeedBatchName = batchName;
 			seedInstance.setDepth(p.z);
-			seedbatch.addSpriteData(seedInstance);
-			n++;
+			seedbatch.addSpriteSeed(seedInstance);
 		}
+		
 		System.out.println("generateSeedBatch::has made a batch called " + batchName + " of " + seedbatch.getNumItems() + " seeds ");
 		
-		//ensureSeedsDirectoryExists(MOUtilGlobals.userSessionPath);
+		
 
 		return seedbatch;
 		
@@ -129,7 +112,7 @@ public class SpriteDataBatchHelper_Scene3D {
 	// It is used to adjust the sees locations into the ROI space defined in the SceneData3D
 	//
 	
-	public SpriteDataBatch applyROIToSpriteDataBatch(ROIHelper roiHelper, SpriteDataBatch seedbatch) {
+	public SpriteSeedBatch applyROIToSpriteSeedBatch(ROIHelper roiHelper, SpriteSeedBatch seedbatch) {
 		if(roiHelper.isUsingMaster()) return seedbatch;
 		
 		
@@ -151,11 +134,11 @@ public class SpriteDataBatchHelper_Scene3D {
 		Rect theROI = sceneData3D.getROIRect();
 		
 		System.out.println("apply ROI to seeds " + theROI.toStr());
-		SpriteDataBatch seedbatchOut = new SpriteDataBatch(seedbatch.getName());
+		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch(seedbatch.getName());
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
 			
-			SpriteData s = seedbatch.getNextSeed().copy();
+			SpriteSeed s = seedbatch.getNextSeed().copy();
 			PVector newSceneDocPoint = s.getDocPoint();
 			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(newSceneDocPoint);
 			//if(theROI.isPointInside(normalisedPoint)==false) continue;
@@ -165,7 +148,7 @@ public class SpriteDataBatchHelper_Scene3D {
 			//System.out.println("applyROIToSeeds: seeds docpoint before appplication of ROI " + newSceneDocPoint.toString() + ". Adjusted by ROI " + newDocSpacePt.toString());
 			s.setDocPoint(newDocSpacePt);
 			
-			seedbatchOut.addSpriteData(s);
+			seedbatchOut.addSpriteSeed(s);
 			
 		}
 		
@@ -180,7 +163,7 @@ public class SpriteDataBatchHelper_Scene3D {
 	
 	
 	
-	public boolean removeNoncontributingSpritesInROI(ROIHelper roiHelper, SpriteDataBatch seedbatch) {
+	public boolean removeNoncontributingSpritesInROI(ROIHelper roiHelper, SpriteSeedBatch seedbatch) {
 		// this only removed seeds if a "contributing sprite" file has been saved for this ROI (i.e. with the ROI's name) in the seeds folder
 		// if the file cannot be found, then the class is alerted to save one out at the end of this session
 		if(roiHelper.isUsingMaster()) return false;
@@ -193,7 +176,7 @@ public class SpriteDataBatchHelper_Scene3D {
 			saveOutContributingSeedReport = true;
 			return false;
 		}
-		spriteCropList.removeNonContributingSprite(seedbatch);
+		spriteCropList.removeNonContributingSprites(seedbatch);
 		return true;
 	}
 	
