@@ -163,8 +163,11 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		
 		if(theUserSessionState == UserSessionState.UPDATE) {
 			if (!userSessionPaused) {
-				updateUserSession();
-				userSessionUpdateCount++;
+				for(int n = 0; n < canvasUpdateFrequency; n++) {
+				   if(theUserSessionState == UserSessionState.FINALISE) break;	
+				   updateUserSession();
+				   userSessionUpdateCount++;
+				}
 			}
 		}
 		
@@ -306,7 +309,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		Graphics2D g2d = (Graphics2D) g.create();
 		
 		//if(theGraphics==null) theGraphics = g;
-		
+		//System.out.println("updating canvas");
 		
 		if(theViewControl!=null) theViewControl.updateDisplay(g2d);
 		g2d.dispose();
@@ -317,11 +320,11 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	public void paintComponent(Graphics g) {
 
 		// only update the canvas every canvasUpdateFrequency updates
-		if (userSessionUpdateCount % canvasUpdateFrequency == 0) {
+		//if (userSessionUpdateCount %  == 0) {
 			super.paintComponent(g);
 			if(theUI!=null) updateCanvasDisplay(g);
 			keepAwake.update();
-		}
+		//}
 
 		// update the ui
 		if(theUI!=null) {

@@ -10,39 +10,36 @@ import java.util.Comparator;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOUtils.CollectionIterator;
-import MOUtils.MOStringUtils;
+
 
 
 ///////////////////////////////////////////////////////////////////////////
-// A SpriteDataBatch is an iterable collection of type SpriteData.
-// When a helper produces seeds it is this form.
-// Used when iterating through seeds in the main loop
-// Can save/load to file
-// adds a "unique ID" - this is to seed events in the Sprite, so as to secure repeatability.
+// A SpriteSeedBatch is an iterable collection of type SpriteSeed.
+// It does not have a name, as a seed batch will always be created by some other process and just uses the seed batch as storeage.
+//  So the name is set by the making process, not the seed batch itself.
+//
 
 public class SpriteSeedBatch extends CollectionIterator{
 	
 	
 	private ArrayList<SpriteSeed> spriteSeedList = new ArrayList<SpriteSeed>();
-	String seedBatchName = "";
+	//String seedBatchName = "";
 	
 	
-	public SpriteSeedBatch(String name){
-		seedBatchName = name;
+	public SpriteSeedBatch(){
+		
 	}
 	
-	public String getName() {
-		return seedBatchName;
-	}
 	
 	
 	public SpriteSeedBatch copy() {
-		SpriteSeedBatch cpy = new SpriteSeedBatch(seedBatchName + "_copy");
+		SpriteSeedBatch cpy = new SpriteSeedBatch();
 		cpy.spriteSeedList = (ArrayList<SpriteSeed>) this.spriteSeedList.clone();
 		return cpy;
 	}
 	
 	public void addSpriteSeed(SpriteSeed s) {
+		//s.SeedBatchName = seedBatchName;
 		spriteSeedList.add(s);
 	}
 
@@ -64,6 +61,15 @@ public class SpriteSeedBatch extends CollectionIterator{
 			spriteSeedList.add(s);
 		}
 		
+	}
+	
+	public void appendTo(SpriteSeedBatch appendingToThisBatch) {
+		if(appendingToThisBatch==null) {
+			System.out.println("SpriteSeedBatch:appendTo ERROR -  the appendingToThisBatch is null - please instantiate beofore using" );
+			return;
+		}
+		appendingToThisBatch.append(this);
+		//System.out.println(" appended seedbatch " + appendingToThisBatch + " num seeds = " + appendingToThisBatch.getNumItems());
 	}
 	
 	public void depthSort() {
@@ -91,23 +97,21 @@ public class SpriteSeedBatch extends CollectionIterator{
 	}
 
 	
-	public void copySeedBatchNameToSeeds() {
+	public void setSeedBatchNameInSeeds(String newName) {
 		// overwrites the seedbatch name with this name
 		for(SpriteSeed s: spriteSeedList){
-			s.SeedBatchName = this.seedBatchName;
+			s.SeedBatchName = newName;
 		}
 		
 	}
 
 	///////////////////////////////////////////////////////
 	// load and save seeds using csv
-	public void saveSeeds(String fileAndPath, boolean setSeedBatchName) {
+	public void saveSeeds(String fileAndPath) {
 		// there should be a directory in the project folder called seeds
 		
 		
-		if(setSeedBatchName) {
-			copySeedBatchNameToSeeds();
-		}
+		
 
 		FileWriter csvWriter = null;
 		try{
@@ -141,6 +145,7 @@ public class SpriteSeedBatch extends CollectionIterator{
 				// do something with the data
 				SpriteSeed s = new SpriteSeed();
 				s.setWithCSVStr(row);
+				System.out.println("Loading seed "+row);
 				spriteSeedList.add(s);
 			}
 			csvReader.close();

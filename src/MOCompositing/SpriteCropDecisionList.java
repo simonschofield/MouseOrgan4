@@ -33,12 +33,12 @@ public class SpriteCropDecisionList{
 		ArrayList<SpriteSeed> seeds = seedbatch.getSpriteSeeds();
 		ArrayList<SpriteSeed> croppedSeeds = new ArrayList<SpriteSeed>();
 		for(SpriteSeed seed: seeds) {
-			if(cropDecisionList.stream().anyMatch(o -> o.spriteID == seed.id)) {
+			if(cropDecisionList.stream().anyMatch(o -> o.spriteUniqueID == seed.getUniqueID())) {
 				croppedSeeds.add(seed);
 			} 
 		}
 		System.out.println("removeNonContributingSprites before " + seeds.size() + " after " + croppedSeeds.size());
-		SpriteSeedBatch croppedDataBatch = new SpriteSeedBatch(seedbatch.getName());
+		SpriteSeedBatch croppedDataBatch = new SpriteSeedBatch();
 		croppedDataBatch.setSpriteSeeds(croppedSeeds);
 		return croppedDataBatch;
 	}
@@ -104,14 +104,14 @@ public class SpriteCropDecisionList{
 
 class SpriteCropDecision{
 
-	int spriteID;
+	int spriteUniqueID;
 	boolean contributes;
 
 
 
-	public SpriteCropDecision(int spriteID, boolean contributes) {
+	public SpriteCropDecision(int spriteUniqueID, boolean contributes) {
 		super();
-		this.spriteID = spriteID;
+		this.spriteUniqueID = spriteUniqueID;
 		this.contributes = contributes;
 	}
 
@@ -122,7 +122,7 @@ class SpriteCropDecision{
 		// in the createSeeds() method
 
 		KeyValuePairList kvlist = new KeyValuePairList();
-		kvlist.addKeyValue("SpriteID", spriteID);
+		kvlist.addKeyValue("SpriteID", spriteUniqueID);
 		kvlist.addKeyValue("Contributes", contributes);
 
 		String line =  kvlist.getAsCSVLine();
@@ -139,7 +139,7 @@ class SpriteCropDecision{
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.ingestCSVLine(csvStr);
 
-		this.spriteID = kvlist.getInt("SpriteID");
+		this.spriteUniqueID = kvlist.getInt("SpriteID");
 		this.contributes = kvlist.getBoolean("Contributes");
 	}
 

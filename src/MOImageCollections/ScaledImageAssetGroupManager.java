@@ -38,6 +38,7 @@ public class ScaledImageAssetGroupManager {
 			if (cc.isNamed(name))
 				return cc;
 		}
+		System.out.println("ScaledImageAssetGroupManager::getScaledImageAssetGroup cannot find a group called " + name + ". Returning null ");
 		return null;
 	}
 	
@@ -59,7 +60,7 @@ public class ScaledImageAssetGroupManager {
 	/**
 	 * @param contentGroupName,    this is the name you give the content group for
 	 *                             further access via the manager
-	 * @param targetDirectory,     this is the directory containing the files you
+	 * @param sourceDirectory,     this is the directory containing the files you
 	 *                             wish to load
 	 * @param fileNameMustEndWith, this is a file name filter, set to ".png" to load
 	 *                             all png file. Set to "" or "*" if you dont want
@@ -78,17 +79,21 @@ public class ScaledImageAssetGroupManager {
 	 * @param preScale,            apply a uniform scaling to all items. This is
 	 *                             supplementary to the session scale.
 	 * @param cropRect,            apply a uniform crop to all items. The rect is in
-	 *                             normalised coords
+	 *                             normalised space
 	                     
 	 */
-	public void loadImageAssetGroup(String spriteImageGroupName, String targetDirectory, String fileNameMustEndWith,
+	public void loadImageAssetGroup(String spriteImageGroupName, String sourceDirectory, String fileNameMustEndWith,
 			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect) {
 
 		
-		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(targetDirectory);
+		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(sourceDirectory);
 		dfns.setFileType(fileNameMustEndWith);
     	dfns.setFileNameContains(fileNameMustContain);
     	dfns.setFileListRange(from, to);
+    	
+    	int n = dfns.getNumFiles();
+    	System.out.println("loadImageAssetGroup loading " + n + " images " + spriteImageGroupName );
+    	
     	
     	ScaledImageAssetGroup newSpriteImageGroup  = new ScaledImageAssetGroup(spriteImageGroupName);
 		
@@ -104,9 +109,9 @@ public class ScaledImageAssetGroupManager {
 
 	/////////////////////////////////////////////////////////////////////////////
 	// this is the short-hand method of the above
-	public void loadImageAssetGroup(String name, String targetDirectory, Integer from, Integer to) {
+	public void loadImageAssetGroup(String name, String sourceDirectory, Integer from, Integer to) {
 
-		loadImageAssetGroup(name, targetDirectory, ".png", "", from, to, 1, new Rect());
+		loadImageAssetGroup(name, sourceDirectory, ".png", "", from, to, 1, new Rect());
 
 	}
 	
@@ -126,25 +131,7 @@ public class ScaledImageAssetGroupManager {
     }
     
     
-	/////////////////////////////////////////////////////////////////////////////
-	// these are the long-hand method of establishing an image-collection
-	// If you are doing it long hand - then the method below needs to be called
-	///////////////////////////////////////////////////////////////////////////// first
-    /*
-    ScaledMOImageGroup addImageGroupNameAndPath(String name, String targetDirectory, String filesStrEndWith, String fileStrContains) {
-    	DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(targetDirectory);
-    	dfns.setFileNameContains(fileStrContains);
-    	
-    	
-    	ScaledMOImageGroup newSpriteImageGroup  = new ScaledMOImageGroup(name);
-		
-		newSpriteImageGroup.setDirectoryFileNameScanner(dfns);
-		newSpriteImageGroup.loadSessionScaledImages();
-		
-		theMOImageGroupList.add(newSpriteImageGroup);
-		return newSpriteImageGroup;
-	}
-	*/
+	
 
 	
      public void addImageAssetGroup(ScaledImageAssetGroup sig) {

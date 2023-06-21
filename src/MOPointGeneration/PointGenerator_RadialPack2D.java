@@ -139,12 +139,13 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 				
 				if(attempts > previousBiggestNumberOfAttempts) {
 					previousBiggestNumberOfAttempts = attempts;
-					System.out.println("SeedPacking:attempts used  " + previousBiggestNumberOfAttempts + " out of a maximum of " + attemptsCounter + " placed " +  getNumItems());
+					int percent = (int)((previousBiggestNumberOfAttempts/(float)attemptsCounter)*100);
+					System.out.print( percent + "%, " );
 				}
 				attempts = 0;
 			}
 			if (attempts > attemptsCounter) {
-				System.out.println("exceeded max number of attempts: total placed " + getNumItems());
+				System.out.println("100%: total placed " + getNumItems());
 				break;
 			}
 		}

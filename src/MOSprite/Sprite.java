@@ -25,7 +25,7 @@ public class Sprite {
 	////////////////////////////////////////////////////
 	// For Identification purposes
 	// this enables the user to identify seeds from different batches, and sprite fonts within biomes (or individually) 
-	public String SpriteDataBatchName = "";
+	public String SpriteSeedBatchName = "";
 	public String SpriteFontName = "";
 	public String ImageAssetGroupName = "";
 
@@ -33,8 +33,11 @@ public class Sprite {
 	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
 	// regardless of previous random events
 	// It is also used in optimisations such as registering whether or not a seed is used in a render.
-	public int id;
+	public int uniqueID;
 
+	public int randomKey;
+	
+	
 	// Sprite image related stuff
 	// the name of the image sample group to be used by
 	// the number of the item within that group
@@ -50,7 +53,7 @@ public class Sprite {
 	//
 	public float sizeInScene = 1;
 	public boolean useRelativeSizes = false;
-	public PVector pivotPoint = new PVector(0.5f, 0.5f);
+	private PVector pivotPoint = new PVector(0.5f, 0.5f);
 
 
 	/////////////////////////////////////////////////////
@@ -66,8 +69,9 @@ public class Sprite {
 	// 
 	public float depth = 1;
 	
+	/////////////////////////////////////////////////////
 	// this is so that you can turn sprites on and off in clipping/culling processes
-	// This is not saved/loaded to/from file
+	// 
 	public boolean isActive = true;
 
 	
@@ -75,8 +79,8 @@ public class Sprite {
 	
 	
 	//////////////////////////////////////////////////////
-	// The following geometric modifications are probably set from the SpriteSeed, but have not been
-	// "actioned", in that they do not automatically effect the sprite. The user has to do this.
+	// The following geometric modifications are probably set from the SpriteSeed by some external process. They are not automatically
+	// applied, and should be thought of as "recommendations" from the generating system. 
 	//
 	
 	// scale
@@ -92,52 +96,60 @@ public class Sprite {
 
 	
 
-	
-
-
-
-	//
-	//
 	///////////////////////////////////////////////////////////////
-
-
 	// for internal workings
+	//
 	public SpriteImageQuad imageQuad;
 	
 
 	private QRandomStream qRandomStream;
 
+	private boolean quickRenderMode = false;
+	
+	
 	public Sprite() {
 		SpriteSeed seed = new SpriteSeed();
 		setSpriteSeedData(seed);
-		setRandomSeed(seed.id);
+		setRandomStreamPos(seed.getRandomKey());
 	}
 
 	public Sprite(BufferedImage img) {
 		SpriteSeed seed = new SpriteSeed();
 		setSpriteSeedData(seed);
-		setRandomSeed(seed.id);
+		setRandomStreamPos(seed.getRandomKey());
 		setImage(img);
 	}
 
 
 	public Sprite(SpriteSeed seed) {
 		setSpriteSeedData(seed);
-		setRandomSeed(id);
+		setRandomStreamPos(seed.getRandomKey());
+	}
+	
+	
+	public void setQuickRenderMode(boolean b) {
+		quickRenderMode = b;
+		
+	}
+	
+	public boolean isQuickRenderMode() {
+		return quickRenderMode;
+		
 	}
 
 
 	public void setSpriteSeedData(SpriteSeed seed) {
 		
 		// set positional data: data from seed, unique to this sprite
+		SpriteSeedBatchName = seed.SeedBatchName;
 		docPoint = new PVector(seed.docPointX, seed.docPointY);		 
 		scale  = seed.scale;
 		rotation  = seed.rotation;
 		flipX  = seed.flipX;
 		flipY  = seed.flipY;
 		depth = seed.depth;
-		id = seed.id;
-		
+		uniqueID = seed.getUniqueID();
+		randomKey = seed.getRandomKey();
 	}
 	
 	
@@ -160,7 +172,7 @@ public class Sprite {
 	}
 
 	public Sprite copy() {
-// tbd
+		// not sure we need this tbd
 		//Sprite cpy = new Sprite(this.spriteData);
 		//cpy.setImage(ImageProcessing.copyImage(this.image));
 		//cpy.imageQuad = this.imageQuad.copy(cpy);
@@ -176,7 +188,7 @@ public class Sprite {
 		imageQuad = new SpriteImageQuad(this);
 	}
 
-	public void setRandomSeed(int rseed) {
+	public void setRandomStreamPos(int rseed) {
 		// a sprite's random stream is set by this
 		// therefore guaranteeing reproducible effects to this sprite.
 		// When is sprite created without a seed, the sprite batch manager
@@ -185,7 +197,7 @@ public class Sprite {
 	}
 
 	public int getID() {
-		return id;
+		return uniqueID;
 	}
 
 	String toStr() {
@@ -224,6 +236,11 @@ public class Sprite {
 		return getImage().getHeight();
 
 	}
+	
+	public float getAspect() {
+		float aspect = getImageWidth()/(float)getImageHeight();
+		return aspect;
+	}
 
 	public PVector getDocPoint() {
 		return docPoint.copy();
@@ -233,38 +250,60 @@ public class Sprite {
 		docPoint = p.copy();
 	}
 
-	void setOrigin(PVector p) {
+	public void setPivotPoint(PVector p) {
 		pivotPoint = p.copy();
+		imageQuad.setPivotPoint(pivotPoint);
 	}
 
-	public PVector getOrigin() {
+	public PVector getPivotPoint() {
 		return pivotPoint.copy();
 	}
 
-	boolean spriteImageGroupEquals(String s) {
-		return ImageAssetGroupName.contentEquals(s);
+	//////////////////////////////////////////////////////////
+	// Identification string matching
+	//
+	String getImageName() {
+		return ImageGroupItemShortName;
 	}
-
-
-	//SpriteDataBatchName = kvlist.getString("SpriteDataBatchName");
-	//SpriteFontName = kvlist.getString("SpriteFontName");
-
-
-	public boolean spriteDataBatchNameEquals(String s) {
-		//System.out.println("seedFontis " + data.spriteSeedFontName + " testing " + s);
-		return SpriteDataBatchName.contentEquals(s);
+	
+	
+	public boolean seedBatchNameEquals(String s) {
+		return SpriteSeedBatchName.contentEquals(s);
 	}
 
 	public boolean spriteFontNameEquals(String s) {
-		//System.out.println("seedFontis " + data.spriteSeedFontName + " testing " + s);
 		return SpriteFontName.contentEquals(s);
 	}
-
-	public String getSeedFont() {
-
-		return SpriteDataBatchName;
+	
+	public boolean imageAssetGroupNameEquals(String s) {
+		return ImageAssetGroupName.contentEquals(s);
+	}
+	
+	public boolean imageNameEquals(String s) {
+		return ImageGroupItemShortName.equals(s);
+	}
+	
+	public boolean seedBatchNameContains(String s) {
+		//System.out.println("seedbach name " + SpriteSeedBatchName);
+		return SpriteSeedBatchName.contains(s);
 	}
 
+	public boolean spriteFontNameContains(String s) {
+		return SpriteFontName.contains(s);
+	}
+	
+	public boolean imageAssetGroupNameContains(String s) {
+		return ImageAssetGroupName.contains(s);
+	}
+	
+	public boolean imageNameContains(String s) {
+		return ImageGroupItemShortName.contains(s);
+		
+	}
+
+	//////////////////////////////////////////////////////////
+	// random stream stuff
+	//
 	public QRandomStream getRandomStream() {
 		return qRandomStream;
 	}
@@ -273,31 +312,6 @@ public class Sprite {
 		// set this random stream to an identical state as qrs  
 		qRandomStream = qrs.copy();
 	}
-
-	/*
-	Rect getPasteRectDocSpace(SceneData3D sceneData) {
-		// returns a document space rect to paste this sprite into
-		// using the sizeInWorld as a 3d calculation
-
-		// tbd -= a 2d version of this
-
-		PVector docPt = docPoint.copy();
-
-		float unit3DatDocPt = sceneData.get3DScale(docPt);
-		float heightDocSpace = sizeInScene*unit3DatDocPt;
-		float widthDocSpace = heightDocSpace * aspect;
-
-		float x1 = docPt.x - (widthDocSpace* origin.x);
-		float y1 = docPt.y - (heightDocSpace * origin.y);
-		float x2 = docPt.x + (widthDocSpace* (1.0f-origin.x));
-		float y2 = docPt.y + (heightDocSpace* (1.0f-origin.y));
-
-
-		return new Rect(new PVector(x1,y1), new PVector(x2,y2) );
-	}*/
-
-
-
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	// Image sprite coordinate methods
@@ -387,19 +401,12 @@ public class Sprite {
 
 
 
-	float getAspect() {
-		float aspect = getImageWidth()/(float)getImageHeight();
-		return aspect;
-	}
+	
 
-	String getImageName() {
-		return ImageGroupItemShortName;
-	}
+	
 
 
-	boolean imageNameContains(String s) {
-		return ImageGroupItemShortName.contains(s);
-	}
+	
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -409,6 +416,8 @@ public class Sprite {
 		//imageQuad.theImage = image;
 		imageQuad.applyScale(scaleW, scaleH);
 
+		if( isQuickRenderMode() ) return;
+		
 		if(scaleW==scaleH) {
 			// chance to use double scaling on very big scale reductions
 			setImage(ImageProcessing.scaleImage(getImage(), scaleW));
@@ -428,9 +437,11 @@ public class Sprite {
 
 		//System.out.println("sprite rotate at top of method");
 		//imageQuad.printVertices();
+		imageQuad.applyRotation2(degrees);
 
-
-		PVector oldCentre = imageQuad.getCentre();
+		if( isQuickRenderMode() ) return;
+		
+		//PVector oldCentre = imageQuad.getCentre();
 
 		double toRad = Math.toRadians(degrees);
 
@@ -447,17 +458,25 @@ public class Sprite {
 		float newY = (float) (ry * Math.cos(toRad) + rx * Math.sin(toRad));
 
 
-
+		//PVector newPivotPoint = new PVector();
 		pivotPoint.x = (newX / getImageWidth()) + 0.5f;
 		pivotPoint.y = (newY / getImageHeight()) + 0.5f;
-
-		imageQuad.applyRotation(degrees, oldCentre);
+		
+		
+		
 
 	}
 
 
 
 	public void mirror(boolean inX) {
+		
+		
+		imageQuad.applyMirror(inX);
+		
+		if( isQuickRenderMode() ) return;
+		
+		
 		if (inX) {
 			setImage(ImageProcessing.mirrorImage(getImage(), true, false));
 			pivotPoint.x = 1.0f - pivotPoint.x;
@@ -466,7 +485,7 @@ public class Sprite {
 			setImage(ImageProcessing.mirrorImage(getImage(), false, true));
 			pivotPoint.y = 1.0f - pivotPoint.y;
 		}
-		imageQuad.applyMirror(inX);
+		
 	}
 
 
@@ -488,7 +507,7 @@ public class Sprite {
 			float scX = 1/cropRect.getWidth();
 			float scY = 1/cropRect.getHeight();
 
-			PVector existingOrigin = getOrigin();
+			PVector existingOrigin = getPivotPoint();
 			PVector shiftedOrigin = new PVector();
 
 			shiftedOrigin.x = existingOrigin.x*scX;
@@ -496,7 +515,7 @@ public class Sprite {
 
 			shiftedOrigin.x+=tx;
 			shiftedOrigin.y+=ty;
-			setOrigin(shiftedOrigin);
+			setPivotPoint(shiftedOrigin);
 		}
 
 	}
@@ -510,22 +529,24 @@ public class Sprite {
 	 * @param severity - is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image
 	 */
 	public void bend(float startBend, float bendAmt, float severity) {
+		
+		imageQuad.applyHorizontalTopShear2(bendAmt);
+		
+		if( isQuickRenderMode() ) return;
+		
+		float oldWidth = getImageWidth();
+		
 		BendImage bendImage = new BendImage();
-		float oldWidth = imageQuad.getImageWidth();
-		this.setImage(bendImage.bendImage(this.getImage(), startBend, bendAmt, severity));
-
-
-		// A -ve    bend means a shift of the top to the left
-		// It applied only to the top of the image
-		float shift = ((getImageWidth() - oldWidth) * MOMaths.getUnitSign(bendAmt));
-		imageQuad.applyHorizontalTopShear(Math.abs(shift));
+		
+		BufferedImage bentImage = bendImage.bendImage(this.getImage(), startBend, bendAmt, severity);
+		this.setImage(bentImage);
 
 		// have to recalculate the origin.x to compensate for the image width getting wider
 		pivotPoint.x = pivotPoint.x * (oldWidth/getImageWidth());
 		if(bendAmt < 0) {
 			// flip the origin
 			pivotPoint.x = 1 - pivotPoint.x;
-			imageQuad.applyMirror(true);
+			
 		}
 
 	}
@@ -683,7 +704,7 @@ public class Sprite {
 			scaleToSizeInDocSpace(null, lenWithOverlap);
 		}
 		//System.out.println( "AFTER SCALE sprite width " + this.getImageBufferWidth() + " sprite height " + this.getImageBufferHeight() + " aspect = " + getAspect() + "\n");
-		setOrigin(shiftedorigin);
+		setPivotPoint(shiftedorigin);
 		rotate(r);
 		setDocPoint(line.p1);
 	}
@@ -691,7 +712,7 @@ public class Sprite {
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
-	// Scaling to 3D scene
+	// Scaling to 3D scene. This should be the first transform to be applied to the sprite. 
 	// The sizeInScene value becomes the size of the sprite within the scene using the scenes 3D units. This is claculated from the 
 	// depth at the paste-point of the sprite using the geometry-buffers 3D methods.
 	//
@@ -700,9 +721,10 @@ public class Sprite {
 		// items's size in the 3D scene in world units.
 
 		float heightInPixels = getHeightInRenderTargetPixels3D(sceneData) * scaleModifier * getRelativeSizeInGroup();
+		
 		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
 		float scale = (heightInPixels / getImageHeight()); 
-		if (scale > 1) {
+		if (scale > 1.5f) {
 			System.out.println(ImageGroupItemShortName + " overscaled, original size in pixels " + getImageHeight() + " to be scale to " + heightInPixels + " scale " + scale);
 		}
 

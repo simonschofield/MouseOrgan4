@@ -184,7 +184,7 @@ public class ROIHelper {
 		Rect theROI = getNormalisedROIExtentsRect();
 
 		System.out.println("apply ROI to seeds " + theROI.toStr());
-		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch(seedbatch.getName());
+		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch();
 		contributingSpriteData.resetItemIterator();
 		while( contributingSpriteData.areItemsRemaining()) {
 

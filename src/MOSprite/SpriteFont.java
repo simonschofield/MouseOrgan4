@@ -29,12 +29,13 @@ public class SpriteFont implements SpriteSourceInterface{
 	public boolean useRelativeSizes = false;
 	public PVector spritePivotPoint = new PVector(0.5f, 0.5f);
 	
-	// only used when this SpriteDataFont is within a SpriteDataFontBiome
+	// only used when this SpriteFont is within a SpriteFontBiome
 	public float SpriteFontBiomeProbability = 1f;
 	
 	private String instancenameMustContain = "";
 	private Range hueMustBeBetween;
 	
+	boolean quickRenderMode = false;
 	
 	public SpriteFont(String thisSpriteFontName, String imageSampleGroupName,
 			float sizeInScene, boolean useRelativeSizes, PVector pivotPoint, int rseed) {
@@ -45,6 +46,11 @@ public class SpriteFont implements SpriteSourceInterface{
 		this.sizeInScene = sizeInScene;
 		this.useRelativeSizes = useRelativeSizes;
 		this.spritePivotPoint = pivotPoint;
+	}
+	
+	public void setQuickRenderMode(boolean b) {
+		quickRenderMode = b;
+		
 	}
 	
 	public void setInstanceNameMustContain(String mustContain) {
@@ -74,21 +80,20 @@ public class SpriteFont implements SpriteSourceInterface{
 	//////////////////////////////////////////////////////////////////////////
 	// getting Sprite instances using stochastics
 	//
-	
-
-	
 	public Sprite getSpriteInstance(boolean setRandomStreamKeyPositionWithID) {
-
+		// generates a sprite with image selected from the SpriteFont, sprite font data
+		// but no positional data
 		Sprite sprite = new Sprite();
-		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(sprite.id);
+		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(sprite.randomKey);
 		sprite.setSpriteFontDataAndSelectImage(this);
 		return sprite;
 	}
 	
 	
 	public Sprite getSpriteInstance(SpriteSeed seed, boolean setRandomStreamKeyPositionWithID) {
-		// TODO Auto-generated method stub
-		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(seed.id);
+		// generates the complete sprite with image selected from the SpriteFont, sprite font data
+		// and positional data from he SpriteSeed
+		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(seed.getRandomKey());
 
 		Sprite sprite = new Sprite(seed);
 		

@@ -17,6 +17,7 @@ import MOMaths.Intersection3D;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
+import MOPointGeneration.PackingInterpolationScheme;
 import MOScene3D.SceneData3D;
 import MOSimpleUI.Slider;
 import MOSimpleUI.TextInputBox;
@@ -24,6 +25,7 @@ import MOSimpleUI.TextInputBox;
 //import MOSimpleUI.TextInputBox;
 import MOSimpleUI.UIEventData;
 import MOSprite.Sprite;
+import MOSprite.SpriteSeedBatch;
 import MOUtils.GlobalSettings;
 
 
@@ -43,53 +45,22 @@ public class Scene3DHelper {
 			makeRenderImageMenu();
 		}
 		
+		public static SceneData3D getSceneData3D() {
+			return sceneData3D;
+		}
+		
 		static PVector vec(float x, float y, float z) {
 			return new PVector(x,y,z);
 		}
 		
+		public static SpriteSeedBatch createSeedbatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey) {
+			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
+			SpriteSeedBatchHelper_Scene3D seedBatchHelper = new SpriteSeedBatchHelper_Scene3D(name, sceneData3D);
+			seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
+			return seedBatchHelper.generateSpriteSeedBatch(seedRandomKey);
+		} 
 		
 		
-		public static void shiftSpriteOriginBy3DYAmount(Sprite sprite, float shiftY) {
-			// adjusts the anchor point Y of a sprite so that it is lifted or dropped by an amount - shiftY -  in 3D
-			// Hence an image can be used to add height-detail to the sprites.
-			// FYI: Just altering the anchorpoint by an amount will not do, as sprites of differing heights will have inconsistent outcomes wrt the "baseline"
-			
-			//
-			// work out the new shifted doc point
-			
-			PVector docPoint = sprite.getDocPoint();
-			float scl3d = sceneData3D.get3DScale(docPoint);
-			float scaledShift = shiftY * scl3d;
-			PVector shiftedDocPoint = new PVector(docPoint.x,docPoint.y+scaledShift);
-			
-			//PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(docPoint);
-			//PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
-			//PVector shiftedDocPointNOROI = sceneData3D.geometryBuffer3d.world3DToDocSpace(displaced3DPoint);
-			//PVector shiftedDocPoint= sceneData3D.getROILoc(shiftedDocPointNOROI);
-			
-			
-			
-			// you can do this next bit in doc space or buffer space
-			// Work out the shift between the two points in buffer space
-			PVector spBufferSpace = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(docPoint);
-			PVector shiftedSpBufferSpace = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(shiftedDocPoint);
-			float shiftBufferSpace = shiftedSpBufferSpace.y - spBufferSpace.y;
-			
-			// The shift represents a drop (or rise) below the bottom of the sprite.
-			// We are going to shift the anchor point Y of the sprite so that it is at this new location.
-			// To work this out, we need to know the proportion this drop represent
-			// New Y = (spriteBufferHeight + dropInPixels)/spriteBufferHeight
-			// So if drop == 0, the Y == 1
-			// If drop > 0, the proportion will new Y will be > 1
-			// if drop is < 0 (a rise) the new Y will be < 1
-			float spriteheight = sprite.getImageHeight();
-			
-			float newY = (shiftBufferSpace+spriteheight)/spriteheight;   
-			//System.out.println("sprite type " + sprite.spriteData.ImageAssetGroupName + " buffer height " + spriteheight + " new Y " + newY );
-		    sprite.pivotPoint.y = newY; 
-		    
-		    
-		}
 		
 		public static void shiftSpriteOriginBy3DYAmountV2(Sprite sprite, float shiftY) {
 			// adjusts the anchor point Y of a sprite so that it is lifted or dropped by an amount - shiftY -  in 3D
@@ -128,8 +99,10 @@ public class Scene3DHelper {
 			
 			float newY = (shiftBufferSpace+spriteheight)/spriteheight;   
 			//System.out.println("sprite type " + sprite.spriteData.ImageAssetGroupName + " buffer height " + spriteheight + " new Y " + newY );
-		    sprite.pivotPoint.y = newY; 
-		    
+			PVector pivotPoint = sprite.getPivotPoint();
+			
+		    pivotPoint.y = newY; 
+		    sprite.setPivotPoint(pivotPoint);
 		    
 		}
 		

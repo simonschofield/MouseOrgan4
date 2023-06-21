@@ -109,7 +109,7 @@ public class RenderBorder {
 		// then be used to speed up subsequent renders by culling sprites that do not
 		// contribute to the image (e.g. totally outside the renderBoarder, or the document bounds if no render boarder has been set)
 		//System.out.println("crop report id " + sprite.spriteData.id + " contribues? " + contributes);
-		if(contributes) spriteCropDecisionList.addDecision(sprite.id, contributes);
+		if(contributes) spriteCropDecisionList.addDecision(sprite.uniqueID, contributes);
 		return contributes;
 	}
 	
@@ -198,7 +198,7 @@ public class RenderBorder {
 
 		if( checkBespokeCropOK() ){
 			// add the bespoke crop to the cropping image set
-			qRandomStream = new QRandomStream(sprite.id);
+			qRandomStream = new QRandomStream(sprite.uniqueID);
 			boolean result = doBespokeCrop(preCroppedImage, overlapReport );
 			if(result == false) {
 				// the bespoke crop obliterated the image

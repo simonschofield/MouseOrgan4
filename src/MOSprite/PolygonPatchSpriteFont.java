@@ -90,7 +90,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 		
 		BufferedImage extractedPatch = ImageProcessing.extractImageUsingGrayscaleMask(croppedTexture, polygonMask);
 
-		sprite.pivotPoint = new PVector(0,0);
+		sprite.setPivotPoint( new PVector(0,0));
 		sprite.setDocPoint(inSceneExtents.getTopLeft());
 		sprite.setImage(extractedPatch);
 		

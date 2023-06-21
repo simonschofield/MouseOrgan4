@@ -13,21 +13,23 @@ import MOMaths.QRandomStream;
 
 public class SpriteFontBiome  implements SpriteSourceInterface{
 
+	String spriteFontBiomeName;
 	
 	ScaledImageAssetGroupManager theImageSampleGroupManager;
 	ArrayList<SpriteFont> biomeItems = new ArrayList<SpriteFont>();
 	boolean probabilitiesNormalised = false;
 	QRandomStream randomStream;
 	
+	boolean quickRenderMode = false;
 	
-	public SpriteFontBiome(int biomeRanSeed) {
+	public SpriteFontBiome(String name, int biomeRanSeed) {
 		
-		
+		spriteFontBiomeName = name;
 		randomStream = new QRandomStream(biomeRanSeed);
 	}
 
-	public void addSpriteFont( String spriteFontName, String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector pivotPoint, int fontRanSeed, float probability) {
-		SpriteFont spriteFont = new SpriteFont(spriteFontName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  pivotPoint, fontRanSeed);
+	public void addSpriteFont(  String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector pivotPoint, int fontRanSeed, float probability) {
+		SpriteFont spriteFont = new SpriteFont(spriteFontBiomeName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  pivotPoint, fontRanSeed);
 		spriteFont.SpriteFontBiomeProbability = probability;
 		biomeItems.add(spriteFont);
 		probabilitiesNormalised = false;
@@ -40,14 +42,22 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 
 	public Sprite getSpriteInstance(boolean setRandomStreamKeyPositionWithID) {
 		SpriteFont spriteFont = getSpriteFontInstance();
-		return spriteFont.getSpriteInstance(setRandomStreamKeyPositionWithID);
+		Sprite s =  spriteFont.getSpriteInstance(setRandomStreamKeyPositionWithID);
+		
+		
+		return s;
 	}
 	
 	
 	public Sprite getSpriteInstance(SpriteSeed s, boolean setRandomStreamKeyPositionWithID)  {
-		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.id);
+		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.getRandomKey());
 		SpriteFont spriteFont = getSpriteFontInstance();
-		return spriteFont.getSpriteInstance(s, false);
+		Sprite sprite =  spriteFont.getSpriteInstance(s, true);// could be false
+		
+		
+		
+		//System.out.println("randomKey of " + s.getRandomKey() + " results in image " + sprite.getImageName());
+		return sprite;
 	}
 	
 	

@@ -67,29 +67,32 @@ public class SpriteSeedBatchHelper_Scene3D {
 	
 	
 	
-	public SpriteSeedBatch generateSpriteSeedBatch(String batchName) {
+	public SpriteSeedBatch generateSpriteSeedBatch(int randomKeySeed) {
 		if(pointGenerator == null) {
 			System.out.println("SeedBatchFactory_Scene3D::generateSpriteSeedBatch -  point packing is undefined , please call definePointPacking before using this method");
 			return null;
 		}
 		
 		
-		SpriteSeedBatch seedbatch = new SpriteSeedBatch(batchName);
+		SpriteSeedBatch seedbatch = new SpriteSeedBatch();
 		
-		
+		System.out.println("Generating seeds " + thisHelperName );
 		
 		ArrayList<PVector> points = pointGenerator.generatePoints();
 		
 		
 		for(PVector p: points) {
-			SpriteSeed seedInstance = new SpriteSeed();
+			// here1234
+			SpriteSeed seedInstance = new SpriteSeed(randomKeySeed++);
 			seedInstance.setDocPoint(p);
-			seedInstance.SeedBatchName = batchName;
 			seedInstance.setDepth(p.z);
+			seedInstance.SeedBatchName = thisHelperName;
 			seedbatch.addSpriteSeed(seedInstance);
+			
+			
 		}
 		
-		System.out.println("generateSeedBatch::has made a batch called " + batchName + " of " + seedbatch.getNumItems() + " seeds ");
+		
 		
 		
 
@@ -134,7 +137,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		Rect theROI = sceneData3D.getROIRect();
 		
 		System.out.println("apply ROI to seeds " + theROI.toStr());
-		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch(seedbatch.getName());
+		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch();
 		seedbatch.resetItemIterator();
 		while(seedbatch.areItemsRemaining()) {
 			
