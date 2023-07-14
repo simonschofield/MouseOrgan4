@@ -1,12 +1,13 @@
 package MOSprite;
 
 import java.io.FileWriter;
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-
+import MOCompositing.RenderTarget;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOUtils.CollectionIterator;
@@ -145,7 +146,7 @@ public class SpriteSeedBatch extends CollectionIterator{
 				// do something with the data
 				SpriteSeed s = new SpriteSeed();
 				s.setWithCSVStr(row);
-				System.out.println("Loading seed "+row);
+				//System.out.println("Loading seed "+row);
 				spriteSeedList.add(s);
 			}
 			csvReader.close();
@@ -176,6 +177,17 @@ public class SpriteSeedBatch extends CollectionIterator{
 	public SpriteSeed getNextSeed() {
 		return (SpriteSeed) getNextItem();
 	}
+	
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////
+	public void drawSeeds(Color col, float pixelradius, RenderTarget rt) {
+		
+		for(SpriteSeed s : spriteSeedList) {
+			rt.drawPoint(s.getDocPoint(), col, pixelradius);
+		}
+	}
+
 
 }
 

@@ -95,7 +95,14 @@ public class Scene3DHelper {
 			// So if drop == 0, the Y == 1
 			// If drop > 0, the proportion will new Y will be > 1
 			// if drop is < 0 (a rise) the new Y will be < 1
-			float spriteheight = sprite.getImageHeight();
+			
+			// new line to take into consideration all possible existing pivot points, not just y=1
+			float exisitingPivotY = sprite.getPivotPoint().y;
+			
+			float spriteheight = sprite.getImageHeight()*exisitingPivotY;
+			
+			
+			
 			
 			float newY = (shiftBufferSpace+spriteheight)/spriteheight;   
 			//System.out.println("sprite type " + sprite.spriteData.ImageAssetGroupName + " buffer height " + spriteheight + " new Y " + newY );
@@ -104,6 +111,20 @@ public class Scene3DHelper {
 		    pivotPoint.y = newY; 
 		    sprite.setPivotPoint(pivotPoint);
 		    
+		}
+		
+		public static PVector shiftDocPoint3DYAmount(PVector initialDocPoint, float shiftY) {
+			// adjusts the initialDocPoint by calculating a point in 3D that is shiftY (in 3D units) above the 3D location of the initial docPoint. Probably best used
+			// at the very end of the sprite transforms, as otherwise you may be picking up scene data from the wrong point. Think of it as being like
+			// an invisible stick - length shiftY - above the initial scene point - the sprite is pasted at the top of this stick.
+			// 
+
+			PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(initialDocPoint);
+			PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
+			PVector shiftedDocPointNOROI = sceneData3D.geometryBuffer3d.world3DToDocSpace(displaced3DPoint);
+			PVector shiftedDocPoint= sceneData3D.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
+			
+			return shiftedDocPoint;
 		}
 		
 		
