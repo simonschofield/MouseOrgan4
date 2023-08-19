@@ -21,6 +21,36 @@ import MOUtils.ImageDimensions;
 
 public class SceneHelper {
 	
+	/**
+	 * creates a mask image of submitted sprite if the sprite attribute string contains the spriteAttributeStringToContain. If so then this sprite is ADDED ot the mask (i.e. pastes
+	 * white (or replacement image) to the mask). If it does NOT match (i.e. does not contain the spriteAttributeStringToContain string) then the sprite is SUBTRACTED from the mask (i.e. pastes black).
+	 * This algorithm assumes the mask image named exists. The replacementImage is nullable. If not null, the replacement image is (scaled then) pasted. If null, then the sprite is pasted in white.
+	 * 
+	 * 
+	 * @param sprite - the sprite being pasted
+	 * @param spriteAttributeString - the string property f the sprite used to identify the sprite. This could be SpriteSeedBatchName,SpriteFontName,ImageAssetGroupName or ImageGroupItemShortName
+	 * @param spriteAttributeStringToContain - the above string is checked to see if it contains this string. If so the paste ADDS this sprite to the mask, else this sprite is SUBTRACTED from the mask
+	 * @param maskName - The string name of the render target
+	 * @param replacementImage - Nullable, in which chase simple white/black masking happens. If an image, the image is scled then used as the pasting image.
+	 */
+	public static void pasteToMaskImage(Sprite sprite, String spriteAttributeString, String spriteAttributeStringToContain, String maskName, BufferedImage replacementImage) {
+
+		if( spriteAttributeString.contains(spriteAttributeStringToContain) ) {
+			
+			if(replacementImage!=null) {
+				BufferedImage blendedImage = ImageProcessing.replaceVisiblePixels(sprite.getImage(), replacementImage);
+				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, blendedImage, 1);
+			}else {
+				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, Color.white);
+				}
+			
+
+		} else {
+			GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, Color.black);
+		}
+		
+	}
+	
 	// load a SpriteImageGroup and add it to the ImageGroupManager (ImageGroupManager must be instantiated before calling this)
 	public static void loadSpriteImageGroup(String spriteImageGroupSamplePath, String spriteImageGroupName, String fileNameContains) {
 		    ScaledImageAssetGroup spriteImageGroup = new ScaledImageAssetGroup(spriteImageGroupName);

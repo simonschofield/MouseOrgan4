@@ -35,6 +35,8 @@ public class Sprite {
 	// It is also used in optimisations such as registering whether or not a seed is used in a render.
 	public int uniqueID;
 
+	// the randomKey is used to guarantee the same outcome from stochastic processes, rather than relying on the UniqueID. It is initially set to the uniqueID, but if the user is unhappy
+	// with the outcome, then other randomKeys can be set (for instance in seed batch creation).
 	public int randomKey;
 	
 	
