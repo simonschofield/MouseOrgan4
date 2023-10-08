@@ -213,6 +213,7 @@ public class ConvolutionFilter {
 
 		PVector grad =  new PVector(-dx,-dy);
 		
+		System.out.println("dx dy " + dx + " " + dy);
 		//grad.rotate((float)Math.toRadians(90));
 		return grad;
 	}

@@ -3,7 +3,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.*;
+
+
 // The process of using a master image and ROIs within the master image works thus: The master image is rendered out
 // say at sale 0.2. This generates an output image - The master image - of 1200 x 2400 pixels. This is the master height and width. The rscale is 0.2.
 

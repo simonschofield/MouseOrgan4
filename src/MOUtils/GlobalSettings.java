@@ -39,6 +39,7 @@ public class GlobalSettings {
 	// The userSessionPath is set in init()
 	private static String sampleLibPath = "C:\\simon\\art assets\\sample lib\\";
 	private static String dataAssetsPath = "C:\\simon\\art assets\\data\\";
+	private static String liveProjectsBasePath = "C:\\simon\\Artwork\\MouseOrgan Projects\\";
 	private static String mouseOrganImageCachePath = "C:\\mouseOrganImageCache2\\";
 	private static String userSessionPath = "";
 	
@@ -65,6 +66,14 @@ public class GlobalSettings {
 	// Surface.initialiseSystem(....) calls init(...), instantiates the MainDocument then calls setTheDocumentCoordSystem(...)
 	public static void init(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, Surface surf){
 		// only called in Surface.initialiseSystem()
+		
+		if(userSessionPth.contains(liveProjectsBasePath)==false) {
+			System.out.println("GlobalSettings::init USER SESSION PATH IS NOT SET CORRECTLY ..... EXITING");
+			System.out.println("please use makeUserSessionPath(String subPath) ");
+			System.exit(0);
+		}
+		
+		
 		GlobalSettings.userSessionPath = userSessionPth;
 		sessionScale = sessionScl; 
 		fullScaleRenderWidth = fullScaleRenderW;
@@ -164,6 +173,19 @@ public class GlobalSettings {
 	
 	public static ImageDimensions getFullScaleDocumentDimension() {
 		return new ImageDimensions(fullScaleRenderWidth, fullScaleRenderHeight);
+	}
+	
+	
+	public static String makeUserSessionPath(String subPath) {
+		
+		return getLiveProjectsBasePath() + subPath;
+		
+	}
+	
+	
+	private static String getLiveProjectsBasePath() {
+		
+		return liveProjectsBasePath;
 	}
 
 	public static String getUserSessionPath() {
