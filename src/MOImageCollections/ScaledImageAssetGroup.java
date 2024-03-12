@@ -26,13 +26,27 @@ import MOUtils.MOStringUtils;
 public class ScaledImageAssetGroup extends ImageAssetGroup{
 	// this is the global session scale as set by the userSession
 	// it cannot be different between objects, so is a static
+	
+	
+	
 	static float sessionScale = 1;
 	
 	private String groupName = "";
 	
+	private MOColorTransform preCacheColorTransforms = null;
+	
+	
 	public ScaledImageAssetGroup(String name) {
 		sessionScale = GlobalSettings.getSessionScale();
 		groupName = name;
+	}
+	
+	void setPreCacheImageProcessingOperationsList(MOColorTransform colTransforms) {
+		preCacheColorTransforms = colTransforms;
+		
+		
+		// can check here to see if its changed
+		
 	}
 	
 	
@@ -81,7 +95,7 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	
 	
 	public void loadSessionScaledImages() {
-		// loadSessionScaledImages is different to the superclass loadImages in that it applies the sessionScale to the image 
+		// loadSessionScaledImages is different to the superclass loadImages in that it applies the sessionScale and possibly a set of image processing operations to the image 
 		// and deals with caching of sessionScaled versions of the images for subsequent uses, therefore speeding up the system.
 		// 
 		// pre-scaling and cropping only takes place after the cache save/load so is never committed to the cache
@@ -89,17 +103,19 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		
 		// If no session scale is applied (i.e.) the render is a Full-Size
 		// just use the base-class load image. This will do preScaling and cropping if required
-		if (sessionScale > 0.99) {
-			// System.out.println("NOT using cache folder ...");
-
-			// this base class method loads at 100% scale, and then does the preScaling and
-			// rect cropping.
+		// however IF the preCacheImageProcessingOperationsList is set, then we have to cache at all scales including 100%
+		
+		boolean colorTransformsHaveChanged = colorTransformParametersHaveChanged();
+		System.out.println("color tansforms changed = " + colorTransformsHaveChanged);
+		
+		if (sessionScale > 0.99 && colorTransformsHaveChanged==false && preCacheColorTransforms==null) {
+			// This is when no scaling is required, and no color transform is being used, so just use the original sample lib files
 			super.loadImages();
 			assertImageTYPE_INT_ARGB();
 			return;
 		}
 
-		// if needs rescaling due to session scale, then the cache comes into play.
+		// if needs rescaling due to session scale or pre-image-processing, then the cache comes into play.
 		// check to see if a folder called targetDirectory//cached_scaled_*percentile*
 		// exists
 		String cachedImagesFolderName = getCachedScaledImagesFolderName();
@@ -110,8 +126,10 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 
 				
 		
-		if (checkCacheOK(cachedImagesFolderName)) {
-			// if the cache exists and  the images are all present in the cache then load those images using the base class load, end.
+		if (checkCacheOK(cachedImagesFolderName) && colorTransformsHaveChanged==false) {
+			// IF the cache is OK and no changes have been made them load the cache....
+			// if the cache exists and  the images are all present, and the color transform has not been changed betwee sessions,
+			// load the chached images images using the base class load, end.
 			// They are already scaled as that's the whole point of the cache...
 			// The base class loadImage does any preScaling and cropping
 			// System.out.println("loading from cache folder ..." + cachedImagesFolderName);
@@ -127,8 +145,9 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		// If you get to here, then the cache needs making.  you need to 
 		// 1/ load the full size image
 		// 2/ apply theSessionScale, 
-		// 3/ save this scaled version to the cache
-		// 4/ apply any preScel or crop
+		// 3/ Apply ant image-processing operations
+		// 4/ save this scaled version to the cache
+		// 5/ apply any preScel or crop
 		
 		boolean ok = MOStringUtils.createDirectory(cachedImagesFolderName);
 		if (!ok){
@@ -145,7 +164,7 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		
 		
 		for(String thisImagePathAndName: filesToLoad) {
-			loadFullSizeImage_SessionScale_Cache_PrescaleCrop(thisImagePathAndName, cachedImagesFolderName);
+			loadFullSizeImage_SessionScale_Process_Cache_PrescaleCrop(thisImagePathAndName, cachedImagesFolderName);
 		}
 		assertImageTYPE_INT_ARGB();
 		
@@ -153,7 +172,43 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		
 		// will write a comment to console if no images are loaded
 		isLoaded();
+		
+		cacheColorTransformParameters();
 	}
+	
+	
+	private void loadFullSizeImage_SessionScale_Process_Cache_PrescaleCrop(String fullSizeImagePathAndName, String cacheDirectoryPath) {
+		BufferedImage img = ImageProcessing.loadImage(fullSizeImagePathAndName);
+		if(img == null) {
+			System.out.println("loadFullSizeImage_SessionScale_Process_Cache_PrescaleCrop::image == null - could not be loaded");
+			
+		}
+		
+
+		if(sessionScale != 1) {
+			img = ImageProcessing.scaleImage(img,sessionScale);
+		}
+		
+		if(preCacheColorTransforms != null) {
+			img = preCacheColorTransforms.doColorTransforms(img);
+			if(img == null) {
+				System.out.println("loadFullSizeImage_SessionScale_Process_Cache_PrescaleCrop::image == null after color transform");
+				
+			}
+		}
+		
+		String thisShortFileName = MOStringUtils.getShortFileNameFromFullPathAndFileName(fullSizeImagePathAndName);
+		String fullCachePathAndName = cacheDirectoryPath + thisShortFileName + ".png";
+		ImageProcessing.saveImage(fullCachePathAndName, img);
+		
+		
+		// NOW apply preScale and crop if any
+		img = applyPreScaleAndCrop(img);
+		
+		// NOW add the image to the list
+		addImageAsset( img, thisShortFileName);
+	}
+	
 	
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -204,18 +259,9 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 
 	}
 
-	public void colorTransformAll(int function, float p1, float p2, float p3) {
-		//		ImageProcessing.COLORTRANSFORM_NONE = 0;
-		//		ImageProcessing.COLORTRANSFORM_HSV = 1;
-		//		ImageProcessing.COLORTRANSFORM_BRIGHTNESS_NOCLIP = 2;
-		//		ImageProcessing.COLORTRANSFORM_BRIGHTNESS = 3;
-		//		ImageProcessing.COLORTRANSFORM_CONTRAST = 4;
-		//		ImageProcessing.COLORTRANSFORM_LEVELS = 5;
-		//		ImageProcessing.COLORTRANSFORM_BLENDWITHCOLOR = 6;
-		//		ImageProcessing.COLORTRANSFORM_SET_DOMINANT_HUE = 7;
-		//		ImageProcessing.COLORTRANSFORM_GREYSCALE = 8;
+	public void colorTransformAll(MOColorTransform colTransform) {
 		for (ImageAsset moImage: theImageAssetList) {
-			moImage.image = ImageProcessing.colorTransform(moImage.image, function, p1, p2, p3);
+			moImage.image = colTransform.doColorTransforms(moImage.image);
 			moImage.calculateStats();
 		}
 	}
@@ -228,22 +274,9 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	// Private methods below here
 	//
 	
-	private void loadFullSizeImage_SessionScale_Cache_PrescaleCrop(String fullSizeImagePathAndName, String cacheDirectoryPath) {
-		BufferedImage img = ImageProcessing.loadImage(fullSizeImagePathAndName);
-		if(sessionScale != 1) {
-			img = ImageProcessing.scaleImage(img,sessionScale);
-		}
-		String thisShortFileName = MOStringUtils.getShortFileNameFromFullPathAndFileName(fullSizeImagePathAndName);
-		String fullCachePathAndName = cacheDirectoryPath + thisShortFileName + ".png";
-		ImageProcessing.saveImage(fullCachePathAndName, img);
-		
-		
-		// NOW apply preScale and crop if any
-		img = applyPreScaleAndCrop(img);
-		
-		// NOW add the image to the list
-		addImageAsset( img, thisShortFileName);
-	}
+	
+	
+	
 	
 	
 	 
@@ -259,7 +292,70 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		
 	}
 	
+	private boolean colorTransformParametersHaveChanged() {
+		boolean isDirty = false;
+		
+		
+		String chachePath = getColorTransformParameterCachePath();
+		// check to see if the directory exists
+		
+		boolean directoryExists = MOStringUtils.checkDirectoryExist(chachePath);
+		
+		if(directoryExists==false && preCacheColorTransforms == null) {
+			// the color transforms were not, and are not being used, so nothing can have changed
+			System.out.println("The color transforms were not, and are not being used, so nothing can have changed");
+			isDirty = false;
+		}
+		
+
+		if(directoryExists && preCacheColorTransforms == null)	{
+			// the color transform was previously being used but is no longer being used anymore, so re-cache the content without color transforms
+			System.out.println("the color transform was previously being used but is no longer being used anymore, so re-cache the content without color transforms");
+			isDirty = true;
+		}
+		
+		if(directoryExists==false && preCacheColorTransforms != null)	{
+			// the color transform is now being used, , so re-cache the content  color transforms
+			System.out.println("the color transform is now being used, , so re-cache the content with the color transforms");
+			isDirty = true;
+		}
+		
+		if(directoryExists && preCacheColorTransforms != null) {
+			// compare the saved color transform to this one.
+			
+			MOColorTransform cachedColorTransform = new MOColorTransform();
+			cachedColorTransform.loadParameters(chachePath + "parameters.csv");
+			
+			if(preCacheColorTransforms.equals(cachedColorTransform)) {
+				System.out.println("the color transform has NOT changed this session");
+				isDirty=false;
+			} else {
+				System.out.println("the color transform HAS changed this session");
+				isDirty=true;
+			}
+			
+		}
+		
+		return isDirty;
+		
+	}
 	
+	
+	void cacheColorTransformParameters() {
+		String chachePath = getColorTransformParameterCachePath();
+		if(preCacheColorTransforms==null) {
+			MOStringUtils.deleteDirectory(chachePath);
+			return;
+		}
+		
+		MOStringUtils.createDirectory(chachePath);
+		preCacheColorTransforms.saveParameters(chachePath + "parameters.csv");
+		
+	}
+	
+	public String getColorTransformParameterCachePath() {
+		return getCachedScaledImagesFolderName() + "ColorTransformParameters\\";
+	}
 	
 	private String getCachedScaledImagesFolderName() {
 		int scalePercentile = (int) (sessionScale * 100);
@@ -278,6 +374,7 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	// see if all the cached files exist also.
 	// if not then return false.
 	private boolean checkCacheOK(String cacheDirectory) {
+	
 		if (MOStringUtils.checkDirectoryExist(cacheDirectory) == false)
 			return false;
 		

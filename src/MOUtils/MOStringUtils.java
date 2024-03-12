@@ -1,10 +1,10 @@
 package MOUtils;
 
-import java.awt.Color;
+import java.text.SimpleDateFormat;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.text.SimpleDateFormat;
+
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
@@ -121,6 +121,13 @@ public class MOStringUtils {
 	      myReader.close();
 		}catch (IOException e) {}
 		return stListOut;
+	}
+
+
+	public static void deleteDirectory(String foldername) {
+		// TODO Auto-generated method stub
+		File targetFolder = new File(foldername);
+		if (targetFolder.exists()) targetFolder.delete();
 	}
 	
 	

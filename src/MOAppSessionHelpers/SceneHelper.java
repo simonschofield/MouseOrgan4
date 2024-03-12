@@ -21,6 +21,12 @@ import MOUtils.ImageDimensions;
 
 public class SceneHelper {
 	
+	
+	
+	
+	
+	
+	
 	/**
 	 * creates a mask image of submitted sprite if the sprite attribute string contains the spriteAttributeStringToContain. If so then this sprite is ADDED ot the mask (i.e. pastes
 	 * white (or replacement image) to the mask). If it does NOT match (i.e. does not contain the spriteAttributeStringToContain string) then the sprite is SUBTRACTED from the mask (i.e. pastes black).
@@ -34,22 +40,81 @@ public class SceneHelper {
 	 * @param replacementImage - Nullable, in which chase simple white/black masking happens. If an image, the image is scled then used as the pasting image.
 	 */
 	public static void pasteToMaskImage(Sprite sprite, String spriteAttributeString, String spriteAttributeStringToContain, String maskName, BufferedImage replacementImage) {
+		boolean contribute = spriteAttributeString.contains(spriteAttributeStringToContain);
+		pasteToMaskImage( sprite,  contribute,  maskName,  replacementImage, 1);
+	}
+	
+	
+	
 
-		if( spriteAttributeString.contains(spriteAttributeStringToContain) ) {
+	
+	public static void pasteToMaskImage(Sprite sprite, boolean contribute, String maskName, BufferedImage replacementImage, float brightness) {
+		// if contribute == true then the sprite adds the replacement image or white, else sprite subtracts from the mask - adds black
+		if( contribute ) {
 			
 			if(replacementImage!=null) {
 				BufferedImage blendedImage = ImageProcessing.replaceVisiblePixels(sprite.getImage(), replacementImage);
-				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, blendedImage, 1);
+				
+				if(brightness < 1) {
+					blendedImage = ImageProcessing.adjustBrightness(blendedImage, brightness);
+				}
+				
+				
+				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, blendedImage);
 			}else {
-				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, Color.white);
+				
+				Color c = Color.white;
+				if(brightness < 1) {
+					c = new Color(brightness,brightness,brightness);
+				}
+				
+				
+				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, c);
 				}
 			
 
 		} else {
+			
 			GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, Color.black);
 		}
 		
 	}
+	
+	
+	
+	// Linked sprites are those that represent a special section of another "main" sprite (e.g. the flowers of a larger plant). 
+	// They are special cases, in that the main sprite and linked sprite(s) are both in use during the same "updateUserSession" iteration, whereas in most cases this is only 1 main sprite.
+	// This is so that the main sprite and linked sprite can be put through the same processes.
+	// 
+	// In order for them to be completely "synched" with the main sprite, for the moment they are identical in all geometric respects to the main sprite - i.e. same image size, and pivot point. They also share
+	// the same UniqueID number, meaning that the main sprite and linked sprite are processed identically by stochastic processes. They are only different in that the linked sprite has a different image.	
+	
+	
+	public static Sprite getLinkedSprite(Sprite sprite, String imageAssetGroupName, String shortImageName) {
+		Sprite linkedSprite = sprite.copy();
+		
+		BufferedImage linkedSpriteImage = GlobalSettings.getImageAssetGroupManager().getScaledImageAssetGroup(imageAssetGroupName).getImage(shortImageName);
+
+		linkedSprite.setImage(linkedSpriteImage);
+		linkedSprite.ImageGroupItemShortName = shortImageName;
+		linkedSprite.ImageAssetGroupName = imageAssetGroupName;
+		return linkedSprite;
+	}
+	
+	
+	public static void pasteLinkedSpriteToMaskImage(Sprite linkedSprite, Sprite mainSprite,  String spriteAttributeString, String spriteAttributeStringToContain, String maskName, BufferedImage replacementImage) {
+		
+		// In the instance of a partial sprite, it should ADD to the mask - therefore the matching criteria is set to be always true - but
+		// before the partial sprite is ADDED, you do need to SUBTRACT  the accompanying sprite FIRST, otherwise this will obliterate the partial sprite's addition
+		// All other sprite need to be simply SUBTRACTED from the mask, therefore the matching criteria is set to be always false
+		// Not all sprites have their partial sprite active, so you have to catch null ones.
+		SceneHelper.pasteToMaskImage( mainSprite, false, maskName, null,1);
+		if(linkedSprite!=null && spriteAttributeString.contains(spriteAttributeStringToContain)) { 
+			SceneHelper.pasteToMaskImage( linkedSprite, true, maskName, replacementImage,1);	
+		}
+	}
+
+		
 	
 	// load a SpriteImageGroup and add it to the ImageGroupManager (ImageGroupManager must be instantiated before calling this)
 	public static void loadSpriteImageGroup(String spriteImageGroupSamplePath, String spriteImageGroupName, String fileNameContains) {

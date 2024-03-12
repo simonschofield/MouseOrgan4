@@ -15,9 +15,10 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.LookupOp;
 import java.io.File;
 import java.io.IOException;
-
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+
 
 import MOMaths.MOMaths;
 import MOMaths.PVector;
@@ -47,18 +48,7 @@ public class ImageProcessing {
 	public static final int	INTERPOLATION_BILINEAR = 1;
 	public static final int	INTERPOLATION_BICUBIC = 2;
 
-	public static final int	COLORTRANSFORM_NONE = 0;
-	public static final int	COLORTRANSFORM_HSV = 1;
-	public static final int	COLORTRANSFORM_BRIGHTNESS_NOCLIP = 2;
-	public static final int	COLORTRANSFORM_BRIGHTNESS = 3;
-	public static final int	COLORTRANSFORM_CONTRAST = 4;
-	public static final int	COLORTRANSFORM_LEVELS = 5;
-	public static final int	COLORTRANSFORM_BLENDWITHCOLOR = 6;
-	public static final int	COLORTRANSFORM_SET_DOMINANT_HUE = 7;
-	public static final int	COLORTRANSFORM_GREYSCALE = 8;
-
-
-
+	
 
 
 	static int interpolationQuality = 2;
@@ -689,52 +679,7 @@ public class ImageProcessing {
 
 
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	// color transforms
-	//
-
-
-	public static BufferedImage colorTransform(BufferedImage img, int function, float p1, float p2, float p3) {
-
-		//System.out.println("in colorAdjustAll . Function = " + function);
-
-		switch (function) {
-		case COLORTRANSFORM_HSV: {
-			return ImageProcessing.adjustHSV(img, p1, p2, p3);
-		}
-		case COLORTRANSFORM_BRIGHTNESS_NOCLIP: {
-			return ImageProcessing.adjustBrightnessNoClip(img, p1);
-
-		}
-		case COLORTRANSFORM_BRIGHTNESS: {
-			return ImageProcessing.adjustBrightness(img, p1);
-
-		}
-		case COLORTRANSFORM_CONTRAST: {
-			return ImageProcessing.adjustContrast(img, p1);
-
-		}
-		case COLORTRANSFORM_LEVELS: {
-			return ImageProcessing.adjustLevels(img, p1, p2, p3);
-
-		}
-		case COLORTRANSFORM_SET_DOMINANT_HUE:{
-			return ImageProcessing.setDominantHue(img, p1);
-		}
-		case COLORTRANSFORM_GREYSCALE:{
-			return ImageProcessing.makeGreyscale(img);
-		}
-		default:
-			return img;
-		}
-
-
-	}
-
-
-	public static BufferedImage colorTransformMasked(BufferedImage img, BufferedImage maskImage, int function, float p1, float p2, float p3) {
-		return null;
-	}
+	
 
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////

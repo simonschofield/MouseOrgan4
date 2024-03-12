@@ -6,6 +6,7 @@ import MOImage.FloatImage;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
 import MOImage.MOPackedColor;
+import MOMaths.AABox3D;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
@@ -131,6 +132,42 @@ public class GeometryBuffer3D{
 		System.out.println("depth buffer extrema are " + depthBufferExtrema.limit1 + " " + depthBufferExtrema.limit2);
 		
 	}
+	
+	
+	public AABox3D get3DExtents() {
+		Range xExtrema = new Range();
+		xExtrema.initialiseForExtremaSearch();
+		
+		Range yExtrema = new Range();
+		yExtrema.initialiseForExtremaSearch();
+		
+		Range zExtrema = new Range();
+		zExtrema.initialiseForExtremaSearch();
+		
+		
+		
+		for(int y = 0; y < height; y++) {
+			for(int x = 0; x < width; x++) {
+				PVector docSpace = distanceBufferKeyImageSampler.bufferSpaceToDocSpace(new PVector(x,y));
+				PVector p3d = docSpaceToWorld3D(docSpace);
+				
+				xExtrema.addExtremaCandidate(p3d.x);
+				yExtrema.addExtremaCandidate(p3d.y);
+				zExtrema.addExtremaCandidate(p3d.z);
+			}
+		}
+		
+		float minX = xExtrema.getLower();
+		float minY = yExtrema.getLower();
+		float minZ = zExtrema.getLower();
+		
+		float maxX = xExtrema.getUpper();
+		float maxY = yExtrema.getUpper();
+		float maxZ = zExtrema.getUpper();
+
+		return new AABox3D(minX, minY, minZ, maxX, maxY, maxZ);
+	}
+	
 	
 	
 	

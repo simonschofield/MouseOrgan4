@@ -23,6 +23,8 @@ import MOUtils.GlobalSettings;
 //
 public class ScaledImageAssetGroupManager {
 
+	
+	
 	ArrayList<ScaledImageAssetGroup> theScaledImageAssetGroupList = new ArrayList<ScaledImageAssetGroup>();
 	//Surface parentSurface;
 
@@ -54,7 +56,17 @@ public class ScaledImageAssetGroupManager {
 	}
 
 	
+	/////////////////////////////////////////////////////////////////////////////
+	// short-hand method of the one below
+	//
 	
+	public void loadImageAssetGroup(String name, String sourceDirectory, MOColorTransform colTransforms) {
+		loadImageAssetGroup(name, sourceDirectory, ".png", "", null, null, 1, new Rect(), colTransforms);
+	}
+	
+	public void loadImageAssetGroup(String name, String sourceDirectory) {
+		loadImageAssetGroup(name, sourceDirectory, ".png", "", null, null, 1, new Rect(), null);
+	}
 	
 
 	/**
@@ -80,10 +92,12 @@ public class ScaledImageAssetGroupManager {
 	 *                             supplementary to the session scale.
 	 * @param cropRect,            apply a uniform crop to all items. The rect is in
 	 *                             normalised space
+	 * @param ippList,             a list of image processing operation to be used on the image before caching
+	 *  
 	                     
 	 */
 	public void loadImageAssetGroup(String spriteImageGroupName, String sourceDirectory, String fileNameMustEndWith,
-			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect) {
+			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect,  MOColorTransform colTransforms) {
 
 		
 		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(sourceDirectory);
@@ -97,23 +111,22 @@ public class ScaledImageAssetGroupManager {
     	
     	ScaledImageAssetGroup newSpriteImageGroup  = new ScaledImageAssetGroup(spriteImageGroupName);
 		
+    	
 		newSpriteImageGroup.setDirectoryFileNameScanner(dfns);
 		newSpriteImageGroup.setPreScale(preScale);
 		newSpriteImageGroup.setCrop(cropRect);
+		newSpriteImageGroup.setPreCacheImageProcessingOperationsList( colTransforms);
+		
 		
 		newSpriteImageGroup.loadSessionScaledImages();
+		
+		
 		
 		theScaledImageAssetGroupList.add(newSpriteImageGroup);
 
 	}
 
-	/////////////////////////////////////////////////////////////////////////////
-	// this is the short-hand method of the above
-	public void loadImageAssetGroup(String name, String sourceDirectory, Integer from, Integer to) {
-
-		loadImageAssetGroup(name, sourceDirectory, ".png", "", from, to, 1, new Rect());
-
-	}
+	
 	
 	/////////////////////////////////////////////////////////////////////////////
 	// creates a completely independent copy of an already loaded sample group, 
@@ -164,11 +177,11 @@ public class ScaledImageAssetGroupManager {
 	 * @param p3        third parameter if needed
 	 * @brief adjusts the color of a whole ImageContentGroup
 	 */
-	public void colorTransformImageAssetGroup(String groupname, int function, float p1, float p2, float p3) {
+	public void colorTransformImageAssetGroup(String groupname, MOColorTransform colTransform) {
 		ScaledImageAssetGroup ic = getScaledImageAssetGroup(groupname);
 		if (ic == null)
 			return;
-		ic.colorTransformAll(function, p1, p2, p3);
+		ic.colorTransformAll(colTransform);
 	}
 
 	
@@ -179,10 +192,10 @@ public class ScaledImageAssetGroupManager {
 	//
 	//
 	public void paradeContent(String groupName, RenderTarget rt) {
-		paradeContent(groupName,ImageProcessing.COLORTRANSFORM_NONE, 0, 0, 0, rt);
+		paradeContent(groupName,null, rt);
 	}
 
-	void paradeContent(String groupName, int effect, float p1, float p2, float p3, RenderTarget rt) {
+	void paradeContent(String groupName, MOColorTransform colTransform, RenderTarget rt) {
 		ScaledImageAssetGroup sampleGroup = this.getScaledImageAssetGroup(groupName).copy(groupName + "copy");
 		
 		int numItems = sampleGroup.getNumImageAssets();
@@ -241,7 +254,9 @@ public class ScaledImageAssetGroupManager {
 				if (itemCounter < numItems) {
 					BufferedImage img = sampleGroup.getImage(itemCounter);
 
-					img = ImageProcessing.colorTransform(img, effect, p1, p2, p3);
+					if(colTransform != null) {
+						img = colTransform.doColorTransforms(img);
+					}
 
 					String itemName = sampleGroup.getImageAssetName(itemCounter);
 					int imgW = img.getWidth();

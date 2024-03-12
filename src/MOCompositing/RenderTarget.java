@@ -172,22 +172,22 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	// I.e. alters a pixel in the targetRenderImage where the alpha in the sprite image is > 0
 	// All subclasses must implement pasteImageMask_BufferCoordinates(BufferedImage img, int x, int y, float alpha);
 	//
-	//
+	// No alpha is allowed as this would being muddy 
 	//
 	public void pasteSpriteMask(Sprite sprite, Color c) {
-		pasteImageMask(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha, c);
+		pasteImageMask(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  c);
 	}
 	
 	// replaces the colour of the image with a single colour
-	public void pasteImageMask(BufferedImage img, PVector docSpacePoint, float alpha, Color c) {
+	public void pasteImageMask(BufferedImage img, PVector docSpacePoint, Color c) {
 		BufferedImage spriteMaskImage = ImageProcessing.replaceColor(img, c);
-		pasteImage_TopLeftDocPoint(spriteMaskImage, docSpacePoint, alpha);
+		pasteImage_TopLeftDocPoint(spriteMaskImage, docSpacePoint, 1);
 	}
 	
 	// uses an alternative image when pasting - this allows the user to process the sprite's
 	// normal image in anyway desired and the used instead of the sprite image
-	public void pasteSpriteAltImage(Sprite sprite, BufferedImage altImage, float alpha) {
-		pasteImage_TopLeftDocPoint(altImage, sprite.getDocSpaceRect().getTopLeft(),  alpha);
+	public void pasteSpriteAltImage(Sprite sprite, BufferedImage altImage) {
+		pasteImage_TopLeftDocPoint(altImage, sprite.getDocSpaceRect().getTopLeft(),  1);
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////
@@ -216,8 +216,13 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		return new Rect(docSpacePoint, bottomRight);
 	}*/
 	
-	
-	
+	////////////////////////////////////////////////////////////////////////////////////
+	// Unusual direct access to the target image. Probably only used for tsting stuff
+	public void setPixel(int x, int y, Color c) {
+		
+		targetRenderImage.setRGB(x, y, c.getRGB());
+		
+	}
 	
 
 	////////////////////////////////////////////////////////////////////////////////////

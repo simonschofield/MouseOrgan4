@@ -15,3 +15,5 @@
 /AlphaEdgeFilter.class
 /Despeckle.class
 /AlphaEdgeDrawer.class
+/ImageProcessParameters.class
+/DespeckleImage.class

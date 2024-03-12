@@ -3,7 +3,7 @@ package MOImage;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 /////////////////////////////////////////////////////////////////////////////
-// Creates a  BW make from an ARGB image where white is inside, black is outside
+// Creates a  BW image from an ARGB image where white is inside, black is outside
 // For the purposes of Edge enhancing
 //
 //
@@ -14,8 +14,9 @@ public class ImageMask {
 	int maskThreashold; 
 	public ImageMask(BufferedImage sourceImage, int threashold) {
 		//relies on alpha being present to create the mask
+		sourceImage = ImageProcessing.assertImageTYPE_INT_ARGB(sourceImage);
 		if(sourceImage.getType() != BufferedImage.TYPE_INT_ARGB) {
-			System.out.println("ImageMask: needs an ARGB type as source");
+			System.out.println("ImageMask: needs an ARGB type as source" + " is type " + sourceImage.getType());
 			return;
 		}
 		maskThreashold = threashold;

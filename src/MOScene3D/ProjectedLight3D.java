@@ -37,6 +37,11 @@ public class ProjectedLight3D {
 		
 	}
 	
+	public ProjectedLight3D(SceneData3D scene3d,  Plane3D imgPlane, BufferedImage lightImage){
+		sceneData3D = scene3d;
+		texturePlane = imgPlane.copy();
+		textureImage = lightImage;
+	}
 	
 	public float getValue01(PVector docPt, float normalizedDepth) {
 		

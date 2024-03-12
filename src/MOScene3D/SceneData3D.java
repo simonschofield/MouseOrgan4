@@ -323,7 +323,10 @@ public class SceneData3D {
 			return geometryBuffer3d.docSpaceToWorld3D( roiSpace, realDistance);
 		}
 		
-		Fustrum3D getViewFustrum() {
+		
+		
+		
+		public Fustrum3D getViewFustrum() {
 			// returns the 8 points that represnt the extents of the viewing fustrum
 			// in this order starting at index 
 			// Front plane Top Left

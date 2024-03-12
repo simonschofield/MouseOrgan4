@@ -6,6 +6,7 @@ import MOImage.BendImage;
 import MOImage.ImageProcessing;
 import MOImageCollections.ScaledImageAssetGroup;
 import MOImageCollections.ScaledImageAssetGroupManager;
+import MOImageCollections.MOColorTransform;
 import MOMaths.Line2;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
@@ -36,7 +37,7 @@ public class Sprite {
 	public int uniqueID;
 
 	// the randomKey is used to guarantee the same outcome from stochastic processes, rather than relying on the UniqueID. It is initially set to the uniqueID, but if the user is unhappy
-	// with the outcome, then other randomKeys can be set (for instance in seed batch creation).
+	// with the outcome, then other randomKeys can be set (for instance in seed batch creation) without altering the UniqueID, which should NOT be altered.
 	public int randomKey;
 	
 	
@@ -174,14 +175,44 @@ public class Sprite {
 	}
 
 	public Sprite copy() {
-		// not sure we need this tbd
-		//Sprite cpy = new Sprite(this.spriteData);
-		//cpy.setImage(ImageProcessing.copyImage(this.image));
-		//cpy.imageQuad = this.imageQuad.copy(cpy);
+		// returns a completely identical, but independent copy
+		// The image is set by shared reference for speed purposes
+		//
+		Sprite cpy = new Sprite();
+		
+		cpy.SpriteSeedBatchName = this.SpriteSeedBatchName;
+		cpy.SpriteFontName = this.SpriteFontName;
+		cpy.ImageAssetGroupName = this.ImageAssetGroupName;
 
-		//cpy.setRandomStream(this.qRandomStream);
-		//cpy.alpha = this.alpha;
-		return null;
+		cpy.uniqueID = this.uniqueID;
+		cpy.randomKey = this.randomKey;
+		
+		cpy.ImageGroupItemNumber = this.ImageGroupItemNumber;
+		cpy.ImageGroupItemShortName= this.ImageGroupItemShortName;
+		
+		cpy.alpha = this.alpha;
+
+		cpy.sizeInScene = this.sizeInScene;
+		cpy.useRelativeSizes = this.useRelativeSizes;
+		cpy.pivotPoint = this.pivotPoint.copy();
+
+		cpy.docPoint = this.docPoint.copy();
+		
+
+		cpy.depth = this.depth;
+		
+		
+		cpy.isActive = this.isActive;
+
+		cpy.scale = this.scale;
+		cpy.flipX = this.flipX;
+		cpy.flipY = this.flipY;
+		cpy.setImage(this.image);
+		cpy.imageQuad = this.imageQuad.copy(this);
+
+		cpy.setRandomStream(this.qRandomStream);
+		
+		return cpy;
 	}
 
 
@@ -753,8 +784,14 @@ public class Sprite {
 	/// end of geometric transforms
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	public void  colorTransform(int function, float p1, float p2, float p3) {
-		setImage(ImageProcessing.colorTransform( getImage(),  function,  p1,  p2,  p3));
+	//public void  colorTransform(int function, float p1, float p2, float p3) {
+	//	setImage(ImageProcessing.colorTransform( getImage(),  function,  p1,  p2,  p3));
+	//}
+
+	public void colorTransform(MOColorTransform colTransform) {
+
+		setImage(colTransform.doColorTransforms(getImage()));
+		
 	}
 
 
@@ -795,11 +832,11 @@ public class Sprite {
 	// image that extracts the visible region region of the sprite-image. If the mask image is white then the extraction is 100%, 127 would yield a 50% extraction etc.
 	// The effect is applied to the extracted image and re-merged with the original
 
-	public void applyEffectToMaskedRegion(BufferedImage maskImage, int function, float p1, float p2, float p3) {
-		BufferedImage extractedRegion = ImageProcessing.extractImageUsingGrayscaleMask(getImage(), maskImage);
-		extractedRegion = ImageProcessing.colorTransform(extractedRegion,  function,  p1,  p2,  p3);
-		mergeMaskedImage(extractedRegion);
-	}
+	//public void applyEffectToMaskedRegion(BufferedImage maskImage, int function, float p1, float p2, float p3) {
+	//	BufferedImage extractedRegion = ImageProcessing.extractImageUsingGrayscaleMask(getImage(), maskImage);
+	//	extractedRegion = ImageProcessing.colorTransform(extractedRegion,  function,  p1,  p2,  p3);
+	//	mergeMaskedImage(extractedRegion);
+	//}
 
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////

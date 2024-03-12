@@ -4,12 +4,14 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.*;
+import java.util.ArrayList;
 
 import MOMaths.MOMaths;
 import MOMaths.PVector;
+import MOMaths.PointList;
 
 /**
- * Draws a "stroke" around the alpha boundary of an image, simular to Photoshops "stroke" command.
+ * Draws a "stroke" around the alpha boundary of an image, similar to Photoshop's "stroke" command.
  * All images during these processed are maintained in ARGB space to allow for speed-hikes
  *  The mask image is ARGB, where all alpha is set to 255, but the image is black or white
  *  Same for Despeckle
@@ -46,7 +48,7 @@ public class AlphaEdgeDrawer {
 	public BufferedImage drawEdges(BufferedImage sourceImage) {
 		width = sourceImage.getWidth();
 		height = sourceImage.getHeight();
-		BufferedImage maskImage = getRawEdge(sourceImage);
+		BufferedImage rawEdgePixels = getRawEdge(sourceImage);
 		BufferedImage outputImage = new BufferedImage(width,height, sourceImage.getType());
 
 		Graphics2D g2d= outputImage.createGraphics();
@@ -55,7 +57,7 @@ public class AlphaEdgeDrawer {
 		int halfBrushWidth = (int) (brushWidth/2f);
 		for(int y = 0; y < height; y++){
 			for(int x = 0; x < width; x++){
-				int pixelCol = maskImage.getRGB(x,y);
+				int pixelCol = rawEdgePixels.getRGB(x,y);
 				if( MOPackedColor.getRed(pixelCol) < 127) {
 					continue;
 				} else {
@@ -73,6 +75,54 @@ public class AlphaEdgeDrawer {
 		return outputImage;
 	}
 	
+	
+	public BufferedImage drawEdgesFixedBrushStamps(BufferedImage sourceImage) {
+		// this method creates a more "resolution independent" result. In the above drawEdges(...) method, larger scaled versions of the same sourceImage  produce
+		// a much larger rawEdgePixels image, resulting in many more brush applications (stamps). This makes large images produce
+		// ever more dark images, and makes a resolution independent effect impossible, so session-scaling is compromised. 
+		
+		// This method produces a fixed size rawEdgePixels image based on the brush width (which should be already session scaled),
+		// so differently scaled, but otherwise identical,  sourceImages produce the same amount of brush stamps. As the brush is session scaled
+		// the results should be much more consistent between different scales of source image.
+		
+		// The size of the rawEdgePixels image is dependent on the brush size, so that adjacent stamps are overlapping by the radius of the brush (once session scaled). 
+		// Full scale:   If the input width is 800, and the brush width is 20 (therefore brush radius is 10), there should be width/brush radius pixel across. The resultant edgePixelImage is 800/10 with i.e. 80 pixel wide.
+		// scaling by 50%: 400 width, brush size is 5 in radius, 400/5 = 80
+		
+		width = sourceImage.getWidth();
+		height = sourceImage.getHeight();
+		
+		
+		BufferedImage brushScaledSourceImage = ImageProcessing.scaleImage(sourceImage, 1/(brushWidth/2.0f));
+		
+		
+		BufferedImage rawEdgePixels = getRawEdge(brushScaledSourceImage);
+		
+		ArrayList<PVector> edgePoints = getWhitePixelPointList(rawEdgePixels, true);
+		
+		BufferedImage outputImage = new BufferedImage(width,height, sourceImage.getType());
+
+		Graphics2D g2d= outputImage.createGraphics();
+		AlphaComposite src_over = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1);
+		g2d.setComposite(src_over);
+		int halfBrushWidth = (int) (brushWidth/2f);
+
+
+		for(PVector p: edgePoints) {			
+				int x = (int) (p.x * width);
+				int y = (int) (p.y * height);
+				g2d.drawImage(brush, x-halfBrushWidth, y-halfBrushWidth, null);
+		}
+					
+				
+		g2d.dispose();
+		//System.out.println("finished drawing edges");
+		return outputImage;
+	}
+	
+	
+	
+	
 	/**
 	 * get a (non-alpha) b/w single-pixel representation of the edges as white edge-pixels on black
 	 *
@@ -82,6 +132,33 @@ public class AlphaEdgeDrawer {
 		return imageMask.getEdgeImage();
 
 	}
+	
+	public ArrayList<PVector> getWhitePixelPointList(BufferedImage edgeIm, boolean useNormalisedCoordinates) {
+		// returns with normalised coordinates
+	    int w = edgeIm.getWidth();
+	    int h = edgeIm.getHeight();
+
+	    ArrayList<PVector> spin = new ArrayList<PVector>();
+
+	    for (int y = 0; y < h; y++) {
+	      for (int x = 0; x < w; x++) {
+
+	        int c = edgeIm.getRGB(x, y);
+	        if ( MOPackedColor.getRed(c) > 127 ) {
+
+	          float px = x;
+	          float py = y;
+	          if(useNormalisedCoordinates) {
+	        	 px /= w; 
+	        	 py /= h; 
+	          }
+	          spin.add(new PVector(px, py));
+	        }
+	      }
+	    }
+	    //System.out.println("buildWhitePixelPointList created with " + spin.size() + " points");
+	    return spin;
+	  }
 	
 
 	//////////////////////////////////////////////////////////////////////////////////
