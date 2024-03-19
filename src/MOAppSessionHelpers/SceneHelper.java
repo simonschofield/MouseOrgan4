@@ -80,6 +80,13 @@ public class SceneHelper {
 		
 	}
 	
+	public static void pasteToDepthImage(Sprite sprite, String maskName, float depth, boolean smooth) {
+		
+		RenderTarget rt = GlobalSettings.getDocument().getRenderTarget(maskName);
+		rt.pasteSpriteMaskTo16BitGray(sprite, depth, smooth);
+
+	}
+	
 	
 	
 	// Linked sprites are those that represent a special section of another "main" sprite (e.g. the flowers of a larger plant). 

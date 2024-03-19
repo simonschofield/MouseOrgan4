@@ -13,6 +13,7 @@ import java.awt.image.BufferedImageOp;
 import java.awt.image.ByteLookupTable;
 import java.awt.image.DataBufferInt;
 import java.awt.image.LookupOp;
+import java.awt.image.ShortLookupTable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -692,6 +693,13 @@ public class ImageProcessing {
 		BufferedImage outImg = op.filter(image, null);
 		return outImg;
 	}
+	
+	public static BufferedImage pointFunction16BitGray(BufferedImage image, short[] lutArray) {
+		ShortLookupTable lut = new ShortLookupTable(0, lutArray);
+		BufferedImageOp op = new LookupOp(lut, null);
+		BufferedImage outImg = op.filter(image, null);
+		return outImg;
+	}
 
 	public static BufferedImage tintWithColor(BufferedImage image, Color c) {
 		// black pixels in the source remains black,  white pixels become the tint colour
@@ -795,6 +803,26 @@ public class ImageProcessing {
 		}
 		return pointFunction(image, data);
 	}
+	
+	public static BufferedImage replace16BitGrayValue(BufferedImage image, Color c) {
+		// used in pasting a sprite depth value is 16 bit gray.
+		// replaces existing values with colour c, preserving alpha
+		
+		image = ImageProcessing.convertColorModel(image, BufferedImage.TYPE_USHORT_GRAY);
+		
+		short[] data = new short[256*256];
+
+		float rf = (float) c.getRed(); 
+		// assuming the colour is in the range 0...1
+		short val = (short)(rf*(255*255));
+		
+		for (int n = 0; n < 256*256; n++) {
+			data[n] = val;
+			
+		}
+		return pointFunction16BitGray(image, data);
+	}
+	
 
 	public static BufferedImage adjustBrightness(BufferedImage image, float brightness) {
 		//System.out.println("in adjustBrightness image type = " + image.getType());

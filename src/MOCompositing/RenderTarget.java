@@ -10,6 +10,7 @@ import java.awt.*;
 //import java.awt.event.*;
 //import java.awt.geom.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import javax.imageio.ImageIO;
 import MOAppSessionHelpers.SceneHelper;
 import MOImage.ImageProcessing;
 import MOMaths.Line2;
+import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
@@ -103,6 +105,10 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		return ImageProcessing.copyImage(targetRenderImage);
 	}
 	
+	public int getType() {
+		return targetRenderImage.getType();
+	}
+	
 	
 	public ImageCoordinateSystem getCoordinateSystem() {
 		return coordinateSystem;
@@ -180,7 +186,9 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	
 	// replaces the colour of the image with a single colour
 	public void pasteImageMask(BufferedImage img, PVector docSpacePoint, Color c) {
-		BufferedImage spriteMaskImage = ImageProcessing.replaceColor(img, c);
+		
+		BufferedImage spriteMaskImage =  ImageProcessing.replaceColor(img, c);
+		
 		pasteImage_TopLeftDocPoint(spriteMaskImage, docSpacePoint, 1);
 	}
 	
@@ -201,6 +209,79 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		getGraphics2D().setComposite(ac);
 		getGraphics2D().drawImage(sprite.getImage(), (int)bufferPt.x, (int)bufferPt.y, null);
 	}
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////
+	// Experimental custom mask paste operation for 16 bit data (e.g. a depth mask),
+	// When pasting to a 16 bit depth target image we cannot use the sprite's image colour-data as the data to paste, as this will
+	// be 8 bit color data, so is incapable of carrying the data resolution required. There is no Java 16 bit colour model with alpha, so normal compositing  operations are 
+	// also ruled out. Therefore, we have to paste 16bit data "long-hand"
+	// Not sure if there should be any anti-alias smoothing included working on the edges of the alpha sprites
+	// The depth value of 0 is reserved to represent "no substance" e.g. sky
+	
+	public void pasteSpriteMaskTo16BitGray(Sprite sprite, float val, boolean antialias) {
+		
+		if(getType() != BufferedImage.TYPE_USHORT_GRAY) {
+			System.out.println("RenderTarget.pasteSpriteMaskTo16BitGray :: target mask is not USHORT_GRAY");
+			return;
+		}
+		
+		int max = Short.MAX_VALUE;
+		
+		
+		PVector topLeftDocSpace = sprite.getDocSpaceRect().getTopLeft();
+		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(topLeftDocSpace);
+		
+		int sourceWidth = sprite.getImageWidth();
+		int sourceHeight = sprite.getImageHeight();
+		int targetOffsetX = (int) bufferPt.x;
+		int targetOffsetY = (int) bufferPt.y;
+		int targetWidth = targetRenderImage.getWidth();
+		int targetHeight = targetRenderImage.getHeight();
+		
+		WritableRaster targetImageData = targetRenderImage.getRaster();
+		WritableRaster sourceImageAlphaData = sprite.getImage().getAlphaRaster();
+		
+		int shortval = (int) (val * 65535);
+		if(shortval < 1) shortval = 1;
+		
+		System.out.println(" UShort Depth  = " + shortval);
+		for (int y = 0; y < sourceHeight; y++) {
+			for (int x = 0; x < sourceWidth; x++) {
+				
+				int targetX = x + targetOffsetX;
+				int targetY = y + targetOffsetY;
+				if(targetX < 0 || targetX >= targetWidth || targetY < 0 || targetY >= targetHeight) continue;
+					
+				int sourceImageAphaValue = sourceImageAlphaData.getSample(x, y, 0);
+				
+				if(antialias) {
+					if(sourceImageAphaValue == 0) continue;
+					if(sourceImageAphaValue > 250) {
+						targetImageData.setSample(targetX, targetY, 0,shortval);
+						continue;
+					}
+					
+					float targetCurrentPixelValueF = targetImageData.getSample(targetX, targetY, 0)/65536f;
+					float sourceImageAphaValueF = sourceImageAphaValue/255f;
+					float blendedValue = MOMaths.lerp(sourceImageAphaValueF, targetCurrentPixelValueF, val);
+					
+					targetImageData.setSample(targetX, targetY, 0,(int)(blendedValue*65536));
+					
+				} else {
+				
+				
+					if(sourceImageAphaValue>127) targetImageData.setSample(targetX, targetY, 0,shortval);
+				
+				}
+			}
+		}
+
+	}
+
+	
+	
+	
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
