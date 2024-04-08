@@ -4,7 +4,25 @@ import MOUtils.GlobalSettings;
 
 public class ArtAssetPaths {
 	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	// bank of paths to the assets used
+	// Any path from this class should NOT end with a trailing slash "\\" as they are given to a DirectoryScanner
+	// and so identify the directory, not the files within
+	//
 	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	// Notes on structure of the SampleLib directory
+	// If a type of collection (e.g. Oxeyedaisy) has extra variants within its structure (e.g. flowers, or edge rendering)
+	// there is a top level directory called "Oxeyedaisy", and the "normal" image files are in a sub-directory called "whole". All
+	// the other variants are contained in separate sub-directories at the same level
+	// Overlay Images - For files that are overlays of the "whole" file, they should be the same dimensions, and have the same file name.
+	// Overlay image directories begin with the name "whole" and then specifics about the overlay content
+	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Pre-prepared black and white "drawing" style images
+	// This is being depricated
+	//
 	static String wildGrassBWPath = "wild grass\\bw\\";
 
 	public static String couchGrassBW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "basic grass_6000_improved";
@@ -29,38 +47,94 @@ public class ArtAssetPaths {
 	
 	
 	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Colour images - wild grass and associated assets
+	//
+	//
+	static String whole = "\\whole";
+	static String wholeEdges7 = "\\whole edges 7 pixels";
+	static String wholeFlowers = "\\whole flowers";
+	static String wholeFlowerEdges7 = "\\whole flower edges 7 pixels";
 	
 	static String wildGrassPath = "wild grass\\";
-
-	public static String couchGrass = GlobalSettings.getSampleLibPath() + wildGrassPath + "low level coverage\\basic grass_6000";
-	public static String dryMeadowGrass = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\dry meadow grass_10000";
-	public static String greenMeadowGrass = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\green meadow grass_10000";
-	public static String tallFescue = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\tallfescue_10000";
-	public static String yorkshirefog = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\yorkshirefog_10000";
-	public static String barranbrome = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\barran_brome_10000";
-	public static String blackbent = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\black_bent_10000";
+   
+    
+	static String couchGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "low level coverage\\basic grass_6000";
+	static String dryMeadowGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\dry meadow grass_10000";
+	static String greenMeadowGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\green meadow grass_10000";
+	static String tallFescueRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\tallfescue_10000";
+	static String yorkshirefogRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\yorkshirefog_10000";
+	static String barranbromeRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\barran_brome_10000";
+	static String blackbentRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\black_bent_hardened_10000";
 	
+	public static String couchGrassWhole = couchGrassRootPath + whole;
+	public static String dryMeadowGrassWhole = dryMeadowGrassRootPath + whole;
+	public static String greenMeadowGrassWhole = greenMeadowGrassRootPath + whole;
+	public static String tallFescueWhole = tallFescueRootPath + whole;
+	public static String yorkshirefogWhole = yorkshirefogRootPath + whole;
+	public static String barranbromeWhole = barranbromeRootPath + whole;
+	public static String blackbentWhole = blackbentRootPath + whole;
+	
+	
+	public static String couchGrassEdges = couchGrassRootPath + wholeEdges7;
+	public static String dryMeadowGrassEdges = dryMeadowGrassRootPath + wholeEdges7;
+	public static String greenMeadowGrassEdges = greenMeadowGrassRootPath + wholeEdges7;
+	public static String tallFescueEdges = tallFescueRootPath + wholeEdges7;
+	public static String yorkshirefogEdges = yorkshirefogRootPath + wholeEdges7;
+	public static String barranbromeEdges = barranbromeRootPath + wholeEdges7;
+	public static String blackbentEdges = blackbentRootPath + wholeEdges7;
+	
+	// a folder containing just 3 image for testing the process
+	static String grassTestRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\test_10000";
+	public static String grassTestWhole = grassTestRootPath + whole;
+	public static String grassTestEdges = grassTestRootPath + wholeEdges7;
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Colour images - wild flowers and associated assets
+	//
+	//
 	static String wildFlowerPath = "wild flowers\\";
 	
-	public static String oxeyeDaisy = GlobalSettings.getSampleLibPath() + wildFlowerPath + "oxeye daisys_brightFlowers_05500\\whole";
-	public static String oxeyeDaisyFlowers = GlobalSettings.getSampleLibPath() + wildFlowerPath + "oxeye daisys_brightFlowers_05500\\whole flowers";
-	
-	public static String cowparsley = GlobalSettings.getSampleLibPath() + wildFlowerPath + "cowparsley\\whole";
-	public static String cowparsleyFlowers = GlobalSettings.getSampleLibPath() + wildFlowerPath + "cowparsley\\whole flowers";
-	public static String cowparsleyFlowersFantasia = GlobalSettings.getSampleLibPath() + wildFlowerPath + "cowparsley\\whole flowers fantasia";
-	
-	public static String dandelion = GlobalSettings.getSampleLibPath() + wildFlowerPath + "dandelion_6000\\whole";
-	public static String dandelionFlowers = GlobalSettings.getSampleLibPath() + wildFlowerPath + "dandelion_6000\\whole flowers";
-	
-	public static String cornCockle = GlobalSettings.getSampleLibPath() + wildFlowerPath + "corncockle_7000\\whole";
-	public static String cornCockleFlowers = GlobalSettings.getSampleLibPath() + wildFlowerPath + "corncockle_7000\\whole flowers";
-	
-	public static String buttercup = GlobalSettings.getSampleLibPath() + wildFlowerPath + "buttercups_7500\\whole";
-	public static String buttercupFlowers = GlobalSettings.getSampleLibPath() + wildFlowerPath + "buttercups_7500\\whole flowers";
-
 	
 	
+	static String oxeyeDaisyRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "oxeye daisys_brightFlowers_05500";
+	public static String oxeyeDaisyWhole = oxeyeDaisyRootPath + whole;
+	public static String oxeyeDaisyWholeEdges = oxeyeDaisyRootPath + wholeEdges7;
+	public static String oxeyeDaisyFlowers = oxeyeDaisyRootPath + wholeFlowers;
+	public static String oxeyeDaisyFlowerEdges = oxeyeDaisyRootPath + wholeFlowerEdges7;
 	
+	static String cowparsleyRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "cowparsley";
+	public static String cowparsleyWhole = cowparsleyRootPath + whole;
+	public static String cowparsleyWholeEdges = cowparsleyRootPath + wholeEdges7;
+	public static String cowparsleyFlowers = cowparsleyRootPath + wholeFlowers;
+	public static String cowparsleyFlowerEdges = cowparsleyRootPath + wholeFlowerEdges7;
+	public static String cowparsleyFlowersFantasia = cowparsleyRootPath + "whole flower fantasia";
+	public static String cowparsleyFlowersFantasiaEdges = cowparsleyRootPath + "whole flower fantasia edges 7 pixels";
+	
+	static String dandelionRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "dandelion_6000";
+	public static String dandelionWhole = dandelionRootPath + whole;
+	public static String dandelionWholeEdges = dandelionRootPath + wholeEdges7;
+	public static String dandelionFlowers  = dandelionRootPath + wholeFlowers;
+	public static String dandelionFlowerEdges  = dandelionRootPath + wholeFlowerEdges7;
+	
+	static String cornCockleRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "corncockle_7000";
+	public static String cornCockleWhole = cornCockleRootPath + whole;
+	public static String cornCockleWholeEdges = cornCockleRootPath + wholeEdges7;
+	public static String cornCockleFlowers = cornCockleRootPath + wholeFlowers;
+	public static String cornCockleFlowerEdges = cornCockleRootPath + wholeFlowerEdges7;
+	
+	static String buttercupRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "buttercups_7500";
+	public static String buttercupWhole = buttercupRootPath + whole;
+	public static String buttercupWholeEdges = buttercupRootPath + wholeEdges7;
+	public static String buttercupFlowers = buttercupRootPath + wholeFlowers;
+	public static String buttercupFlowerEdges = buttercupRootPath + wholeFlowerEdges7;
+	public static String buttercupTestFlowers = buttercupRootPath + "\\testFlowers";
+	
+	
+	public static String noiseBasedTextures = GlobalSettings.getSampleLibPath() + "textures\\noise based textures";
 	
 	
 	

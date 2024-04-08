@@ -2,6 +2,9 @@ package MOImage;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 /////////////////////////////////////////////////////////////////////////////
 // Creates a  BW image from an ARGB image where white is inside, black is outside
 // For the purposes of Edge enhancing
@@ -54,4 +57,17 @@ public class ImageMask {
 	    ConvolutionFilter edgeFilter = new ConvolutionFilter("edge");
 	    return edgeFilter.convolveBufferedImage(mask);
 	  }
+	
+	
+	BufferedImage getEdgeImage2() {
+		float[] matrix = {  0, -2, 0 ,  -2, 8, -2 , 0, -2, 0  };
+
+		
+		BufferedImage destImage = null ;
+		BufferedImageOp op = new ConvolveOp( new Kernel(3, 3, matrix), ConvolveOp.EDGE_ZERO_FILL, null );
+		return op.filter(mask, destImage);
+		
+		
+		
+	}
 }

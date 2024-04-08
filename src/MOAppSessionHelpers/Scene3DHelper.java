@@ -1,6 +1,7 @@
 package MOAppSessionHelpers;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import MOApplication.Surface;
 
@@ -59,6 +60,75 @@ public class Scene3DHelper {
 			seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
 			return seedBatchHelper.generateSpriteSeedBatch(seedRandomKey);
 		} 
+		
+		
+		///////////////////////////////////////////////////////
+		// captures a 16bit gray image storing the depth of the ROI
+		// and adds it to the render targets so it gets saved along with them
+		public static void addSceneDepthAsRenderTarget(String renderTagetName) {
+			BufferedImage sceneDepthimage = captureSceneDepth();
+			GlobalSettings.getDocument().addRenderTarget(renderTagetName, BufferedImage.TYPE_USHORT_GRAY);
+			RenderTarget rt = GlobalSettings.getDocument().getRenderTarget(renderTagetName);
+			rt.setImage(sceneDepthimage);
+		}
+		
+		
+		// 
+		///////////////////////////////////////////////////////
+		// captures a 16bit gray image storing the depth of the ROI
+		// This is normalised to the depth extrema within the scene being rendered (which may be a ROI).
+		// No-substance is set to zero, so the smallest depth value is 1
+		public static BufferedImage captureSceneDepth() {
+			
+			
+			// Displays the lighting projeted onto the current sceneData3D based on the current settings
+			int width = GlobalSettings.getTheDocumentCoordSystem().getBufferWidth();
+			int height = GlobalSettings.getTheDocumentCoordSystem().getBufferHeight();
+			BufferedImage sceneDepthImage = new BufferedImage(width,height,BufferedImage.TYPE_USHORT_GRAY);
+			WritableRaster sceneDepthImageRaster = sceneDepthImage.getRaster();
+			
+			Range fullExtrema = sceneData3D.getFullSceneDepthExtrema();
+			Range localExtrema = sceneData3D.getROIDepthExtrema();
+
+			System.out.println("Full scene Depth Extrema " + fullExtrema.toStr());
+			System.out.println("Local ROI Depth Extrema " + localExtrema.toStr());
+			
+			
+			for(int y = 0; y < height; y++) {
+				for(int x = 0; x < width; x++) {
+
+					PVector docSpace = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(x, y);
+					float originalDepth = sceneData3D.getDepth(docSpace);
+					boolean isSubstance = sceneData3D.isSubstance(docSpace);
+					
+					if(isSubstance) {
+						float localNormalisedDepth = localExtrema.norm(originalDepth);
+						
+						
+						
+						int ushortDepthRange = (int)(localNormalisedDepth*65535);
+						
+						//if(y%10==0 && x == 10) {
+						//	
+						//	System.out.println("x y " + x + ", " + y + "   originalDepth = " + originalDepth + " nomalised locally " + localNormalisedDepth + " UShort " + ushortDepthRange);
+						//}
+						
+						if(ushortDepthRange<1) ushortDepthRange=1;
+						sceneDepthImageRaster.setSample(x, y, 0,ushortDepthRange);
+					} else {
+						sceneDepthImageRaster.setSample(x, y, 0,0);
+						
+					}
+
+					
+				}
+				
+			}
+
+			return sceneDepthImage;
+		
+	}
+	
 		
 		
 		

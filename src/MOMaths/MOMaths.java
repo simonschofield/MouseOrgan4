@@ -6,6 +6,11 @@ public class MOMaths {
 		Float N = n;
 		return N.isNaN();
 	}
+	
+	public static boolean isOdd(int n) {
+		if (n % 2 == 0) return false;
+		return true;
+	}
 
 	public static boolean isBetweenInc(float v, float a, float b) {
 		float lo = Math.min(a, b);

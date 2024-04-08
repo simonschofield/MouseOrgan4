@@ -68,7 +68,7 @@ public class Slider extends Widget {
 		return val;
 	}
 
-	float getSliderValue() {
+	public float getSliderValue() {
 		return currentValue;
 	}
 

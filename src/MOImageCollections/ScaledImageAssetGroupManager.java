@@ -27,7 +27,13 @@ public class ScaledImageAssetGroupManager {
 	
 	ArrayList<ScaledImageAssetGroup> theScaledImageAssetGroupList = new ArrayList<ScaledImageAssetGroup>();
 	//Surface parentSurface;
-
+	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// The individual sclaed image asset groups have a boolean deferCache.
+	// The flags below determine how they are to be set en-masse
+	//
+	
+	
 	public ScaledImageAssetGroupManager() {
 		GlobalSettings.setImageAssetGroupManager(this);
 	}
@@ -44,9 +50,6 @@ public class ScaledImageAssetGroupManager {
 		return null;
 	}
 	
-	
-	
-	
 
 	int getNumImageAssetsInGroup(String name) {
 		ScaledImageAssetGroup cc = getScaledImageAssetGroup(name);
@@ -57,26 +60,30 @@ public class ScaledImageAssetGroupManager {
 
 	
 	/////////////////////////////////////////////////////////////////////////////
-	// short-hand method of the one below
+	// short-hand methods of the one below
 	//
 	
-	public void loadImageAssetGroup(String name, String sourceDirectory, MOColorTransform colTransforms) {
-		loadImageAssetGroup(name, sourceDirectory, ".png", "", null, null, 1, new Rect(), colTransforms);
+	// the most default setting, using CACHEMODE_ADAPTIVE_LOADANDSAVE
+	public ScaledImageAssetGroup loadImageAssetGroup(String name, String sourceDirectory) {
+		return loadImageAssetGroup(name, sourceDirectory, ".png", "", null, null, ScaledImageAssetGroup.CACHEMODE_ADAPTIVE_LOADANDSAVE);
 	}
 	
-	public void loadImageAssetGroup(String name, String sourceDirectory) {
-		loadImageAssetGroup(name, sourceDirectory, ".png", "", null, null, 1, new Rect(), null);
+	// the most default setting, using user-set CACHE MODE, for caching post-load processing
+	public ScaledImageAssetGroup loadImageAssetGroup(String name, String sourceDirectory, int cacheMode) {
+		return loadImageAssetGroup(name, sourceDirectory, ".png", "", null, null, cacheMode);
 	}
+	
+	
 	
 
 	/**
-	 * @param contentGroupName,    this is the name you give the content group for
+	 * @param assetGroupName,    this is the name you give the content group for
 	 *                             further access via the manager
 	 * @param sourceDirectory,     this is the directory containing the files you
 	 *                             wish to load
 	 * @param fileNameMustEndWith, this is a file name filter, set to ".png" to load
 	 *                             all png file. Set to "" or "*" if you dont want
-	 *                             to filer on endings
+	 *                             to filter on endings
 	 * @param fileNameMustContain, this is a file name filter, set to "apple" to
 	 *                             load all files containing the string"apple". Set
 	 *                             to "" or "*" if you don't want any filter
@@ -88,16 +95,10 @@ public class ScaledImageAssetGroupManager {
 	 *                             target directory that meet the filter criteria
 	 *                             (can be nulled, in which case loads TO the final
 	 *                             item found)
-	 * @param preScale,            apply a uniform scaling to all items. This is
-	 *                             supplementary to the session scale.
-	 * @param cropRect,            apply a uniform crop to all items. The rect is in
-	 *                             normalised space
-	 * @param ippList,             a list of image processing operation to be used on the image before caching
-	 *  
-	                     
+	 * @return            		   (Use is optional) Returns the ScaledImageAsssetGroup just created                
 	 */
-	public void loadImageAssetGroup(String spriteImageGroupName, String sourceDirectory, String fileNameMustEndWith,
-			String fileNameMustContain, Integer from, Integer to, float preScale, Rect cropRect,  MOColorTransform colTransforms) {
+	public ScaledImageAssetGroup loadImageAssetGroup(String assetGroupName, String sourceDirectory, String fileNameMustEndWith,
+			String fileNameMustContain, Integer from, Integer to, int cacheMode) {
 
 		
 		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(sourceDirectory);
@@ -106,24 +107,17 @@ public class ScaledImageAssetGroupManager {
     	dfns.setFileListRange(from, to);
     	
     	int n = dfns.getNumFiles();
-    	System.out.println("loadImageAssetGroup loading " + n + " images " + spriteImageGroupName );
+    	System.out.println("loadImageAssetGroup loading " + n + " images " + assetGroupName );
     	
     	
-    	ScaledImageAssetGroup newSpriteImageGroup  = new ScaledImageAssetGroup(spriteImageGroupName);
+    	ScaledImageAssetGroup scaledImageAssetGroup  = new ScaledImageAssetGroup(assetGroupName);
 		
-    	
-		newSpriteImageGroup.setDirectoryFileNameScanner(dfns);
-		newSpriteImageGroup.setPreScale(preScale);
-		newSpriteImageGroup.setCrop(cropRect);
-		newSpriteImageGroup.setPreCacheImageProcessingOperationsList( colTransforms);
-		
-		
-		newSpriteImageGroup.loadSessionScaledImages();
-		
-		
-		
-		theScaledImageAssetGroupList.add(newSpriteImageGroup);
+		scaledImageAssetGroup.setDirectoryFileNameScanner(dfns);
+		scaledImageAssetGroup.setCacheMode(cacheMode);
+		scaledImageAssetGroup.loadSessionScaledImages();
 
+		theScaledImageAssetGroupList.add(scaledImageAssetGroup);
+		return scaledImageAssetGroup;
 	}
 
 	
@@ -150,6 +144,11 @@ public class ScaledImageAssetGroupManager {
      public void addImageAssetGroup(ScaledImageAssetGroup sig) {
     	 // TBD check unique name
     	 theScaledImageAssetGroupList.add(sig);
+     }
+     
+     public void removeImageAssetGroup(String toBeRemovedGroupName) {
+    	 ScaledImageAssetGroup toBeRemoved = this.getScaledImageAssetGroup(toBeRemovedGroupName);
+    	 theScaledImageAssetGroupList.remove(toBeRemoved);
      }
 	
 
@@ -183,9 +182,23 @@ public class ScaledImageAssetGroupManager {
 			return;
 		ic.colorTransformAll(colTransform);
 	}
-
 	
+	public void colorTransformAll(MOColorTransform colTransform) {
+		for (ScaledImageAssetGroup cc : theScaledImageAssetGroupList) {
+			cc.colorTransformAll(colTransform);
+		}
+	}
 
+	/**
+	 * to be called after a deferred cach session... after you have done all your post-load processing
+	 * ImageContentGroup
+	 */
+	 public void cacheAll() {
+		 for (ScaledImageAssetGroup cc : theScaledImageAssetGroupList) {
+				cc.cacheImages();
+			}
+		 
+	 }
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////

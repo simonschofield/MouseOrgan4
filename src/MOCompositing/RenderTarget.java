@@ -110,6 +110,21 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	}
 	
 	
+	public void setImage(BufferedImage img) {
+		// set the renderTarget image after initialisation
+		// does checking to see if this incoming image is the correct type and size
+		if(img.getWidth()!=targetRenderImage.getWidth() || img.getHeight()!=targetRenderImage.getHeight()) {
+			System.out.println("RenderTarget::setImage - image is wrong size, size" + img.getWidth() + " ," + img.getHeight() + " should be " + targetRenderImage.getWidth() + " ," + targetRenderImage.getHeight());
+			return;
+		}
+		if(img.getType() != targetRenderImage.getType()){
+			System.out.println("RenderTarget::setImage - image is type, is type " + img.getType() + " should be " + targetRenderImage.getType());
+			return;
+		}
+		targetRenderImage = img;
+	}
+	
+	
 	public ImageCoordinateSystem getCoordinateSystem() {
 		return coordinateSystem;
 	}
@@ -218,7 +233,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	// also ruled out. Therefore, we have to paste 16bit data "long-hand"
 	// Not sure if there should be any anti-alias smoothing included working on the edges of the alpha sprites
 	// The depth value of 0 is reserved to represent "no substance" e.g. sky
-	
+	// The value to be added should be in the range 0...1
 	public void pasteSpriteMaskTo16BitGray(Sprite sprite, float val, boolean antialias) {
 		
 		if(getType() != BufferedImage.TYPE_USHORT_GRAY) {
@@ -245,7 +260,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		int shortval = (int) (val * 65535);
 		if(shortval < 1) shortval = 1;
 		
-		System.out.println(" UShort Depth  = " + shortval);
+		//System.out.println(" UShort Depth  = " + shortval);
 		for (int y = 0; y < sourceHeight; y++) {
 			for (int x = 0; x < sourceWidth; x++) {
 				

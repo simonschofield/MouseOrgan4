@@ -64,6 +64,15 @@ public class MOStringUtils {
 		return false;
 	}
 	
+	
+	public static int getDirectoryContentFileCount(String foldername) {
+	    File f = new File(foldername);
+	    File[] files = f.listFiles();
+
+	    if (files == null) return 0;
+	    return files.length; 
+	}
+	
 	public static boolean createDirectory(String foldername) {
 		File targetFolder = new File(foldername);
 		if (targetFolder.exists()) return true;

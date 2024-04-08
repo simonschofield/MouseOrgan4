@@ -50,7 +50,9 @@ public class MOColorTransform {
 	}
 	
 	
-	
+	static MOColorTransformParameters getLevelsTransform(float shadowVal, float midtoneVal, float highlightVal, float outShadowVal,  float outHighlightVal){
+		return new MOColorTransformParameters(COLORTRANSFORM_LEVELS,   shadowVal,  midtoneVal,  highlightVal,  outShadowVal,   outHighlightVal);
+	}
 	
 	public void addColorTransform(int colorTransformType, float p1, float p2,float p3, float p4){
 		
@@ -75,7 +77,7 @@ public class MOColorTransform {
 	
 	
 	public BufferedImage doColorTransforms(BufferedImage imageIn) {
-		
+		System.out.print("MOColorTransform.doColorTransforms:: doColorTransforms .. in list are " + scriptableColorTransformParametersList.size());
 		updateProgressMessage();
 		
 		if(scriptableColorTransformParametersList.size()==0) {
@@ -186,7 +188,7 @@ public class MOColorTransform {
 	
 	public static BufferedImage colorTransform(BufferedImage img, MOColorTransformParameters params) {
 
-		//System.out.println("in colorAdjustAll . Function = " + function);
+		System.out.println("in colorTransform . Function = " + params.colourTransformIdentifier);
 		float p1 = params.p1;
 		float p2 = params.p2;
 		float p3 = params.p3;
@@ -225,8 +227,10 @@ public class MOColorTransform {
     	}
 		case COLORTRANSFORM_ADDEDGE: {
     		AlphaEdgeDrawer edgeDrawer = new AlphaEdgeDrawer((int)p1, p2);
-    		BufferedImage edgeImg =  edgeDrawer.drawEdgesFixedBrushStamps(img);
-    		return ImageProcessing.getCompositeImage(edgeImg, img, 0, 0 ,1);
+    		//BufferedImage edgeImg =  edgeDrawer.drawEdgesFixedBrushStamps(img);
+    		//BufferedImage edgeImg = edgeDrawer.getAsRawEdge(img);
+    		//return ImageProcessing.getCompositeImage(edgeImg, img, 0, 0 ,1);
+    		return edgeDrawer.getJitteredEdge(img, 4);
     	}
 		default:
 			return img;

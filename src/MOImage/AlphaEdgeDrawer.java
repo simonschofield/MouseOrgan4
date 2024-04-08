@@ -42,8 +42,22 @@ public class AlphaEdgeDrawer {
 		createBrush(brushWidth,hardness);
 	}
 
-	
-	
+	/**
+	 * Returns the raw edge of the alpha of the input image as an ARGB type image. Edge colour is black.
+	 */
+	public BufferedImage getAsARGBRawEdge(BufferedImage sourceImage) {
+		width = sourceImage.getWidth();
+		height = sourceImage.getHeight();
+		//System.out.println("getting raw edge");
+		BufferedImage rawEdgePixels = getRawEdge(sourceImage);
+		
+		//System.out.println("converting to alpha image");
+		BufferedImage alphaImage  = convertMaskToAlpha(rawEdgePixels);
+		//System.out.println("done");
+		return alphaImage;
+		//return ImageProcessing.getCompositeImage(edgesAsAlpha, sourceImage, 0, 0,1);
+		
+	}
 	
 	public BufferedImage drawEdges(BufferedImage sourceImage) {
 		width = sourceImage.getWidth();
@@ -121,6 +135,17 @@ public class AlphaEdgeDrawer {
 	}
 	
 	
+	public BufferedImage getJitteredEdge(BufferedImage src, int numJits) {
+		
+		BufferedImage edgeImg =  getAsARGBRawEdge( src);
+		if(MOMaths.isOdd(numJits)) numJits+=1;
+		int numJistsOver2 = numJits/2;
+		
+		for(int n = -numJistsOver2; n <= numJistsOver2; n++) {
+			src = ImageProcessing.getCompositeImage(edgeImg, src, n, n ,1);
+		}
+		return src;
+	}
 	
 	
 	/**
@@ -129,8 +154,47 @@ public class AlphaEdgeDrawer {
 	 */
 	public BufferedImage getRawEdge(BufferedImage src) {
 		ImageMask imageMask = new ImageMask(src,127);
-		return imageMask.getEdgeImage();
-
+		BufferedImage out =  imageMask.getEdgeImage2();
+		//System.out.println("get Raw edge : image type out is " + out.getType());
+		return out;
+	}
+	
+	
+	BufferedImage despeckle(BufferedImage maskImage) {
+		DespeckleImage despeckle = new DespeckleImage();
+		return despeckle.despeckleImage(maskImage, 2, 0);
+	}
+	
+	
+	BufferedImage convertMaskToAlpha(BufferedImage mask) {
+		// creates an ARGB image from a greyscale input mask, where the mask (white) pixels get converted to black
+		// and the alpha set
+		int w = mask.getWidth();
+		int h = mask.getHeight();
+		WritableRaster maskRaster = mask.getRaster();
+		BufferedImage edgeAlpha = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
+		WritableRaster edgeAlphaRaster = edgeAlpha.getAlphaRaster();
+		
+	
+		
+		for(int y = 0; y < h; y++) {
+			for(int x = 0; x < w; x++) {
+				int edgeValue = maskRaster.getSample(x, y, 0);
+				if(edgeValue > 127) {
+					// it is an edge pixel
+					edgeAlphaRaster.setSample(x, y, 0, 255);
+				}else {
+					edgeAlphaRaster.setSample(x, y, 0, 0);
+					
+				}
+				
+				
+			}
+		
+		
+		
+		}
+		return edgeAlpha;
 	}
 	
 	public ArrayList<PVector> getWhitePixelPointList(BufferedImage edgeIm, boolean useNormalisedCoordinates) {

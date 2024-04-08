@@ -89,6 +89,8 @@ public class SceneHelper {
 	
 	
 	
+	
+	
 	// Linked sprites are those that represent a special section of another "main" sprite (e.g. the flowers of a larger plant). 
 	// They are special cases, in that the main sprite and linked sprite(s) are both in use during the same "updateUserSession" iteration, whereas in most cases this is only 1 main sprite.
 	// This is so that the main sprite and linked sprite can be put through the same processes.
@@ -124,19 +126,19 @@ public class SceneHelper {
 		
 	
 	// load a SpriteImageGroup and add it to the ImageGroupManager (ImageGroupManager must be instantiated before calling this)
-	public static void loadSpriteImageGroup(String spriteImageGroupSamplePath, String spriteImageGroupName, String fileNameContains) {
-		    ScaledImageAssetGroup spriteImageGroup = new ScaledImageAssetGroup(spriteImageGroupName);
-		    DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(spriteImageGroupSamplePath);
-		    if(fileNameContains != null) {
-		    	dfns.setFileNameContains(fileNameContains);
-		    }
-		    spriteImageGroup.setDirectoryFileNameScanner(dfns);
-		    spriteImageGroup.loadSessionScaledImages();
-		    GlobalSettings.getImageAssetGroupManager().addImageAssetGroup(spriteImageGroup);
-		}
-	
-	
-	
+//	public static void loadSpriteImageGroup(String spriteImageGroupSamplePath, String spriteImageGroupName, String fileNameContains) {
+//		    ScaledImageAssetGroup spriteImageGroup = new ScaledImageAssetGroup(spriteImageGroupName);
+//		    DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(spriteImageGroupSamplePath);
+//		    if(fileNameContains != null) {
+//		    	dfns.setFileNameContains(fileNameContains);
+//		    }
+//		    spriteImageGroup.setDirectoryFileNameScanner(dfns);
+//		    spriteImageGroup.loadSessionScaledImages();
+//		    GlobalSettings.getImageAssetGroupManager().addImageAssetGroup(spriteImageGroup);
+//		}
+//	
+//	
+//	
 	
 	public static float millimeterToDocspace(float mm) {
 		// you give it a dimension in the printed version (e.g. 5mm)

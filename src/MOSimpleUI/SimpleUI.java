@@ -336,6 +336,17 @@ public class SimpleUI {
 		widgetList.add(m);
 		return m;
 	}
+	
+	public Menu addMenu(String label, int x, int y, ArrayList<String> menuItems) {
+		int len = menuItems.size();
+		String [] menuItemsArray = new String[len];
+		for(int n = 0; n < len; n++) {
+			menuItemsArray[n] = menuItems.get(n);
+			
+		}
+		
+		return addMenu( label,  x,  y, menuItemsArray);
+	}
 
 	// slider creation
 	public Slider addSlider(String label, int x, int y) {

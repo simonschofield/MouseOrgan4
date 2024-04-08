@@ -53,6 +53,10 @@ public class Widget {
 	// needed by some widgets but not all
 	boolean selected = false;
 
+	
+	
+	
+	
 	public Widget(String uiname) {
 
 		UIManagerName = uiname;

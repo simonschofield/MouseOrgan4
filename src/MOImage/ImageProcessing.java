@@ -171,6 +171,8 @@ public class ImageProcessing {
 	}
 
 	public static BufferedImage convertColorModel(BufferedImage src, int colorModel) {
+		if(src.getType() == colorModel) return src;
+
 		BufferedImage img= new BufferedImage(src.getWidth(), src.getHeight(), colorModel);
 		Graphics2D g2d = img.createGraphics();
 
@@ -415,7 +417,6 @@ public class ImageProcessing {
 		boolean hasAlpha = hasAlpha(src);
 		return MOPackedColor.packedIntToVal01( packedCol,  hasAlpha);
 	}
-
 
 
 	
@@ -767,7 +768,29 @@ public class ImageProcessing {
 		return pointFunction(image, data);
 	}
 
-	public static BufferedImage makeGreyscale(BufferedImage image) {
+	public static BufferedImage makeGreyscale(BufferedImage imageIn) {
+		
+		int[] pixelsIn = ((DataBufferInt) imageIn.getRaster().getDataBuffer()).getData();
+		BufferedImage imageOut = new BufferedImage(imageIn.getWidth(), imageIn.getHeight(), imageIn.getType());
+		int[] pixelsOut = ((DataBufferInt) imageOut.getRaster().getDataBuffer()).getData();
+
+		
+		for (int i = 0; i < pixelsIn.length; i++) {
+
+			int packed = pixelsIn[i];
+			float red = MOPackedColor.getRed(packed);
+			float green = MOPackedColor.getGreen(packed);
+			float blue =  MOPackedColor.getBlue(packed);
+			int alpha = MOPackedColor.getAlpha(packed);
+			
+			int gray = (int)((0.2989f * red) + (0.5870f * green) + (0.1140f * blue));
+			//int gray = (int)((0.3333f * red) + (0.66666f * green));// + (0.1140f * blue));
+			pixelsOut[i] = MOPackedColor.packARGB(alpha, gray, gray, gray);
+		}
+		
+		return imageOut;
+				
+		/*
 		// replaces existing rgb values with grey value
 		BufferedImage img = copyImage(image);
 		int width = img.getWidth();
@@ -780,12 +803,13 @@ public class ImageProcessing {
 				int r = (p>>16) & 0xFF;
 				int g = (p>>8) & 0xFF;
 				int b = p & 0xFF;
-				int avg = (r + g + b)/3;
+				int avg = (int) ((r + g + b)/3.0f);
 				p = (a<<24) | (avg<<16) | (avg<<8) |  avg;
 				img.setRGB(x, y, p);
 			}
 		}
 		return img;
+		*/
 	}
 
 
@@ -832,6 +856,7 @@ public class ImageProcessing {
 			data[0][n] = newVal;
 			data[1][n] = newVal;
 			data[2][n] = newVal;
+			//System.out.println("LUT val " + newVal + " lut set to " + data[2][n]);
 		}
 		return pointFunction(image, data);
 	}
@@ -889,6 +914,14 @@ public class ImageProcessing {
 
 	}
 	
+	static byte castToUnsignedByte(int i) {
+		
+		byte b = (byte) i;
+		return (byte) (b & 0xFF);
+		
+		
+	}
+	
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	// point functions cont. 
@@ -896,31 +929,51 @@ public class ImageProcessing {
 	// All inputs are in the range 0..255
 
 
-	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneVal, float highlightVal, float outShadowVal,  float outHighlightVal){
+	/**
+	 * Simulates Photoshop's Levels interface. All input values should be in the range 0..255
+	 * @param image - the input image (is unaltered)
+	 * @param shadowVal - output outShadowVal is mapped to this value in the input image
+	 * @param midGamma - in the range 0.001-10, where 1 is in the middle. It is the amount of "bend" between shadowVal and highlightVal - as per Photoshop's dialog 
+	 * @param highlightVal - output outHighlightVal is mapped to this value in the input image
+	 * @param outShadowVal -  The darkest colour output in the destination image
+	 * @param outHighlightVal -  The brightest colour output in the destination image
+	 * @return returns the processed BufferedImage
+	 * 
+	 */
+	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneGamma, float highlightVal, float outShadowVal,  float outHighlightVal){
+		
+		int originalImageType = image.getType();
+		image = assertImageTYPE_INT_ARGB(image);
+		
+		
 		// work out gamma correction value
-		float gamma = 1;
-		float midtoneNormal = midtoneVal/255.0f;
-		if(midtoneVal < 128){
-			midtoneNormal *= 2;
-			gamma = 1 + (9* (1-midtoneNormal));
-			gamma = Math.min(gamma,9.99f);
-		} else {
-			midtoneNormal = ( midtoneNormal * 2) - 1;
-			gamma = 1 - midtoneNormal;
-			gamma = Math.max(gamma, 0.01f);
-		}
-
+		float gamma = midtoneGamma;
+		
+		
+		//System.out.println("gamma is " + gamma);
+		//System.out.println("adjustLevels input image type " + image.getType());
 		// create the LUT
 		byte[][] lut = new byte[3][256];
 		for(int n = 0; n < 256; n++) {
-			float v  = ajustLevels_applyInputLevels(n,  shadowVal,   highlightVal);
-			v = ajustLevels_applyMidTones( v,  gamma);
-			v = ajustLevels_applyOutputLevels(v,  outShadowVal,   outHighlightVal);
-			lut[0][n] = (byte)v;
-			lut[1][n] = (byte)v;
-			lut[2][n] = (byte)v;
+			float inputLevel  = ajustLevels_applyInputLevels(n,  shadowVal,   highlightVal);
+			float midTone = ajustLevels_applyMidTones( inputLevel,  gamma);
+			float outPutLevel = ajustLevels_applyOutputLevels(midTone,  outShadowVal,   outHighlightVal);
+			//if(outPutLevel < 0 || outPutLevel > 255) System.out.println("n = " + n + ", inputLevel =  " + inputLevel + ", midTone  = " + midTone + ", final  outPutLevel = " + outPutLevel);
+			
+			
+			outPutLevel = MOMaths.constrain(outPutLevel, 0, 255);
+			
+			byte byteVal = (byte)((int)outPutLevel); 
+			
+			lut[0][n] = (byte) byteVal;
+			lut[1][n] = (byte) byteVal;
+			lut[2][n] = (byte) byteVal;
+			//System.out.println("LUT val " + byteVal + " lut set to " + lut[2][n]);
 		}
-		return  pointFunction(image, lut);
+		BufferedImage imageOut =   pointFunction(image, lut);
+		//System.out.println("adjustLevels output image type " + imageOut.getType());
+
+		return ImageProcessing.convertColorModel(imageOut, originalImageType);
 	}
 
 	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneVal, float highlightVal) {
@@ -933,7 +986,7 @@ public class ImageProcessing {
 	}
 
 	private static float ajustLevels_applyMidTones(float valIn, float gamma){
-		return (float) (255 * (Math.pow( (valIn/255), gamma)));
+		return (float) (255 * (Math.pow( (valIn/255f), 1/gamma)));
 	}
 
 	private static float ajustLevels_applyOutputLevels(float valIn, float outShadowVal,  float outHighlightVal){

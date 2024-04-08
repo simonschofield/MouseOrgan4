@@ -22,7 +22,10 @@ public class Menu extends Widget {
 	int numItems = 0;
 	SimpleUI parentManager;
 	public boolean visible = false;
-
+    
+	boolean showLastSelection = false;
+	String lastSelection = ""; 
+	
 	ArrayList<String> itemList = new ArrayList<String>();
 
 	public Menu(String uiname, String uilabel, int x, int y, String[] menuItems, SimpleUI manager) {
@@ -35,7 +38,30 @@ public class Menu extends Widget {
 			numItems++;
 		}
 	}
-
+	
+	public void showLastSelected() {
+		showLastSelection = true;
+		lastSelection = itemList.get(0);
+	}
+	
+	
+	public void setLastSelected(String s) {
+		
+		for(String item: itemList) {
+			
+			if(item.equals(s)) {
+				lastSelection = item;
+				System.out.println("found grid as a menu item");
+			}
+		}
+	}
+	
+	public String getLastSelected() {
+		return lastSelection;
+	}
+	
+	
+	
 	public void drawMe(VectorShapeDrawer drawer) {
 		// println("drawing menu " + title);
 		drawTitle(drawer);
@@ -57,8 +83,14 @@ public class Menu extends Widget {
 		drawer.setFillColor(SimpleUITextColor);
 		drawer.setTextStyle(6);
 
-		drawer.drawText(this.UILabel, locX + textPad, locY + textPad + textSize);
+		
 
+		
+		if (showLastSelection == false) {
+				drawer.drawText(this.UILabel, locX + textPad, locY + textPad + textSize);
+		    }else {
+		    	drawer.drawText(lastSelection, locX + textPad, locY + textPad + textSize);
+		    }
 	}
 
 	void drawItems(VectorShapeDrawer drawer) {
@@ -128,7 +160,7 @@ public class Menu extends Widget {
 		}
 		if (mouseEventType.equals("mousePressed") && isInItems(x, y)) {
 			String pickedItem = getItem(y);
-
+			lastSelection = pickedItem;
 			UIEventData uied = new UIEventData(UIManagerName, UIComponentType, UILabel, mouseEventType, x, y);
 			uied.menuItem = pickedItem;
 			parentManager.handleUIEvent(uied);

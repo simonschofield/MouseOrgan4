@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOImage.BilinearBufferedImageSampler;
 import MOImage.ImageProcessing;
 import MOImage.MOPackedColor;
 import MOMaths.AABox3D;
@@ -41,8 +42,9 @@ import MOUtils.GlobalSettings;
 //
 public class ProjectedLight3DSimple {
 
-	SceneData3D sceneData3D;
+	GeometryBuffer3D geometryBuffer3D;
 	BufferedImage textureImage;
+	BilinearBufferedImageSampler bilinearSampler;
 	Plane3D texturePlane;
 	float textureScale = 1f;
 
@@ -52,8 +54,8 @@ public class ProjectedLight3DSimple {
 
 	public Range uExtrema, vExtrema;
 
-	public ProjectedLight3DSimple(SceneData3D scene3d,  Plane3D imgPlane,  BufferedImage lightImage){
-		sceneData3D = scene3d;
+	public ProjectedLight3DSimple(GeometryBuffer3D scene3d,  Plane3D imgPlane,  BufferedImage lightImage){
+		geometryBuffer3D = scene3d;
 		texturePlane = imgPlane.copy();
 		textureImage = lightImage;
 
@@ -63,12 +65,16 @@ public class ProjectedLight3DSimple {
 		vExtrema = new Range();
 		vExtrema.initialiseForExtremaSearch();
 
+		bilinearSampler = new BilinearBufferedImageSampler(lightImage);
 	}
 
 	public void setTextureScale(float s) {
 		textureScale = s;
 
 	}
+	
+	
+	
 
 	public void setUVOffset(float du, float dv) {
 		// so we can shift the texture away from the match-boxing centre
@@ -76,16 +82,14 @@ public class ProjectedLight3DSimple {
 		offsetV = dv;
 
 	}
+	
+	public void setPlaneNormal(float x, float y, float z) {
+		texturePlane.surfaceNormal = new PVector(x,y,z);
+	}
 
 	// use this method for volume lighting
-	public float getValue01(PVector docPt, float normalizedDepth) {
-
-		normalizedDepth = MOMaths.constrain(normalizedDepth, 0, 1);
-		PVector p3d = sceneData3D.get3DVolumePoint(docPt, normalizedDepth);
-
-
-		//System.out.println("docPt " + docPt.toStr() + " depth " + normalizedDepth + " p3d " + p3d.toStr());
-
+	public float getValue01(PVector docPt, float realDepth) {
+		PVector p3d = geometryBuffer3D.docSpaceToWorld3D(docPt, realDepth);
 		return getValue01(p3d);
 	}
 
@@ -96,32 +100,32 @@ public class ProjectedLight3DSimple {
 		uExtrema.addExtremaCandidate(uv.x);
 		vExtrema.addExtremaCandidate(uv.y);
 
-		uv.x += offsetU;
-		uv.y += offsetV;
+		
 
 
 		PVector bufferLoc = UVToTextureImageBufferLoc(uv);
 
 		//System.out.println("p3 " + p3d.toStr() + " uv " + uv.toStr() + " bufferLoc " + bufferLoc.toStr());
 
-		return ImageProcessing.getValue01Clamped(textureImage, (int)bufferLoc.x, (int)bufferLoc.y);
+		//return bilinearSampler.getPixelBilin01(bufferLoc.x,bufferLoc.y);
 
-
+		return bilinearSampler.getPixelNearest01(bufferLoc.x,bufferLoc.y);
 	}
 
 
-
-
+    
 
 	private PVector UVToTextureImageBufferLoc(PVector uv) {
-
+		
+		uv.x += offsetU;
+		uv.y += offsetV;
 
 		float texBufferPointX = Math.abs(uv.x * (textureImage.getWidth()) * textureScale);
 
 		float texBufferPointY = Math.abs(uv.y * (textureImage.getHeight()) * textureScale);
 
-		int bufferX = (int) texBufferPointX % (textureImage.getWidth());
-		int bufferY = (int) texBufferPointY % (textureImage.getHeight());
+		float bufferX =  texBufferPointX % (textureImage.getWidth());
+		float bufferY =  texBufferPointY % (textureImage.getHeight());
 
 
 		return new PVector(bufferX, bufferY);
@@ -145,9 +149,9 @@ public class ProjectedLight3DSimple {
 		PVector n = texturePlane.surfaceNormal; 
 
 		// find some other vector, not normal to the plane
-		PVector V0 = new PVector(0, 0, 1);
+		PVector V0 = new PVector(1, 0, 0);
 		if(n.equals(V0)) {
-			V0 = new PVector(1, 0, 0);
+			V0 = new PVector(0, 0, 1);
 		}
 
 		// finds a vector e1 in the plane
@@ -158,6 +162,8 @@ public class ProjectedLight3DSimple {
 		PVector e2 = n.cross(e1);
 		e2.normalize();
 
+		PVector zero = new PVector(0,0,0);
+		
 		float u = e1.dot(p);
 		float v = e2.dot(p);
 		return new PVector(u,v);
@@ -174,7 +180,9 @@ public class ProjectedLight3DSimple {
 			for(int x = 0; x < maxX; x++) {
 
 				PVector docSpace = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(x, y);
-				PVector pSurface3d = sceneData3D.get3DSurfacePoint(docSpace);
+				PVector pSurface3d = geometryBuffer3D.docSpaceToWorld3D(docSpace);
+				PVector basicOffset = new PVector(100,100,0);
+				pSurface3d.add(basicOffset);
 				float lv = this.getValue01(pSurface3d);
 
 
@@ -184,7 +192,7 @@ public class ProjectedLight3DSimple {
 
 				
 			}
-			if( y%10==0) GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+			if( y%100==0) GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
 		}
 
 
