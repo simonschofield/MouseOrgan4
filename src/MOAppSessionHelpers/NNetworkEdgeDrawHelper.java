@@ -587,7 +587,7 @@ public class NNetworkEdgeDrawHelper {
 
 		Sprite sprite =  spriteFont.getSpriteInstance(true);
 
-		if(randomStream.randomEvent(0.5f)) sprite.mirror(true);
+		if(randomStream.probabilityEvent(0.5f)) sprite.mirror(true);
 
 		sprite.mapToLine2(line,  overlap1, overlap2, 0.005f);
 
@@ -630,7 +630,7 @@ public class NNetworkEdgeDrawHelper {
 
 
 
-		if(randomStream.randomEvent(probability)) {
+		if(randomStream.probabilityEvent(probability)) {
 			float rot = line.getRotation();  
 			rot += randomStream.randRangeF(rotationLo, rotationHi);
 			sprite.rotate(rot);

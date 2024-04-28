@@ -122,6 +122,18 @@ public class SceneHelper {
 			SceneHelper.pasteToMaskImage( linkedSprite, true, maskName, replacementImage,1);	
 		}
 	}
+	
+	public static void pasteLinkedSpriteToMaskImage(Sprite linkedSprite, Sprite mainSprite,  boolean contribute, String maskName, BufferedImage replacementImage) {
+		
+		// In the instance of a partial sprite, it should ADD to the mask - therefore the matching criteria is set to be always true - but
+		// before the partial sprite is ADDED, you do need to SUBTRACT  the accompanying sprite FIRST, otherwise this will obliterate the partial sprite's addition
+		// All other sprite need to be simply SUBTRACTED from the mask, therefore the matching criteria is set to be always false
+		// Not all sprites have their partial sprite active, so you have to catch null ones.
+		SceneHelper.pasteToMaskImage( mainSprite, false, maskName, null,1);
+		if(linkedSprite!=null && contribute) { 
+			SceneHelper.pasteToMaskImage( linkedSprite, true, maskName, replacementImage,1);	
+		}
+	}
 
 		
 	
@@ -234,8 +246,8 @@ public class SceneHelper {
 	
 	static void randomMirrorSprite(Sprite sprite, boolean inX, boolean inY) {
 		QRandomStream ranStream = sprite.getRandomStream();
-		boolean coinTossX = ranStream.randomEvent(0.5f);
-		boolean coinTossY = ranStream.randomEvent(0.5f);
+		boolean coinTossX = ranStream.probabilityEvent(0.5f);
+		boolean coinTossY = ranStream.probabilityEvent(0.5f);
 		if(coinTossX && inX) {
 			sprite.mirror(true);
 		}

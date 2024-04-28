@@ -704,12 +704,8 @@ public class ImageProcessing {
 
 	public static BufferedImage tintWithColor(BufferedImage image, Color c) {
 		// black pixels in the source remains black,  white pixels become the tint colour
-		
 		// to stop blended colour being lighter than the color c, we need to clamp the brightness of the resultant colour
-		
-		
-		
-		
+
 		image = assertImageTYPE_INT_ARGB(image);
 		byte[][] data = new byte[4][256];
 		int r = c.getRed();
@@ -930,7 +926,7 @@ public class ImageProcessing {
 
 
 	/**
-	 * Simulates Photoshop's Levels interface. All input values should be in the range 0..255
+	 * Simulates Photoshop's Levels interface.  input value ranges are all 0..255 except for midtoneGamma, which is 0.01...10 s
 	 * @param image - the input image (is unaltered)
 	 * @param shadowVal - output outShadowVal is mapped to this value in the input image
 	 * @param midGamma - in the range 0.001-10, where 1 is in the middle. It is the amount of "bend" between shadowVal and highlightVal - as per Photoshop's dialog 

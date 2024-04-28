@@ -84,6 +84,13 @@ public class MOMaths {
 		}
 		return val;
 	}
+	
+	public static float round(float f, int numPlaces) {
+		double d = (double)f;
+		int multiplier = (int) Math.pow(10, numPlaces);
+		int dmult = (int) (d * multiplier);
+		return (float)(dmult / (double) multiplier);
+	}
 
 	public static float sin(float theta) {
 

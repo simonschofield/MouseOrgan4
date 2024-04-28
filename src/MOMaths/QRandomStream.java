@@ -9,7 +9,7 @@ import java.util.Random;
 //where the authenticity of the random number sequence is not paramount
 //All instances of QRandomStream share the same list of (1  million) random integers (0... listSize-1)
 //but each different seed uses a different visitation-order to the list, which still guarantees every one is visited,
-//so using a different seed produced a completely different order.
+//so using a different seed produces a completely different order.
 //
 public  class QRandomStream {
 	
@@ -40,6 +40,22 @@ public  class QRandomStream {
 		newCopy.sequencePosition = sequencePosition;
 		return newCopy;
 	}
+	
+	
+	/// private stuff, don't call
+	private void initRandomNumbers() {
+		randomNumbers = new ArrayList<Integer>();
+		visitationOrder = new ArrayList<Integer>();
+		for(int i = 0; i < arraySize; i++) {
+			randomNumbers.add(i);
+			visitationOrder.add(i);
+		}
+		Random rnd = new Random(1);
+		Collections.shuffle(randomNumbers, rnd);
+		Collections.shuffle(visitationOrder, rnd);
+	}
+		
+		
 	
 	///////////////////////////////////////////////
 	// seed and sequencePosition methods
@@ -98,8 +114,11 @@ public  class QRandomStream {
 		return f;
 	}
 	
+	public boolean coinToss() {
+		return probabilityEvent(0.5f);
+	}
 	
-	public boolean randomEvent(float prob) {
+	public boolean probabilityEvent(float prob) {
 		float r = nextFloat();
 		if (r < prob)
 			return true;
@@ -204,20 +223,36 @@ public  class QRandomStream {
 	// keyed random functions always return the same random number for the particular input key-number, so can be
 	// regarded as a "reliable" random number generator. If the stream is re-seeded, then a different but reliable number will be
 	// returned for the same input key.
-	// It does not reposition the sequence position
+	// Another advantage is that keyed random methods do not advance or reposition the sequence position, so 
+	// do not interfere with subsequent random processes belonging to the same stream
 	
-	int keyedInt(int keyNumber, int lo, int hi) {
+	public int keyedInt(int keyNumber, int lo, int hi) {
 		startKeyedPosition(keyNumber);
 		int val = randRangeInt( lo,  hi);
 		endKeyedPosition();
 		return val;
 	}
 	
-	float keyedFloat(int keyNumber, float lo, float hi) {
+	public float keyedFloat(int keyNumber, float lo, float hi) {
 		startKeyedPosition(keyNumber);
 		float val = randRangeF( lo,  hi);
 		endKeyedPosition();
 		return val;
+	}
+	
+	public boolean keyedProbabilityEvent(int keyNumber, float prob) {
+		startKeyedPosition(keyNumber);
+		boolean b = probabilityEvent(prob);
+		endKeyedPosition();
+		return b;
+	}
+	
+	
+	public boolean keyedCoinToss(int keyNumber) {
+		startKeyedPosition(keyNumber);
+		boolean b = coinToss();
+		endKeyedPosition();
+		return b;
 	}
 	
 	
@@ -248,19 +283,6 @@ public  class QRandomStream {
 		return new SNum(this, seedOffset, sequencePosition);
 	}
 	
-	
-	/// private stuff, don't call
-	private void initRandomNumbers() {
-		randomNumbers = new ArrayList<Integer>();
-		visitationOrder = new ArrayList<Integer>();
-		for(int i = 0; i < arraySize; i++) {
-			randomNumbers.add(i);
-			visitationOrder.add(i);
-		}
-		Random rnd = new Random(1);
-		Collections.shuffle(randomNumbers, rnd);
-		Collections.shuffle(visitationOrder, rnd);
-	}
 	
 	
 	
