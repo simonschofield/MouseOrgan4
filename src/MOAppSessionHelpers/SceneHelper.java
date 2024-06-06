@@ -9,11 +9,13 @@ import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.ScaledImageAssetGroup;
 import MOImageCollections.ScaledImageAssetGroupManager;
+import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
+import MOScene3D.SceneData3D;
 import MOSprite.Sprite;
 import MOSprite.SpriteFont;
 import MOUtils.GlobalSettings;
@@ -45,7 +47,73 @@ public class SceneHelper {
 	}
 	
 	
-	
+	public static BufferedImage scaleMaskImageToScene3D(BufferedImage unscaledMaskImage, Sprite sprite, float maskSizeInScene, SceneData3D sceneData) {
+		// Only called after the sprite has already been scaled to the correct size in scene, as it uses the existing buffer-space height of the asset to do calculations.
+		// Takes into consideration the pivot point.
+		// scales crops and fits into the sprite correctly for a set sizeInScene(align the bottoms and crop the top) so the mask 
+		// is scaled in relation to a consistent scene size, rather than scaled to fit into each sprite
+		
+		// However, the height of the top of the sprite can be influenced by mayny things, such as anchor point and riser adustments, so we need to find a robust way of dealing with this.
+		// We know the doc point - this point on the scene surface in 3D, we know the top of the sprite - can work back from 
+		// map top of sprite in scene-buffer space to doc space at set depth. Work out actual height of sprite in scene.
+		
+		
+		
+		
+		// The size in scene should be the same as the maximum sprite object size-in-scene, as you only want to crop this scaled mask image down, not add stuff in!
+		// 1/ get the height in pixels of the object at sprite.docPoint, using maskSizeInScene
+		// 2/ scale the unscaledMaskImage to be that height
+		// 3/ Crop the scaledMaskImage to the sprites image-rect, matching the bottom. 
+		// 4/ return cropped image
+		
+		
+		
+		
+		
+		PVector bufferSpacePastePoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(sprite.docPoint);
+		//float depthOfSprite = sceneData.getDepth(sprite.docPoint);
+		int topOfSpriteY = (int) sprite.getDocumentBufferSpaceRect().top;
+		int totalBufferHeighOfSpriteFromPivotPtToTop = (int) MOMaths.diff(topOfSpriteY,bufferSpacePastePoint.y);
+		
+		
+		
+		
+		//System.out.println();
+		//  1/ get the height in pixels of the mask image at sprite.docPoint, with sizeInScene
+			float scale3D = sceneData.get3DScale(sprite.getDocPoint());
+			float heightDocSpace = maskSizeInScene * scale3D;
+
+			//System.out.println("getHeightInRenderTargetPixels3D: scale3D " + scale3D );
+			
+			PVector heightDocSpaceVector = new PVector(0, heightDocSpace);
+			PVector heightInPixelsVector = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(heightDocSpaceVector);
+			float maskBufferSpaceHeight = (float) Math.abs(heightInPixelsVector.y);
+			int spriteHeight = sprite.getImageHeight();
+			
+			
+		// 2/ scale the unscaledMaskImage to be that height
+			//float scaleFactor = bufferSpaceHeight/unscaledMaskImage.getHeight();
+			float scaleFactor = maskBufferSpaceHeight/(float)unscaledMaskImage.getHeight();
+			BufferedImage scaledMaskImage = ImageProcessing.scaleImage(unscaledMaskImage, scaleFactor);
+			int scaledMaskHeight = scaledMaskImage.getHeight();
+			
+			
+			
+		// 3/
+			if( totalBufferHeighOfSpriteFromPivotPtToTop > scaledMaskHeight ) {
+				// then this is not ideal, and have to cope by padding the scaledMaskImage at the top
+				// or return the unaltered mask image
+				//System.out.println("sprite height greater than scaled mask image - returning unscaled image");
+				return unscaledMaskImage;
+			} else {
+				//System.out.println("Total Height of sprite from pivot pt " + totalBufferHeighOfSpriteFromPivotPtToTop + " sprite image height " + spriteHeight + " sprite sizeinscene " + sprite.sizeInScene + " scaled mask height " + scaledMaskHeight + " mask sizeinscene " + sizeInScene);
+			}
+
+			
+			int topPixelsToTrim = scaledMaskHeight - totalBufferHeighOfSpriteFromPivotPtToTop;
+		// 4/		
+			return ImageProcessing.trimImage(scaledMaskImage,0,topPixelsToTrim,0,0);
+	}
 
 	
 	public static void pasteToMaskImage(Sprite sprite, boolean contribute, String maskName, BufferedImage replacementImage, float brightness) {
@@ -88,10 +156,20 @@ public class SceneHelper {
 	}
 	
 	
+	public static ScaledImageAssetGroup overlayScaledImageAssetGroup(String targetGroupName, String tagetAssetPath, String overlayAssetPath, float alpha) {
+		// Loads both the target and overlay group.
+		// Pastes the overlay sprite on-top of the target sprite groups. The composited target group is then kept in the ImageAssetGroupManager, while the overlay group is removed.
+		// Overlay sprites must be sized exactly the same as the target (under-lay) sprite, and have the same number of assets.
+		//
+		ScaledImageAssetGroup targetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(targetGroupName,  tagetAssetPath, ScaledImageAssetGroup.CACHEMODE_NONE);
+		ScaledImageAssetGroup overlayGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup("tempOverlayGroupName",  overlayAssetPath, ScaledImageAssetGroup.CACHEMODE_NONE);
+		targetGroup.overlayScaledImageAssetGroup(overlayGroup, alpha);
+		GlobalSettings.getImageAssetGroupManager().removeImageAssetGroup("tempOverlayGroupName");
+		return targetGroup;
+	}
 	
 	
-	
-	// Linked sprites are those that represent a special section of another "main" sprite (e.g. the flowers of a larger plant). 
+	// Linked sprites are those that represent a special section of another "main" sprite (e.g. the flowers of a larger plant, an outline generated for an image...). 
 	// They are special cases, in that the main sprite and linked sprite(s) are both in use during the same "updateUserSession" iteration, whereas in most cases this is only 1 main sprite.
 	// This is so that the main sprite and linked sprite can be put through the same processes.
 	// 

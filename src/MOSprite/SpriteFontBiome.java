@@ -41,7 +41,7 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 	
 
 	public Sprite getSpriteInstance(boolean setRandomStreamKeyPositionWithID) {
-		SpriteFont spriteFont = getSpriteFontInstance();
+		SpriteFont spriteFont = getRandomSpriteFontInstance();
 		Sprite s =  spriteFont.getSpriteInstance(setRandomStreamKeyPositionWithID);
 		
 		
@@ -51,11 +51,22 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 	
 	public Sprite getSpriteInstance(SpriteSeed s, boolean setRandomStreamKeyPositionWithID)  {
 		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.getRandomKey());
-		SpriteFont spriteFont = getSpriteFontInstance();
+		SpriteFont spriteFont = getRandomSpriteFontInstance();
 		Sprite sprite =  spriteFont.getSpriteInstance(s, true);// could be false
 		
 		
 		
+		//System.out.println("randomKey of " + s.getRandomKey() + " results in image " + sprite.getImageName());
+		return sprite;
+	}
+	
+	// instead of using a random number generated internally by the sprites's randomKey value to determine the particular SpriteFont used
+	// this method uses a value passed in from outside. This could be another random stream, or more likely, a value based on a second image to create spatial clusters
+	// of particular sprite fonts from a sprite font biome.  spriteFontSelectionValue should be in the range 0..1
+	public Sprite getSpriteInstance(SpriteSeed s, float spriteFontSelectionValue)  {
+		
+		SpriteFont spriteFont = getSpriteFontFromProbabilityStack(spriteFontSelectionValue);
+		Sprite sprite =  spriteFont.getSpriteInstance(s, true);// could be false
 		//System.out.println("randomKey of " + s.getRandomKey() + " results in image " + sprite.getImageName());
 		return sprite;
 	}
@@ -66,7 +77,7 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 	//
 	
 	// uses stochastics to select a particular SpriteSeedFont
-	private SpriteFont getSpriteFontInstance() {
+	private SpriteFont getRandomSpriteFontInstance() {
 		// called by the seed batch upon making a batch
 		// only needs docPoint if an influenceImage is set
 		//System.out.println("SpriteFontBiome::getSpriteFontInstance ... num biomeItems = " + biomeItems.size());

@@ -29,21 +29,21 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	
 	private String groupName = "";
 
-	boolean deferCache = true;
+	//boolean deferCache = true;
 	
 	
 	/////////////////////////////////////////////////////////////////////////
 	// CACHE MODES
 	//
 	// CACHEMODE_ADAPTIVE_LOADANDSAVE is the default mode, and should be used if no post processing is involved. It will
-	// load the cache id the cache is OK. Else it loads from the source-library, and then saves the result to the cache for 
-	// later use. It does not cache load or save 100% scaled assets, as it is quicker to just load the source-library fies directly
+	// load the cache if the cache is OK. Else it loads from the source-library, and then saves the result to the cache for 
+	// later use. It does not cache load or save 100% scaled assets, as it is quicker to just load the source-library files directly
 	//
 	// CACHEMODE_NONE. Never loads or saves the cache. Used to simply load from the source-lib. Probably used with saveCache() method later on after
-	// some post-load processing has gone one that you want to commit to the cache, after which you should probably use CACHEMODE_FORCE_LOAD_NO_SAVE.
+	// some post-load processing has happened that you want to commit to the cache, after which you should probably use CACHEMODE_FORCE_LOAD_NO_SAVE.
 	//
 	// CACHEMODE_FORCE_LOAD_NO_SAVE forces the load to be from the cache only. If the cache is NOT OK, the process will terminate. This should be used to 
-	// load post-load processed images committed to the cache previous though using a previous saveCache().
+	// load post-load processed images, which have been previously committed to the cache through using a previous saveCache().
 	//
 	//
 	public static final int	CACHEMODE_ADAPTIVE_LOADANDSAVE = 0;  // 

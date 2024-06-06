@@ -162,6 +162,15 @@ public class ImageAssetGroup {
 	///////////////////////////////////////////////////////////////////////////
 	//content manipulation methods - affect all members of the group
 	//
+	public void scaleAll(float s) {
+		if(s==1) return;
+		if(MOMaths.MOMaths.isClose(s, 1, 0.0099f)) return; // i.e within 1 percentile
+		for (ImageAsset moImage: theImageAssetList) {
+			moImage.image = ImageProcessing.scaleImage(moImage.image, s, s);
+		}
+	}
+	
+	
 	public void scaleAll(float x, float y) {
 
 		for (ImageAsset moImage: theImageAssetList) {

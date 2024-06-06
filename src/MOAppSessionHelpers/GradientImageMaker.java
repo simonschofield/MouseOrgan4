@@ -6,10 +6,20 @@ import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.ImageAssetGroup;
 import MOMaths.MOMaths;
+import MOMaths.PVector;
+import MOScene3D.SceneData3D;
+import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
 
 public class GradientImageMaker {
+	
+	public static final int HARDLIGHT = 0;
+	public static final int MEDIUMLIGHT = 1;
+	public static final int MEDIUMSOFTLIGHT = 2;
+	public static final int SOFTLIGHT = 3;
+	
+	
 	BufferedImage linearGradientImage;
 	BufferedImage blackImage;
 	BufferedImage whiteImage;
@@ -45,6 +55,24 @@ public class GradientImageMaker {
 	}
 	
 	
+	
+	public BufferedImage makeGradient(float brightness, int gradientType) {
+		if(gradientType==this.HARDLIGHT) {
+			return makeGradient_HardLight( brightness);
+		}
+		if(gradientType==this.MEDIUMLIGHT) {
+			return makeGradient_MediumLight( brightness);
+		}
+		if(gradientType==this.MEDIUMSOFTLIGHT) {
+			return makeGradient_MediumLight( brightness);
+		}
+		if(gradientType==this.SOFTLIGHT) {
+			return makeGradient_SoftLight( brightness);
+		}
+		return null;
+		
+	}
+	
 	public BufferedImage makeGradient_HardLight(float brightness) {
 		// Lights the very tops with quite a sharp gradient
 		
@@ -61,10 +89,26 @@ public class GradientImageMaker {
 
 	}
 	
+	public BufferedImage makeGradient_MediumSoftLight(float brightness) {
+		// 
+		
+		return makeGradient( brightness, 0.99f, 0.625f, 0.15f, 0.425f);
+		
+
+	}
+	
 	public BufferedImage makeGradient_SoftLight(float brightness) {
 		// blends quite a way down with smoother gradient
 		
 		return makeGradient( brightness, 0.99f, 0.5f, 0.2f, 0.5f);
+		
+
+	}
+	
+	public BufferedImage makeGradient_VerySoftLight(float brightness) {
+		// blends quite a way down with smoother gradient
+		
+		return makeGradient( brightness, 0.99f, 0.4f, 0.25f, 0.6f);
 		
 
 	}

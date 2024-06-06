@@ -214,6 +214,21 @@ public class ImageProcessing {
 		compositeImage_ChangeTarget(img, imgOut, left, top, 1);
 		return imgOut;
 	}
+	
+	public static BufferedImage trimImage(BufferedImage img, int left, int top, int right, int bottom) {
+		// removes pixel border defined by trim amount in pixels
+		int newWidth = img.getWidth()- (left + right);
+		int newHeight = img.getHeight() - (top + bottom);
+		if(newWidth <= 0 || newHeight <= 0) {
+			System.out.println("ImageProcessing trim - illegal trim resulting in width and height of " + newWidth + " " + newHeight + ". Returning untrimmed image");
+			return img;
+		}
+		
+		Rect trimRect = new Rect(left, top, newWidth, newHeight);
+		
+		//System.out.println("ImageProcessing trim - new rect " + trimRect.toStr());
+		return deepCropImage(img, trimRect);
+	}
 
 
 	public static BufferedImage clearImage(BufferedImage img) {

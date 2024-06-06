@@ -54,6 +54,7 @@ public class ArtAssetPaths {
 	//
 	static String whole = "\\whole";
 	static String wholeEdges7 = "\\whole edges 7 pixels";
+	static String wholeEdges3 = "\\whole edges 3 pixels";
 	static String wholeFlowers = "\\whole flowers";
 	static String wholeFlowerEdges7 = "\\whole flower edges 7 pixels";
 	
@@ -65,8 +66,8 @@ public class ArtAssetPaths {
 	static String greenMeadowGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\green meadow grass_10000";
 	static String tallFescueRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\tallfescue_10000";
 	static String yorkshirefogRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\yorkshirefog_10000";
-	static String barranbromeRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\barran_brome_10000";
-	static String blackbentRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\black_bent_hardened_10000";
+	static String barranbromeRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\barranBrome_10000";
+	static String blackbentRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\blackBent_10000";
 	
 	public static String couchGrassWhole = couchGrassRootPath + whole;
 	public static String dryMeadowGrassWhole = dryMeadowGrassRootPath + whole;
@@ -83,7 +84,7 @@ public class ArtAssetPaths {
 	public static String tallFescueEdges = tallFescueRootPath + wholeEdges7;
 	public static String yorkshirefogEdges = yorkshirefogRootPath + wholeEdges7;
 	public static String barranbromeEdges = barranbromeRootPath + wholeEdges7;
-	public static String blackbentEdges = blackbentRootPath + wholeEdges7;
+	public static String blackbentEdges = blackbentRootPath + wholeEdges3;
 	
 	// a folder containing just 3 image for testing the process
 	static String grassTestRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\test_10000";
@@ -98,7 +99,7 @@ public class ArtAssetPaths {
 	//
 	static String wildFlowerPath = "wild flowers\\";
 	
-	
+	// C:\simon\art assets\sample lib\wild grass\species\barranBrome _10000\whole
 	
 	static String oxeyeDaisyRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "oxeye daisys_brightFlowers_05500";
 	public static String oxeyeDaisyWhole = oxeyeDaisyRootPath + whole;

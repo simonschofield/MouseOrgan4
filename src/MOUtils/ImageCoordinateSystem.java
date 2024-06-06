@@ -141,5 +141,16 @@ public class ImageCoordinateSystem {
 	    	
 	    }
 		
+		
+		
+		
+		public float docSpaceUnitToBufferSpaceUnit(float docMeasure) {
+
+			PVector heightDocSpaceVector = new PVector(0, docMeasure);
+			PVector heightInPixelsVector = docSpaceToBufferSpace(heightDocSpaceVector);
+			return (float) Math.abs(heightInPixelsVector.y);
+
+		}
+		
 
 }

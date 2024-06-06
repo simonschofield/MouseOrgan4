@@ -26,38 +26,39 @@ public class Sprite {
 	////////////////////////////////////////////////////
 	// For Identification purposes
 	// this enables the user to identify seeds from different batches, and sprite fonts within biomes (or individually) 
-	public String SpriteSeedBatchName = "";
-	public String SpriteFontName = "";
-	public String ImageAssetGroupName = "";
+	// To be part of the "flexible" sprite data collection
+	public String SpriteSeedBatchName = "";   	
+	public String SpriteFontName = "";			
+	public String ImageAssetGroupName = "";		
 
 	// the id is a unique integer. It is set by the SpriteSeed constructor from the static UniqueID class declared above. 
-	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each seed
+	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each sprite
 	// regardless of previous random events
-	// It is also used in optimisations such as registering whether or not a seed is used in a render.
-	public int uniqueID;
+	// It is also used in optimisations such as registering whether or not a sprite is used in a render.
+	public int uniqueID;						
 
-	// the randomKey is used to guarantee the same outcome from stochastic processes, rather than relying on the UniqueID. It is initially set to the uniqueID, but if the user is unhappy
-	// with the outcome, then other randomKeys can be set (for instance in seed batch creation) without altering the UniqueID, which should NOT be altered.
-	public int randomKey;
+	// the randomKey is used to guarantee the same outcome from stochastic processes, rather than relying on the UniqueID. It is initially set to equal the uniqueID, but if the user is unhappy
+	// with the random outcomes, then the randomKey can be changed (for instance in seed batch creation), whereas UniqueID should NEVER be altered.
+	public int randomKey;						
 	
 	
 	// Sprite image related stuff
 	// the name of the image sample group to be used by
 	// the number of the item within that group
 	// The short name, which is derived usually from the file name (without extension)
-	public int ImageGroupItemNumber = 0;
-	public String ImageGroupItemShortName= "";
-	private BufferedImage image;
+	public int ImageGroupItemNumber = 0;		
+	public String ImageGroupItemShortName= "";	
+	private BufferedImage image;				
 	public float alpha = 1;
 
 
 	////////////////////////////////////////////////////
 	// Item size-in-scene data and pivot-point
-	//
-	public float sizeInScene = 1;
+	// 
+	private float sizeInScene = 1; // this is the initial size in the scene as set by the user at the start of the spirtes journey, set from the spriteFont
 	public boolean useRelativeSizes = false;
 	private PVector pivotPoint = new PVector(0.5f, 0.5f);
-
+	
 
 	/////////////////////////////////////////////////////
 	// Geometric transforms applied
@@ -603,7 +604,7 @@ public class Sprite {
 	}
 
 	void scaleYToSizeInDocSpace(Float sizeY) {
-		float heightInPixels = docSizeToRenderTargetPixels2D(sizeY);
+		float heightInPixels = GlobalSettings.getTheDocumentCoordSystem().docSpaceUnitToBufferSpaceUnit(sizeY);
 		float scaleY = (heightInPixels / getImageHeight());
 
 		scale(1, scaleY);
@@ -635,7 +636,7 @@ public class Sprite {
 		float scaleX = 1;
 		//System.out.println("scaleToSizeInDocSpace  sizeXY " + sizeX + "  " + sizeY);
 		if (sizeX != null) {
-			float widthInPixels = docSizeToRenderTargetPixels2D(sizeX);
+			float widthInPixels = GlobalSettings.getTheDocumentCoordSystem().docSpaceUnitToBufferSpaceUnit(sizeX);
 			scaleX = (widthInPixels / getImageWidth());
 
 			if (scaleX > 2) {
@@ -646,7 +647,7 @@ public class Sprite {
 		}
 
 		if (sizeY != null) {
-			float heightInPixels = docSizeToRenderTargetPixels2D(sizeY);
+			float heightInPixels = GlobalSettings.getTheDocumentCoordSystem().docSpaceUnitToBufferSpaceUnit(sizeY);
 			scaleY = (heightInPixels / getImageHeight());
 
 
@@ -677,14 +678,7 @@ public class Sprite {
 		//
 	}
 
-	float docSizeToRenderTargetPixels2D(float size) {
-
-		PVector heightDocSpaceVector = new PVector(0, size);
-		PVector heightInPixelsVector = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(heightDocSpaceVector);
-		return (float) Math.abs(heightInPixelsVector.y);
-
-	}
-
+	
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 2D operation map to line
@@ -746,14 +740,16 @@ public class Sprite {
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Scaling to 3D scene. This should be the first transform to be applied to the sprite. 
-	// The sizeInScene value becomes the size of the sprite within the scene using the scenes 3D units. This is claculated from the 
-	// depth at the paste-point of the sprite using the geometry-buffers 3D methods.
+	// The sizeInScene value becomes the size of the sprite within the scene using the scenes 3D units. This is calculated from the 
+	// depth at the paste-point of the sprite using the geometry-buffers 3D methods, based on the sprites height .
+	//
+	// Size in scene does not take into account the pivot point, and is purely relative to the height of the image. It is concerned only with scaling the bitmap appropriately.
 	//
 	public float scaleToSizeInScene(SceneData3D sceneData, float scaleModifier) {
 		// scales the image to the correct size using  sizeInScene to represent the
 		// items's size in the 3D scene in world units.
-
-		float heightInPixels = getHeightInRenderTargetPixels3D(sceneData) * scaleModifier * getRelativeSizeInGroup();
+		sizeInScene *= scaleModifier;
+		float heightInPixels = getBufferSpaceHeightFromSizeInScene(sceneData) * getRelativeSizeInGroup();
 		
 		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
 		float scale = (heightInPixels / getImageHeight()); 
@@ -766,19 +762,20 @@ public class Sprite {
 		return scale;
 	}
 
-	float getHeightInRenderTargetPixels3D(SceneData3D sceneData) {
+	// get getBufferSpaceSizeInScene
+	float getBufferSpaceHeightFromSizeInScene(SceneData3D sceneData) {
 		float scale3D = sceneData.get3DScale(getDocPoint());
 		float heightDocSpace = sizeInScene * scale3D;
 
 		//System.out.println("getHeightInRenderTargetPixels3D: scale3D " + scale3D );
-		float docSizeInPixels =  docSizeToRenderTargetPixels2D(heightDocSpace);
+		float docSizeInPixels =  GlobalSettings.getTheDocumentCoordSystem().docSpaceUnitToBufferSpaceUnit(heightDocSpace);
 		//System.out.println("sprite id " + this.id + " doc point " + docPoint.toString() + " height doc space = " + heightDocSpace + "  size pixels " + docSizeInPixels);
 		//System.out.println();
 		return docSizeInPixels;
 	}
 
 
-
+	
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	/// end of geometric transforms
