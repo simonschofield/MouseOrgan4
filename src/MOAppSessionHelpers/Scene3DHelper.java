@@ -55,9 +55,15 @@ public class Scene3DHelper {
 		}
 		
 		public static SpriteSeedBatch createSeedbatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey) {
+			
+			return createSeedbatch3D( name,  packingImage,  controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax,  pointPackingRanSeed,  seedRandomKey,1000000);
+		}
+		
+		public static SpriteSeedBatch createSeedbatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
 			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
 			SpriteSeedBatchHelper_Scene3D seedBatchHelper = new SpriteSeedBatchHelper_Scene3D(name, sceneData3D);
 			seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
+			seedBatchHelper.setMaxNumPoints(maxNumPoints);
 			return seedBatchHelper.generateSpriteSeedBatch(seedRandomKey);
 		} 
 		

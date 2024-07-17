@@ -23,6 +23,7 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	KeyImageSampler distributionKeyImageSampler;
 	boolean fitDistributionImageToGenerationAreaRect = false;
 
+	int maxPointsPlacedLimit = 1000000; // never needed a million
 	// this is the number of attempts to try and find a point available for adding before the packing
 	// gives up
 	int attemptsCounter = 300;
@@ -48,6 +49,11 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	public void setPackingInterpolationScheme(PackingInterpolationScheme is,  BufferedImage distImg) {
 		packingInterpolationScheme = is;
 		distributionKeyImageSampler = new KeyImageSampler(distImg);
+	}
+	
+	public void setMaxNumPointsLimit(int n) {
+		maxPointsPlacedLimit = n;
+		
 	}
 	
 	
@@ -140,11 +146,12 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 				if(attempts > previousBiggestNumberOfAttempts) {
 					previousBiggestNumberOfAttempts = attempts;
 					int percent = (int)((previousBiggestNumberOfAttempts/(float)attemptsCounter)*100);
-					System.out.print( percent + "%, " );
+					int numPoints = points.size();
+					System.out.print( percent + "% (" + numPoints + "), " );
 				}
 				attempts = 0;
 			}
-			if (attempts > attemptsCounter) {
+			if (attempts > attemptsCounter || points.size()> maxPointsPlacedLimit) {
 				System.out.println("100%: total placed " + getNumItems());
 				break;
 			}

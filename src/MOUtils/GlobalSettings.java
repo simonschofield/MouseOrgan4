@@ -40,7 +40,7 @@ public class GlobalSettings {
 	private static String sampleLibPath = "C:\\simon\\art assets\\sample lib\\";
 	private static String dataAssetsPath = "C:\\simon\\art assets\\data\\";
 	private static String liveProjectsBasePath = "C:\\simon\\Artwork\\MouseOrgan Projects\\";
-	private static String mouseOrganImageCachePath = "C:\\mouseOrganImageCache2\\";
+	private static String mouseOrganImageCachePath = "C:\\mouseOrganDefaultCache\\";
 	private static String userSessionPath = "";
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,8 +177,15 @@ public class GlobalSettings {
 	
 	
 	public static String makeUserSessionPath(String subPath) {
+		String userSessPath = getLiveProjectsBasePath() + subPath;
 		
-		return getLiveProjectsBasePath() + subPath;
+		boolean ok = MOUtils.MOStringUtils.checkDirectoryExist(userSessPath);
+		
+		if(!ok) {
+			System.out.println("Fatal Error:: GlobalSettings.makeUserSessionPath - path " + userSessPath + " does not exist, please check");
+			System.exit(0);
+		}
+		return userSessPath;
 		
 	}
 	
@@ -202,6 +209,12 @@ public class GlobalSettings {
 			pth = pth + type + "\\";
 		}
 		return pth;
+	}
+	
+	
+	public static void setMouseOrganImageCacheName(String cacheName) {
+		// "C:\\mouseOrganImageCache2\\";
+		mouseOrganImageCachePath = "C:\\" + cacheName + "\\";
 	}
 
 

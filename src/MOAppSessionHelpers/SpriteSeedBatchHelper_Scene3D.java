@@ -54,6 +54,11 @@ public class SpriteSeedBatchHelper_Scene3D {
 		return pointField;
 	}
 	
+	
+	void setMaxNumPoints(int n) {
+		pointGenerator.setMaxNumPointsLimit(n);
+	}
+	
 	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
 		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
 	}

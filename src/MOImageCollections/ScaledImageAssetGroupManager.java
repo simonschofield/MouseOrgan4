@@ -50,6 +50,10 @@ public class ScaledImageAssetGroupManager {
 		return null;
 	}
 	
+	public int getNumGroups() {
+		return theScaledImageAssetGroupList.size();
+	}
+	
 
 	int getNumImageAssetsInGroup(String name) {
 		ScaledImageAssetGroup cc = getScaledImageAssetGroup(name);
@@ -162,6 +166,17 @@ public class ScaledImageAssetGroupManager {
 		if (ic == null)
 			return;
 		ic.scaleAll(inx, iny);
+	}
+	
+	public String[] getLoadedImageAssetGroupNames() {
+		int n = this.getNumGroups();
+		String[] names = new String[n];
+		int i = 0;
+		for (ScaledImageAssetGroup cc : theScaledImageAssetGroupList) {
+			names[i] = cc.getGroupName();
+			i++;
+		}
+		return names;
 	}
 
 	/**

@@ -3,6 +3,7 @@ package MOAppSessionHelpers;
 import java.awt.image.BufferedImage;
 
 import MOImage.ImageProcessing;
+import MOImage.MOPackedColor;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.ImageAssetGroup;
 import MOMaths.MOMaths;
@@ -54,6 +55,24 @@ public class GradientImageMaker {
 		
 	}
 	
+	public BufferedImage getLinearGradientImage() {
+		BufferedImage grad = new BufferedImage(8, 256, BufferedImage.TYPE_INT_ARGB);
+		for(int y = 0; y < 256; y++) {
+			int tone = 255-y;
+			int packedCol = MOPackedColor.packARGB(255, tone,tone,tone);
+			for(int x = 0; x < 8; x++) {	
+			 grad.setRGB(x, y, packedCol);
+			}
+			
+		}
+		return grad;
+	}
+	
+	public BufferedImage getGradientImage(float gamma) {
+		// uses the standard Photoshop gamma settings (0.001..1..10), where 1 is no gamma
+		BufferedImage linGrad = getLinearGradientImage();
+		return ImageProcessing.adjustLevels(linGrad, 0, gamma, 255, 0, 255);
+	}
 	
 	
 	public BufferedImage makeGradient(float brightness, int gradientType) {

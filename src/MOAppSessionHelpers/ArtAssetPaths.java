@@ -21,7 +21,7 @@ public class ArtAssetPaths {
 	/////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Pre-prepared black and white "drawing" style images
-	// This is being depricated
+	// This is being deprecated
 	//
 	static String wildGrassBWPath = "wild grass\\bw\\";
 
@@ -54,6 +54,7 @@ public class ArtAssetPaths {
 	//
 	static String whole = "\\whole";
 	static String wholeEdges7 = "\\whole edges 7 pixels";
+	static String wholeEdges5 = "\\whole edges 5 pixels";
 	static String wholeEdges3 = "\\whole edges 3 pixels";
 	static String wholeFlowers = "\\whole flowers";
 	static String wholeFlowerEdges7 = "\\whole flower edges 7 pixels";
@@ -61,13 +62,15 @@ public class ArtAssetPaths {
 	static String wildGrassPath = "wild grass\\";
    
     
-	static String couchGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "low level coverage\\basic grass_6000";
+	static String couchGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "low level coverage\\basic_grass_skinny_6000";
 	static String dryMeadowGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\dry meadow grass_10000";
 	static String greenMeadowGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\green meadow grass_10000";
 	static String tallFescueRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\tallfescue_10000";
 	static String yorkshirefogRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\yorkshirefog_10000";
 	static String barranbromeRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\barranBrome_10000";
 	static String blackbentRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\blackBent_10000";
+	static String timothyRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\timothy_7000";
+	static String cocksfootRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\cocksfoot_10000";
 	
 	public static String couchGrassWhole = couchGrassRootPath + whole;
 	public static String dryMeadowGrassWhole = dryMeadowGrassRootPath + whole;
@@ -76,15 +79,23 @@ public class ArtAssetPaths {
 	public static String yorkshirefogWhole = yorkshirefogRootPath + whole;
 	public static String barranbromeWhole = barranbromeRootPath + whole;
 	public static String blackbentWhole = blackbentRootPath + whole;
+	public static String timothyWhole = timothyRootPath + whole;
+	public static String cocksfootWhole = cocksfootRootPath + whole;
 	
 	
-	public static String couchGrassEdges = couchGrassRootPath + wholeEdges7;
+	
+	public static String couchGrassEdges = couchGrassRootPath + wholeEdges5;
 	public static String dryMeadowGrassEdges = dryMeadowGrassRootPath + wholeEdges7;
 	public static String greenMeadowGrassEdges = greenMeadowGrassRootPath + wholeEdges7;
 	public static String tallFescueEdges = tallFescueRootPath + wholeEdges7;
 	public static String yorkshirefogEdges = yorkshirefogRootPath + wholeEdges7;
 	public static String barranbromeEdges = barranbromeRootPath + wholeEdges7;
 	public static String blackbentEdges = blackbentRootPath + wholeEdges3;
+	public static String timothyEdges = timothyRootPath + wholeEdges3;
+	public static String cocksfootEdges = cocksfootRootPath + wholeEdges5;
+	
+	
+	
 	
 	// a folder containing just 3 image for testing the process
 	static String grassTestRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\test_10000";
@@ -132,7 +143,14 @@ public class ArtAssetPaths {
 	public static String buttercupWholeEdges = buttercupRootPath + wholeEdges7;
 	public static String buttercupFlowers = buttercupRootPath + wholeFlowers;
 	public static String buttercupFlowerEdges = buttercupRootPath + wholeFlowerEdges7;
-	public static String buttercupTestFlowers = buttercupRootPath + "\\testFlowers";
+	//public static String buttercupTestFlowers = buttercupRootPath + "\\testFlowers";
+	
+	static String ribwortPlantainRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "ribwortPlantain_6000";
+	public static String ribwortPlantainWhole = ribwortPlantainRootPath + whole;
+	public static String ribwortPlantainWholeEdges = ribwortPlantainRootPath + wholeEdges5;
+	//public static String buttercupFlowers = ribwortPlantainRootPath + wholeFlowers;
+	//public static String buttercupFlowerEdges = ribwortPlantainRootPath + wholeFlowerEdges7;
+	//public static String buttercupTestFlowers = ribwortPlantainRootPath + "\\testFlowers";
 	
 	
 	public static String noiseBasedTextures = GlobalSettings.getSampleLibPath() + "textures\\noise based textures";

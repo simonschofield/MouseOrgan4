@@ -141,6 +141,20 @@ public class MOStringUtils {
 	
 	
 	
+	public static boolean stringListContains(String[] stringList, String thisString) {
+		
+		for (String s : stringList) {
+		    if (s.equals(thisString)) {
+		        return true;
+		    }
+		}
+		return false;
+	}
+	
+	
+	
+	
+	
 }
 
 
