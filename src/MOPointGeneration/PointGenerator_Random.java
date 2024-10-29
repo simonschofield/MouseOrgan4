@@ -33,7 +33,10 @@ public class PointGenerator_Random extends CollectionIterator{
 
 	// the list of points eventiallu calculated
 	ArrayList<PVector> points = new ArrayList<PVector>();
-
+	
+	
+	int pointsCacheThreshold = 50000;
+	ArrayList<PVector> pointsCache = new ArrayList<PVector>();
 	// so this class isn't entirely abstract
 	int numberOfPointsRequest = 1000;
 	
@@ -46,6 +49,22 @@ public class PointGenerator_Random extends CollectionIterator{
 		float h = GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight();
 		setGenerationArea(new Rect(0,0,w,h));
 		//System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
+	}
+	
+	
+	void clearPointsAndUPdatePointsCache() {
+		pointsCache.addAll(points);
+		points.clear();
+	}
+	
+	
+	int getTotalNumberPointsFound() {
+		return pointsCache.size() + points.size();
+	}
+	
+	void addBackCachePoints() {
+		
+		points.addAll(pointsCache);
 	}
 	
 
@@ -145,7 +164,7 @@ public class PointGenerator_Random extends CollectionIterator{
 	@Override
 	public int getNumItems() {
 		// TODO Auto-generated method stub
-		return points.size();
+		return getTotalNumberPointsFound();
 	}
 
 	@Override

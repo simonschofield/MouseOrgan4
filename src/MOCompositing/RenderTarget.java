@@ -209,8 +209,8 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	
 	// uses an alternative image when pasting - this allows the user to process the sprite's
 	// normal image in anyway desired and the used instead of the sprite image
-	public void pasteSpriteAltImage(Sprite sprite, BufferedImage altImage) {
-		pasteImage_TopLeftDocPoint(altImage, sprite.getDocSpaceRect().getTopLeft(),  1);
+	public void pasteSpriteAltImage(Sprite sprite, BufferedImage altImage, float alpha) {
+		pasteImage_TopLeftDocPoint(altImage, sprite.getDocSpaceRect().getTopLeft(),  alpha);
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////
@@ -234,7 +234,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	// Not sure if there should be any anti-alias smoothing included working on the edges of the alpha sprites
 	// The depth value of 0 is reserved to represent "no substance" e.g. sky
 	// The value to be added should be in the range 0...1
-	public void pasteSpriteMaskTo16BitGray(Sprite sprite, float val, boolean antialias) {
+	public void pasteSpriteMaskTo16BitGray(Sprite sprite, float val) {
 		
 		if(getType() != BufferedImage.TYPE_USHORT_GRAY) {
 			System.out.println("RenderTarget.pasteSpriteMaskTo16BitGray :: target mask is not USHORT_GRAY");
@@ -269,26 +269,9 @@ public class RenderTarget implements MainDocumentRenderTarget{
 				if(targetX < 0 || targetX >= targetWidth || targetY < 0 || targetY >= targetHeight) continue;
 					
 				int sourceImageAphaValue = sourceImageAlphaData.getSample(x, y, 0);
-				
-				if(antialias) {
-					if(sourceImageAphaValue == 0) continue;
-					if(sourceImageAphaValue > 250) {
-						targetImageData.setSample(targetX, targetY, 0,shortval);
-						continue;
-					}
-					
-					float targetCurrentPixelValueF = targetImageData.getSample(targetX, targetY, 0)/65536f;
-					float sourceImageAphaValueF = sourceImageAphaValue/255f;
-					float blendedValue = MOMaths.lerp(sourceImageAphaValueF, targetCurrentPixelValueF, val);
-					
-					targetImageData.setSample(targetX, targetY, 0,(int)(blendedValue*65536));
-					
-				} else {
+				if(sourceImageAphaValue>127) targetImageData.setSample(targetX, targetY, 0,shortval);
 				
 				
-					if(sourceImageAphaValue>127) targetImageData.setSample(targetX, targetY, 0,shortval);
-				
-				}
 			}
 		}
 

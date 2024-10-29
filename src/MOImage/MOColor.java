@@ -194,7 +194,7 @@ public class MOColor {
 		int g = (int) MOMaths.lerp(blendAmt, c1g, c2g);
 		int b = (int) MOMaths.lerp(blendAmt, c1b, c2b);
 		int a = (int) MOMaths.lerp(blendAmt, c1a, c2a);
-		//System.out.println("blend color " + r + " " + g + " "+ b + " "+ a + " " );
+		System.out.println("gamma blend color " + r + " " + g + " "+ b + " "+ a + " " );
 		return new Color(r,g,b,a);
 		
 	}

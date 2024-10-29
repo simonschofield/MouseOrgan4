@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOApplication.MainDocument;
-import MOCompositing.SpriteCropDecisionList;
+import MOCompositing.ContributingSpritesList;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
@@ -176,7 +176,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		// if the file cannot be found, then the class is alerted to save one out at the end of this session
 		if(roiHelper.isUsingMaster()) return false;
 		//SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
-		SpriteCropDecisionList spriteCropList = new SpriteCropDecisionList();
+		ContributingSpritesList spriteCropList = new ContributingSpritesList();
 		
 		String fname = getContributingSpritesFilePathAndName(roiHelper);
 		boolean loadResult = spriteCropList.load(fname);
@@ -203,7 +203,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		System.out.println("saveContributingSpritesReport: saving" + fname);
 		
 		
-		theDocument.getRenderBorder().getSpriteCropDecisionList().save( fname );
+		theDocument.getRenderBorder().getContributingSpritesList().save( fname );
 		
 	}
 	

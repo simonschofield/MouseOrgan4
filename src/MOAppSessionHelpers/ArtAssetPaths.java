@@ -1,167 +1,188 @@
 package MOAppSessionHelpers;
 
+
+import java.util.ArrayList;
+
 import MOUtils.GlobalSettings;
+import MOUtils.MOStringUtils;
 
 public class ArtAssetPaths {
-	
-	/////////////////////////////////////////////////////////////////////////////////////////
-	// bank of paths to the assets used
-	// Any path from this class should NOT end with a trailing slash "\\" as they are given to a DirectoryScanner
-	// and so identify the directory, not the files within
-	//
-	
-	/////////////////////////////////////////////////////////////////////////////////////////
-	// Notes on structure of the SampleLib directory
-	// If a type of collection (e.g. Oxeyedaisy) has extra variants within its structure (e.g. flowers, or edge rendering)
-	// there is a top level directory called "Oxeyedaisy", and the "normal" image files are in a sub-directory called "whole". All
-	// the other variants are contained in separate sub-directories at the same level
-	// Overlay Images - For files that are overlays of the "whole" file, they should be the same dimensions, and have the same file name.
-	// Overlay image directories begin with the name "whole" and then specifics about the overlay content
-	
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// Pre-prepared black and white "drawing" style images
-	// This is being deprecated
-	//
-	static String wildGrassBWPath = "wild grass\\bw\\";
 
-	public static String couchGrassBW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "basic grass_6000_improved";
-	public static String dryMeadowGrassBW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "dry meadow grass_10000";
-	public static String greenMeadowGrass1BW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "green meadow grass_1_10000";
-	public static String greenMeadowGrass2BW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "green meadow grass_2_10000";
-	public static String tallFescueBW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "tall_fescue_10000";
-	public static String brightGrassBW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "bright grass_10000";
-	public static String yorkshirefogBW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "yorkshirefog_10000";
-	public static String barranbromeBW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "barran_brome_10000_fineline";
-	public static String blackbentBW = GlobalSettings.getSampleLibPath() + wildGrassBWPath + "black_bent_10000_fineline";
-	
-	static String wildFlowerBWPath = "wild flowers\\bw\\";
-	
-	
-	
-	public static String oxeyeDaisyBW = GlobalSettings.getSampleLibPath() + wildFlowerBWPath + "oxeye daisys_natural_05500";
-	public static String cowparsleyBW = GlobalSettings.getSampleLibPath() + wildFlowerBWPath + "Cow_parsley_whole_10000";
-	public static String dandelionBW = GlobalSettings.getSampleLibPath() + wildFlowerBWPath + "Dandelion_6000";
-	public static String cornCockleBW = GlobalSettings.getSampleLibPath() + wildFlowerBWPath + "corncockle_7000";
-	public static String buttercupBW = GlobalSettings.getSampleLibPath() + wildFlowerBWPath + "Buttercups_7500";
-	
-	
-	
 	/////////////////////////////////////////////////////////////////////////////////////////
+	// The class associates a user-give name to a particular path to a directory containing the assets in the sample lib.
+	// The user-given name should be unique to that set of assets, as the name (the baseName) is then used to build a path in the current cache directory
+	// The structure of the cache is now very flat (i.e. C:currentcachDirectory//baseName//cached_scaled_10)
+	// so the cache no longer makes any reference to the sample lib path.
+	// The means that the any new groups created at run-time can be cached. It also means that, if new groups are made at run time, the includes list for creating the cache
+	// will be shorter (only including assets to load from the sample lib) from the includes list for loading from the cache (same as load list, but with extra created group names).
+	// Sample lib paths and cache paths can then be queried by using the base name.
+
+	static ArtAssetPathList pathList = new ArtAssetPathList();
+	
+	private static String sampleLib = GlobalSettings.getSampleLibPath();
+	private static String wildGrassPath = "wild grass\\";
+	private static String wildFlowerPath = "wild flowers\\";
+
+	
+
+	//public static String noiseBasedTextures = GlobalSettings.getSampleLibPath() + "textures\\noise based textures";
+
+
+	public static void buildpaths() {
+
+		// grasses
+		pathList.addAssetPath("basicGrass", sampleLib + wildGrassPath + "low level coverage\\basic grass_6000\\whole");
+		pathList.addAssetPath("basicSkinnyGrass", sampleLib + wildGrassPath + "low level coverage\\basic_grass_skinny_6000\\whole");
+		pathList.addAssetPath("couchGrass", sampleLib + wildGrassPath + "low level coverage\\green couch_03500\\whole");
+		pathList.addAssetPath("dryMeadowGrass", sampleLib + wildGrassPath + "mixed meadow grass\\dry meadow grass_10000\\whole");
+		pathList.addAssetPath("greenMeadowGrass", sampleLib + wildGrassPath + "mixed meadow grass\\green meadow grass_10000\\whole");
+		pathList.addAssetPath("tallFescue", sampleLib + wildGrassPath + "species\\tallfescue_10000\\whole");
+		pathList.addAssetPath("yorkshirefog", sampleLib + wildGrassPath + "species\\yorkshirefog_10000\\whole");
+		pathList.addAssetPath("barranbrome", sampleLib + wildGrassPath + "species\\barranBrome_10000\\whole");
+		pathList.addAssetPath("blackbent", sampleLib + wildGrassPath + "species\\blackBent_10000\\whole");
+		pathList.addAssetPath("timothy", sampleLib + wildGrassPath + "species\\timothy_7000\\whole");
+		pathList.addAssetPath("cocksfoot", sampleLib + wildGrassPath + "species\\cocksfoot_10000\\whole");
+		pathList.addAssetPath("wildBarley", sampleLib + wildGrassPath + "species\\wild barley_06500\\whole");
+		
+		// wild flowers
+		pathList.addAssetPath("oxeyeDaisy", sampleLib + wildFlowerPath + "oxeye daisys_05500\\whole");
+		pathList.addAssetPath("oxeyeDaisyFlowers", sampleLib + wildFlowerPath + "oxeye daisys_05500\\whole flowers");
+		pathList.addAssetPath("cowparsley", sampleLib + wildFlowerPath + "cowparsley\\whole");
+		pathList.addAssetPath("cowparsleyFlowers", sampleLib + wildFlowerPath + "cowparsley\\whole flowers");
+		pathList.addAssetPath("dandelion", sampleLib + wildFlowerPath + "dandelion_6000\\whole");
+		pathList.addAssetPath("dandelionFlowers", sampleLib + wildFlowerPath + "dandelion_6000\\whole flowers");
+		pathList.addAssetPath("cornCockle", sampleLib + wildFlowerPath + "corncockle_7000\\whole");
+		pathList.addAssetPath("cornCockleFlowers", sampleLib + wildFlowerPath + "corncockle_7000\\whole flowers");
+		pathList.addAssetPath("buttercup", sampleLib + wildFlowerPath + "buttercups_7500\\whole");
+		pathList.addAssetPath("buttercupFlowers", sampleLib + wildFlowerPath + "buttercups_7500\\whole flowers");
+		
+		pathList.addAssetPath("ribwortPlantain", sampleLib + wildFlowerPath + "ribwortPlantain_6000\\whole");
+		pathList.addAssetPath("clover", sampleLib + wildFlowerPath + "clover\\whole");
+		
+		
+	}
+
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Returns the path to the original source asset in the Sample Lib directory
+	// For convenience, the user can ask for the simple baseName of the asset, they get the path to the "Whole" directory
+	// 
+	// Will throw an excepti0n if the asset path does not exist here
 	//
-	// Colour images - wild grass and associated assets
-	//
-	//
-	static String whole = "\\whole";
-	static String wholeEdges7 = "\\whole edges 7 pixels";
-	static String wholeEdges5 = "\\whole edges 5 pixels";
-	static String wholeEdges3 = "\\whole edges 3 pixels";
-	static String wholeFlowers = "\\whole flowers";
-	static String wholeFlowerEdges7 = "\\whole flower edges 7 pixels";
+	public static String getAssetSampleLibPath(String baseName) {
+		return pathList.getPath(baseName);
+	}
 	
-	static String wildGrassPath = "wild grass\\";
-   
-    
-	static String couchGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "low level coverage\\basic_grass_skinny_6000";
-	static String dryMeadowGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\dry meadow grass_10000";
-	static String greenMeadowGrassRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\green meadow grass_10000";
-	static String tallFescueRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\tallfescue_10000";
-	static String yorkshirefogRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\yorkshirefog_10000";
-	static String barranbromeRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\barranBrome_10000";
-	static String blackbentRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\blackBent_10000";
-	static String timothyRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\timothy_7000";
-	static String cocksfootRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "species\\cocksfoot_10000";
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Returns the path to the cached version of the asset.
+	// Assumes the cachePath has already been set
+	// In this newer version the cache does not duplicate the structure of the SampleLib but is a flattened directory structure where each base name folder appears at the top level. 
+	// So ensure each different asset has a unique base-name. 
+	// The enables more than one cached version to be generated from a single Asset at run-time. 
+	// 
+	// 
+	public static String getAssetCachePath(String baseName) {
+		
+		
+		int scalePercentile = (int) (GlobalSettings.getSessionScale() * 100);
+		String cachFolderRoot = GlobalSettings.getMouseOrganImageCachePath(); // C:cacheName//
 	
-	public static String couchGrassWhole = couchGrassRootPath + whole;
-	public static String dryMeadowGrassWhole = dryMeadowGrassRootPath + whole;
-	public static String greenMeadowGrassWhole = greenMeadowGrassRootPath + whole;
-	public static String tallFescueWhole = tallFescueRootPath + whole;
-	public static String yorkshirefogWhole = yorkshirefogRootPath + whole;
-	public static String barranbromeWhole = barranbromeRootPath + whole;
-	public static String blackbentWhole = blackbentRootPath + whole;
-	public static String timothyWhole = timothyRootPath + whole;
-	public static String cocksfootWhole = cocksfootRootPath + whole;
+		String cachedFolderName = cachFolderRoot + baseName + "\\cached_scaled_" + scalePercentile + "\\";
+		
+		System.out.println("scaled images cache directory ..." + cachedFolderName);
+		return cachedFolderName;
+	}
+	
+	// returns the basename from any varient
 	
 	
+	public static boolean checkAssetBaseNameExists(String baseNameQuery) {
+		ArrayList<String> baseNames = getRegisteredBaseNames();
+		for(String baseName: baseNames) {
+			if(baseName.equals(baseNameQuery)) return true;
+			
+		}
+		System.out.println("checkAssetBaseNameExists has returned false on " + baseNameQuery);
+		return false;
+	}
 	
-	public static String couchGrassEdges = couchGrassRootPath + wholeEdges5;
-	public static String dryMeadowGrassEdges = dryMeadowGrassRootPath + wholeEdges7;
-	public static String greenMeadowGrassEdges = greenMeadowGrassRootPath + wholeEdges7;
-	public static String tallFescueEdges = tallFescueRootPath + wholeEdges7;
-	public static String yorkshirefogEdges = yorkshirefogRootPath + wholeEdges7;
-	public static String barranbromeEdges = barranbromeRootPath + wholeEdges7;
-	public static String blackbentEdges = blackbentRootPath + wholeEdges3;
-	public static String timothyEdges = timothyRootPath + wholeEdges3;
-	public static String cocksfootEdges = cocksfootRootPath + wholeEdges5;
-	
-	
-	
-	
-	// a folder containing just 3 image for testing the process
-	static String grassTestRootPath = GlobalSettings.getSampleLibPath() + wildGrassPath + "mixed meadow grass\\test_10000";
-	public static String grassTestWhole = grassTestRootPath + whole;
-	public static String grassTestEdges = grassTestRootPath + wholeEdges7;
+
+	public static ArrayList<String> getRegisteredBaseNames() {
+		return pathList.getRegisteredBaseNames();
+	}
 	
 	
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// Colour images - wild flowers and associated assets
-	//
-	//
-	static String wildFlowerPath = "wild flowers\\";
+
+
+}
+
+
+class ArtAssetPathList{
 	
-	// C:\simon\art assets\sample lib\wild grass\species\barranBrome _10000\whole
-	
-	static String oxeyeDaisyRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "oxeye daisys_brightFlowers_05500";
-	public static String oxeyeDaisyWhole = oxeyeDaisyRootPath + whole;
-	public static String oxeyeDaisyWholeEdges = oxeyeDaisyRootPath + wholeEdges7;
-	public static String oxeyeDaisyFlowers = oxeyeDaisyRootPath + wholeFlowers;
-	public static String oxeyeDaisyFlowerEdges = oxeyeDaisyRootPath + wholeFlowerEdges7;
-	
-	static String cowparsleyRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "cowparsley";
-	public static String cowparsleyWhole = cowparsleyRootPath + whole;
-	public static String cowparsleyWholeEdges = cowparsleyRootPath + wholeEdges7;
-	public static String cowparsleyFlowers = cowparsleyRootPath + wholeFlowers;
-	public static String cowparsleyFlowerEdges = cowparsleyRootPath + wholeFlowerEdges7;
-	public static String cowparsleyFlowersFantasia = cowparsleyRootPath + "whole flower fantasia";
-	public static String cowparsleyFlowersFantasiaEdges = cowparsleyRootPath + "whole flower fantasia edges 7 pixels";
-	
-	static String dandelionRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "dandelion_6000";
-	public static String dandelionWhole = dandelionRootPath + whole;
-	public static String dandelionWholeEdges = dandelionRootPath + wholeEdges7;
-	public static String dandelionFlowers  = dandelionRootPath + wholeFlowers;
-	public static String dandelionFlowerEdges  = dandelionRootPath + wholeFlowerEdges7;
-	
-	static String cornCockleRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "corncockle_7000";
-	public static String cornCockleWhole = cornCockleRootPath + whole;
-	public static String cornCockleWholeEdges = cornCockleRootPath + wholeEdges7;
-	public static String cornCockleFlowers = cornCockleRootPath + wholeFlowers;
-	public static String cornCockleFlowerEdges = cornCockleRootPath + wholeFlowerEdges7;
-	
-	static String buttercupRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "buttercups_7500";
-	public static String buttercupWhole = buttercupRootPath + whole;
-	public static String buttercupWholeEdges = buttercupRootPath + wholeEdges7;
-	public static String buttercupFlowers = buttercupRootPath + wholeFlowers;
-	public static String buttercupFlowerEdges = buttercupRootPath + wholeFlowerEdges7;
-	//public static String buttercupTestFlowers = buttercupRootPath + "\\testFlowers";
-	
-	static String ribwortPlantainRootPath = GlobalSettings.getSampleLibPath() + wildFlowerPath + "ribwortPlantain_6000";
-	public static String ribwortPlantainWhole = ribwortPlantainRootPath + whole;
-	public static String ribwortPlantainWholeEdges = ribwortPlantainRootPath + wholeEdges5;
-	//public static String buttercupFlowers = ribwortPlantainRootPath + wholeFlowers;
-	//public static String buttercupFlowerEdges = ribwortPlantainRootPath + wholeFlowerEdges7;
-	//public static String buttercupTestFlowers = ribwortPlantainRootPath + "\\testFlowers";
+	ArrayList<ArtAssetPathListElement> pathList = new ArrayList<ArtAssetPathListElement>();
 	
 	
-	public static String noiseBasedTextures = GlobalSettings.getSampleLibPath() + "textures\\noise based textures";
+	void addAssetPath(String baseName, String path) {
+		ArtAssetPathListElement el = new ArtAssetPathListElement(baseName,  path);
+		pathList.add(el);
+	}
 	
 	
 	
+	public String getPath(String baseName) {
+		
+		ArtAssetPathListElement el = getArtAssetPathListElement(baseName);
+		if(el==null) {
+			return "";
+		}
+		
+
+		boolean assetExists = MOStringUtils.checkDirectoryExist(el.fullPath);
+		if(assetExists) {
+			return el.fullPath;
+		} else {
+			System.out.println("ArtAssetPathList.getPath - directory does not exist  " + el.fullPath);
+			
+	    }
+
+		return null;
+	}
+
+	private ArtAssetPathListElement getArtAssetPathListElement(String baseNm) {
+		for(ArtAssetPathListElement el: pathList) {
+			if(el.baseName.equals(baseNm)) return el;
+		}
+		System.out.println("ArtAssetPathListElement.getArtAssetPathListElement - cannot find element with basename of  " + baseNm);
+		return null;
+		
+	}
 	
+	ArrayList<String> getRegisteredBaseNames(){
+		ArrayList<String> out = new ArrayList<String>();
+		for(ArtAssetPathListElement el: pathList) {
+			out.add(el.baseName);
+		}
+		return out;
+	}
 	
+}
+
+
+class ArtAssetPathListElement{
+	String baseName;
+	String fullPath;
 	
-	
+	ArtAssetPathListElement(String name, String path){
+		baseName = name;
+		fullPath = path;
+		
+		boolean assetExists = MOStringUtils.checkDirectoryExist(fullPath);
+		if(assetExists == false) {
+			System.out.println("ArtAssetPathListElement - rootPath->whole directory for does not exist  " + fullPath);
+	    }
+	}
 	
 	
 	
 }
+

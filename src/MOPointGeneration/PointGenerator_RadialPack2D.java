@@ -28,6 +28,8 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	// gives up
 	int attemptsCounter = 300;
 
+	
+	
 	public PointGenerator_RadialPack2D(int rseed) {
 		super(rseed);
 	}
@@ -90,9 +92,8 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
     }
 	
 	ArrayList<PVector> generateImageResponsiveDistributedPoints() {
-		int previousBiggestNumberOfAttempts = 0;
 		
-		
+		int lastpercentdisplayed = 0;
 		
 		
 		int attempts = 0;
@@ -143,24 +144,57 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 				attempts++;
 			} else {
 				
-				if(attempts > previousBiggestNumberOfAttempts) {
-					previousBiggestNumberOfAttempts = attempts;
-					int percent = (int)((previousBiggestNumberOfAttempts/(float)attemptsCounter)*100);
-					int numPoints = points.size();
+				if(points.size()==pointsCacheThreshold) {
+					clearPointsAndUPdatePointsCache();
+					//System.out.print(", updated points cache " + getNumItems());
+				}
+				
+				
+				int numPoints = getTotalNumberPointsFound();
+				
+				int percent = (int)( (numPoints/(float)maxPointsPlacedLimit) * 100);
+				if(percent%10==0 && percent>lastpercentdisplayed) {
+					lastpercentdisplayed = percent;
 					System.out.print( percent + "% (" + numPoints + "), " );
 				}
 				attempts = 0;
 			}
-			if (attempts > attemptsCounter || points.size()> maxPointsPlacedLimit) {
+			
+			if (attempts >= attemptsCounter) {
+				System.out.println("Bailed as too many attempts to find a new location: total placed " + getNumItems());
+				break;
+			}
+			
+			if( getTotalNumberPointsFound()>= maxPointsPlacedLimit) {
 				System.out.println("100%: total placed " + getNumItems());
 				break;
 			}
 		}
 		
-		
+		addBackCachePoints();
 		return points;
 
 	}
+	
+	/*
+	 * 
+	 void clearPointsAndUPdatePointsCache() {
+		pointsCache.addAll(points);
+		points.clear();
+	}
+	
+	
+	int getTotalNumberPointsFound() {
+		return pointsCache.size() + points.size();
+	}
+	
+	void addBackCachePoints() {
+		
+		points.addAll(pointsCache);
+	}
+	 * 
+	 * 
+	 */
 
 	boolean tryAddDistributedPoint(PVector thisPt, float radius) {
 		// just tries to add 1 point, returns true if added, false if not added

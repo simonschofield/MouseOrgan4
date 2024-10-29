@@ -27,7 +27,8 @@ public class GradientImageMaker {
 
 	public GradientImageMaker() {
 
-		linearGradientImage = ImageProcessing.loadImage(GlobalSettings.getSampleLibPath() + "mask images\\gradients\\gradientUnbiased.png");
+		//linearGradientImage = ImageProcessing.loadImage(GlobalSettings.getSampleLibPath() + "mask images\\gradients\\gradientUnbiased.png");
+		linearGradientImage = getLinearGradientImage();
 		blackImage = ImageProcessing.loadImage(GlobalSettings.getSampleLibPath() + "mask images\\gradients\\black.png");
 		whiteImage = ImageProcessing.loadImage(GlobalSettings.getSampleLibPath() + "mask images\\gradients\\white.png");
 	}
@@ -170,6 +171,8 @@ public class GradientImageMaker {
 	}
 
 
-
+	public BufferedImage invert(BufferedImage in) {
+		return ImageProcessing.invert(in);
+	}
 
 }

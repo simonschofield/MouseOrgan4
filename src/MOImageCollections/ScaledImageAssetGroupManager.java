@@ -223,7 +223,7 @@ public class ScaledImageAssetGroupManager {
 		paradeContent(groupName,null, rt);
 	}
 
-	void paradeContent(String groupName, MOColorTransform colTransform, RenderTarget rt) {
+	public void paradeContent(String groupName, MOColorTransform colTransform, RenderTarget rt) {
 		ScaledImageAssetGroup sampleGroup = this.getScaledImageAssetGroup(groupName).copy(groupName + "copy");
 		
 		int numItems = sampleGroup.getNumImageAssets();
@@ -295,8 +295,8 @@ public class ScaledImageAssetGroupManager {
 					img = ImageProcessing.resizeTo(img, scaledWidth, scaledHeight);
 					rt.pasteImage_BufferCoordinates(img, thisItemX, thisItemY, 1.0f);
 
-					rt.drawText(itemName, thisItemX, thisItemY + scaledHeight + 50, 50,
-							Color.DARK_GRAY);
+					//rt.drawText(itemName, thisItemX, thisItemY + scaledHeight + 50, 50,
+					//		Color.DARK_GRAY);
 				}
 				itemCounter++;
 			}

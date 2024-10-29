@@ -3,6 +3,9 @@ package MOImageCollections;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+
+import MOAppSessionHelpers.ArtAssetPaths;
+import MOAppSessionHelpers.ArtAssetPaths;
 import MOImage.ImageProcessing;
 import MOMaths.Rect;
 import MOUtils.GlobalSettings;
@@ -153,6 +156,7 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 			for (ImageAsset moImage: theImageAssetList) {
 				String thisShortFileName = moImage.name;
 				String fullCachePathAndName = cachedImagesFolderName + thisShortFileName + ".png";
+				//System.out.println("saving to cache " + fullCachePathAndName);
 				ImageProcessing.saveImage(fullCachePathAndName, moImage.image);
 			}
 			System.out.println("cacheImages:: cached " + theImageAssetList.size() + " images");
@@ -292,16 +296,13 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	
 	
 
+	
+	
+	
+	
 	private String getCachedScaledImagesFolderName() {
-		int scalePercentile = (int) (sessionScale * 100);
-		String cachFolderRoot = GlobalSettings.getMouseOrganImageCachePath();
-		String originalTargetDirectory = directoryFileNameScanner.getTargetDirectory();
-		String strippedDirectoryPath = originalTargetDirectory.replace(GlobalSettings.getSampleLibPath(), "");
-		// System.out.println("directoryPath ..." + directoryPath);
-		// System.out.println("strippedDirectoryPath ..." + strippedDirectoryPath);
-		String cachedFolderName = cachFolderRoot + strippedDirectoryPath + "\\cached_scaled_" + scalePercentile + "\\";
-		
-		System.out.println("scaled images cache directory ..." + cachedFolderName);
+		// works on the premise that the groupName is the same as the baseName in the ArtAssetPaths
+		String cachedFolderName = ArtAssetPaths.getAssetCachePath(groupName);
 		return cachedFolderName;
 	}
 	

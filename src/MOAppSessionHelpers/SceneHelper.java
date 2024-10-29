@@ -26,223 +26,20 @@ import MOUtils.MOStringUtils;
 public class SceneHelper {
 	
 	
-	
-	public static ScaledImageAssetGroupManager loadBWLandscapeAssets(int chacheMode, String[] includesList) {
-		// Big chunk of code that occurs in all user sessions doing BW landscape renders, moved to here
-		//
-		// Cache mode can be set to  ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE, where only cached assets are loaded (fast)
-		// or ScaledImageAssetGroup.CACHEMODE_NONE, where things are loaded processed and cached (slow, for new alterations to the processing)
-		//
-		// includes string list is for selecting only parts to be loaded and cached. So you don't have to cache everything again
-		
-		ScaledImageAssetGroupManager imageSampleGroupManager = new ScaledImageAssetGroupManager(); 
+	public static void addSelfShadingToMask(Sprite sprite, BufferedImage shadowImage, String maskName, float alpha) {
 		
 		
+		int newshadowImageWidth = (int)sprite.getImage().getWidth();
+		int newshadowImageHeight = (int)sprite.getImage().getHeight();
+		BufferedImage resizedShadowImage = ImageProcessing.resizeTo(shadowImage, newshadowImageWidth, newshadowImageHeight);
 		
-		// decide here if you are EITHER building a new set of cached images by loading imaged from the asset-lib, post-processing and then saving the cached images (so using ScaledImageAssetGroup.CACHEMODE_NONE)
-		// OR, having built the caches successfully, now force the use of the cache only (using ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE)
-		//
-		//
-		//
-		int currentcachMode = chacheMode;    // CACHEMODE_NONE for first-time caching of post-processed images, after that use CACHEMODE_FORCE_LOAD_NO_SAVE
-		
-		if(currentcachMode == ScaledImageAssetGroup.CACHEMODE_NONE) {
-			
-			MOColorTransform colorTransformGrey = new MOColorTransform();
-			colorTransformGrey.addGreyscaleTransform();
-			
-			
-			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//
-			// wild flower load, colour-transforms and cache
-			//
-			
-			
-			MOColorTransform wildflowerStemBrighten = new MOColorTransform();
-			wildflowerStemBrighten.addLevelsTransform(47,0.66f,193, 0, 255);
-
-			
-			if( includes(includesList, "cornCockle")) {
-				MOColorTransform corncockleFlowerBrighten = new MOColorTransform();
-				corncockleFlowerBrighten.addLevelsTransform(47,0.66f,193, 0, 255);
-				MOColorTransform corncockleStemBrighten = new MOColorTransform();
-				corncockleStemBrighten.addLevelsTransform(0,0.8f,193, 0, 255);
-				
-				ScaledImageAssetGroup cornCockleGroup = imageSampleGroupManager.loadImageAssetGroup("cornCockle", ArtAssetPaths.cornCockleWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				ScaledImageAssetGroup cornCockleFlowersGroup = imageSampleGroupManager.loadImageAssetGroup("cornCockleFlowers", ArtAssetPaths.cornCockleFlowers,ScaledImageAssetGroup.CACHEMODE_NONE);
-				
-				cornCockleGroup.colorTransformAll(colorTransformGrey);
-				cornCockleGroup.colorTransformAll(corncockleStemBrighten);
-				
-				cornCockleFlowersGroup.colorTransformAll(colorTransformGrey);
-				cornCockleFlowersGroup.colorTransformAll(corncockleFlowerBrighten);
-				
-			}
-			
-			if( includes(includesList, "dandelion")) {
-				MOColorTransform dandelionFlowerBrighten = new MOColorTransform();
-				dandelionFlowerBrighten.addLevelsTransform(50, 0.8f,203, 0, 255);
-				
-				ScaledImageAssetGroup dandelionGroup =  imageSampleGroupManager.loadImageAssetGroup("dandelion", ArtAssetPaths.dandelionWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				ScaledImageAssetGroup dandelionFlowersGroup = imageSampleGroupManager.loadImageAssetGroup("dandelionFlowers", ArtAssetPaths.dandelionFlowers,ScaledImageAssetGroup.CACHEMODE_NONE);
-				
-				dandelionGroup.colorTransformAll(colorTransformGrey);
-				dandelionGroup.colorTransformAll(wildflowerStemBrighten);
-				
-				dandelionFlowersGroup.colorTransformAll(colorTransformGrey);
-				dandelionFlowersGroup.colorTransformAll(dandelionFlowerBrighten);
-			}
-			
-			if( includes(includesList, "buttercup")) {
-				MOColorTransform buttercupFlowerBrighten = new MOColorTransform();
-				buttercupFlowerBrighten.addLevelsTransform(47,0.66f,193, 0, 255);
-				
-				ScaledImageAssetGroup buttercupGroup = imageSampleGroupManager.loadImageAssetGroup("buttercup", ArtAssetPaths.buttercupWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				ScaledImageAssetGroup buttercupFlowersGroup = imageSampleGroupManager.loadImageAssetGroup("buttercupFlowers", ArtAssetPaths.buttercupFlowers,ScaledImageAssetGroup.CACHEMODE_NONE);
-				
-				buttercupGroup.colorTransformAll(colorTransformGrey);
-				buttercupGroup.colorTransformAll(wildflowerStemBrighten);
-				
-				buttercupFlowersGroup.colorTransformAll(colorTransformGrey);
-				buttercupFlowersGroup.colorTransformAll(buttercupFlowerBrighten);
-			}
-	
-			if( includes(includesList, "daisy")) {
-				ScaledImageAssetGroup daisyGroup = imageSampleGroupManager.loadImageAssetGroup("daisy", ArtAssetPaths.oxeyeDaisyWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				ScaledImageAssetGroup daisyFlowersGroup = imageSampleGroupManager.loadImageAssetGroup("daisyFlowers", ArtAssetPaths.oxeyeDaisyFlowers,ScaledImageAssetGroup.CACHEMODE_NONE);
-				
-				daisyGroup.colorTransformAll(colorTransformGrey);
-				daisyGroup.colorTransformAll(wildflowerStemBrighten);
-				
-				daisyFlowersGroup.colorTransformAll(colorTransformGrey);
-			}
-			
-
-			
-			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//
-			// wild grass load, colour-transforms and cache
-			//
-			
-			/// using local method String resultantImageAssetGroupName, String pathToImageAssetTargetGroup, String pathToImageAssetOverlayGroup, float alpha
-			if( includes(includesList, "plainGrass")) {
-				MOColorTransform baseGrassBrighten = new MOColorTransform();
-				baseGrassBrighten.addLevelsTransform(38,1f,206, 0, 255);
-				ScaledImageAssetGroup plainGrassGroup = overlayScaledImageAssetGroup("plainGrass", ArtAssetPaths.couchGrassWhole, ArtAssetPaths.couchGrassEdges, 1.0f);
-				plainGrassGroup.colorTransformAll(colorTransformGrey);
-				plainGrassGroup.colorTransformAll(baseGrassBrighten);
-			}
-			
-			if( includes(includesList, "greenMeadowGrass")) {
-				ScaledImageAssetGroup greenMeadowGrassGroup = overlayScaledImageAssetGroup("greenMeadowGrass", ArtAssetPaths.greenMeadowGrassWhole, ArtAssetPaths.greenMeadowGrassEdges, 1.0f);
-				greenMeadowGrassGroup.colorTransformAll(colorTransformGrey);
-			}
-			
-			if( includes(includesList, "dryMeadowGrass")) {
-				ScaledImageAssetGroup dryMeadowGrassGroup = overlayScaledImageAssetGroup("dryMeadowGrass", ArtAssetPaths.dryMeadowGrassWhole, ArtAssetPaths.dryMeadowGrassEdges, 1.0f);
-				dryMeadowGrassGroup.colorTransformAll(colorTransformGrey);
-			}
-			
-			if( includes(includesList, "tallFescue")) {
-				ScaledImageAssetGroup tallFescueGroup = overlayScaledImageAssetGroup("tallFescue", ArtAssetPaths.tallFescueWhole, ArtAssetPaths.tallFescueEdges, 1.0f);
-				tallFescueGroup.colorTransformAll(colorTransformGrey);
-			}
-			
-			if( includes(includesList, "barranBrome")) {
-				MOColorTransform barranBromeHarden = new MOColorTransform();
-				barranBromeHarden.addLevelsTransform(35,1f,169, 0, 255);
-				ScaledImageAssetGroup barranBromeGroup = imageSampleGroupManager.loadImageAssetGroup("barranBrome", ArtAssetPaths.barranbromeWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				barranBromeGroup.colorTransformAll(colorTransformGrey);
-				barranBromeGroup.colorTransformAll(barranBromeHarden);
-			}
-			
-			if( includes(includesList, "blackbent")) {
-				ScaledImageAssetGroup blackbentGroup = imageSampleGroupManager.loadImageAssetGroup("blackbent", ArtAssetPaths.blackbentWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				blackbentGroup.colorTransformAll(colorTransformGrey);
-			}
-			
-			if( includes(includesList, "timothy")) {
-				MOColorTransform timothyBrighten = new MOColorTransform();
-				timothyBrighten.addLevelsTransform(69,1.2f,179, 0, 255);
-				ScaledImageAssetGroup timothyGroup = imageSampleGroupManager.loadImageAssetGroup("timothy", ArtAssetPaths.timothyWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				timothyGroup.colorTransformAll(colorTransformGrey);
-				timothyGroup.colorTransformAll(timothyBrighten);
-			}
-			
-			
-			if( includes(includesList, "cocksfoot")) {
-				MOColorTransform cocksfootHarden = new MOColorTransform();
-				cocksfootHarden.addLevelsTransform(56,0.78f,183, 0, 255);
-				ScaledImageAssetGroup cocksfootGroup = imageSampleGroupManager.loadImageAssetGroup("cocksfoot", ArtAssetPaths.cocksfootWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				cocksfootGroup.colorTransformAll(colorTransformGrey);
-				cocksfootGroup.colorTransformAll(cocksfootHarden);
-			}
-			
-			if( includes(includesList, "ribwort")) {
-				MOColorTransform ribwortBrighten = new MOColorTransform();
-				ribwortBrighten.addLevelsTransform(52,1.1f,167, 0, 255);
-				ScaledImageAssetGroup ribwortGroup = imageSampleGroupManager.loadImageAssetGroup("ribwort", ArtAssetPaths.ribwortPlantainWhole,ScaledImageAssetGroup.CACHEMODE_NONE);
-				ribwortGroup.colorTransformAll(colorTransformGrey);
-				ribwortGroup.colorTransformAll(ribwortBrighten);
-			}
-			
-			
-			
-			
-			
-
-			imageSampleGroupManager.cacheAll();
-			
-			
-			if(includesList != null && includes(includesList, "quit")) {
-				System.out.println("quitting");
-				System.exit(0);
-			}
-		}
+		GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, resizedShadowImage, alpha);
 		
 		
-		if(currentcachMode == ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE) {
-			
-			if( includes(includesList, "plainGrass")) imageSampleGroupManager.loadImageAssetGroup("plainGrass",  ArtAssetPaths.couchGrassWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			if( includes(includesList, "greenMeadowGrass")) imageSampleGroupManager.loadImageAssetGroup("greenMeadowGrass",  ArtAssetPaths.greenMeadowGrassWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			if( includes(includesList, "dryMeadowGrass")) imageSampleGroupManager.loadImageAssetGroup("dryMeadowGrass",  ArtAssetPaths.dryMeadowGrassWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			if( includes(includesList, "tallFescue")) imageSampleGroupManager.loadImageAssetGroup("tallFescue", ArtAssetPaths.tallFescueWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			if( includes(includesList, "barranBrome")) imageSampleGroupManager.loadImageAssetGroup("barranBrome", ArtAssetPaths.barranbromeWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			if( includes(includesList, "blackbent")) imageSampleGroupManager.loadImageAssetGroup("blackbent", ArtAssetPaths.blackbentWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			if( includes(includesList, "timothy")) imageSampleGroupManager.loadImageAssetGroup("timothy", ArtAssetPaths.timothyWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			if( includes(includesList, "cocksfoot")) imageSampleGroupManager.loadImageAssetGroup("cocksfoot", ArtAssetPaths.cocksfootWhole,ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			if( includes(includesList, "ribwort")) imageSampleGroupManager.loadImageAssetGroup("ribwort", ArtAssetPaths.ribwortPlantainWhole,ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			
-			
-			if( includes(includesList, "cornCockle")) {
-				imageSampleGroupManager.loadImageAssetGroup("cornCockle", ArtAssetPaths.cornCockleWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-				imageSampleGroupManager.loadImageAssetGroup("cornCockleFlowers", ArtAssetPaths.cornCockleFlowers, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			}
-			
-			if( includes(includesList, "dandelion")) {
-				imageSampleGroupManager.loadImageAssetGroup("dandelion", ArtAssetPaths.dandelionWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-				imageSampleGroupManager.loadImageAssetGroup("dandelionFlowers", ArtAssetPaths.dandelionFlowers, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			}
-			if( includes(includesList, "buttercup")) {
-				imageSampleGroupManager.loadImageAssetGroup("buttercup", ArtAssetPaths.buttercupWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-				imageSampleGroupManager.loadImageAssetGroup("buttercupFlowers", ArtAssetPaths.buttercupFlowers, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			}
-			if( includes(includesList, "daisy")) {
-				imageSampleGroupManager.loadImageAssetGroup("daisy", ArtAssetPaths.oxeyeDaisyWhole, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-				imageSampleGroupManager.loadImageAssetGroup("daisyFlowers", ArtAssetPaths.oxeyeDaisyFlowers, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
-			}
-		}
-		
-		
-		return imageSampleGroupManager;
 		
 	}
 	
-	private static boolean includes(String[] includesList, String thisString) {
-		if(includesList == null ) return true;
-		
-		return MOStringUtils.stringListContains(includesList,  thisString);
-	}
+	
 	
 	/**
 	 * creates a mask image of submitted sprite if the sprite attribute string contains the spriteAttributeStringToContain. If so then this sprite is ADDED ot the mask (i.e. pastes
@@ -343,7 +140,7 @@ public class SceneHelper {
 				}
 				
 				
-				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, blendedImage);
+				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, blendedImage,1f);
 			}else {
 				
 				Color c = Color.white;
@@ -363,11 +160,11 @@ public class SceneHelper {
 		
 	}
 	
-	public static void pasteToDepthImage(Sprite sprite, String maskName, float depth, boolean smooth) {
-		
+	public static void pasteToDepthImage(Sprite sprite, String maskName, float depth) {
+		// depth here should be normalised 0..1, where 1 is pasted as black, and 0 is pasted as white.
 		RenderTarget rt = GlobalSettings.getDocument().getRenderTarget(maskName);
-		rt.pasteSpriteMaskTo16BitGray(sprite, depth, smooth);
-
+		//System.out.println("depth paste: " + depth);
+		rt.pasteSpriteMaskTo16BitGray(sprite, depth);
 	}
 	
 	
@@ -383,6 +180,7 @@ public class SceneHelper {
 		return targetGroup;
 	}
 	
+
 	
 	// Linked sprites are those that represent a special section of another "main" sprite (e.g. the flowers of a larger plant, an outline generated for an image...). 
 	// They are special cases, in that the main sprite and linked sprite(s) are both in use during the same "updateUserSession" iteration, whereas in most cases this is only 1 main sprite.

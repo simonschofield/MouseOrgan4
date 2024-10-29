@@ -11,10 +11,18 @@ import MOMaths.PVector;
 // In naming conventions of classes and methods, this is shortened to "Image"
 //
 public class ImageAsset{
-	BufferedImage image;
-	String name = "";
+	public BufferedImage image;
+	public String name = "";
 	public ImageStats stats;
 
+	public ImageAsset() {}
+	
+	public ImageAsset(BufferedImage img, String nm) {
+		image = img;
+		name = nm;
+	}
+	
+	
 	public void calculateStats() {
 		if(image==null) {
 			

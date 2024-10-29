@@ -10,7 +10,7 @@ import java.util.*;
 // say at sale 0.2. This generates an output image - The master image - of 1200 x 2400 pixels. This is the master height and width. The rscale is 0.2.
 
 import MOApplication.MainDocument;
-import MOCompositing.SpriteCropDecisionList;
+import MOCompositing.ContributingSpritesList;
 import MOMaths.PVector;
 import MOMaths.Rect;
 
@@ -167,7 +167,7 @@ public class ROIHelper {
 	public SpriteSeedBatch applyROIToSpriteSeedBatch(SpriteSeedBatch seedbatch) {
 		if(isUsingMaster()) return seedbatch;
 
-
+		System.out.println("here applyROIToSpriteSeedBatch 1");
 		SpriteSeedBatch contributingSpriteData = removeNoncontributingSpritesInROI(seedbatch);
 		// adjusts the document point of seeds from a seed batch of a whole scene (no ROI)
 		// to a specific ROI within that scene by mapping the original doc points into the nw
@@ -182,7 +182,7 @@ public class ROIHelper {
 		// so to convert into the the ROI of the host session
 		// 1/ convert the master seed location's doc point to normalised form within the current coord system system
 		// 2/ 
-
+		//System.out.println("here applyROIToSpriteSeedBatch 2");
 		Rect theROI = getNormalisedROIExtentsRect();
 
 		System.out.println("apply ROI to seeds " + theROI.toStr());
@@ -218,7 +218,7 @@ public class ROIHelper {
 		// if the file cannot be found, then the class is alerted to save one out at the end of this session
 		if(isUsingMaster()) return seedbatch;
 		//SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
-		SpriteCropDecisionList spriteCropList = new SpriteCropDecisionList();
+		ContributingSpritesList spriteCropList = new ContributingSpritesList();
 
 		String fname = getContributingSpritesFilePathAndName();
 		boolean loadResult = spriteCropList.load(fname);
@@ -226,6 +226,7 @@ public class ROIHelper {
 			saveOutContributingSeedReport = true;
 			return seedbatch;
 		}
+		System.out.println("here removeNoncontributingSpritesInROI 1");
 		return spriteCropList.removeNonContributingSprites(seedbatch);
 
 	}
@@ -249,7 +250,7 @@ public class ROIHelper {
 		System.out.println("saveContributingSpritesReport: saving" + fname);
 
 
-		theDocument.getRenderBorder().getSpriteCropDecisionList().save( fname );
+		theDocument.getRenderBorder().getContributingSpritesList().save( fname );
 
 	}
 
