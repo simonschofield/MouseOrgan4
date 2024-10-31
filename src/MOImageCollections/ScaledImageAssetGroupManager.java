@@ -69,7 +69,7 @@ public class ScaledImageAssetGroupManager {
 	
 	// the most default setting, using CACHEMODE_ADAPTIVE_LOADANDSAVE
 	public ScaledImageAssetGroup loadImageAssetGroup(String name, String sourceDirectory) {
-		return loadImageAssetGroup(name, sourceDirectory, ".png", "", null, null, ScaledImageAssetGroup.CACHEMODE_ADAPTIVE_LOADANDSAVE);
+		return loadImageAssetGroup(name, sourceDirectory, ".png", "", null, null, ScaledImageAssetGroup.LOADMODE_ADAPTIVE);
 	}
 	
 	// the most default setting, using user-set CACHE MODE, for caching post-load processing

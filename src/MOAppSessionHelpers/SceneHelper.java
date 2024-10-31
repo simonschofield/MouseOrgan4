@@ -173,8 +173,8 @@ public class SceneHelper {
 		// Pastes the overlay sprite on-top of the target sprite groups. The composited target group is then kept in the ImageAssetGroupManager, while the overlay group is removed.
 		// Overlay sprites must be sized exactly the same as the target (under-lay) sprite, and have the same number of assets.
 		//
-		ScaledImageAssetGroup targetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(targetGroupName,  tagetAssetPath, ScaledImageAssetGroup.CACHEMODE_NONE);
-		ScaledImageAssetGroup overlayGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup("tempOverlayGroupName",  overlayAssetPath, ScaledImageAssetGroup.CACHEMODE_NONE);
+		ScaledImageAssetGroup targetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(targetGroupName,  tagetAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
+		ScaledImageAssetGroup overlayGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup("tempOverlayGroupName",  overlayAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
 		targetGroup.overlayScaledImageAssetGroup(overlayGroup, alpha);
 		GlobalSettings.getImageAssetGroupManager().removeImageAssetGroup("tempOverlayGroupName");
 		return targetGroup;

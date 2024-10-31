@@ -31,7 +31,7 @@ public class ArtAssetLoaderHelper {
 		//
 		int currentcachMode = chacheMode;    // CACHEMODE_NONE for first-time caching of post-processed images, after that use CACHEMODE_FORCE_LOAD_NO_SAVE
 		
-		if(currentcachMode == ScaledImageAssetGroup.CACHEMODE_NONE) {
+		if(currentcachMode == ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB) {
 			if(cacheName.equals("mouseOrganBWLandscapeCachePreLevels")) {
 				loadAssetAndsCache_BWLandscapePreLevels( cacheName,   includesList);
 				return;
@@ -47,7 +47,7 @@ public class ArtAssetLoaderHelper {
 		}
 		
 		
-		if(currentcachMode == ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE) {
+		if(currentcachMode == ScaledImageAssetGroup.LOADMODE_FROM_CACHE) {
 			loadAssetsFromCacheOnly( cacheName, includesList);
 		}
 		
@@ -82,7 +82,7 @@ public class ArtAssetLoaderHelper {
 			
 			String modifiedName = assetname;
 			String path = ArtAssetPaths.getAssetSampleLibPath(modifiedName);
-			imageSampleGroupManager.loadImageAssetGroup(assetname,  path, ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE);
+			imageSampleGroupManager.loadImageAssetGroup(assetname,  path, ScaledImageAssetGroup.LOADMODE_FROM_CACHE);
 		}
 
 	}
@@ -256,7 +256,7 @@ public class ArtAssetLoaderHelper {
 	private static void loadAssetAndMakeGrayscale(String assetBaseName) {
 		ScaledImageAssetGroup assetGroup = null;
 		String assetPath = ArtAssetPaths.getAssetSampleLibPath(assetBaseName); 
-		assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPath, ScaledImageAssetGroup.CACHEMODE_NONE);
+		assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
 		MOColorTransform colorTransformGrey = new MOColorTransform();
 		colorTransformGrey.addGreyscaleTransform();
 		assetGroup.colorTransformAll(colorTransformGrey);
@@ -274,7 +274,7 @@ public class ArtAssetLoaderHelper {
 			String assetPathEdges = ArtAssetPaths.getAssetSampleLibPath(assetBaseName + "Edges");
 			assetGroup = overlayScaledImageAssetGroup(assetBaseName, assetPathWhole, assetPathEdges, 1.0f);
 		} else {
-			assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPathWhole, ScaledImageAssetGroup.CACHEMODE_NONE);
+			assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPathWhole, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
 		}
 		
 		MOColorTransform colorTransformGrey = new MOColorTransform();
@@ -297,8 +297,8 @@ public class ArtAssetLoaderHelper {
 		// Pastes the overlay sprite on-top of the target sprite groups. The composited target group is then kept in the ImageAssetGroupManager, while the overlay group is removed.
 		// Overlay sprites must be sized exactly the same as the target (under-lay) sprite, and have the same number of assets.
 		//
-		ScaledImageAssetGroup targetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(targetGroupName,  tagetAssetPath, ScaledImageAssetGroup.CACHEMODE_NONE);
-		ScaledImageAssetGroup overlayGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup("tempOverlayGroupName",  overlayAssetPath, ScaledImageAssetGroup.CACHEMODE_NONE);
+		ScaledImageAssetGroup targetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(targetGroupName,  tagetAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
+		ScaledImageAssetGroup overlayGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup("tempOverlayGroupName",  overlayAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
 		targetGroup.overlayScaledImageAssetGroup(overlayGroup, alpha);
 		GlobalSettings.getImageAssetGroupManager().removeImageAssetGroup("tempOverlayGroupName");
 		return targetGroup;

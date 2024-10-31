@@ -37,23 +37,25 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	
 	/////////////////////////////////////////////////////////////////////////
 	// CACHE MODES
+	// 
 	//
-	// CACHEMODE_ADAPTIVE_LOADANDSAVE is the default mode, and should be used if no post processing is involved. It will
+	// LOADMODE_ADAPTIVE is the default mode, and should be used if no post processing is involved. It will
 	// load the cache if the cache is OK. Else it loads from the source-library, and then saves the result to the cache for 
-	// later use. It does not cache load or save 100% scaled assets, as it is quicker to just load the source-library files directly
+	// later use. It does not cache load or save 100% scaled assets, as it is quicker to just load the source-library files directly. You do not 
+	// have to call cacheImages() after loading with this mode; it is done automatically.
+	// 
+	// LOADMODE_FROM_ASSETLIB. Never loads or saves the cache. Used to simply load from the source-lib, in order to build the cache. Probably used with cacheImages() method later on after
+	// some post-load processing has happened that you want to commit to the cache. Once the cache has been properly created, use LOADMODE_FROM_CACHE
 	//
-	// CACHEMODE_NONE. Never loads or saves the cache. Used to simply load from the source-lib. Probably used with saveCache() method later on after
-	// some post-load processing has happened that you want to commit to the cache, after which you should probably use CACHEMODE_FORCE_LOAD_NO_SAVE.
-	//
-	// CACHEMODE_FORCE_LOAD_NO_SAVE forces the load to be from the cache only. If the cache is NOT OK, the process will terminate. This should be used to 
-	// load post-load processed images, which have been previously committed to the cache through using a previous saveCache().
+	// LOADMODE_FROM_CACHE forces the load to be from the cache only. If the cache is NOT OK, the process will terminate. This should be used to 
+	// load post-load processed images, which have been previously committed to the cache through using a previous cacheImages().
 	//
 	//
-	public static final int	CACHEMODE_ADAPTIVE_LOADANDSAVE = 0;  // 
-	public static final int	CACHEMODE_NONE = 1;
-	public static final int	CACHEMODE_FORCE_LOAD_NO_SAVE = 2;
+	public static final int	LOADMODE_ADAPTIVE = 0;  // 
+	public static final int	LOADMODE_FROM_ASSETLIB = 1;
+	public static final int	LOADMODE_FROM_CACHE = 2;
 	
-	private int currentCacheMode = CACHEMODE_ADAPTIVE_LOADANDSAVE;
+	private int currentCacheMode = LOADMODE_ADAPTIVE;
 	
 	public ScaledImageAssetGroup(String name) {
 		sessionScale = GlobalSettings.getSessionScale();
@@ -120,18 +122,18 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		// and deals with caching of sessionScaled versions of the images for subsequent uses, therefore speeding up the system.
 		// 
 
-		if(currentCacheMode == CACHEMODE_ADAPTIVE_LOADANDSAVE) {
-			loadImages_CACHEMODE_ADAPTIVE_LOADANDSAVE();
+		if(currentCacheMode == LOADMODE_ADAPTIVE) {
+			loadImages_ADAPTIVE();
 			return;
 		}
 		
-		if(currentCacheMode == CACHEMODE_NONE) {
-			loadImages_CACHEMODE_NONE();
+		if(currentCacheMode == LOADMODE_FROM_ASSETLIB) {
+			loadImages_FROM_ASSETLIB();
 			return;
 		}
 		
-		if(currentCacheMode == CACHEMODE_FORCE_LOAD_NO_SAVE) {
-			loadImages_CACHEMODE_FORCE_LOAD_NO_SAVE();
+		if(currentCacheMode == LOADMODE_FROM_CACHE) {
+			loadImages_FROM_CACHE();
 			return;
 		}
 		
@@ -191,8 +193,10 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	// Private methods cache-related methods
 	//
 	// 
-	private void loadImages_CACHEMODE_ADAPTIVE_LOADANDSAVE() {
-
+	private void loadImages_ADAPTIVE() {
+		// LOADMODE_ADAPTIVE is the default mode, and should be used if no post processing is involved. It will
+		// load the cache if the cache is OK. Else it loads from the source-library, and then saves the result to the cache for 
+		// later use. It does not cache load or save 100% scaled assets, as it is quicker to just load the source-library files directly
 		if (sessionScale > 0.99) {
 			// If no session scale is applied (i.e.) the render is a Full-Size
 			// just use the base-class load image to load the 100% assetLib images.
@@ -224,13 +228,13 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		isLoaded();
 	}
 	
-	private void loadImages_CACHEMODE_NONE() {
+	private void loadImages_FROM_ASSETLIB() {
 		
 		loadFullSizeImagesAndSessionScale();
 		isLoaded();
 	}
 	
-	private void loadImages_CACHEMODE_FORCE_LOAD_NO_SAVE() {
+	private void loadImages_FROM_CACHE() {
 		
 		String cachedImagesFolderName = getCachedScaledImagesFolderName();
 
@@ -238,7 +242,7 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 			// System.out.println("loading from cache folder ..." + cachedImagesFolderName);
 			loadCachedImages();
 		} else {
-			 System.out.println("ScaledImageAssetGroup::loadImages_CACHEMODE_FORCE_LOAD_NO_SAVE ...the cache " + cachedImagesFolderName + " is NOT OK fatal error");
+			 System.out.println("ScaledImageAssetGroup::loadImages_FROM_CACHE ...the cache " + cachedImagesFolderName + " is NOT OK fatal error");
 			 System.exit(0);
 		}
 		
