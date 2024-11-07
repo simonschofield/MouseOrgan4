@@ -147,6 +147,43 @@ public class Sprite {
 	}
 	
 	
+	///////////////////////////////////////////////////////////////
+	// The "Enumerated" image methods enable access to all the 
+	// images within a spite through a simple number
+	// 0 is always the main image, 1 and up are the overlay images
+	//
+	public BufferedImage getEnumeratedImage(int i) {
+		// image 0 is the main sprite image
+		// image 1... are the overlay images
+		if(i==0) return image;
+		int overlayNumber = i-1;
+		if(overlayNumber >= overlayImages.getNumOverlayImage()) {
+			System.out.println("Sprite::getEnumeratedImage illegal image number " + i);
+			return null;
+		}
+		return overlayImages.getImage(overlayNumber);
+	}
+	
+	public void setEnumeratedImage(int i, BufferedImage img) {
+		// image 0 is the main sprite image
+		// image 1... are the overlay images
+		if(i==0) { 
+			setImage(img);
+			return;
+		}
+		int overlayNumber = i-1;
+		if(overlayNumber >= overlayImages.getNumOverlayImage()) {
+			System.out.println("Sprite::setEnumeratedImage illegal image number " + i);
+			return;
+		}
+		overlayImages.setImage(overlayNumber, img);
+	}
+	
+	public int getEnumeratedImageCount() {
+		return 1 + overlayImages.getNumOverlayImage();
+	}
+	
+	
 	public BufferedImage getOverlayImage(String name) {
 		return overlayImages.getImage(name);
 	}

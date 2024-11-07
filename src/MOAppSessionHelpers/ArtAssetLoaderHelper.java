@@ -97,7 +97,7 @@ public class ArtAssetLoaderHelper {
 	
 	
 	private static void loadAssetAndsCache_BWLandscapePreLevels(String cacheName,  String[] includesList) {
-		
+		// This method sets a default level for the asset, and was used in the first 2023 renders
 		GlobalSettings.setMouseOrganImageCacheName(cacheName);
 		
 

@@ -72,19 +72,20 @@ public class ArtAssetBWLevels {
 		addlevels("cocksfoot", 45f,0.59f,210f,   58f,2.65f,154f, 56,0.78f,183  );
 		addlevels("wildBarley", 0f,0.57f,214f,   26f,1.7f,135f, 31,0.64f,143  );
 		
-		// wild flowers... and their flowers
-		addlevels("oxeyeDaisy", 54f,0.8f,255f,   72f,3.13f,170f,   47,0.66f,193  );// still needs doing
-		addlevels("oxeyeDaisyFlowers", 54f,0.8f,255f,   72f,3.13f,170f,   0,1,255  );// still needs doing
+		// wild flowers... and their flowers 
+		addlevels("oxeyeDaisy", 0f,0.63f,255f,   29,1.61f,169f,   47,0.66f,193  );
+		addlevels("oxeyeDaisyFlowers", 0f,1f,255f,   0f,1f,255f,   0,1,255  );
 		addlevels("cowparsley", 54f,0.8f,255f,   72f,3.13f,170f,   47,0.66f,193  );// still needs doing
-		addlevels("cowparsleyFlowers", 54f,0.8f,255f,   72f,3.13f,170f,   0,1,255  );// still needs doing
+		addlevels("cowparsleyFlowers", 0f,1f,255f,   0f,1f,255f,   0,1,255  );// still needs doing
 		addlevels("dandelion", 54f,0.8f,255f,   72f,3.13f,170f ,   47,0.66f,193 );// still needs doing
-		addlevels("dandelionFlowers",54f,0.8f,255f,   72f,3.13f,170f ,   50, 0.8f,203 );// still needs doing
+		addlevels("dandelionFlowers",0f,1f,255f,   0f,1f,255f,   0,1,255 );// still needs doing
 		addlevels("cornCockle", 54f,0.8f,255f,   72f,3.13f,170f,   0,0.8f,193  );// still needs doing
-		addlevels("cornCockleFlowers",54f,0.8f,255f,   72f,3.13f,170f,   0,1,255  );// still needs doing
+		addlevels("cornCockleFlowers",0f,1f,255f,   0f,1f,255f,   0,1,255  );// still needs doing
 		addlevels("buttercup", 54f,0.8f,255f,   72f,3.13f,170f ,   47,0.66f,193 );// still needs doing
-		addlevels("buttercupFlowers",54f,0.8f,255f,   72f,3.13f,170f ,   47,0.66f,193 );// still needs doing
-		addlevels("ribwortPlantain", 54f,0.8f,255f,   72f,3.13f,170f,   47,0.66f,193  );// still needs doing
+		addlevels("buttercupFlowers",0f,1f,255f,   0f,1f,255f,   0,1,255 );// still needs doing
 		
+		// wild flowers that do not have overlay flowers
+		addlevels("ribwortPlantain", 54f,0.8f,255f,   72f,3.13f,170f,   47,0.66f,193  );// still needs doing
 		addlevels("clover", 54f,0.8f,255f,   72f,3.13f,170f  ,0,0,0);// still needs doing
 		
 		

@@ -160,6 +160,41 @@ public class SceneHelper {
 		
 	}
 	
+	public static void  pasteOverlayImageToMaskImage(Sprite sprite, boolean contribute, String maskName, String overlayName, BufferedImage replacementImage, float brightness) {
+		
+		// if contribute == true then the sprite adds the replacement image or white, else sprite subtracts from the mask - adds black
+				if( contribute ) {
+					
+					if(replacementImage!=null) {
+						BufferedImage blendedImage = ImageProcessing.replaceVisiblePixels(sprite.getOverlayImage(overlayName), replacementImage);
+						
+						if(brightness < 1) {
+							blendedImage = ImageProcessing.adjustBrightness(blendedImage, brightness);
+						}
+						
+						
+						GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, blendedImage,1f);
+					}else {
+						
+						Color c = Color.white;
+						if(brightness < 1) {
+							c = new Color(brightness,brightness,brightness);
+						}
+						
+						
+						//GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, c);
+						GlobalSettings.getDocument().getRenderTarget(maskName).pasteImageMask( sprite.getOverlayImage(overlayName), sprite.getDocSpaceRect().getTopLeft(), c);
+						}
+					
+
+				} else {
+					
+					GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, Color.black);
+				}
+		
+		
+	}
+	
 	public static void pasteToDepthImage(Sprite sprite, String maskName, float depth) {
 		// depth here should be normalised 0..1, where 1 is pasted as black, and 0 is pasted as white.
 		RenderTarget rt = GlobalSettings.getDocument().getRenderTarget(maskName);
@@ -199,6 +234,11 @@ public class SceneHelper {
 		linkedSprite.ImageGroupItemShortName = shortImageName;
 		linkedSprite.ImageAssetGroupName = imageAssetGroupName;
 		return linkedSprite;
+	}
+	
+	public static void setOverlayImage(Sprite sprite, String overlayName) {
+		BufferedImage overlayImage = GlobalSettings.getImageAssetGroupManager().getScaledImageAssetGroup(sprite.ImageAssetGroupName + overlayName).getImage(sprite.ImageGroupItemShortName);
+		sprite.addOverlayImage(overlayImage, overlayName); 
 	}
 	
 	

@@ -44,6 +44,8 @@ public class ArtAssetPaths {
 		pathList.addAssetPath("cocksfoot", sampleLib + wildGrassPath + "species\\cocksfoot_10000\\whole");
 		pathList.addAssetPath("wildBarley", sampleLib + wildGrassPath + "species\\wild barley_06500\\whole");
 		
+		// "basicGrass",  "couchGrass", "greenMeadowGrass", "tallFescue", "barranbrome", "ribwortPlantain", "blackbent", "timothy", "cocksfoot", "wildBarley"
+		
 		// wild flowers
 		pathList.addAssetPath("oxeyeDaisy", sampleLib + wildFlowerPath + "oxeye daisys_05500\\whole");
 		pathList.addAssetPath("oxeyeDaisyFlowers", sampleLib + wildFlowerPath + "oxeye daisys_05500\\whole flowers");
@@ -59,7 +61,7 @@ public class ArtAssetPaths {
 		pathList.addAssetPath("ribwortPlantain", sampleLib + wildFlowerPath + "ribwortPlantain_6000\\whole");
 		pathList.addAssetPath("clover", sampleLib + wildFlowerPath + "clover\\whole");
 		
-		
+		// "oxeyeDaisy", "oxeyeDaisyFlowers", "dandelion", "dandelionFlowers", "cornCockle", "cornCockleFlowers", "buttercup", "buttercupFlowers"
 	}
 
 
