@@ -154,7 +154,7 @@ public class RenderBorder {
 	// obliterated by the crop action.
 	
 	public boolean cropSprite(Sprite sprite) {
-		// has to deal wit the main sprite image, and then possibly overlay images, which must be
+		// has to deal with the main sprite image, and then possibly overlay images, which must be
 		// cropped the same.The same bespoke cropping is guaranteed by the sprite's ran seed number
 		int numImages = sprite.getEnumeratedImageCount();
 		
