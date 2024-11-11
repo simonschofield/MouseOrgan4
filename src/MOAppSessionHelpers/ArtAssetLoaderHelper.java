@@ -32,18 +32,16 @@ public class ArtAssetLoaderHelper {
 		int currentcachMode = chacheMode;    // CACHEMODE_NONE for first-time caching of post-processed images, after that use CACHEMODE_FORCE_LOAD_NO_SAVE
 		
 		if(currentcachMode == ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB) {
-			if(cacheName.equals("mouseOrganBWLandscapeCachePreLevels")) {
-				loadAssetAndsCache_BWLandscapePreLevels( cacheName,   includesList);
-				return;
-			}
-			if(cacheName.equals("mouseOrganBWLandscapeCacheNoLevels")) {
+			
+			if(cacheName.equals("BWLandscapeNoLevels")) {
 				loadAssetAndsCache_BWLandscapeNoLevels( cacheName,   includesList);
-				ArtAssetBWLevels.init();
+				ArtAssetPresetLevels.init();
 				return;
 			}
 			
-			
-			loadAssetAndsCache_Default( cacheName,  includesList);
+			// if you get here then load using the default, i.e. from the sample lib and cache in a folder called "deafultCache"
+			loadAssetAndsCache_Default(includesList);
+			return;
 		}
 		
 		
@@ -89,137 +87,6 @@ public class ArtAssetLoaderHelper {
 	
 	
 	
-    private static void loadAssetAndsCache_Default(String cacheName,  String[] includesList) {
-    	
-    	
-    }
-	
-	
-	
-	private static void loadAssetAndsCache_BWLandscapePreLevels(String cacheName,  String[] includesList) {
-		// This method sets a default level for the asset, and was used in the first 2023 renders
-		GlobalSettings.setMouseOrganImageCacheName(cacheName);
-		
-
-		
-		for(String assetName: includesList) {
-			if( beginsWithUnderscore(assetName)) continue;
-			if(assetName.contains("Edges")) continue; // these get loaded when the whole asset is loaded
-			float[] levels = ArtAssetBWLevels.getDefaultLevels(assetName);
-			loadBWAssetAndApplyLevels(assetName, levels, includesListContains(includesList, assetName + "Edges"));
-		}
-		
-//		MOColorTransform wildflowerStemBrighten = new MOColorTransform();
-//		wildflowerStemBrighten.addLevelsTransform(47,0.66f,193, 0, 255);
-//
-//		float[] genericStemsLevels = {47,0.66f,193, 0, 255};
-//		
-//		if( includesListContains(includesList, "cornCockle")) {
-//			
-//			float[] stemsLevels = {0,0.8f,193, 0, 255};
-//			loadBWAssetAndApplyLevels("cornCockle", stemsLevels, includesListContains(includesList, "cornCockleEdges"));
-//			float[] flowersLevels = {47,0.66f,193, 0, 255};
-//			loadBWAssetAndApplyLevels("cornCockleFlowers", flowersLevels, includesListContains(includesList, "cornCockleFlowersEdges"));
-//
-//		}
-//		
-//		if( includesListContains(includesList, "dandelion")) {
-//			
-//			loadBWAssetAndApplyLevels("dandelion", genericStemsLevels, includesListContains(includesList, "dandelionEdges"));
-//			float[] flowersLevels = {50, 0.8f,203, 0, 255};
-//			loadBWAssetAndApplyLevels("dandelionFlowers", flowersLevels, includesListContains(includesList, "dandelionFlowersEdges"));
-//			
-//		}
-//		
-//		if( includesListContains(includesList, "buttercup")) {
-//			
-//			loadBWAssetAndApplyLevels("buttercup", genericStemsLevels, includesListContains(includesList, "buttercupEdges"));
-//			float[] flowersLevels = {47,0.66f,193, 0, 255};
-//			loadBWAssetAndApplyLevels("buttercupFlowers", flowersLevels, includesListContains(includesList, "buttercupFlowersEdges"));
-//		
-//		}
-//
-//		if( includesListContains(includesList, "daisy")) {
-//			
-//			loadBWAssetAndApplyLevels("daisy", genericStemsLevels, includesListContains(includesList, "daisyEdges"));
-//			float[] flowersLevels = null;
-//			loadBWAssetAndApplyLevels("daisyFlowers", flowersLevels, includesListContains(includesList, "daisyFlowersEdges"));
-//			
-//		}
-//		
-//
-//		
-//		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//		//
-//		// wild grass load, colour-transforms and cache
-//		//
-//		
-//		/// using local method String resultantImageAssetGroupName, String pathToImageAssetTargetGroup, String pathToImageAssetOverlayGroup, float alpha
-//		if( includesListContains(includesList, "basicSkinnyGrass")) {
-//			float[] levels = {115,0.72f,255, 0, 255};
-//			loadBWAssetAndApplyLevels("basicSkinnyGrass", levels, includesListContains(includesList, "basicSkinnyGrassEdges"));
-//		}
-//		
-//		if( includesListContains(includesList, "greenMeadowGrass")) {
-//			float[] levels = {53,0.8f,255, 0, 255};
-//			loadBWAssetAndApplyLevels("greenMeadowGrass", levels, includesListContains(includesList, "greenMeadowGrassEdges"));
-//		}
-//		
-//		if( includesListContains(includesList, "dryMeadowGrass")) {
-//			float[] levels = null;
-//			loadBWAssetAndApplyLevels("dryMeadowGrass", levels, includesListContains(includesList, "dryMeadowGrassEdges"));
-//		}
-//		
-//		if( includesListContains(includesList, "tallFescue")) {
-//			float[] levels = {0,1.0f,212, 0, 255};
-//			loadBWAssetAndApplyLevels("tallFescue", levels, includesListContains(includesList, "tallFescueEdges"));
-//		}
-//		
-//		if( includesListContains(includesList, "barranbrome")) {
-//			float[] levels = {35,1f,169, 0, 255};
-//			loadBWAssetAndApplyLevels("barranbrome", levels, includesListContains(includesList, "barranbromeEdges"));
-//		}
-//		
-//		
-//		if( includesListContains(includesList, "blackbent")) {
-//			float[] levels = null;
-//			loadBWAssetAndApplyLevels("blackbent", levels, includesListContains(includesList, "blackbentEdges"));
-//		}
-//		
-//		if( includesListContains(includesList, "timothy")) {
-//			float[] levels = {69,1.2f,179, 0, 255};
-//			loadBWAssetAndApplyLevels("timothy", levels, includesListContains(includesList, "timothyEdges"));
-//		}
-//		
-//		
-//		if( includesListContains(includesList, "cocksfoot")) {
-//			float[] levels = {56,0.78f,183, 0, 255};
-//			loadBWAssetAndApplyLevels("cocksfoot", levels, includesListContains(includesList, "cocksfootEdges"));
-//		}
-//		
-//		if( includesListContains(includesList, "ribwortPlantain")) {
-//			float[] levels = {52,1.1f,167, 0, 255};
-//			loadBWAssetAndApplyLevels("ribwortPlantain", levels, includesListContains(includesList, "ribwortPlantainEdges"));
-//		}
-//		
-//		if( includesListContains(includesList, "wildBarley")) {
-//			float[] levels = {31,0.64f,143, 0, 255};
-//			loadBWAssetAndApplyLevels("wildBarley", levels, includesListContains(includesList, "wildBarleyEdges"));
-//		}
-//		
-
-		GlobalSettings.getImageAssetGroupManager().cacheAll();
-		
-		
-		
-		System.out.println("quitting");
-		System.exit(0);
-		
-		
-	}
-	
-	
-	
 	private static void loadAssetAndsCache_BWLandscapeNoLevels(String cacheName,  String[] includesList) {
 		
 		
@@ -228,6 +95,26 @@ public class ArtAssetLoaderHelper {
 		for(String assetName: includesList) {
 			if( beginsWithUnderscore(assetName)) continue;
 			loadAssetAndMakeGrayscale(assetName);
+		}
+
+		GlobalSettings.getImageAssetGroupManager().cacheAll();
+
+		if(includesListContains(includesList,"_quit")) {
+			System.out.println("quitting");
+			System.exit(0);
+			}
+		
+	}
+	
+	
+   private static void loadAssetAndsCache_Default(String[] includesList) {
+		
+		
+		GlobalSettings.setMouseOrganImageCacheName("deafultCache");
+		
+		for(String assetName: includesList) {
+			if( beginsWithUnderscore(assetName)) continue;
+			loadAssetDeafult(assetName);
 		}
 
 		GlobalSettings.getImageAssetGroupManager().cacheAll();
@@ -250,6 +137,12 @@ public class ArtAssetLoaderHelper {
 	
 	private static boolean beginsWithUnderscore(String name) {
 		return name.substring(0, 1).equals("_");
+	}
+	
+	private static void loadAssetDeafult(String assetBaseName) {
+		ScaledImageAssetGroup assetGroup = null;
+		String assetPath = ArtAssetPaths.getAssetSampleLibPath(assetBaseName); 
+		assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
 	}
 	
 	

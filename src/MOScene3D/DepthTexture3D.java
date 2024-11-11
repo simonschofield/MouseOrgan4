@@ -36,6 +36,9 @@ public class DepthTexture3D {
 		
 		
 		FloatImage depthData = convert16BitGrayToFloatImage(gray16BitImg);
+		
+		// need to convert depth to distance here
+		
 		geometryBuffer3D = new GeometryBuffer3D(depthData,angleOfView);
 	}
 	

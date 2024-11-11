@@ -1,11 +1,7 @@
 package MOAppSessionHelpers;
-
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-
-import MOImageCollections.MOColorTransform;
 import MOMaths.MOMaths;
-import MOUtils.GlobalSettings;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This class helps the user define what is a "dark" version of an art asset, and what is a "light" version of an art asset using 
 // levels to adjust between the two. 
@@ -14,9 +10,9 @@ import MOUtils.GlobalSettings;
 //
 //
 //
-public class ArtAssetBWLevels {
+public class ArtAssetPresetLevels {
 	static boolean initialised = false;
-	static ArrayList<ArtAssetBWLevelsElement> assetlevelsList = new ArrayList<ArtAssetBWLevelsElement>();
+	static ArrayList<ArtAssetLevelsListElement> assetlevelsList = new ArrayList<ArtAssetLevelsListElement>();
 	 
 	
 	public static float[] getLevels(String name, float blend) {
@@ -27,7 +23,7 @@ public class ArtAssetBWLevels {
 		
 		
 		
-		ArtAssetBWLevelsElement el = getArtAssetBWLevelsElement(name);
+		ArtAssetLevelsListElement el = getArtAssetLevelsListElement(name);
 		if(el==null) return new float[] {0,0,0,0,0};
 		float[] darkLevels = el.levelsDark;
 		float[] lightLevels = el.levelsLight;
@@ -45,7 +41,7 @@ public class ArtAssetBWLevels {
 			init();
 		}
 		
-		ArtAssetBWLevelsElement el = getArtAssetBWLevelsElement(name);
+		ArtAssetLevelsListElement el = getArtAssetLevelsListElement(name);
 		
 		return el.levels_defaultBW;
 	}
@@ -102,16 +98,16 @@ public class ArtAssetBWLevels {
 		float[] defaultbw = {defaultLow, defaultMid, defaultHigh, 0, 255};
 		
 		
-		ArtAssetBWLevelsElement levels = new ArtAssetBWLevelsElement(name, dark, light, defaultbw);
+		ArtAssetLevelsListElement levels = new ArtAssetLevelsListElement(name, dark, light, defaultbw);
 		assetlevelsList.add(levels);
 	}
 	
 	
 	
 	
-	static ArtAssetBWLevelsElement getArtAssetBWLevelsElement(String name) {
+	static private ArtAssetLevelsListElement getArtAssetLevelsListElement(String name) {
 		
-		for(ArtAssetBWLevelsElement a: assetlevelsList) {
+		for(ArtAssetLevelsListElement a: assetlevelsList) {
 			if(a.assetName.equals(name)) return a;
 		}
 		System.out.println("ArtAssetBWLevels.getArtAssetBWLevelsElement cannot find levels called " + name);
@@ -127,14 +123,14 @@ public class ArtAssetBWLevels {
 	
 }
 
-class ArtAssetBWLevelsElement{
+class ArtAssetLevelsListElement{
 	
 	String assetName;
 	float levelsDark[];
 	float levelsLight[];
 	float levels_defaultBW[];
 	
-	ArtAssetBWLevelsElement(String name, float[] dark, float[] light, float[] defaultBW) {
+	ArtAssetLevelsListElement(String name, float[] dark, float[] light, float[] defaultBW) {
 		assetName = name;
 		levelsDark = dark.clone();
 		levelsLight = light.clone();

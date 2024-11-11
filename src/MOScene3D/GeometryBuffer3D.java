@@ -238,6 +238,9 @@ public class GeometryBuffer3D{
 		unitDistance.y = unitDistance.y + 1;// move the point by a distance of 1 unit
 		PVector shiftedDocPt = world3DToDocSpace(unitDistance);
 		
+		// now work out the difference in doc space, this returns the doc space distance between 
+		// 2 points, with a difference of 1 unit in Y, at that distance in 3D space
+		// This can than  be used to scale any asset by multiplying this amount, by the Y size of the asset.gfj
 		return docPt.dist(shiftedDocPt);
 		
 	}

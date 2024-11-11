@@ -40,7 +40,7 @@ public class GlobalSettings {
 	private static String sampleLibPath = "C:\\simon\\art assets\\sample lib\\";
 	private static String dataAssetsPath = "C:\\simon\\art assets\\data\\";
 	private static String liveProjectsBasePath = "C:\\simon\\Artwork\\MouseOrgan Projects\\";
-	private static String mouseOrganImageCachePath = "C:\\mouseOrganDefaultCache\\";
+	private static String mouseOrganImageCachePath = "C:\\simon\\mouseOrganCaches\\defaultCache\\";
 	private static String userSessionPath = "";
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -214,7 +214,7 @@ public class GlobalSettings {
 	
 	public static void setMouseOrganImageCacheName(String cacheName) {
 		// "C:\\mouseOrganImageCache2\\";
-		mouseOrganImageCachePath = "C:\\" + cacheName + "\\";
+		mouseOrganImageCachePath = "C:\\simon\\mouseOrganCaches\\" + cacheName + "\\";
 	}
 
 
