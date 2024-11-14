@@ -40,11 +40,13 @@ public class DepthTexture3D_New {
 	// Depth data is read back in and should be stored as original "real" depth 
 	// CurrentFOV = proportion of ViewingApplicationFOV within the current ROI (vertical FOV) -  do we need this, as we are not calculating vectors into scene?
 	// DistanceCameraToVP in ViewingAppDocSpace space is calculated by    
-	//			((  (ViewingApplicationFullHeight/2)( tan(ViewingApplicationFOV/2)  )     /ViewingApplicationFullHeight   ) * ViewingApplicationHeightAspect     
-	//			(is this tan(ViewingApplicationFOV/2)* ViewingApplicationHeightAspect     ?
-	// 
-	// This creates a normalised DistanceCameraToVP, however the depth values, which should be the original scene depth values
+	//			(  ( ViewingApplicationFullHeight /2 )( tan(ViewingApplicationFOV/2)  )    )      
+	//			
+	// However, to do this in a resolution independent way we convert the dimensions of the ViewingApplication image to be in Doc Space, (ViewingApplicationWidthAspect, ViewinagApplicationHeightAspect)
+	// DistanceCameraToVP =  (ViewinagApplicationHeightAspec/2)(tan(ViewingApplicationFOV/2) )
 	
+	// This creates a DistanceCameraToVP using a normalised VP height. However the depth values, which are loaded in their the original "real" scene depth values, need to be similarly scaled down by dividing by ViewingApplicationFullHeight
+	// So, to speed up the process you can pre-calculate all the depth values in the buffer to be originalRealDepthValue/ViewingApplicationFullHeight
 	
 	// Eye space calculations follow. To calculate any 3D point for a Doc space point within the current ROI
 	
