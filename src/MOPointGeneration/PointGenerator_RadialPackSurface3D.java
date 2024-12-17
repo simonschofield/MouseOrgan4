@@ -68,18 +68,18 @@ public class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPac
 	boolean tryAddDistributedPoint(PVector docSpcPt, float radius) {
 		// the radius is coming in from an image based-calculation
 		// we have the opportunity to impose a tweak to the radius here based on z depth interpolation.
-	
-		
-		
-		
 
-
+		if( sceneData.isSubstance(docSpcPt)==false) return false;
+		
+		
 		PVector thisPoint3d = sceneData.get3DSurfacePoint(docSpcPt);
 
 		// this is where you would invent a depth for volume distribution
 		// using sceneData.get3DVolumePoint(docSpcPt, invented depth);
-		float normDepth = sceneData.getDepthNormalised(docSpcPt);
-
+		//float normDepth = sceneData.getDepthNormalised(docSpcPt);
+		float normDepth = sceneData.getDepth(docSpcPt);
+		
+		
 		radius = getDepthSensitiveRadius(radius, normDepth);
 		
 		

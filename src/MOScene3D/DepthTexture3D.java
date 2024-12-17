@@ -17,9 +17,10 @@ import MOMaths.Range;
 // The angle of view has to be hand enter at the moment. This is calculated in the SceneDta3D taking inot consideration the 
 // original FOV, then the initial crop on this made in the SceneData3D, and then the ROI crop made in the MouseOrgan
 public class DepthTexture3D {
+	/*
 	Range originalDepthExtrema;
 	float renderVerticalFOVOver2;
-	public GeometryBuffer3D geometryBuffer3D;
+	public V1_GeometryBuffer3D geometryBuffer3D;
 	
 	public DepthTexture3D(BufferedImage gray16BitImg, float angleOfView, float depthExtremaNear, float depthExtremaFar){
 		
@@ -39,7 +40,7 @@ public class DepthTexture3D {
 		
 		// need to convert depth to distance here
 		
-		geometryBuffer3D = new GeometryBuffer3D(depthData,angleOfView);
+		geometryBuffer3D = new V1_GeometryBuffer3D(depthData,angleOfView);
 	}
 	
 	public int getWidth() {
@@ -80,7 +81,7 @@ public class DepthTexture3D {
 	}
 	
 	
-	public GeometryBuffer3D getGeometryBuffer3D() {
+	public V1_GeometryBuffer3D getGeometryBuffer3D() {
 		return geometryBuffer3D;
 	}
 	
@@ -117,7 +118,7 @@ public class DepthTexture3D {
 	
 
 
-	
+	*/
 	
 	
 }

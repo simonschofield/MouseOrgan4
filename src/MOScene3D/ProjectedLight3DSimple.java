@@ -41,8 +41,8 @@ import MOUtils.GlobalSettings;
 //// Then check out testLighting method
 //
 public class ProjectedLight3DSimple {
-
-	GeometryBuffer3D geometryBuffer3D;
+	/*
+	OLD_GeometryBuffer3D geometryBuffer3D;
 	BufferedImage textureImage;
 	BilinearBufferedImageSampler bilinearSampler;
 	Plane3D texturePlane;
@@ -54,7 +54,7 @@ public class ProjectedLight3DSimple {
 
 	public Range uExtrema, vExtrema;
 
-	public ProjectedLight3DSimple(GeometryBuffer3D scene3d,  Plane3D imgPlane,  BufferedImage lightImage){
+	public ProjectedLight3DSimple(OLD_GeometryBuffer3D scene3d,  Plane3D imgPlane,  BufferedImage lightImage){
 		geometryBuffer3D = scene3d;
 		texturePlane = imgPlane.copy();
 		textureImage = lightImage;
@@ -198,7 +198,7 @@ public class ProjectedLight3DSimple {
 
 	}
 
-
+*/
 }// end ProjectedLight class
 
 

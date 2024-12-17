@@ -164,8 +164,7 @@ public class SpriteSeed {
 
 	public String getAsCSVStr() {
 		// Called by a File Saving operation to gather the full line of CSV data
-		// In order eliminate differing aspect issues between the generating system and the reading system
-		// all XY locations are saved to file in NORMALISED coordinates and then converted to local documentSpace
+		
 
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.addKeyValue("SeedBatchName", SeedBatchName);
@@ -173,9 +172,9 @@ public class SpriteSeed {
 		kvlist.addKeyValue("UniqueId", uniqueID);
 		kvlist.addKeyValue("RandomKey", randomKey);
 		
-		PVector np = docSpaceToNormalisedSpace(new PVector(docPointX, docPointY));
-		kvlist.addKeyValue("DocPointX", np.x);
-		kvlist.addKeyValue("DocPointY", np.y);
+		PVector p = new PVector(docPointX, docPointY);
+		kvlist.addKeyValue("DocPointX", p.x);
+		kvlist.addKeyValue("DocPointY", p.y);
 		
 		kvlist.addKeyValue("Scale", scale);
 		kvlist.addKeyValue("Rotation", rotation);
@@ -203,10 +202,13 @@ public class SpriteSeed {
 		uniqueID = kvlist.getInt("UniqueId");
 		randomKey = kvlist.getInt("RandomKey");
 		
-		float npX = kvlist.getFloat("DocPointX");
-		float npY = kvlist.getFloat("DocPointY");
-		PVector dpt = normalisedSpaceToDocSpace(new PVector(npX, npY));
-		setDocPoint(dpt);
+		float px = kvlist.getFloat("DocPointX");
+		float py = kvlist.getFloat("DocPointY");
+		
+		// we need to convert them back into the master document space, not the current ROI space!
+		// PVector dpt = normalisedSpaceToDocSpace(new PVector(npX, npY));
+		PVector p = new PVector(px,py);
+		setDocPoint(p);
 		
 		scale = kvlist.getFloat("Scale");
 		rotation = kvlist.getFloat("Rotation");
@@ -220,14 +222,8 @@ public class SpriteSeed {
 		//System.out.println("Loading seed: " + this.getAsCSVStr());
 
 	}
-
-	PVector normalisedSpaceToDocSpace(PVector normPt) {
-		return GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace( normPt);
-	}
-
-	PVector docSpaceToNormalisedSpace(PVector docPt) {
-		return GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(getDocPoint());
-	}
 	
+	
+
 
 }

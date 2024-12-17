@@ -35,19 +35,19 @@ import MOUtils.GlobalSettings;
 	
 public class Scene3DHelper {
 		static Surface theSurface = null;
-		static SceneData3D sceneData3D = null;
+		static SceneData3D sceneData3D_v1 = null;
 		
 		
 		
 		public static void initialise(SceneData3D sd3d, Surface s) {
 			theSurface = s;
-			sceneData3D = sd3d;
+			sceneData3D_v1 = sd3d;
 			add3DMeasuringToolSlider();
 			makeRenderImageMenu();
 		}
 		
 		public static SceneData3D getSceneData3D() {
-			return sceneData3D;
+			return sceneData3D_v1;
 		}
 		
 		static PVector vec(float x, float y, float z) {
@@ -61,7 +61,7 @@ public class Scene3DHelper {
 		
 		public static SpriteSeedBatch createSeedbatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
 			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
-			SpriteSeedBatchHelper_Scene3D seedBatchHelper = new SpriteSeedBatchHelper_Scene3D(name, sceneData3D);
+			SpriteSeedBatchHelper_Scene3D seedBatchHelper = new SpriteSeedBatchHelper_Scene3D(name, sceneData3D_v1);
 			seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
 			seedBatchHelper.setMaxNumPoints(maxNumPoints);
 			return seedBatchHelper.generateSpriteSeedBatch(seedRandomKey);
@@ -85,7 +85,7 @@ public class Scene3DHelper {
 		// This is normalised to the depth extrema within the scene being rendered (which may be a ROI).
 		// No-substance is set to zero, so the smallest depth value is 1
 		public static BufferedImage captureSceneDepth() {
-			
+			System.out.println("ERROR using broken captureSceneDepth" );
 			
 			// Displays the lighting projeted onto the current sceneData3D based on the current settings
 			int width = GlobalSettings.getTheDocumentCoordSystem().getBufferWidth();
@@ -93,34 +93,34 @@ public class Scene3DHelper {
 			BufferedImage sceneDepthImage = new BufferedImage(width,height,BufferedImage.TYPE_USHORT_GRAY);
 			WritableRaster sceneDepthImageRaster = sceneDepthImage.getRaster();
 			
-			Range fullExtrema = sceneData3D.getFullSceneDepthExtrema();
-			Range localExtrema = sceneData3D.getROIDepthExtrema();
+			//Range fullExtrema = sceneData3D_v1.getFullSceneDepthExtrema();
+			//Range localExtrema = sceneData3D_v1.getROIDepthExtrema(true);
 
-			System.out.println("Full scene Depth Extrema " + fullExtrema.toStr());
-			System.out.println("Local ROI Depth Extrema " + localExtrema.toStr());
+			//System.out.println("Full scene Depth Extrema " + fullExtrema.toStr());
+			//System.out.println("Local ROI Depth Extrema " + localExtrema.toStr());
 			
 			
 			for(int y = 0; y < height; y++) {
 				for(int x = 0; x < width; x++) {
 
 					PVector docSpace = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(x, y);
-					float originalDepth = sceneData3D.getDepth(docSpace);
-					boolean isSubstance = sceneData3D.isSubstance(docSpace);
+					float originalDepth = sceneData3D_v1.getDepth(docSpace);
+					boolean isSubstance = sceneData3D_v1.isSubstance(docSpace);
 					
 					if(isSubstance) {
-						float localNormalisedDepth = localExtrema.norm(originalDepth);
+						//float localNormalisedDepth = localExtrema.norm(originalDepth);
 						
 						
 						
-						int ushortDepthRange = (int)(localNormalisedDepth*65535);
+						//int ushortDepthRange = (int)(localNormalisedDepth*65535);
 						
 						//if(y%10==0 && x == 10) {
 						//	
 						//	System.out.println("x y " + x + ", " + y + "   originalDepth = " + originalDepth + " nomalised locally " + localNormalisedDepth + " UShort " + ushortDepthRange);
 						//}
 						
-						if(ushortDepthRange<1) ushortDepthRange=1;
-						sceneDepthImageRaster.setSample(x, y, 0,ushortDepthRange);
+						//if(ushortDepthRange<1) ushortDepthRange=1;
+						//sceneDepthImageRaster.setSample(x, y, 0,ushortDepthRange);
 					} else {
 						sceneDepthImageRaster.setSample(x, y, 0,0);
 						
@@ -151,10 +151,10 @@ public class Scene3DHelper {
 			//float scaledShift = shiftY * scl3d;
 			//PVector shiftedDocPoint = new PVector(docPoint.x,docPoint.y+scaledShift);
 			
-			PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(docPoint);
+			PVector exiting3DPoint =  sceneData3D_v1.get3DSurfacePoint(docPoint);
 			PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
-			PVector shiftedDocPointNOROI = sceneData3D.geometryBuffer3d.world3DToDocSpace(displaced3DPoint);
-			PVector shiftedDocPoint= sceneData3D.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
+			PVector shiftedDocPointNOROI = sceneData3D_v1.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
+			PVector shiftedDocPoint= sceneData3D_v1.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
 			
 			
 			
@@ -206,23 +206,23 @@ public class Scene3DHelper {
 			//
 			//
 			
-			PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(initialDocPoint);
+			PVector exiting3DPoint =  sceneData3D_v1.get3DSurfacePoint(initialDocPoint);
 			PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
-			PVector shiftedDocPointNOROI = sceneData3D.geometryBuffer3d.world3DToDocSpace(displaced3DPoint);
-			PVector shiftedDocPoint= sceneData3D.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
+			PVector shiftedDocPointNOROI = sceneData3D_v1.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
+			PVector shiftedDocPoint= sceneData3D_v1.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
 			
 			return shiftedDocPoint;
 		}
 		
-		
+		/*
 		static float getLerpDistanceEffect(Sprite sprite, float distMinEffect, float distMaxEffect) {
-			float dist = sceneData3D.getDistance(sprite.getDocPoint());
+			float dist = sceneData3D_v1.getDistance(sprite.getDocPoint());
 			float val = MOMaths.norm(dist, distMinEffect, distMaxEffect);
 			return MOMaths.constrain(val, 0, 1);
 		}
 		
 		static float getRampedDistanceEffect(Sprite sprite, float distMinEffectNear, float distMaxEffect, float distMinEffectFar) {
-			float dist = sceneData3D.getDistance(sprite.getDocPoint());
+			float dist = sceneData3D_v1.getDistance(sprite.getDocPoint());
 			if(dist < distMaxEffect) {
 				return getLerpDistanceEffect( sprite,  distMinEffectNear,  distMaxEffect);
 			}
@@ -230,13 +230,14 @@ public class Scene3DHelper {
 			return getLerpDistanceEffect( sprite,  distMinEffectFar,  distMaxEffect);
 			
 		}
+		*/
 		
 		
 		public static float addWave(Sprite sprite, String waveImageName, float amt, boolean flipInDirection) {
 			
 			
 			
-			PVector grad = sceneData3D.getCurrentRenderGradiant(sprite.getDocPoint());
+			PVector grad = sceneData3D_v1.getCurrentRenderGradiant(sprite.getDocPoint());
 			float mag = grad.mag();
 			
 			if(mag>0.001) {
@@ -272,8 +273,8 @@ public class Scene3DHelper {
 		
 		public static float getWaveRotationDegrees(String waveImageName, PVector docPt, QRandomStream ranStream, float degreesLeft, float degreesRight, float noise) {
 			// return degrees rotation based on a wave image
-			sceneData3D.setCurrentRenderImage(waveImageName);
-			float v = sceneData3D.getCurrentRender01Value(docPt);
+			sceneData3D_v1.setCurrentRenderImage(waveImageName);
+			float v = sceneData3D_v1.getCurrentRender01Value(docPt);
 			
 			
 			degreesLeft = ranStream.perturbProportional(degreesLeft, noise);
@@ -289,8 +290,8 @@ public class Scene3DHelper {
 		
 		////
 		static float addLighting(Sprite sprite, String lightingImage, float dark, float bright, float noise) {
-			sceneData3D.setCurrentRenderImage(lightingImage);
-			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
+			sceneData3D_v1.setCurrentRenderImage(lightingImage);
+			float v = sceneData3D_v1.getCurrentRender01Value(sprite.getDocPoint());
 			
 			if(noise > 0.001) {
 				
@@ -312,7 +313,7 @@ public class Scene3DHelper {
 			if(uied.menuItem.contentEquals("none")) {
 				theSurface.setCanvasBackgroundImage(null);
 			} else {
-				BufferedImage viewIm = sceneData3D.getRenderImage(uied.menuItem, true);
+				BufferedImage viewIm = sceneData3D_v1.getRenderImage(uied.menuItem, true);
 				theSurface.setCanvasBackgroundImage(viewIm);
 			}
 		}
@@ -326,7 +327,7 @@ public class Scene3DHelper {
 	}
 	
 	static void makeRenderImageMenu() {
-		ArrayList<String> names = sceneData3D.getRenderImageNames();
+		ArrayList<String> names = sceneData3D_v1.getRenderImageNames();
 	    String nameArray[] = new String[names.size()+1];
 	    nameArray[0] = "none";
 	    int i = 1;
@@ -363,15 +364,15 @@ public class Scene3DHelper {
 		
 		theSurface.theUI.deleteCanvasOverlayShapes("measuringTool");
 		PVector endPt = docPt.copy();
-		float worldScale = sceneData3D.get3DScale(docPt);
-		PVector p3d = sceneData3D.get3DSurfacePoint(docPt);
-		float distance = sceneData3D.getDistance(docPt);
-		float depth = sceneData3D.getDepth(docPt);
-		float masterNormalisedDepth = sceneData3D.getDepthNormalised(docPt);
+		float worldScale = sceneData3D_v1.get3DScale(docPt);
+		PVector p3d = sceneData3D_v1.get3DSurfacePoint(docPt);
+		//float distance = sceneData3D_v1.getDistance(docPt);
+		float depth = sceneData3D_v1.getDepth(docPt);
+		
 		//Range normalisedDepthExtrema = sceneData3D.getROIDepthExtrema(false);
 		//float roiNormalisedDepth = normalisedDepthExtrema.norm(masterNormalisedDepth);
 		
-		float roiNormalisedDepth = sceneData3D.getROINormalisedDepth(docPt);
+		//float roiNormalisedDepth = sceneData3D_v1.getROINormalisedDepth(docPt);
 		
 		float textX = endPt.x;
 		endPt.y -= (worldScale * measuringToolSize);
@@ -382,21 +383,22 @@ public class Scene3DHelper {
 		// theUI.addCanvasOverlayShape("mouseDot", uied.docSpacePt, radiusOffset, "ellipse", new Color(127, 0, 0, 255), Color.gray, 1);
 		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), "  distance = " + distance + " depth " + depth + " master norm depth = " + masterNormalisedDepth,  Color.red, 20);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr() + " roi norm depth " +  roiNormalisedDepth,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), " depth " + depth ,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr() ,  Color.red, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), ,  Color.blue, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);
 		
 	}
 	
-	
+	/*
 	public static void print3DSceneData(PVector docPt) {
-		float worldScale = sceneData3D.get3DScale(docPt);
-		float distance = sceneData3D.getDistance(docPt);
+		float worldScale = sceneData3D_v1.get3DScale(docPt);
+		float distance = sceneData3D_v1.getDistance(docPt);
 		
-		float normalisedDepth = sceneData3D.getDepthNormalised(docPt);
+		float normalisedDepth = sceneData3D_v1.getDepthNormalised(docPt);
 		
 		System.out.println("3DSceneData at:" + docPt.toStr() + " world scale:" + worldScale + " Distance:" + distance +  " Normalised depth:" + normalisedDepth);     
 	}
+	*/
 	
 }

@@ -83,6 +83,10 @@ public class ImageCoordinateSystem {
 			return bufferHeight;
 		}
 		
+		public ImageDimensions getBufferDimensions() {
+			return new ImageDimensions(bufferWidth, bufferHeight);
+		}
+		
 		public Rect getBufferRect() {
 			return new Rect(0,0,bufferWidth,bufferHeight);
 		}
@@ -132,6 +136,12 @@ public class ImageCoordinateSystem {
 	    	return false;
 	    	
 	    }
+		
+		public boolean isInsideBufferSpace(int x, int y) {
+			if(x >= 0 && x < bufferWidth && y >= 0 && y < bufferHeight) return true;
+			return false;
+			
+		}
 		
 		
 	    

@@ -62,15 +62,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
 		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	
 	public SpriteSeedBatch generateSpriteSeedBatch(int randomKeySeed) {
 		if(pointGenerator == null) {
@@ -105,9 +97,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		
 	}
 	
-	
-	
-	
+
 	
 	private void ensureSeedsDirectoryExists(String path) {
 		String alledgedDirectory = path + "seeds";
@@ -115,104 +105,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 		MOStringUtils.createDirectory(alledgedDirectory);
 	}
 	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// This is sort-of stand alone method that used to belong to an overcomplex class called SeedBatchManager
-	// It is used to adjust the sees locations into the ROI space defined in the SceneData3D
-	//
-	
-	public SpriteSeedBatch applyROIToSpriteSeedBatch(ROIHelper roiHelper, SpriteSeedBatch seedbatch) {
-		if(roiHelper.isUsingMaster()) return seedbatch;
-		
-		
-		removeNoncontributingSpritesInROI( roiHelper,   seedbatch);
-		// adjusts the document point of seeds from a seed batch of a whole scene (no ROI)
-		// to a specific ROI within that scene by mapping the original doc points into the nw
-		// doc space represented by the ROI
-		
-		// as this is quite destructive this method returns a new SeedBatch
-		
-		// when seeds are saved the locations are saved in normalised form
-		// This is converted to the doc space of the host session upon loading
-		
-		// The ROIRect is stored in normalised form
-		// so to convert into the the ROI of the host session
-		// 1/ covert back to normalised form
-		// 2/ 
-		
-		Rect theROI = sceneData3D.getROIRect();
-		
-		System.out.println("apply ROI to seeds " + theROI.toStr());
-		SpriteSeedBatch seedbatchOut = new SpriteSeedBatch();
-		seedbatch.resetItemIterator();
-		while(seedbatch.areItemsRemaining()) {
-			
-			SpriteSeed s = seedbatch.getNextSeed().copy();
-			PVector newSceneDocPoint = s.getDocPoint();
-			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(newSceneDocPoint);
-			//if(theROI.isPointInside(normalisedPoint)==false) continue;
 
-			PVector newROIPoint = theROI.norm(normalisedPoint); // convert to normalised space within the roi
-			PVector newDocSpacePt = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(newROIPoint);
-			//System.out.println("applyROIToSeeds: seeds docpoint before appplication of ROI " + newSceneDocPoint.toString() + ". Adjusted by ROI " + newDocSpacePt.toString());
-			s.setDocPoint(newDocSpacePt);
-			
-			seedbatchOut.addSpriteSeed(s);
-			
-		}
-		
-		
-		
-		seedbatchOut.resetItemIterator();
-
-		System.out.println("applyROIToSeeds: seeds before appplication of ROI " + seedbatch.getNumItems() + ". Adjusted number of seeds in ROI " + seedbatchOut.getNumItems());
-		return seedbatchOut;
-	}
-	
-	
-	
-	
-	public boolean removeNoncontributingSpritesInROI(ROIHelper roiHelper, SpriteSeedBatch seedbatch) {
-		// this only removed seeds if a "contributing sprite" file has been saved for this ROI (i.e. with the ROI's name) in the seeds folder
-		// if the file cannot be found, then the class is alerted to save one out at the end of this session
-		if(roiHelper.isUsingMaster()) return false;
-		//SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
-		ContributingSpritesList spriteCropList = new ContributingSpritesList();
-		
-		String fname = getContributingSpritesFilePathAndName(roiHelper);
-		boolean loadResult = spriteCropList.load(fname);
-		if(loadResult == false) {
-			saveOutContributingSeedReport = true;
-			return false;
-		}
-		spriteCropList.removeNonContributingSprites(seedbatch);
-		return true;
-	}
-	
-	public void saveContributingSpritesReport(ROIHelper roiHelper, MainDocument theDocument, boolean forcesave) {
-		// called at the end of the session
-		System.out.println("saveContributingSpritesReport:" + thisHelperName + "here1");
-		if(roiHelper.isUsingMaster()) return;
-		System.out.println("saveContributingSpritesReport:" + thisHelperName + "here2");
-		if(forcesave) saveOutContributingSeedReport = true;
-		System.out.println("saveContributingSpritesReport:" + thisHelperName + "here3");
-		if(saveOutContributingSeedReport==false) return;
-		
-		System.out.println("saveContributingSpritesReport:" + thisHelperName + "here4");
-		String fname = getContributingSpritesFilePathAndName(roiHelper);
-		
-		System.out.println("saveContributingSpritesReport: saving" + fname);
-		
-		
-		theDocument.getRenderBorder().getContributingSpritesList().save( fname );
-		
-	}
-	
-	
-	private String getContributingSpritesFilePathAndName(ROIHelper roiHelper) {
-		String roiname = roiHelper.getCurrentROIName();
-		return GlobalSettings.getUserSessionPath() + "seeds//contributingSprites_" + thisHelperName + "_" + roiname + ".csv";
-	}
-	
 	
 }
 

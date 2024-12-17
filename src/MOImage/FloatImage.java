@@ -51,7 +51,7 @@ public class FloatImage{
     }
   }
   
-  public void setMaskValue(float val, boolean useMask) {
+  private void setMaskValue(float val, boolean useMask) {
 	  maskValueSet = useMask; 
 	  maskValue = val;
   }
@@ -108,6 +108,22 @@ public class FloatImage{
 	  if(maskValueSet == false) return false;
 	  if(val == maskValue) return true;
 	  return false;
+  }
+  
+  
+  public void replaceMaskValue(float replacementVal) {
+	    
+	    for(int y = 0; y < ydim; y++) {
+			for(int x = 0; x < xdim; x++) {
+	   
+				float val = get(x,y);
+				if(isMaskValue(val)) {
+					set( x,  y,  replacementVal);
+				}
+				
+				
+			}
+	    }
   }
   
 
@@ -572,6 +588,7 @@ public class FloatImage{
       return;
     }
     
+    updateExtrema();
     //println("loaded the float array back ", xdim, ydim, " value index 13 = ", floatArray[13]);
     //println("float data load took ", t.getTimeSinceStart() );
   }

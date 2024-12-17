@@ -17,11 +17,12 @@ import MOUtils.ImageCoordinateSystem;
 
 public class Scene3DSpriteShading {
 	
+	/*
 	ProjectedLight3D projectedLight3D;
 	
-	SceneData3D sceneData3D;
+	V1_SceneData3D sceneData3D;
 	
-	public Scene3DSpriteShading(SceneData3D sd3d) {
+	public Scene3DSpriteShading(V1_SceneData3D sd3d) {
 		
 		sceneData3D = sd3d;
 	}
@@ -94,5 +95,8 @@ public class Scene3DSpriteShading {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// sprite shading using a projectedTexture of a scenebased render
 	//
+	 * 
+	*/
+	 
 	
 }

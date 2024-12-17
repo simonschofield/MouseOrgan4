@@ -8,6 +8,7 @@ import MOScene3D.ProjectedLight3D;
 import MOSprite.Sprite;
 
 public class Sprite3DLightingMask {
+	/*
 	int maskScale;
 	BufferedImage lightingMask;
 	ProjectedLight3D solidTexture;
@@ -41,5 +42,6 @@ public class Sprite3DLightingMask {
 		// https://stackoverflow.com/questions/221830/set-bufferedimage-alpha-mask-in-java
 			
 	}
+	*/
 	
 }

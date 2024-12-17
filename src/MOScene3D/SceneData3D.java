@@ -1,5 +1,328 @@
 package MOScene3D;
 
+
+
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+
+import MOImage.ConvolutionFilter;
+import MOImage.FloatImage;
+import MOImage.ImageProcessing;
+import MOImage.KeyImageSampler;
+import MOImage.MOPackedColor;
+import MOImageCollections.DirectoryFileNameScanner;
+import MOImageCollections.ImageAssetGroup;
+
+import MOMaths.PVector;
+import MOMaths.Range;
+import MOMaths.Rect;
+import MOSprite.SpriteSeed;
+import MOUtils.GlobalSettings;
+import MOUtils.ImageCoordinateSystem;
+import MOUtils.KeyValuePairList;
+import MOUtils.MOStringUtils;
+
+public class SceneData3D {
+	// path to the specified input scenedata folder
+	String directoryPath;
+
+	// this reads in and contains all the png files within the input folder
+	ImageAssetGroup textureMapImages;
+	BufferedImage currentTextureMapImage;
+	boolean currentRenderKeyImageHasAlpha;
+
+	// Depth Buffer and Eye point calculations are made using the Geometry Buffer
+	public DepthBuffer3D depthBuffer3d;
+
+	
+	//
+	//
+	public ROIManager roiManager;
+
+	// contains the min and max normalised depth values from the master within the
+	// roi
+	
+
+	public SceneData3D() {
+
+	}
+
+	public void load(String targetDirectory) {
+		directoryPath = targetDirectory;
+
+		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(directoryPath, "png");
+		textureMapImages = new ImageAssetGroup();
+		textureMapImages.setDirectoryFileNameScanner(dfns);
+		textureMapImages.loadImages();
+
+		// this is a "distance" image, it is converted to a proper depth image
+		// in the DepthBuffer object
+		FloatImage depthImage = new FloatImage(directoryPath + "\\depth.data");
+		float farDepth = depthImage.getExtrema().getUpper();
+		
+		
+
+		float cameraDistToVP = getCameraDistToVPFromFile(directoryPath + "\\cameraDistance.csv");
+
+		depthBuffer3d = new DepthBuffer3D(depthImage, cameraDistToVP);
+		setCurrentRenderImage(0);
+	}
+
+	private float getCameraDistToVPFromFile(String fileAndPath) {
+		// there should be a file in the SceneData called "cameraDistance.csv" exported from
+		// TerrainMaker v1_2
+		float camDist = 0;
+		try {
+			BufferedReader csvReader = new BufferedReader(new FileReader(fileAndPath));
+			String row;
+			while ((row = csvReader.readLine()) != null) {
+				KeyValuePairList kvlist = new KeyValuePairList();
+				kvlist.ingestCSVLine(row);
+				camDist = kvlist.getFloat("CAMDIST_TO_VP");
+			}
+			csvReader.close();
+		} catch (Exception e) {
+			System.out.println("SpriteSeedBatch.loadSeedsAsCSV: csv reader failed - " + fileAndPath + e);
+		}
+		return camDist;
+	}
+
+	
+
+	public Rect getROIRect() {
+		return roiManager.getCurrentROIDocRect();
+	}
+
+	private ImageCoordinateSystem getDepthBufferKeyImageSampler() {
+		return depthBuffer3d.depthBufferCoordinateSystem;
+	}
+	
+	
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// The mask image is an image reflecting the sky/land pixels
+	// land pixels are set to white, sky to black
+
+	public ArrayList<String> getRenderImageNames() {
+		return textureMapImages.getImageAssetNamesList();
+	}
+
+	public BufferedImage setCurrentRenderImage(String shortName) {
+		currentTextureMapImage = textureMapImages.getImage(shortName);
+		currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentTextureMapImage);
+		return currentTextureMapImage;
+	}
+
+	public void setCurrentRenderImage(int n) {
+		currentTextureMapImage = textureMapImages.getImage(n);
+		String shortName = textureMapImages.getImageAssetName(n);
+		System.out.println("curren render image is " + shortName);
+		currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentTextureMapImage);
+	}
+
+	////////////////////////////////////////////////////////////////
+	//
+	// get images
+	//
+	public BufferedImage getSubstanceMaskImage(boolean cropToRoi) {
+		if (cropToRoi)
+			return cropToROI(depthBuffer3d.substanceImage);
+		return depthBuffer3d.substanceImage;
+	}
+
+	public BufferedImage getCurrentRenderImage(boolean cropToRoi) {
+		if (cropToRoi)
+			return cropToROI(currentTextureMapImage);
+		return currentTextureMapImage;
+	}
+
+	public BufferedImage getRenderImage(String shortName, boolean cropToRoi) {
+		BufferedImage renderImage = textureMapImages.getImage(shortName);
+		if (cropToRoi)
+			return cropToROI(renderImage);
+		return renderImage;
+	}
+
+	////////////////////////////////////////////////////////////////
+	//
+	// when using the ROI, you may wish to see the portion of the render in the SceneData texture collection
+	// This method crops the image accordingly
+
+	BufferedImage cropToROI(BufferedImage uncropped) {
+		// returns the roi cropped image from whatever function
+		// System.out.println("cropping to roi rect " + roiRect.toStr());
+		Rect currentROIDocSpaceRect = roiManager.getCurrentROIDocRect();
+		Rect masterDocSpaceRect = roiManager.getMasterDocumentRect();
+		// this needs to be normalised within the master rect
+		PVector topLeft = masterDocSpaceRect.norm(   currentROIDocSpaceRect.getTopLeft()   );
+		PVector bottomRight = masterDocSpaceRect.norm(   currentROIDocSpaceRect.getBottomRight()   );
+		Rect cropRect = new Rect(topLeft, bottomRight);
+		System.out.println("warning using untested cropToROI in scenedata class");
+		return ImageProcessing.cropImageWithNormalisedRect(uncropped, cropRect);
+	}
+
+	//////////////////////////////////////////////////////////////////
+	// Converting from LocalROIDocSpace to MasterDocSpace
+	// When this method is used, you assume that the local ROI is in-play as the current document space, hence
+	// you can use the GlobalSettings coordinate space conversions
+	// IN the V2 version, the MasterRect is stored as a documentSpace rect, and the
+	// ROIRect is stored as a wholly contained, sub-rect of the masterRect. Therefore conversion of point localDocPoint in localROIDocSpace to
+	// the MasterDocSpace is as follows
+	// localNormalised = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(roiLocalDocSpace)
+	// masterDocSpace = ROIRect.interpolate(localNormalised)
+	
+	//
+	public PVector subROIDocSpaceToMasterDocSpace(PVector roiLocalDocSpace) {
+
+			return roiManager.subROIDocSpaceToMasterDocSpace(roiLocalDocSpace);
+	}
+
+	///////////////////////////////////////////////////////////////
+	// less used than above. If you happen to have calculated anything in Master Doc
+	// space, and want to convert that to
+	// the ROIs docSpace...
+	// Assume that the local ROI is in-play as the current document space
+	public PVector masterDocSpaceToROIDocSpace(PVector masterDocSpace) {
+		return roiManager.masterDocSpaceToSubROIDocSpace(masterDocSpace);
+
+	}
+
+	public boolean isUsingROI() {
+		return roiManager.isUsingROI();
+	}
+
+	public Range getFullSceneDepthExtrema() {
+		return depthBuffer3d.depthBufferExtrema.copy();
+	}
+
+	////////////////////////////////////////////////////////////////
+	//
+	// get pixel data
+	//
+	public float getCurrentRender01Value(PVector docSpace) {
+		Color rgb = getCurrentRenderColor(docSpace);
+		int r = rgb.getRed();
+		int g = rgb.getGreen();
+		int b = rgb.getBlue();
+		return (r + g + b) / 765f;
+	}
+
+	Color getCurrentRenderColor(PVector docSpace) {
+		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+
+		PVector coord = getDepthBufferKeyImageSampler().docSpaceToBufferSpace(masterSpace);
+		int packedCol = currentTextureMapImage.getRGB((int) coord.x, (int) coord.y);
+
+		return MOPackedColor.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
+	}
+
+	public PVector getCurrentRenderGradiant(PVector docSpace) {
+		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+		ConvolutionFilter cf = new ConvolutionFilter();
+
+		PVector grad = cf.getGradient(masterSpace, currentTextureMapImage);
+		return grad;
+	}
+
+	public boolean isSubstance(PVector docSpace) {
+		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+		PVector coord = getDepthBufferKeyImageSampler().docSpaceToBufferSpace(masterSpace);
+		return depthBuffer3d.isSubstance((int) coord.x, (int) coord.y);
+	}
+
+	public PVector get3DSurfacePoint(PVector docSpace) {
+		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+		return depthBuffer3d.docSpaceToWorld3D(masterSpace);
+	}
+	
+	public Color testGrid3D(PVector p3d, float gridSpace, float gridLineThickness, boolean xLines, boolean yLines,boolean zLines) {
+		PVector offset = new PVector(-10000,-10000,-10000);
+		offset.add(p3d);
+		float xMod = Math.abs(p3d.x % gridSpace);
+		float yMod = Math.abs(p3d.y % gridSpace);
+		float zMod = Math.abs(p3d.z % gridSpace);
+		
+		if(xLines && xMod < gridLineThickness) return Color.BLACK;
+		if(yLines && yMod < gridLineThickness) return Color.BLACK;
+		if(zLines && zMod < gridLineThickness) return Color.BLACK;
+		return Color.WHITE;
+	}
+
+	/*
+	PVector get3DVolumePoint(PVector docSpace, float normDepth) {
+		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+
+		// needs to take angle into consideration but OK for the moment
+		float realDistance = depthBuffer3d.normalisedDepthToRealDepth(normDepth);
+
+		return depthBuffer3d.docSpaceToWorld3D(masterSpace, realDistance);
+	}
+	*/
+
+	public float get3DScale(PVector ROIdocSpace) {
+		// Returns the document-space distance in master units, that is the unit 3D distance (1.0) at master document space point in the 3D scene.
+		// so for points further away the distance will be shorter etc.
+		// Used for scaling things accurately against the scene
+		
+		PVector masterSpace = subROIDocSpaceToMasterDocSpace(ROIdocSpace);
+		PVector displacedPointMasterSpace = depthBuffer3d.get3DDisplacedDocPoint(masterSpace, new PVector(0, 1,0));
+		PVector displacedPointROIDocSpace =  this.masterDocSpaceToROIDocSpace(displacedPointMasterSpace);
+		
+		//if( unitSizeMasterDocSpace > 0.002) System.out.println("get3DScale : ROI doc point " + docSpace.toStr() + " masterSpace doc point " +  masterSpace.toStr() + " p3d " + original3DPoint + " unit size " + unitSizeMasterDocSpace);
+
+		float distanceInROIDocSpace = ROIdocSpace.dist(displacedPointROIDocSpace);
+		return distanceInROIDocSpace;
+	}
+
+	
+
+	public float getDepth(PVector docSpace) {
+		PVector roiSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+		PVector bufferSpace = depthBuffer3d.docSpaceToBufferSpace(roiSpace);
+		return depthBuffer3d.getDepthBilinear(bufferSpace);
+	}
+	
+	/*
+	public float getDepthNormalised(PVector docSpace) {
+		PVector roiSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+		PVector bufferSpace = depthBuffer3d.docSpaceToBufferSpace(roiSpace);
+		return depthBuffer3d.getDepthNormalised(bufferSpace);
+	}
+	*/
+
+	public PVector world3DToDocSpace(PVector world3dPt) {
+
+		PVector docSpaceInMasterView = depthBuffer3d.world3DToDocSpace(world3dPt);
+		return masterDocSpaceToROIDocSpace(docSpaceInMasterView);
+
+	}
+	
+	
+	
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * 
+ * Old SceneData using old geometry 3D
+ * 
+ * 
+ * 
+ * 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -19,7 +342,8 @@ import MOMaths.Rect;
 import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
 
-public class SceneData3D {
+
+public class V1_SceneData3D {
 	
 	// path to the specified input scenedata folder
 		String directoryPath;
@@ -60,7 +384,7 @@ public class SceneData3D {
 		// original depths can be recalculated
 		
 		Range originalDepthExtrema;
-		public GeometryBuffer3D geometryBuffer3d;
+		public V1_GeometryBuffer3D geometryBuffer3d;
 		
 		FloatImage distanceImage;
 		float fov;
@@ -76,7 +400,7 @@ public class SceneData3D {
 		Range roiDepthExtrema=null;
 		
 		
-		public SceneData3D() {
+		public V1_SceneData3D() {
 			
 			
 		}
@@ -134,7 +458,7 @@ public class SceneData3D {
 			
 			distanceBufferKeyImageSampler = new KeyImageSampler(distanceImage);
 			
-			geometryBuffer3d = new GeometryBuffer3D(distanceImage, fov,   originalViewWidth, originalViewHeight, originalViewCropRect);
+			geometryBuffer3d = new V1_GeometryBuffer3D(distanceImage, fov,   originalViewWidth, originalViewHeight, originalViewCropRect);
 			
 			setCurrentRenderImage(0);
 		}
@@ -445,7 +769,7 @@ public class SceneData3D {
 	}
 
 
-
+*/
 
 
 

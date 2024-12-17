@@ -123,6 +123,7 @@ public class KeyImageSampler{
 	
 	public PVector docSpaceToBufferSpace(PVector docSpace) {
 		// the document space refers to the DocSpace of the HOST application
+		// WRONG.... should be using the document space of the depth buffer not the current SubROI
 		PVector np = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
 		return normalisedSpaceToBufferSpace(np);
 	}

@@ -798,17 +798,21 @@ public class Sprite {
 	public float scaleToSizeInScene(SceneData3D sceneData, float scaleModifier) {
 		// scales the image to the correct size using  sizeInScene to represent the
 		// items's size in the 3D scene in world units.
+		// System.out.println("Sprite ID " + this.uniqueID);
 		sizeInScene *= scaleModifier;
 		float heightInPixels = getBufferSpaceHeightFromSizeInScene(sceneData) * getRelativeSizeInGroup();
 		
-		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " height in pixels " + heightInPixels);
+		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " target height in pixels " + heightInPixels+ " sprite image height " + getImageHeight());
 		float scale = (heightInPixels / getImageHeight()); 
 		if (scale > 1.5f) {
 			System.out.println(ImageGroupItemShortName + " overscaled, original size in pixels " + getImageHeight() + " to be scale to " + heightInPixels + " scale " + scale);
 		}
-
-		scale(scale, scale);
 		//System.out.println(" scaled by "  + scale );
+		scale(scale, scale);
+		
+		
+		
+		
 		return scale;
 	}
 
@@ -819,7 +823,7 @@ public class Sprite {
 
 		//System.out.println("getHeightInRenderTargetPixels3D: scale3D " + scale3D );
 		float docSizeInPixels =  GlobalSettings.getTheDocumentCoordSystem().docSpaceUnitToBufferSpaceUnit(heightDocSpace);
-		//System.out.println("sprite id " + this.id + " doc point " + docPoint.toString() + " height doc space = " + heightDocSpace + "  size pixels " + docSizeInPixels);
+		//System.out.println("sprite point " + docPoint.toString() + " height doc space = " + heightDocSpace + "  size pixels " + docSizeInPixels);
 		//System.out.println();
 		return docSizeInPixels;
 	}

@@ -23,7 +23,8 @@ import MOUtils.GlobalSettings;
 //
 public class ProjectedLight3D {
 	
-	SceneData3D sceneData3D;
+	/*
+	V1_SceneData3D sceneData3D;
 	BufferedImage textureImage;
 	Plane3D texturePlane;
 	
@@ -31,13 +32,13 @@ public class ProjectedLight3D {
 	Fustrum3D sceneFustrum;
 	Extents2D extentsImageMap2D;
 	
-	public ProjectedLight3D(SceneData3D scene3d,  Plane3D imgPlane){
+	public ProjectedLight3D(V1_SceneData3D scene3d,  Plane3D imgPlane){
 		sceneData3D = scene3d;
 		texturePlane = imgPlane.copy();
 		
 	}
 	
-	public ProjectedLight3D(SceneData3D scene3d,  Plane3D imgPlane, BufferedImage lightImage){
+	public ProjectedLight3D(V1_SceneData3D scene3d,  Plane3D imgPlane, BufferedImage lightImage){
 		sceneData3D = scene3d;
 		texturePlane = imgPlane.copy();
 		textureImage = lightImage;
@@ -354,6 +355,7 @@ class Extents2D{
 	float getHeight() {
 		return extentsY.getDifference();
 	}
+	*/
 	
 	
 }

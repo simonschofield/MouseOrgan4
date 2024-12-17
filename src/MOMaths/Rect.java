@@ -28,7 +28,7 @@ public class Rect{
 
 	
 
-	void setWithExtents(float x1, float y1, float x2, float y2) {
+	public void setWithExtents(float x1, float y1, float x2, float y2) {
 		this.left = Math.min(x1, x2);
 		this.top = Math.min(y1, y2);
 		this.right = Math.max(x1, x2);

@@ -185,6 +185,8 @@ public class GlobalSettings {
 			System.out.println("Fatal Error:: GlobalSettings.makeUserSessionPath - path " + userSessPath + " does not exist, please check");
 			System.exit(0);
 		}
+		
+		//userSessionPath = userSessPath;
 		return userSessPath;
 		
 	}

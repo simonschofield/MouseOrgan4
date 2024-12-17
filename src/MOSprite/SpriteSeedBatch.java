@@ -10,7 +10,9 @@ import java.util.Comparator;
 import MOCompositing.RenderTarget;
 import MOMaths.PVector;
 import MOMaths.Range;
+import MOMaths.Rect;
 import MOUtils.CollectionIterator;
+import MOUtils.GlobalSettings;
 
 
 
@@ -146,7 +148,7 @@ public class SpriteSeedBatch extends CollectionIterator{
 				// do something with the data
 				SpriteSeed s = new SpriteSeed();
 				s.setWithCSVStr(row);
-				//System.out.println("Loading seed "+row);
+				//System.out.println("Loading seed "+ s.getDocPoint().toStr());
 				spriteSeedList.add(s);
 			}
 			csvReader.close();
@@ -158,7 +160,17 @@ public class SpriteSeedBatch extends CollectionIterator{
 	}
 
 	
-
+	public void convertSeedsFromNormalisedSpaceToDocSpace() {
+		// should the seeds be generated b y an external application, it is likely the seeds will have been saved
+		// with normalised coordinates. This turns normalised into docspace points using the current global coordinate system
+		for(SpriteSeed s: spriteSeedList){
+			PVector normCoord = s.getDocPoint();
+			PVector docSpaceCoord = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(normCoord);
+			s.setDocPoint(docSpaceCoord);
+		}
+		
+		
+	}
 	
 
 	@Override
@@ -181,6 +193,20 @@ public class SpriteSeedBatch extends CollectionIterator{
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
+	public void printSeedLocations(int num, String message) {
+		
+		int n = 0;
+		for(SpriteSeed s : spriteSeedList) {
+			System.out.println(message  + s.getDocPoint().toStr());
+			n++;
+			if(n>=num) break;
+		}
+		
+		
+	}
+	
+	
+	
 	public void drawSeeds(Color col, float pixelradius, RenderTarget rt) {
 		
 		for(SpriteSeed s : spriteSeedList) {
