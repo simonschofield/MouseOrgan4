@@ -21,6 +21,10 @@ public class ImageDimensions{
 		return new Rect(0,0,width,height);
 
 	}
+	
+	public String toStr() {
+		return width + ","+ height;
+	}
 
 }
 

@@ -54,7 +54,7 @@ public class Slider extends Widget {
 				|| mouseEventType.equals("mouseDragged")) {
 			mouseEntered = true;
 			float val = getSliderValueAtMousePos(x);
-			// println("slider val",val);
+			//System.out.println("slider val " + val);
 			setSliderValue(val);
 			UIEventData uied = new UIEventData(UIManagerName, UIComponentType, UILabel, mouseEventType, x, y);
 			uied.sliderValue = val;

@@ -61,10 +61,39 @@ public class GlobalSettings {
 	public static boolean printOn = false;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// Initialisation of Session Immutables	
+	// Called from UserSession->initialiseUserSession() which must contain a call to Surface.initialiseSystem(....)
+	// Surface.initialiseSystem(....) calls init(...), instantiates the MainDocument then calls setTheDocumentCoordSystem(...)
+	public static String initialiseSession(String userSessionPth, float sessionScl, Surface surf) {
+	// only called in Surface.initialiseSystem()
+	
+			String fullPath = GlobalSettings.makeUserSessionPath(userSessionPth); // adds the sub path to the base path
+		
+			if (fullPath.contains(liveProjectsBasePath) == false) {
+				System.out.println("GlobalSettings::init USER SESSION PATH IS NOT SET CORRECTLY ..... EXITING");
+				System.out.println("please use makeUserSessionPath(String subPath) ");
+				System.exit(0);
+			}
+	
+			GlobalSettings.userSessionPath = fullPath;
+			sessionScale = sessionScl;
+
+			ImageProcessing.setInterpolationQuality(getRenderQuality());
+			setDefaultSessionName();
+	
+			// for your convenience, and because we don't want a null one
+			theImageAssetGroupManager = new ScaledImageAssetGroupManager();
+			theSurface = surf;
+			
+			return fullPath;
+		}
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// Initialisation	
 	// Called from UserSession->initialiseUserSession() which must contain a call to Surface.initialiseSystem(....)
 	// Surface.initialiseSystem(....) calls init(...), instantiates the MainDocument then calls setTheDocumentCoordSystem(...)
-	public static void init(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, Surface surf){
+	public static void setDocumentDimensions(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, Surface surf){
 		// only called in Surface.initialiseSystem()
 		
 		if(userSessionPth.contains(liveProjectsBasePath)==false) {
@@ -111,7 +140,7 @@ public class GlobalSettings {
 	//
 	public static float getSessionScale() {
 		if(sessionScale == 0) {
-			System.out.println("GlobalSettings session scale has not been set! EXITING");
+			System.out.println("FATAL:: GlobalSettings session scale has not been set! call GlobalSettings.initialiseSession(....) earlier. EXITING");
 			System.exit(0);
 		}
 		return sessionScale;

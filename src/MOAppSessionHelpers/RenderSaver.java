@@ -279,7 +279,10 @@ public class RenderSaver {
 		// if NOT using folders, look for the highest file name containing the session string
 		// if using folders, look for the highest folder name containing the session string
 
-		File folder = new File(GlobalSettings.getUserSessionPath());
+		String pth = GlobalSettings.getUserSessionPath();
+		System.out.println("in render save pth is = " + pth);
+		
+		File folder = new File(pth);
 		
 		File[] listOfFilesAndFolders = folder.listFiles();
 		ArrayList<File> foundFilesOrFolders = new ArrayList<File>();

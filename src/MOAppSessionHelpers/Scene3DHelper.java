@@ -28,6 +28,7 @@ import MOSimpleUI.UIEventData;
 import MOSprite.Sprite;
 import MOSprite.SpriteSeedBatch;
 import MOUtils.GlobalSettings;
+import MOUtils.MOStringUtils;
 
 
 
@@ -35,20 +36,27 @@ import MOUtils.GlobalSettings;
 	
 public class Scene3DHelper {
 		static Surface theSurface = null;
-		static SceneData3D sceneData3D_v1 = null;
+		static SceneData3D sceneData3D = null;
 		
-		
+		static float measuringToolSize = 10;
 		
 		public static void initialise(SceneData3D sd3d, Surface s) {
 			theSurface = s;
-			sceneData3D_v1 = sd3d;
+			sceneData3D = sd3d;
+			
 			add3DMeasuringToolSlider();
 			makeRenderImageMenu();
+			System.out.println("initialising scene data helper" );
 		}
 		
 		public static SceneData3D getSceneData3D() {
-			return sceneData3D_v1;
+			return sceneData3D;
 		}
+		
+		
+		
+		
+		
 		
 		static PVector vec(float x, float y, float z) {
 			return new PVector(x,y,z);
@@ -61,8 +69,9 @@ public class Scene3DHelper {
 		
 		public static SpriteSeedBatch createSeedbatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
 			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
-			SpriteSeedBatchHelper_Scene3D seedBatchHelper = new SpriteSeedBatchHelper_Scene3D(name, sceneData3D_v1);
+			SpriteSeedBatchHelper_Scene3D seedBatchHelper = new SpriteSeedBatchHelper_Scene3D(name, sceneData3D);
 			seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
+			seedBatchHelper.setDepthSensitivePacking(0.5f, 125);
 			seedBatchHelper.setMaxNumPoints(maxNumPoints);
 			return seedBatchHelper.generateSpriteSeedBatch(seedRandomKey);
 		} 
@@ -104,8 +113,8 @@ public class Scene3DHelper {
 				for(int x = 0; x < width; x++) {
 
 					PVector docSpace = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(x, y);
-					float originalDepth = sceneData3D_v1.getDepth(docSpace);
-					boolean isSubstance = sceneData3D_v1.isSubstance(docSpace);
+					float originalDepth = sceneData3D.getDepth(docSpace);
+					boolean isSubstance = sceneData3D.isSubstance(docSpace);
 					
 					if(isSubstance) {
 						//float localNormalisedDepth = localExtrema.norm(originalDepth);
@@ -151,10 +160,10 @@ public class Scene3DHelper {
 			//float scaledShift = shiftY * scl3d;
 			//PVector shiftedDocPoint = new PVector(docPoint.x,docPoint.y+scaledShift);
 			
-			PVector exiting3DPoint =  sceneData3D_v1.get3DSurfacePoint(docPoint);
+			PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(docPoint);
 			PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
-			PVector shiftedDocPointNOROI = sceneData3D_v1.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
-			PVector shiftedDocPoint= sceneData3D_v1.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
+			PVector shiftedDocPointNOROI = sceneData3D.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
+			PVector shiftedDocPoint= sceneData3D.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
 			
 			
 			
@@ -206,10 +215,10 @@ public class Scene3DHelper {
 			//
 			//
 			
-			PVector exiting3DPoint =  sceneData3D_v1.get3DSurfacePoint(initialDocPoint);
+			PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(initialDocPoint);
 			PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
-			PVector shiftedDocPointNOROI = sceneData3D_v1.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
-			PVector shiftedDocPoint= sceneData3D_v1.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
+			PVector shiftedDocPointNOROI = sceneData3D.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
+			PVector shiftedDocPoint= sceneData3D.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
 			
 			return shiftedDocPoint;
 		}
@@ -237,7 +246,7 @@ public class Scene3DHelper {
 			
 			
 			
-			PVector grad = sceneData3D_v1.getCurrentRenderGradiant(sprite.getDocPoint());
+			PVector grad = sceneData3D.getCurrentRenderGradiant(sprite.getDocPoint());
 			float mag = grad.mag();
 			
 			if(mag>0.001) {
@@ -273,8 +282,8 @@ public class Scene3DHelper {
 		
 		public static float getWaveRotationDegrees(String waveImageName, PVector docPt, QRandomStream ranStream, float degreesLeft, float degreesRight, float noise) {
 			// return degrees rotation based on a wave image
-			sceneData3D_v1.setCurrentRenderImage(waveImageName);
-			float v = sceneData3D_v1.getCurrentRender01Value(docPt);
+			sceneData3D.setCurrentRenderImage(waveImageName);
+			float v = sceneData3D.getCurrentRender01Value(docPt);
 			
 			
 			degreesLeft = ranStream.perturbProportional(degreesLeft, noise);
@@ -290,8 +299,8 @@ public class Scene3DHelper {
 		
 		////
 		static float addLighting(Sprite sprite, String lightingImage, float dark, float bright, float noise) {
-			sceneData3D_v1.setCurrentRenderImage(lightingImage);
-			float v = sceneData3D_v1.getCurrentRender01Value(sprite.getDocPoint());
+			sceneData3D.setCurrentRenderImage(lightingImage);
+			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
 			
 			if(noise > 0.001) {
 				
@@ -313,21 +322,22 @@ public class Scene3DHelper {
 			if(uied.menuItem.contentEquals("none")) {
 				theSurface.setCanvasBackgroundImage(null);
 			} else {
-				BufferedImage viewIm = sceneData3D_v1.getRenderImage(uied.menuItem, true);
+				BufferedImage viewIm = sceneData3D.getRenderImage(uied.menuItem, true);
 				theSurface.setCanvasBackgroundImage(viewIm);
 			}
 		}
 		
 		
 		if (uied.eventIsFromWidget("ruler size slider")) {
-			update3DMeasuringToolSlider();
+			//uied.print(2);
+			update3DMeasuringToolSlider(uied.sliderValue);
 		}
 		
 
 	}
 	
 	static void makeRenderImageMenu() {
-		ArrayList<String> names = sceneData3D_v1.getRenderImageNames();
+		ArrayList<String> names = sceneData3D.getRenderImageNames();
 	    String nameArray[] = new String[names.size()+1];
 	    nameArray[0] = "none";
 	    int i = 1;
@@ -338,19 +348,113 @@ public class Scene3DHelper {
 	}
 	
 	
-	static void add3DMeasuringToolSlider() {
-		Slider s = theSurface.theUI.addSlider("ruler size slider", 0, 260);
-		s.setSliderValue(0.5f);
-		TextInputBox tib = theSurface.theUI.addTextInputBox("ruler size", 0, 290, "0");
-		tib.setWidgetDims(40, 30);
-		update3DMeasuringToolSlider();
+	public static void test3D() {
+		Range xRange = new Range(); xRange.initialiseForExtremaSearch();
+		Range yRange = new Range(); yRange.initialiseForExtremaSearch();
+		Range zRange = new Range(); zRange.initialiseForExtremaSearch();
+		
+		int w = GlobalSettings.getTheDocumentCoordSystem().getBufferWidth();
+		int h = GlobalSettings.getTheDocumentCoordSystem().getBufferHeight();
+		
+		int stepx = (int) (w/4f);
+		int stepy = (int) (h/4f);
+		
+		boolean returnLine = false;
+		
+		Rect smallSampleRect = new Rect(stepx*3, stepy*3, 4,4);
+		
+		int testmode = 0;
+		
+		for(int y = 0; y < h; y++) {
+			for( int x = 0; x < w; x++) {
+				
+				PVector bufferSpacePt = new PVector(x,y);
+				PVector docPt = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(bufferSpacePt);
+				
+				
+				if( sceneData3D.isSubstance(docPt)==false) continue;
+				
+				PVector p3d = sceneData3D.get3DSurfacePoint(docPt);
+				
+				xRange.addExtremaCandidate(p3d.x);
+				yRange.addExtremaCandidate(p3d.y);
+				zRange.addExtremaCandidate(p3d.z);
+				
+				
+				
+				//for testing 5 steps across the image
+				if(testmode==0) {
+				    if( x == 0 || x == stepx || x == stepx*2 || x == stepx*3 || x == (stepx*4)-1) {
+				    	System.out.print(x + "," + y + p3d.toStr() + ", ");
+				    	returnLine = true;
+				    }
+				}
+				
+			    // for testing a little rectangle of pixels
+				if(testmode==1) {
+					if( smallSampleRect.isPointInside(x, y)) {
+						System.out.print(x + "," + y + p3d.toStr() + ", ");
+						returnLine = true;
+					}
+				}
+				
+				//System.out.println("xy " + x + " " + y);
+				if(testmode==2) {
+					
+					Color c = testGrid3D( p3d, 3, 0.2f, true, false, true);
+					//System.out.println("xy " + x + " " + y + c.toString());
+					GlobalSettings.getDocument().getMain().setPixel(x, y, c);
+				}
+				
+			    
+			}
+			
+			if( testmode <=1 && returnLine ) {
+				System.out.println();
+				returnLine = false;
+			}
+			
+			if(testmode==2 && y%100 == 0) {
+				GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
+				System.out.println("update " + y);
+			}
+			
+		}
+		
+		System.out.println("X Extema " + xRange.toStr() + ", Y Extema " + yRange.toStr() + ", Z Extema " + zRange.toStr());
+	}
+	
+	public static Color testGrid3D(PVector p3d, float gridSpace, float gridLineThickness, boolean xLines, boolean yLines,boolean zLines) {
+		PVector offset = new PVector(-10000,-10000,-10000);
+		offset.add(p3d);
+		float xMod = Math.abs(p3d.x % gridSpace);
+		float yMod = Math.abs(p3d.y % gridSpace);
+		float zMod = Math.abs(p3d.z % gridSpace);
+		
+		if(xLines && xMod < gridLineThickness) return Color.BLACK;
+		if(yLines && yMod < gridLineThickness) return Color.BLACK;
+		if(zLines && zMod < gridLineThickness) return Color.BLACK;
+		return Color.WHITE;
 	}
 	
 	
-	static void update3DMeasuringToolSlider() {
-		float s = theSurface.theUI.getSliderValue("ruler size slider")*10;
-		String ss = "" + s;
-		theSurface.theUI.setText("ruler size", ss);
+	
+	static void add3DMeasuringToolSlider() {
+		Slider s = theSurface.theUI.addSlider("ruler size slider", 0, 260);
+		TextInputBox tib = theSurface.theUI.addTextInputBox("ruler size", 0, 290, "0");
+		theSurface.theUI.setText("ruler size", "0.5");
+		tib.setWidgetDims(40, 30);
+		update3DMeasuringToolSlider(0.5f);
+	}
+	
+	
+	static void update3DMeasuringToolSlider(float slideVal) {
+		float s = slideVal*10;
+		measuringToolSize = s;
+		//System.out.println("MeasuringToolSize " + measuringToolSize);
+		
+		String rounded = MOStringUtils.roundNumber(s, 3);
+		theSurface.theUI.setText("ruler size", rounded);
 	}
 	
 	public static void draw3DMeasuringTool(PVector docPt, boolean visible) {
@@ -360,31 +464,32 @@ public class Scene3DHelper {
 			return;
 		}
 		
-		float measuringToolSize = theSurface.theUI.getSliderValue("ruler size slider")*10; 
+		
+		//System.out.println("measuringToolSize " + measuringToolSize);
+		
 		
 		theSurface.theUI.deleteCanvasOverlayShapes("measuringTool");
 		PVector endPt = docPt.copy();
-		float worldScale = sceneData3D_v1.get3DScale(docPt);
-		PVector p3d = sceneData3D_v1.get3DSurfacePoint(docPt);
+		float worldScale = sceneData3D.get3DScale(docPt);
+		PVector p3d = sceneData3D.get3DSurfacePoint(docPt);
 		//float distance = sceneData3D_v1.getDistance(docPt);
-		float depth = sceneData3D_v1.getDepth(docPt);
+		float depth = sceneData3D.getDepth(docPt);
 		
-		//Range normalisedDepthExtrema = sceneData3D.getROIDepthExtrema(false);
-		//float roiNormalisedDepth = normalisedDepthExtrema.norm(masterNormalisedDepth);
 		
-		//float roiNormalisedDepth = sceneData3D_v1.getROINormalisedDepth(docPt);
 		
 		float textX = endPt.x;
 		endPt.y -= (worldScale * measuringToolSize);
 		float textY1 = endPt.y + (0.1f);
 		float textY2 = endPt.y + (0.12f);
+		float textY3 = endPt.y + (0.14f);
 		float len = docPt.dist(endPt);
 		// System.out.println("roi depth extrema = " + normalisedDepthExtrema.toStr() + " masterNormalisedDepth " + masterNormalisedDepth + " ROI normalised depth " + roiNormalisedDepth);
 		// theUI.addCanvasOverlayShape("mouseDot", uied.docSpacePt, radiusOffset, "ellipse", new Color(127, 0, 0, 255), Color.gray, 1);
 		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), " depth " + depth ,  Color.red, 20);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), "  p3d = " + p3d.toStr() ,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), " 3d size " + measuringToolSize ,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), " depth " + depth ,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY3), "  p3d = " + p3d.toStr() ,  Color.red, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), ,  Color.blue, 20);
 		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);
 		

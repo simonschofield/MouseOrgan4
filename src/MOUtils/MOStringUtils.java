@@ -1,10 +1,10 @@
 package MOUtils;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.io.File;
 import java.io.IOException;
-
-
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
@@ -103,6 +103,18 @@ public class MOStringUtils {
 	    return sb.toString();
 		
 		
+	}
+	
+	public static String roundNumber(float f, int dps) {
+		String hash = "#.";
+		
+		for(int n = 0; n<dps; n++) {
+			hash += "#";
+		}
+
+		DecimalFormat df = new DecimalFormat(hash);
+		df.setRoundingMode(RoundingMode.CEILING);
+		return df.format(f);
 	}
 	
 	public static String addCommaSeparatedString(String exisitingString, String toAdd) {

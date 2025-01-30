@@ -126,11 +126,18 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	// This MUST be called from the InitialiseSession method of the UserSession
 	// After this has been called the GlobalSettings are fully initialised, and
 	// the user can use theDocument as a reference to the MainDocument
-	public void initialiseSystem(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, int mainDocumentRenderType) {
+	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType, boolean applySessionScaleToDimensions) {
 		// this is the only place this method is called
-		GlobalSettings.init(userSessionPth, fullScaleRenderW, fullScaleRenderH, sessionScl, this);
+		//GlobalSettings.init(userSessionPth, fullScaleRenderW, fullScaleRenderH, sessionScl, this);
 		
-		theDocument = new MainDocument((int)(fullScaleRenderW * GlobalSettings.getSessionScale()), (int) (fullScaleRenderH * GlobalSettings.getSessionScale()), mainDocumentRenderType);
+		
+		if(applySessionScaleToDimensions) {
+			fullScaleRenderW = (int)(fullScaleRenderW * GlobalSettings.getSessionScale());
+			fullScaleRenderH = (int)(fullScaleRenderH * GlobalSettings.getSessionScale());
+			
+		}
+
+		theDocument = new MainDocument(fullScaleRenderW, fullScaleRenderH, mainDocumentRenderType);
 		//GlobalSettings.setTheDocumentCoordSystem(theDocument);
 		// ok to do these now
 		theViewControl.init(this);

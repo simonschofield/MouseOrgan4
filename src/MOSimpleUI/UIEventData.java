@@ -79,7 +79,7 @@ public class UIEventData {
 		}
 
 		if (verbosity >= 2) {
-			System.out.println("doc space of event:" + this.mouseEventType + " at (" + this.mousex + "," + this.mousey + ")" + " doc space" + docSpacePt.toString());
+			//System.out.println("doc space of event:" + this.mouseEventType + " at (" + this.mousex + "," + this.mousey + ")" + " doc space" + docSpacePt.toString());
 			System.out.println("toggleSelectState " + this.toggleSelectState);
 			System.out.println("radioGroupName " + this.radioGroupName);
 			System.out.println("sliderValue " + this.sliderValue);
