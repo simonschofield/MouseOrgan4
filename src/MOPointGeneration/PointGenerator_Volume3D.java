@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.ImageProcessing;
 import MOImage.MOColor;
 import MOMaths.AABox3D;
@@ -94,11 +94,11 @@ public class PointGenerator_Volume3D extends CollectionIterator {
 	}
 
 
-	void drawPoints(Color c, RenderTarget rt) {
+	void drawPoints(Color c, BufferedImageRenderTarget rt) {
 		rt.drawPoints(points2d, c, 3);
 	}
 
-	void drawPoints(Color nearCol, Color farCol, RenderTarget rt) {
+	void drawPoints(Color nearCol, Color farCol, BufferedImageRenderTarget rt) {
 		for(PVector p : points2d) {
 
 			float n = MOMaths.norm(p.z, nearDepth, farDepth);

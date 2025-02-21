@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.KeyImageSampler;
 import MOMaths.Line2;
 import MOMaths.MOMaths;
@@ -271,7 +271,7 @@ public class EdgeRunVerticesCrawler{
 	}
 
 
-	void drawExtractedEdgeRuns(Color c, int width, RenderTarget rt) {
+	void drawExtractedEdgeRuns(Color c, int width, BufferedImageRenderTarget rt) {
 
 		int numEdgeRuns  = edgeRunVertices.size();
 		for(int n = 0; n < numEdgeRuns; n++) {

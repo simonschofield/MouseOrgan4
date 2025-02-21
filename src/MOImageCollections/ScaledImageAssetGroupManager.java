@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.ImageProcessing;
 import MOMaths.PVector;
 import MOMaths.Rect;
@@ -219,11 +219,11 @@ public class ScaledImageAssetGroupManager {
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	//
-	public void paradeContent(String groupName, RenderTarget rt) {
+	public void paradeContent(String groupName, BufferedImageRenderTarget rt) {
 		paradeContent(groupName,null, rt);
 	}
 
-	public void paradeContent(String groupName, MOColorTransform colTransform, RenderTarget rt) {
+	public void paradeContent(String groupName, MOColorTransform colTransform, BufferedImageRenderTarget rt) {
 		ScaledImageAssetGroup sampleGroup = this.getScaledImageAssetGroup(groupName).copy(groupName + "copy");
 		
 		int numItems = sampleGroup.getNumImageAssets();
@@ -293,7 +293,7 @@ public class ScaledImageAssetGroupManager {
 					int scaledHeight = (int) (boxHeight * 0.75f);
 					int scaledWidth = (int) (boxHeight * imgAspect * 0.75f);
 					img = ImageProcessing.resizeTo(img, scaledWidth, scaledHeight);
-					rt.pasteImage_BufferCoordinates(img, thisItemX, thisItemY, 1.0f);
+					rt.pasteImage_BufferSpace(img, thisItemX, thisItemY, 1.0f);
 
 					//rt.drawText(itemName, thisItemX, thisItemY + scaledHeight + 50, 50,
 					//		Color.DARK_GRAY);

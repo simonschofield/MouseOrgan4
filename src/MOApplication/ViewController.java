@@ -6,6 +6,7 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.ImageProcessing;
 import MOMaths.PVector;
 import MOMaths.Rect;
@@ -248,7 +249,8 @@ public class ViewController {
 		}
 		
 		// draw the render image
-		BufferedImage displayImage = theDocument.getRenderTarget("main").getCropBufferSpace(currentViewCropRect);
+		// 
+		BufferedImage displayImage = (theDocument.getBufferedImageRenderTarget("main")).getCropBufferSpace(currentViewCropRect);
 		g2d.drawImage(displayImage, (int) imageDisplayRegion.left,
 				(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
 		

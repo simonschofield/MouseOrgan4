@@ -51,12 +51,15 @@ public class FloatImage{
     }
   }
   
-  private void setMaskValue(float val, boolean useMask) {
+  public void setMaskValue(float val, boolean useMask) {
 	  maskValueSet = useMask; 
 	  maskValue = val;
   }
   
- 
+  public float getMaskValue() {
+	 
+	  return maskValue;
+  }
   
   public FloatImage(String pathandfile){
 	if(pathandfile.endsWith(".png")) load16BitPNG(pathandfile);
@@ -162,7 +165,7 @@ public class FloatImage{
   
   public int getArrayLength(){ return xdim * ydim;}
   
-  void setAll(float val){
+  public void setAll(float val){
      
     int len = getArrayLength();
     for(int i = 0; i < len; i++) floatArray[i] = val;
@@ -514,7 +517,7 @@ public class FloatImage{
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // load save  floating point data. The first two numbers are the width and height of the image
   //
-  void saveFloatData(String fileName){
+  public void saveFloatData(String fileName){
 	 // SecondsTimer t = new SecondsTimer();
     
     float[] tempArray = null;

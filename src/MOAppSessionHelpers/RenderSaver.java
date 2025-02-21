@@ -9,7 +9,8 @@ import java.util.ArrayList;
 
 import MOApplication.MainDocument;
 //import MOCompositing.MainDocumentRenderTarget;
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
+import MOCompositing.MainDocumentRenderTarget;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
@@ -228,7 +229,7 @@ public class RenderSaver {
 	private void saveDocumentSupplementaryImages(String fullPath, String enumerator) {
 		if(theDocument.getNumRenderTargets()==1) return;
 		for(int n = 1; n < theDocument.getNumRenderTargets(); n++) {
-			RenderTarget rt = theDocument.getRenderTarget(n);
+			MainDocumentRenderTarget rt = theDocument.getRenderTarget(n);
 			String fullSessionName = rt.getFullSessionName();
 			String ext = rt.getFileExtension();
 			String fullPathAndName =  fullPath + fullSessionName + enumerator + ext;

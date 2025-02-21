@@ -1,16 +1,21 @@
 package MOUtils;
 
+import java.util.Arrays;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 //A KeyValuePair contains a Key string, which identifies the contained value
-//The value can be Boolean, Integer, Float or String
-//The KeyValuePair contains just one valid value, of the type specified by TYPE
+//The value can be Boolean, Integer, Float, String or Vector
+//A Vector is a list of float values of any length.
+//The KeyValuePair contains just one key and an initialised Data Type , of the type specified by TYPE
+//Rules about storing strings - you cannot use the words 'true' or 'false' or the '%' character when storing strings, as these are used to determine booleans and vector types
 public class KeyValuePair {
 	static final int NOTSET = 0;
 	static final int BOOLEAN = 1;
 	static final int INTEGER = 2;
 	static final int FLOAT = 3;
 	static final int STRING = 4;
-
+	static final int VECTOR = 5;
+	
 	String theKey;
 
 	// the type of data set
@@ -21,7 +26,8 @@ public class KeyValuePair {
 	int ival = 0;
 	float fval = 0;
 	String sval = "";
-
+	float[] vval;
+	
 	public KeyValuePair() {
 	}
 
@@ -49,6 +55,7 @@ public class KeyValuePair {
 		kvpcopy.ival = this.ival;
 		kvpcopy.fval = this.fval;
 		kvpcopy.sval = new String(this.sval);
+		if(vval!=null) kvpcopy.vval = vval.clone();
 		return kvpcopy;
 
 	}
@@ -63,8 +70,13 @@ public class KeyValuePair {
 			s = s + " Value : Float : " + this.fval;
 		if (TYPE == STRING)
 			s = s + " Value : String : " + this.sval;
+		if (TYPE == VECTOR)
+			s = s + " Value : Vector : " + getVectorValueString();
+		
 		return s;
 	}
+	
+	
 
 	boolean equals(KeyValuePair other) {
 		if (this.theKey.equals(other.theKey) == false)
@@ -76,6 +88,8 @@ public class KeyValuePair {
 		if (TYPE == FLOAT && this.fval == other.fval)
 			return true;
 		if (TYPE == STRING && stringValueEquals(other.sval))
+			return true;
+		if (TYPE == VECTOR && Arrays.equals(vval, other.vval))
 			return true;
 		return false;
 	}
@@ -131,6 +145,12 @@ public class KeyValuePair {
 		sval = v;
 
 	}
+	
+	void set(String k, float[] f) {
+		TYPE = VECTOR;
+		theKey = k;
+		vval = f.clone();
+	}
 
 	void setWithPairString(String keyVal) {
 		String[] s_pair = splitPairIntoKeyValue(keyVal);
@@ -169,6 +189,13 @@ public class KeyValuePair {
 	public String getString() {
 		return sval;
 	}
+	
+	public float[] getVector() {
+		return vval;
+	}
+	
+///////////////////////////////////////////////////
+//private methods
 
 	String getAsKeyValueString() {
 		if (TYPE == NOTSET) {
@@ -186,11 +213,25 @@ public class KeyValuePair {
 		if (TYPE == STRING) {
 			return theKey + ":" + sval;
 		}
+		if (TYPE == VECTOR) {
+			
+			return theKey + ":" + getVectorValueString();
+		}
 		return "";
 	}
+	
+	
+	String getVectorValueString() {
+		String fstring = "";
+		for(int n = 0; n < vval.length; n++) {
+			float thisFloat = vval[n];
+			fstring += thisFloat;
+			if(n < vval.length - 1) fstring += "%";
+		}
+		return fstring;
+	}
 
-///////////////////////////////////////////////////
-// private methods
+
 	String[] splitLineIntoPairs(String assembled) {
 		return assembled.split(",");
 	}
@@ -212,7 +253,13 @@ public class KeyValuePair {
 			TYPE = FLOAT;
 			return;
 		}
+		if (isVectorDataType(v)) {
+			vval = parseVectorData(v);
+			TYPE = VECTOR;
+			return;
+		}
 
+		// if you get here, it is a string
 		sval = v;
 		TYPE = STRING;
 
@@ -242,6 +289,22 @@ public class KeyValuePair {
 			// Not an Integer, try the next one
 		}
 		return false;
+	}
+	
+	boolean isVectorDataType(String str) {
+		// Vectors are stored thus, using the percent symbol to separate the three numbers
+		// "KeyName:3.141%1245.6%5678.234"
+		 return str.contains("%");
+	}
+	
+	float[] parseVectorData(String vstring) {
+		String[] floatstrings = vstring.split("%");
+		int num = floatstrings.length;
+		float [] outfloats= new float[num];
+		for(int n = 0; n < num; n++) {
+			outfloats[n] = Float.valueOf(  floatstrings[n] );
+		}
+		return outfloats;
 	}
 
 	String[] splitPairIntoKeyValue(String pair) {

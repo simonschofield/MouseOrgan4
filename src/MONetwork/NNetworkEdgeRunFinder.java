@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.KeyImageSampler;
 import MOMaths.Line2;
 import MOMaths.MOMaths;

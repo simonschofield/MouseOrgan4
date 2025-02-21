@@ -3,7 +3,7 @@ package MOAppSessionHelpers;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
 import MOMaths.MOMaths;

@@ -5,15 +5,22 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
+import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BandCombineOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ByteLookupTable;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.ComponentSampleModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferFloat;
 import java.awt.image.DataBufferInt;
 import java.awt.image.LookupOp;
+import java.awt.image.Raster;
 import java.awt.image.ShortLookupTable;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -134,7 +141,7 @@ public class ImageProcessing {
 
 	public static boolean hasAlpha(BufferedImage image) {
 		/* These are the Java Image Types
-		public static final int TYPE_CUSTOM = 0;
+		public static final int TYPE_CUSTOM = 0; -- in this implementation we use this to indicate FLOAT buffered image
 	    public static final int TYPE_INT_RGB = 1;
 	    public static final int TYPE_INT_ARGB = 2;
 	    public static final int TYPE_INT_ARGB_PRE = 3;
@@ -153,6 +160,17 @@ public class ImageProcessing {
 		if(t==2 || t==3 || t==6 || t==7) return true;
 		return false;
 	}
+	
+	public static BufferedImage createFloatBufferedImage(int w, int h)
+	{
+		ComponentSampleModel sm = new ComponentSampleModel(  DataBuffer.TYPE_FLOAT, w, h, 1, w, new int[] {0});
+		
+		DataBuffer db = new DataBufferFloat(w * h);
+		WritableRaster wr = Raster.createWritableRaster(sm, db, null);
+		ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
+		ComponentColorModel cm = new ComponentColorModel( cs, false, true, Transparency.OPAQUE, DataBuffer.TYPE_FLOAT);
+		return new BufferedImage(cm, wr, true, null);
+	} 
 
 	public static BufferedImage assertImageTYPE_INT_ARGB(BufferedImage source) {
 		// this is the preferred color model for the MouseOrgan system for output images and content items

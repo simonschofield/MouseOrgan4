@@ -6,7 +6,7 @@ package MOSprite;
 
 import java.awt.Color;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.BendImage;
 import MOImage.ImageProcessing;
 import MOMaths.MOMaths;
@@ -292,7 +292,7 @@ public class SpriteImageQuad{
 	////////////////////////////////////
 	// debugging functions
 	
-	public void debugDrawQuadCorners(PVector pastePoint, RenderTarget rt) {
+	public void debugDrawQuadCorners(PVector pastePoint, BufferedImageRenderTarget rt) {
 		debugDrawQuadPoint( pastePoint, 0, 0, Color.RED, rt);
 		debugDrawQuadPoint( pastePoint, 1, 0, Color.GREEN, rt);
 		debugDrawQuadPoint( pastePoint, 0, 1, Color.BLUE,rt);
@@ -300,7 +300,7 @@ public class SpriteImageQuad{
 	}
 	
 	
-	public void debugDrawQuad(PVector pastePoint, Color col, float lineWidth, RenderTarget rt) {
+	public void debugDrawQuad(PVector pastePoint, Color col, float lineWidth, BufferedImageRenderTarget rt) {
 		// VertA, VertB
 		// VertC, VertD
 		PVector A = getQuadDocumentPoint( pastePoint, 0, 0);
@@ -316,7 +316,7 @@ public class SpriteImageQuad{
 		}
 	
 	
-	public void debugDrawAsVerticalLine(PVector pastePoint, Color col, float lineWidth, RenderTarget rt) {
+	public void debugDrawAsVerticalLine(PVector pastePoint, Color col, float lineWidth, BufferedImageRenderTarget rt) {
 		// VertA, VertB
 		// VertC, VertD
 		PVector A = getQuadDocumentPoint( pastePoint, 0, 0);
@@ -332,12 +332,12 @@ public class SpriteImageQuad{
 		
 		}
 	
-	public void debugDrawPivotPoint(PVector pastePoint, Color col, float pixelRadius, RenderTarget rt) {
+	public void debugDrawPivotPoint(PVector pastePoint, Color col, float pixelRadius, BufferedImageRenderTarget rt) {
 		rt.drawPoint(spritePivotPoint, col, pixelRadius);
 		}
 	
 	
-	public void debugDrawQuadPoint(PVector pastePoint, float nx, float ny, Color c, RenderTarget rt) {
+	public void debugDrawQuadPoint(PVector pastePoint, float nx, float ny, Color c, BufferedImageRenderTarget rt) {
 	PVector docSpacePoint = getQuadDocumentPoint( pastePoint, nx, ny);
 	rt.drawPoint(docSpacePoint, c, 5);
 	}

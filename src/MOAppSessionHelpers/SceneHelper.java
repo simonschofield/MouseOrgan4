@@ -4,7 +4,8 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
+import MOCompositing.FloatImageRenderTarget;
 import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.MOColorTransform;
@@ -26,6 +27,11 @@ import MOUtils.MOStringUtils;
 public class SceneHelper {
 	
 	
+	private static BufferedImageRenderTarget getBufferedImageRenderTarget(String name) {
+		
+		return GlobalSettings.getDocument().getBufferedImageRenderTarget(name);
+	}
+	
 	public static void addSelfShadingToMask(Sprite sprite, BufferedImage shadowImage, String maskName, float alpha) {
 		
 		
@@ -33,7 +39,7 @@ public class SceneHelper {
 		int newshadowImageHeight = (int)sprite.getImage().getHeight();
 		BufferedImage resizedShadowImage = ImageProcessing.resizeTo(shadowImage, newshadowImageWidth, newshadowImageHeight);
 		
-		GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, resizedShadowImage, alpha);
+		getBufferedImageRenderTarget(maskName).pasteSprite_AltImage(sprite, resizedShadowImage, alpha, false);
 		
 		
 		
@@ -140,7 +146,7 @@ public class SceneHelper {
 				}
 				
 				
-				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, blendedImage,1f);
+				getBufferedImageRenderTarget(maskName).pasteSprite_AltImage(sprite, blendedImage,1f,false);
 			}else {
 				
 				Color c = Color.white;
@@ -149,13 +155,13 @@ public class SceneHelper {
 				}
 				
 				
-				GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, c);
+				getBufferedImageRenderTarget(maskName).pasteSprite_ReplaceColour(sprite, c);
 				}
 			
 
 		} else {
 			
-			GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, Color.black);
+			getBufferedImageRenderTarget(maskName).pasteSprite_ReplaceColour(sprite, Color.black);
 		}
 		
 	}
@@ -173,7 +179,7 @@ public class SceneHelper {
 						}
 						
 						
-						GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteAltImage(sprite, blendedImage,1f);
+						getBufferedImageRenderTarget(maskName).pasteSprite_AltImage(sprite, blendedImage,1f,false);
 					}else {
 						
 						Color c = Color.white;
@@ -182,24 +188,25 @@ public class SceneHelper {
 						}
 						
 						
-						//GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, c);
-						GlobalSettings.getDocument().getRenderTarget(maskName).pasteImageMask( sprite.getOverlayImage(overlayName), sprite.getDocSpaceRect().getTopLeft(), c);
+						// we need to subtract the full sprite first to remove any areas of "non-overlay" substance that may have been exposed in previous contributing overlay pastes
+						getBufferedImageRenderTarget(maskName).pasteSprite_ReplaceColour(sprite, Color.black);
+						// then paste the overlay part back on top
+						getBufferedImageRenderTarget(maskName).pasteImage_ReplaceColour( sprite.getOverlayImage(overlayName), sprite.getDocSpaceRect().getTopLeft(), c);
 						}
 					
 
 				} else {
 					
-					GlobalSettings.getDocument().getRenderTarget(maskName).pasteSpriteMask(sprite, Color.black);
+					getBufferedImageRenderTarget(maskName).pasteSprite_ReplaceColour(sprite, Color.black);
 				}
 		
 		
 	}
 	
-	public static void pasteToDepthImage(Sprite sprite, String maskName, float depth) {
-		// depth here should be normalised 0..1, where 1 is pasted as black, and 0 is pasted as white.
-		RenderTarget rt = GlobalSettings.getDocument().getRenderTarget(maskName);
-		//System.out.println("depth paste: " + depth);
-		rt.pasteSpriteMaskTo16BitGray(sprite, depth);
+
+	public static void pasteToFloatImage(Sprite sprite, String maskName, float val) {
+		FloatImageRenderTarget rt = (FloatImageRenderTarget) GlobalSettings.getDocument().getFloatImageRenderTarget(maskName);
+		rt.pasteFloatValues(sprite, val);
 	}
 	
 	
@@ -321,7 +328,7 @@ public class SceneHelper {
 		randomRotateScaleSprite( sprite,  scaleAmt,  rotAmount, true);
 	}
 	
-	public static void drawSpriteRect(Sprite sprite, Color c, RenderTarget rt) {
+	public static void drawSpriteRect(Sprite sprite, Color c, BufferedImageRenderTarget rt) {
 		Rect spriteRectBufferSpace = sprite.getDocumentBufferSpaceRect();
 		
 		rt.getVectorShapeDrawer().setDrawingStyle(new Color(255,255,255,0), c, 4);
@@ -330,9 +337,9 @@ public class SceneHelper {
 	}
 	
 	
-	public static void drawQuad(Sprite sprite, Color c, RenderTarget rt) {
+	public static void drawQuad(Sprite sprite, Color c, BufferedImageRenderTarget rt) {
 		Vertices2 verts = sprite.imageQuad.getSpriteBufferSpaceQuadVertices();
-		PVector shift = sprite.spriteBufferSpaceToDocumentBufferSpace(PVector.ZERO());
+		PVector shift = sprite.spriteLocalBufferSpaceToDocumentBufferSpace(PVector.ZERO());
 		verts.translate(shift.x, shift.y);
 		rt.getVectorShapeDrawer().setDrawingStyle(new Color(255,255,255,0), c, 4);
 		rt.getVectorShapeDrawer().drawVertices2(verts);

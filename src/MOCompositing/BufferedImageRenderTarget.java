@@ -7,9 +7,15 @@ package MOCompositing;
 // hopefully open up all of Java's graphics functionality
 
 import java.awt.*;
+import java.awt.color.ColorSpace;
 //import java.awt.event.*;
 //import java.awt.geom.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.ComponentSampleModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferFloat;
+import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
@@ -18,10 +24,12 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 import MOAppSessionHelpers.SceneHelper;
+import MOImage.FloatImage;
 import MOImage.ImageProcessing;
 import MOMaths.Line2;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
+import MOMaths.Range;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
 import MOSprite.Sprite;
@@ -36,12 +44,16 @@ import MOVectorGraphics.VectorShapeDrawer;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // BufferdImage RenderTarget
 // It has also been set up to be a MainDocumentRenderTarget
-//
+// Now contains a FloatImage option, mainly to facilitate pasting Depth Values
+// If you use the FloatImage option, then the BufferedImage is not initilaised (to save memory)
+// so many other operation will not work. However it will save the FloatImage out along with other render targets to the working folder
+// with the option to also save a 16Bit Gray of the FloatImage to get visual feedback and to feed into Photoshop proccessing 
+// if required
 
-
-public class RenderTarget implements MainDocumentRenderTarget{
+public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 	private Graphics2D graphics2D;
 	protected BufferedImage targetRenderImage;
+	
 	
 	
 	public ImageCoordinateSystem coordinateSystem;
@@ -51,11 +63,11 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	
 	String renderTargetName = "";
 	
-	public RenderTarget() {
+	public BufferedImageRenderTarget() {
 
 	}
 	
-	public RenderTarget(int w, int h, int imgType) {
+	public BufferedImageRenderTarget(int w, int h, int imgType) {
 		setRenderBuffer( w,  h,  imgType);
 	}
 	
@@ -83,8 +95,6 @@ public class RenderTarget implements MainDocumentRenderTarget{
 		coordinateSystem = new ImageCoordinateSystem(w,h);
 		
 		
-		
-		
 		targetRenderImage = new BufferedImage(w, h, imgType);
 		
 		
@@ -108,6 +118,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	public int getType() {
 		return targetRenderImage.getType();
 	}
+	
 	
 	
 	public void setImage(BufferedImage img) {
@@ -146,7 +157,7 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	
 	public void fillBackgroundWithImage(BufferedImage img, float alpha) {
 		BufferedImage resizedImage = ImageProcessing.resizeTo(img, coordinateSystem.getBufferWidth(), coordinateSystem.getBufferHeight());
-		pasteImage_BufferCoordinates(resizedImage,0,0,alpha);
+		pasteImage_BufferSpace(resizedImage,0,0,alpha);
 	}
 
 
@@ -154,33 +165,30 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	////////////////////////////////////////////////////////////////////////////////////
 	// Generic sprite paste used by all sub-classes. Pastes the pixel values of the image
 	// into the receiving render-image
-	// All subclasses must implement pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha);
-	//
 	//
 	//
 	public void pasteSprite(Sprite sprite) {
-		pasteImage_TopLeftDocPoint(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
+		//pasteImage_TopLeftDocPoint(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
+		int x = (int) sprite.getDocumentBufferSpaceRect().getTopLeft().x;
+		int y = (int) sprite.getDocumentBufferSpaceRect().getTopLeft().y;
+		pasteImage_BufferSpace(sprite.getImage(), x,y,  sprite.alpha);
 	}
 	
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
-	// pastes the topleft of the image at docSpacePoint
+	// pastes the topleft of the image at docSpaceTopLeftPoint
 	// 
-	public void pasteImage_TopLeftDocPoint(BufferedImage img, PVector docSpaceTopLeftPoint, float alpha) {
+	public void pasteImage_DocSpace(BufferedImage img, PVector docSpaceTopLeftPoint, float alpha) {
 		//Rect r = getPasteRectDocSpace(img, docSpacePoint);
 		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(docSpaceTopLeftPoint);
-		pasteImage_BufferCoordinates(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
+		pasteImage_BufferSpace(img, (int) bufferPt.x, (int) bufferPt.y, alpha);
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////
 	// This is the method that actually does the compositing of the image within the
 	// document image
-	//
-	// This will work with all Java pre-defined image types!
-	//
-	//
-	public void pasteImage_BufferCoordinates(BufferedImage img, int x, int y, float alpha) {
+	public void pasteImage_BufferSpace(BufferedImage img, int x, int y, float alpha) {
 		//System.out.println("compositing " + x + " " + y);
 		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
 		getGraphics2D().setComposite(ac);
@@ -189,35 +197,43 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
-	// Generic sprite mask-paste used by all sub-classes. Pastes the Color C through the sprite's alpha channel.
+	// Pastes the Color C through the sprite's alpha channel.
 	// I.e. alters a pixel in the targetRenderImage where the alpha in the sprite image is > 0
-	// All subclasses must implement pasteImageMask_BufferCoordinates(BufferedImage img, int x, int y, float alpha);
-	//
-	// No alpha is allowed as this would being muddy 
-	//
-	public void pasteSpriteMask(Sprite sprite, Color c) {
-		pasteImageMask(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  c);
+	// 
+	public void pasteSprite_ReplaceColour(Sprite sprite, Color c) {
+		pasteImage_ReplaceColour(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  c);
 	}
 	
 	// replaces the colour of the image with a single colour
-	public void pasteImageMask(BufferedImage img, PVector docSpacePoint, Color c) {
-		
+	public void pasteImage_ReplaceColour(BufferedImage img, PVector docSpacePoint, Color c) {
 		BufferedImage spriteMaskImage =  ImageProcessing.replaceColor(img, c);
-		
-		pasteImage_TopLeftDocPoint(spriteMaskImage, docSpacePoint, 1);
+		pasteImage_DocSpace(spriteMaskImage, docSpacePoint, 1);
 	}
 	
+	
+	/////////////////////////////////////////////////////////////////////////////////////
 	// uses an alternative image when pasting - this allows the user to process the sprite's
-	// normal image in anyway desired and the used instead of the sprite image
-	public void pasteSpriteAltImage(Sprite sprite, BufferedImage altImage, float alpha) {
-		pasteImage_TopLeftDocPoint(altImage, sprite.getDocSpaceRect().getTopLeft(),  alpha);
+	// normal image in anyway desired and the used instead of the sprite image.
+	// Uses the AltImage's alpha to define the mask shape, not the sprite's main image alpha, unless useSpriteAlpha == true
+	// in which case the sprite's alpha is used as to on the altImage though using AlphaComposite.SRC_IN.
+	public void pasteSprite_AltImage(Sprite sprite, BufferedImage altImage, float alpha, boolean useSpriteAlpha) {
+		
+		if(useSpriteAlpha) {
+			BufferedImage altImageWithSpritesAlpha = ImageProcessing.replaceVisiblePixels(sprite.getImage(), altImage);
+			pasteImage_DocSpace(altImageWithSpritesAlpha, sprite.getDocSpaceRect().getTopLeft(),  alpha);
+		}else {
+			pasteImage_DocSpace(altImage, sprite.getDocSpaceRect().getTopLeft(),  alpha);
+		}
+		
 	}
+	
+	
 	
 	////////////////////////////////////////////////////////////////////////////////////
 	// Experimental erase operation
 	// Rather than adding to what is already there, this method reduces the alpha of pixels within the existing targetRenderImage.
 	// It subtracts the sprite's alpha from the existing alpha. The sprite's colour is ignored. 
-	public void pasteSpriteErase(Sprite sprite) {
+	public void pasteSprite_Erase(Sprite sprite) {
 		PVector topLeftDocSpace = sprite.getDocSpaceRect().getTopLeft();
 		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(topLeftDocSpace);
 		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.DST_OUT, sprite.alpha);
@@ -277,26 +293,8 @@ public class RenderTarget implements MainDocumentRenderTarget{
 
 	}
 
-	
-	
-	
-	
-	
 	////////////////////////////////////////////////////////////////////////////////////
-	// the sprite has a similar method, we might need this here as it is very generalised
-	// but for the moment removed
-	/*
-	public Rect getPasteRectDocSpace(BufferedImage img, PVector docSpacePoint) {
-		// Final pasting always by defining the top left of the image in doc space
-		// give an image and its upperleft at docSpacePoint
-		// return the doc space rect it occupies
-		PVector bottomRightOffset = coordinateSystem.bufferSpaceToDocSpace(img.getWidth(), img.getHeight());
-		PVector bottomRight = PVector.add(docSpacePoint, bottomRightOffset);
-		return new Rect(docSpacePoint, bottomRight);
-	}*/
-	
-	////////////////////////////////////////////////////////////////////////////////////
-	// Unusual direct access to the target image. Probably only used for tsting stuff
+	// Unusual direct access to the target image. Probably only used for testing stuff
 	public void setPixel(int x, int y, Color c) {
 		
 		targetRenderImage.setRGB(x, y, c.getRGB());
@@ -320,34 +318,11 @@ public class RenderTarget implements MainDocumentRenderTarget{
 	}
 
 	public void saveRenderToFile(String pathAndFilename) {
+		// the correct extension has already been added by the render saver
 		System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename);
-		// check to see if extension exists
-		String ext = MOStringUtils.getFileExtension(pathAndFilename);
-		String extensionChecked = pathAndFilename;
-		if (ext.contentEquals("")) {
-			extensionChecked = pathAndFilename + ".png";
-		}
-
-		// check to see if extension is correct
-		ext = MOStringUtils.getFileExtension(extensionChecked);
-		if (ext.contentEquals(".png") || ext.contentEquals(".PNG")) {
-			// OK
-		} else {
-			System.out.println("RenderTarget:saveRenderToFile file extesion is wrong - " + ext);
-			return;
-		}
-
-		try {
-			// retrieve image
-			File outputfile = new File(extensionChecked);
-			ImageIO.write(targetRenderImage, "png", outputfile);
-		} catch (IOException e) {
-			System.out.println("RenderTarget:saveRenderToFile could not save file - " + extensionChecked + " " + e);
-		}
-
+		ImageProcessing.saveImage(pathAndFilename, targetRenderImage);
 	}
 
-	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// scaled drawing operations

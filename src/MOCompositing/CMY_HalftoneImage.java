@@ -21,7 +21,7 @@ import MOUtils.GlobalSettings;
 //To do this the class generates three temporary images, which are initialised as copies of the render target.
 //
 public class CMY_HalftoneImage{
-	RenderTarget cmyRenderTarget;
+	BufferedImageRenderTarget cmyRenderTarget;
 	
 	ArrayList<PVector> gridPoints = new ArrayList<PVector>();
 	Color cyan_rgb = new Color(0,211,255);
@@ -59,7 +59,7 @@ public class CMY_HalftoneImage{
 		
 		int newWidth = (int) (documentTargetRect.getWidth()* GlobalSettings.getTheDocumentCoordSystem().getBufferWidth());
 		int newHeight = (int) (documentTargetRect.getHeight()* GlobalSettings.getTheDocumentCoordSystem().getBufferHeight());
-		cmyRenderTarget = new RenderTarget(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+		cmyRenderTarget = new BufferedImageRenderTarget(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
 
 	}
 	
@@ -72,14 +72,14 @@ public class CMY_HalftoneImage{
 	}
 	
 	
-	public void makeCMYhalftoneComposite(int dotSpacingPixels, boolean saveOutImages, RenderTarget mainDocRenderTarget) {
+	public void makeCMYhalftoneComposite(int dotSpacingPixels, boolean saveOutImages, BufferedImageRenderTarget mainDocRenderTarget) {
 		// dotSpacingPixels is the number of pixels you want the dot spacing to be at in pixels in 100% scale output image
 		// i.e. when the session scale is at 100%
 		float dotSpacingNomalisedSpace = (dotSpacingPixels / (float)cmyRenderTarget.coordinateSystem.getLongestBufferEdge())*GlobalSettings.getSessionScale();
 		makeCMYhalftoneComposite( dotSpacingNomalisedSpace,  saveOutImages,  mainDocRenderTarget);
 	}
 	
-	public void makeCMYhalftoneComposite(float dotSpacingNomalisedSpace, boolean saveOutImages, RenderTarget mainDocRenderTarget) {
+	public void makeCMYhalftoneComposite(float dotSpacingNomalisedSpace, boolean saveOutImages, BufferedImageRenderTarget mainDocRenderTarget) {
 		// spacingNomalisedSpace is with regard to THIS render target
 		cmyRenderTarget.fillBackground(Color.WHITE);
 		
@@ -108,7 +108,7 @@ public class CMY_HalftoneImage{
 		// need to convert the topleft of the documentTargetRect, which is in normalised space,
 		// into document space
 		PVector docSpaceTopLeft = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(documentTargetRect.getTopLeft());
-		mainDocRenderTarget.pasteImage_TopLeftDocPoint(composite, docSpaceTopLeft, 1);
+		mainDocRenderTarget.pasteImage_DocSpace(composite, docSpaceTopLeft, 1);
 		
 		if(saveOutImages) {
 			String pathAndName = GlobalSettings.getUserSessionPath() + "cmyComposite.png";

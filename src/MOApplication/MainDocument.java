@@ -2,13 +2,15 @@ package MOApplication;
 
 
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 
 
 import MOCompositing.MainDocumentRenderTarget;
 import MOCompositing.RenderBorder;
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
+import MOCompositing.FloatImageRenderTarget;
 import MOSprite.Sprite;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.GlobalSettings;
@@ -54,32 +56,58 @@ public class MainDocument{
 	}
 	
 	public void addRenderTarget(String name, int type) {
-			RenderTarget rt = new RenderTarget(width, height,type);
+			BufferedImageRenderTarget rt = new BufferedImageRenderTarget(width, height,type);
 			rt.setName(name);
 			renderTargets.add(rt);
 	}
 	
-	public RenderTarget getMain() {
-		// because this one is the most used.. it has a special access method
-		return (RenderTarget) renderTargets.get(0);
+	public void addFloatRenderTarget(String name, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
+		if(imageCopyGamma == 0 ) imageCopyGamma = 1;
+		FloatImageRenderTarget rt = new FloatImageRenderTarget(width, height,  saveTYPE_USHORT_GRAYcopy,  imageCopyGamma);// deferred
+		rt.setName(name);
+		renderTargets.add(rt);
+}
+	
+	public BufferedImageRenderTarget getMain() {
+		// because this one is the most used.. it has a special short-hand access method
+		return (BufferedImageRenderTarget) renderTargets.get(0);
 	}
 	
 	public int getNumRenderTargets() {
 		return renderTargets.size();
 	}
 	
-	public RenderTarget getRenderTarget(int n) {
+	public MainDocumentRenderTarget getRenderTarget(int n) {
 		if( n >= getNumRenderTargets() || n < 0) {
 			System.out.println("MainRenderDocument::getRenderTarget - illegal index " + n);
 			return null;
 		}
-		return (RenderTarget) renderTargets.get(n);
+		return (MainDocumentRenderTarget) renderTargets.get(n);
 		
 	}
 	
-	public RenderTarget getRenderTarget(String name) {
+	
+	public BufferedImageRenderTarget getBufferedImageRenderTarget(String name) {
+		
+		MainDocumentRenderTarget rt =  getRenderTarget( name);
+		if(rt.getFileExtension().equals(".png")) return (BufferedImageRenderTarget) rt;
+		System.out.println("MainRenderDocument::getBufferedImageRenderTarget - cannot find buffered image render target called " + name);
+		return null;
+	}
+	
+	public FloatImageRenderTarget getFloatImageRenderTarget(String name) {
+		
+		MainDocumentRenderTarget rt =  getRenderTarget( name);
+		if(rt.getFileExtension().equals(".data")) return (FloatImageRenderTarget) rt;
+		System.out.println("MainRenderDocument::getBufferedImageRenderTarget - cannot find buffered image render target called " + name);
+		return null;
+	}
+	
+	
+	public MainDocumentRenderTarget getRenderTarget(String name) {
+		
 		for(MainDocumentRenderTarget rt: renderTargets) {
-			if( rt.getName().equals(name)) return (RenderTarget) rt;
+			if( rt.getName().equals(name)) return (MainDocumentRenderTarget) rt;
 		}
 		System.out.println("MainRenderDocument::getRenderTarget - cannot find render target called " + name);
 		return null;
@@ -89,8 +117,8 @@ public class MainDocument{
 	
 	
 	
-	public void saveRenderToFile(String renderTargetName, String pathAndFilename) {
-		RenderTarget rt = getRenderTarget(renderTargetName);
+	public void saveRenderTargetToFile(String renderTargetName, String pathAndFilename) {
+		MainDocumentRenderTarget rt =  getRenderTarget(renderTargetName);
 		rt.saveRenderToFile(pathAndFilename);
 	}
 	
@@ -110,7 +138,7 @@ public class MainDocument{
 	
 	
 	public void pasteSprite(String renderTargetName, Sprite sprite) {
-		RenderTarget rt = getRenderTarget(renderTargetName);
+		MainDocumentRenderTarget rt = getRenderTarget(renderTargetName);
 		rt.pasteSprite(sprite);
 	}
 	

@@ -242,7 +242,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		}
 
 		if (uied.eventIsFromWidget("fileSaveDialog")) {
-			theDocument.saveRenderToFile("main",uied.fileSelection);
+			theDocument.saveRenderTargetToFile("main",uied.fileSelection);
 		}
 		
 		if (uied.menuItem.contentEquals("quit")) {

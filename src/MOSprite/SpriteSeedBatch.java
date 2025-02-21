@@ -7,7 +7,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
@@ -207,7 +207,7 @@ public class SpriteSeedBatch extends CollectionIterator{
 	
 	
 	
-	public void drawSeeds(Color col, float pixelradius, RenderTarget rt) {
+	public void drawSeeds(Color col, float pixelradius, BufferedImageRenderTarget rt) {
 		
 		for(SpriteSeed s : spriteSeedList) {
 			rt.drawPoint(s.getDocPoint(), col, pixelradius);

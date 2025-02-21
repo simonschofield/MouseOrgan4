@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import MOApplication.Surface;
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.MOColor;
 import MOMaths.Line2;
 import MOMaths.PVector;

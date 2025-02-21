@@ -3,7 +3,7 @@ package MOSprite;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.ImageProcessing;
 import MOImageCollections.ScaledImageAssetGroup;
 import MOMaths.MOMaths;
@@ -100,7 +100,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 	
 	BufferedImage createMask(Vertices2 spriteBufferSpacePolygon) {
 		Rect bufferSpaceExtents = spriteBufferSpacePolygon.getExtents();
-		RenderTarget rt = new RenderTarget((int)bufferSpaceExtents.getWidth(), (int)bufferSpaceExtents.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		BufferedImageRenderTarget rt = new BufferedImageRenderTarget((int)bufferSpaceExtents.getWidth(), (int)bufferSpaceExtents.getHeight(), BufferedImage.TYPE_INT_ARGB);
 		rt.fillBackground(Color.BLACK);
 		rt.getVectorShapeDrawer().setDrawingStyle(Color.WHITE,  Color.WHITE, 1);
 		rt.getVectorShapeDrawer().drawVertices2(spriteBufferSpacePolygon);

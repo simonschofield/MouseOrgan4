@@ -5,7 +5,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.TextRenderer;
 import MOImage.ImageProcessing;
 import MOImage.KeyImageSampler;
@@ -157,7 +157,7 @@ public class NNetworkEdgeDrawHelper {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Drawing Points
 	//
-	public static void drawPoint(NPoint np, Color c, float radiusDocSpace, RenderTarget rt) {
+	public static void drawPoint(NPoint np, Color c, float radiusDocSpace, BufferedImageRenderTarget rt) {
 		//Rect viewPort = GlobalObjects.theSurface.getViewPortDocSpace();
 		float lineThicknessDocSpace = radiusDocSpace/3f;
 		PVector docPoint = np.getPt();
@@ -182,7 +182,7 @@ public class NNetworkEdgeDrawHelper {
 		drawEdges(edges, c, scaledWidth, GlobalSettings.getDocument().getMain());
 	}
 
-	public static void drawEdges(ArrayList<NEdge> edges, Color c, float width, RenderTarget rt) {
+	public static void drawEdges(ArrayList<NEdge> edges, Color c, float width, BufferedImageRenderTarget rt) {
 		float dash[] = { 4.0f };
 		rt.getVectorShapeDrawer().setStrokeCapJoin(BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 		//System.out.println("drawing num edges " + edges.size());
@@ -193,7 +193,7 @@ public class NNetworkEdgeDrawHelper {
 
 	}
 
-	public static void drawEdge(NEdge e, Color c, float width, RenderTarget rt) {
+	public static void drawEdge(NEdge e, Color c, float width, BufferedImageRenderTarget rt) {
 		//Rect viewPort = GlobalObjects.theSurface.getViewPortDocSpace();
 		PVector p1 = e.getEndCoordinate(0);
 		PVector p2 = e.getEndCoordinate(1);
@@ -201,14 +201,14 @@ public class NNetworkEdgeDrawHelper {
 		rt.drawLine(p1, p2, c, width);
 	}
 
-	public static void drawEdgesRandomColorWithPoints(ArrayList<NEdge> edges, float w, RenderTarget rt) {
+	public static void drawEdgesRandomColorWithPoints(ArrayList<NEdge> edges, float w, BufferedImageRenderTarget rt) {
 		for(NEdge e: edges) {
 			drawEdgeRandomColorWithPoints( e,  w,  rt);
 		}
 
 	}
 
-	public static void drawEdgeRandomColorWithPoints(NEdge e, float w, RenderTarget rt) {
+	public static void drawEdgeRandomColorWithPoints(NEdge e, float w, BufferedImageRenderTarget rt) {
 		Color c = MOColor.getRandomRGB(255);		
 		drawEdge(e, c, w, rt);
 
@@ -484,7 +484,7 @@ public class NNetworkEdgeDrawHelper {
 	public static void drawVertices2ListNoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
 		// if dashPattern is nulled, then uses default line
 		// if color is nulled the uses a random color (for debug probably)
-		RenderTarget rt = GlobalSettings.getDocument().getMain();
+		BufferedImageRenderTarget rt = GlobalSettings.getDocument().getMain();
 		Color col;
 		for(Vertices2 v: verts) {
 
@@ -502,7 +502,7 @@ public class NNetworkEdgeDrawHelper {
 
 	public static void drawVertices2NoFill(Vertices2 verts, float width, Color c, float[] dashPattern) {
 		// if dashPattern is nulled, then uses default line
-		RenderTarget rt = GlobalSettings.getDocument().getMain();
+		BufferedImageRenderTarget rt = GlobalSettings.getDocument().getMain();
 
 		if(c==null) c = MOColor.getRandomRGB(100);
 

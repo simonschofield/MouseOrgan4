@@ -21,6 +21,18 @@ public class KeyValuePairList{
     return kvplCopy;
   }
   
+  public KeyValuePairList copyExcept(String[] excluded){
+	    // this is a deep copy to avoid sharing references between objects
+	    KeyValuePairList kvplCopy = new KeyValuePairList();
+	    for(KeyValuePair kvp: keyValuePairs){
+	    	
+	      if( MOStringUtils.stringListContains(excluded, kvp.getKey()) ) continue;
+	      kvplCopy.addKeyValuePair( kvp.copy() );
+	      
+	    }
+	    return kvplCopy;
+	  }
+  
   // for comparing a KVPList against this one, to see if it contains an equal KVP - i.e. both K and V are the same
   public boolean containsEqual(KeyValuePairList otherKvpList) {
 	  for(KeyValuePair otherKvp: otherKvpList.keyValuePairs) {
@@ -67,9 +79,18 @@ public class KeyValuePairList{
     kv.set(k,v);
     addKeyValuePair(kv);
   }
+  
+  public void addKeyValue(String k, float[] f){
+	 KeyValuePair kv = new KeyValuePair();
+	 kv.set(k,f);
+	 addKeyValuePair(kv);
+  }
 
 
   public void addKeyValuePair(KeyValuePair kv){
+	if( alreadyExists(kv) ) {
+		removeKeyValue( kv.getKey() );
+	}
     keyValuePairs.add(kv);
   }
 
@@ -102,32 +123,65 @@ public class KeyValuePairList{
     }
     return false;
   }
+  
+  
+  boolean alreadyExists(KeyValuePair thisKvp) {
+	 // returns true if there is a KVP in the list that has the same key, and is the same type 
+	  KeyValuePair found = this.findKeyValue(thisKvp.getKey());
+	  if(found == null) return false;
+	  
+	  if(thisKvp.getType() == found.getType()) return true;
+	  return false;
+	  
+  }
 
   //////////////////////////////////////////////////////
   // get  methods
   public boolean getBoolean(String kquery) {
     KeyValuePair kv = findKeyValue(kquery);
-    if(kv==null) return false;
+    if(kv==null) {
+    	System.out.println("KeyValuePair::getBoolean key " + kquery + " does not exist");
+    	return false;
+    }
     return kv.getBoolean();
   }
 
   public int getInt(String kquery) {
     KeyValuePair kv = findKeyValue(kquery);
-    if(kv==null) return 0;
+    if(kv==null) {
+    	System.out.println("KeyValuePair::getInt key " + kquery + " does not exist");
+    	return 0;
+    }
     return kv.getInt();
   }
 
   public float getFloat(String kquery) {
     KeyValuePair kv = findKeyValue(kquery);
-    if(kv==null) return 0;
+    if(kv==null) {
+    	System.out.println("KeyValuePair::getFloat key " + kquery + " does not exist");
+    	return 0;
+    	}
     return kv.getFloat();
   }
 
   public String getString(String kquery) {
     KeyValuePair kv = findKeyValue(kquery);
-    if(kv==null) return "";
+    if(kv==null) {
+    	System.out.println("KeyValuePair::getString key " + kquery + " does not exist");
+    	return null;
+    }
     return kv.getString();
   }
+  
+  
+  public float[] getVector(String kquery) {
+	    KeyValuePair kv = findKeyValue(kquery);
+	    if(kv==null) {
+	    	System.out.println("KeyValuePair::getVector key " + kquery + " does not exist");
+	    	return null;
+	    }
+	    return kv.getVector();
+	  }
 
 
 

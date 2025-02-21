@@ -18,3 +18,4 @@
 /ImageProcessParameters.class
 /DespeckleImage.class
 /BilinearBufferedImageSampler.class
+/FloatBufferedImage.class

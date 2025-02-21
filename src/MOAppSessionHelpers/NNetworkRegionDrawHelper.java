@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.ImageProcessing;
 import MOImage.MONamedColors;
 import MOImage.MOPackedColor;
@@ -40,7 +40,7 @@ public class NNetworkRegionDrawHelper {
 	public static void drawRegionEdges(NNetwork ntwk, float dilation, float width, float[] dashPattern) {
 
 		ArrayList<Vertices2> verts  = convertRegionsToVertices2(ntwk.getRegions());
-		RenderTarget rt = GlobalSettings.getDocument().getMain();
+		BufferedImageRenderTarget rt = GlobalSettings.getDocument().getMain();
 		if(dilation != 0) {
 			verts = dilateVertices2(verts, dilation, false);
 		}
@@ -191,7 +191,7 @@ public class NNetworkRegionDrawHelper {
 	}
 
 
-	public static void drawRegionFill(NRegion r, Color c, RenderTarget rt) {
+	public static void drawRegionFill(NRegion r, Color c, BufferedImageRenderTarget rt) {
 		Vertices2 verts = r.getVertices();
 		rt.drawVertices2(verts, c, c, 1);
 	}

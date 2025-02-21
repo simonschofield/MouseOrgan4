@@ -5,7 +5,7 @@ import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import MOApplication.Surface;
 
-import MOCompositing.RenderTarget;
+import MOCompositing.BufferedImageRenderTarget;
 import MOImage.ConvolutionFilter;
 import MOImage.ImageProcessing;
 import MOMaths.MOMaths;
@@ -77,15 +77,6 @@ public class Scene3DHelper {
 		} 
 		
 		
-		///////////////////////////////////////////////////////
-		// captures a 16bit gray image storing the depth of the ROI
-		// and adds it to the render targets so it gets saved along with them
-		public static void addSceneDepthAsRenderTarget(String renderTagetName) {
-			BufferedImage sceneDepthimage = captureSceneDepth();
-			GlobalSettings.getDocument().addRenderTarget(renderTagetName, BufferedImage.TYPE_USHORT_GRAY);
-			RenderTarget rt = GlobalSettings.getDocument().getRenderTarget(renderTagetName);
-			rt.setImage(sceneDepthimage);
-		}
 		
 		
 		// 
