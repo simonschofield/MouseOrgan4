@@ -82,7 +82,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 		Sprite sprite = getSpriteInstance(false);
 		sprite.setSpriteFontDataAndSelectImage(this);
 		
-		BufferedImage chosenTexture = sprite.getImage();
+		BufferedImage chosenTexture = sprite.getMainImage();
 		
 		// tbd
 		//chosenTexture = scaleImageToFitMask(chosenTexture, polygonMask, scaleToFit);
@@ -92,7 +92,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 
 		sprite.setPivotPoint( new PVector(0,0));
 		sprite.setDocPoint(inSceneExtents.getTopLeft());
-		sprite.setImage(extractedPatch);
+		sprite.setMainImage(extractedPatch);
 		
 		return sprite;
 	}

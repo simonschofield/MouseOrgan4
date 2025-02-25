@@ -109,7 +109,7 @@ public class RenderBorder {
 		// then be used to speed up subsequent renders by culling sprites that do not
 		// contribute to the image (e.g. totally outside the renderBoarder, or the document bounds if no render boarder has been set)
 		//System.out.println("crop report id " + sprite.spriteData.id + " contribues? " + contributes);
-		if(contributes) contributingSpritesList.addContributingSpriteID(sprite.uniqueID);
+		if(contributes) contributingSpritesList.addContributingSpriteID(sprite.getUniqueID());
 		return contributes;
 	}
 	
@@ -156,7 +156,7 @@ public class RenderBorder {
 	public boolean cropSprite(Sprite sprite) {
 		// has to deal with the main sprite image, and then possibly overlay images, which must be
 		// cropped the same.The same bespoke cropping is guaranteed by the sprite's ran seed number
-		int numImages = sprite.getEnumeratedImageCount();
+		int numImages = sprite.getNumImages();
 		
 		for(int n = 0; n < numImages; n++) {
 			boolean cropResult = cropEnumeratedSpriteImage( sprite, n);
@@ -167,7 +167,7 @@ public class RenderBorder {
 	
 	
 	private boolean cropEnumeratedSpriteImage(Sprite sprite, int enumeratedImageNum) {
-		int numImage = sprite.getEnumeratedImageCount();
+		int numImage = sprite.getNumImages();
 		
 		String overlapReport = sprite.getDocSpaceRect().reportIntersection(boarderRect);
 		
@@ -209,7 +209,7 @@ public class RenderBorder {
 		// Now we have got the basic (and legal) crop rect
 		// As we don't want to complicate things, and don't want to have to adjust the origin
 		// of the sprite to adjust to the new crop, we just delete the pixels outside of the croppedRectBufferSpace
-		BufferedImage preCroppedImage = ImageProcessing.cropImage(sprite.getEnumeratedImage(enumeratedImageNum), croppedRectBufferSpace);
+		BufferedImage preCroppedImage = ImageProcessing.cropImage(sprite.getImage(enumeratedImageNum), croppedRectBufferSpace);
 
 		
 		
@@ -217,7 +217,7 @@ public class RenderBorder {
 			// add the bespoke crop to the cropping image set
 			
 			// reset the QRandim stream of the bespoke cropping randomness to the sprites ID
-			qRandomStream = new QRandomStream(sprite.uniqueID);
+			qRandomStream = new QRandomStream(sprite.getUniqueID());
 			boolean result = doBespokeCrop(preCroppedImage, overlapReport );
 			if(result == false) {
 				// the bespoke crop obliterated the image
@@ -228,9 +228,9 @@ public class RenderBorder {
 		}
 
 		// paste the cropped image back into the empty output image at the correct point
-		BufferedImage outputImage = new BufferedImage(sprite.getImageWidth(), sprite.getImageHeight(), sprite.getImage().getType());
+		BufferedImage outputImage = new BufferedImage(sprite.getImageWidth(), sprite.getImageHeight(), sprite.getMainImage().getType());
 		ImageProcessing.compositeImage_ChangeTarget(preCroppedImage, outputImage, (int)bTopLeft.x, (int)bTopLeft.y, 1);
-		sprite.setEnumeratedImage(enumeratedImageNum,outputImage);
+		sprite.setImage(enumeratedImageNum,outputImage);
 		
 		
 		

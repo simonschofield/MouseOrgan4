@@ -35,8 +35,8 @@ public class SceneHelper {
 	public static void addSelfShadingToMask(Sprite sprite, BufferedImage shadowImage, String maskName, float alpha) {
 		
 		
-		int newshadowImageWidth = (int)sprite.getImage().getWidth();
-		int newshadowImageHeight = (int)sprite.getImage().getHeight();
+		int newshadowImageWidth = (int)sprite.getMainImage().getWidth();
+		int newshadowImageHeight = (int)sprite.getMainImage().getHeight();
 		BufferedImage resizedShadowImage = ImageProcessing.resizeTo(shadowImage, newshadowImageWidth, newshadowImageHeight);
 		
 		getBufferedImageRenderTarget(maskName).pasteSprite_AltImage(sprite, resizedShadowImage, alpha, false);
@@ -139,7 +139,7 @@ public class SceneHelper {
 		if( contribute ) {
 			
 			if(replacementImage!=null) {
-				BufferedImage blendedImage = ImageProcessing.replaceVisiblePixels(sprite.getImage(), replacementImage);
+				BufferedImage blendedImage = ImageProcessing.replaceVisiblePixels(sprite.getMainImage(), replacementImage);
 				
 				if(brightness < 1) {
 					blendedImage = ImageProcessing.adjustBrightness(blendedImage, brightness);
@@ -172,7 +172,7 @@ public class SceneHelper {
 				if( contribute ) {
 					
 					if(replacementImage!=null) {
-						BufferedImage blendedImage = ImageProcessing.replaceVisiblePixels(sprite.getOverlayImage(overlayName), replacementImage);
+						BufferedImage blendedImage = ImageProcessing.replaceVisiblePixels(sprite.getImage(overlayName), replacementImage);
 						
 						if(brightness < 1) {
 							blendedImage = ImageProcessing.adjustBrightness(blendedImage, brightness);
@@ -191,7 +191,7 @@ public class SceneHelper {
 						// we need to subtract the full sprite first to remove any areas of "non-overlay" substance that may have been exposed in previous contributing overlay pastes
 						getBufferedImageRenderTarget(maskName).pasteSprite_ReplaceColour(sprite, Color.black);
 						// then paste the overlay part back on top
-						getBufferedImageRenderTarget(maskName).pasteImage_ReplaceColour( sprite.getOverlayImage(overlayName), sprite.getDocSpaceRect().getTopLeft(), c);
+						getBufferedImageRenderTarget(maskName).pasteImage_ReplaceColour( sprite.getImage(overlayName), sprite.getDocSpaceRect().getTopLeft(), c);
 						}
 					
 
@@ -237,16 +237,16 @@ public class SceneHelper {
 		
 		BufferedImage linkedSpriteImage = GlobalSettings.getImageAssetGroupManager().getScaledImageAssetGroup(imageAssetGroupName).getImage(shortImageName);
 
-		linkedSprite.setImage(linkedSpriteImage);
+		linkedSprite.setMainImage(linkedSpriteImage);
 		linkedSprite.ImageGroupItemShortName = shortImageName;
 		linkedSprite.ImageAssetGroupName = imageAssetGroupName;
 		return linkedSprite;
 	}
 	
-	public static void setOverlayImage(Sprite sprite, String overlayName) {
-		BufferedImage overlayImage = GlobalSettings.getImageAssetGroupManager().getScaledImageAssetGroup(sprite.ImageAssetGroupName + overlayName).getImage(sprite.ImageGroupItemShortName);
-		sprite.addOverlayImage(overlayImage, overlayName); 
-	}
+	//public static void setOverlayImage(Sprite sprite, String overlayName) {
+	//	BufferedImage overlayImage = GlobalSettings.getImageAssetGroupManager().getScaledImageAssetGroup(sprite.ImageAssetGroupName + overlayName).getImage(sprite.ImageGroupItemShortName);
+	//	sprite.addImage(overlayImage, overlayName); 
+	//}
 	
 	
 	public static void pasteLinkedSpriteToMaskImage(Sprite linkedSprite, Sprite mainSprite,  String spriteAttributeString, String spriteAttributeStringToContain, String maskName, BufferedImage replacementImage) {
@@ -337,12 +337,12 @@ public class SceneHelper {
 	}
 	
 	
-	public static void drawQuad(Sprite sprite, Color c, BufferedImageRenderTarget rt) {
-		Vertices2 verts = sprite.imageQuad.getSpriteBufferSpaceQuadVertices();
-		PVector shift = sprite.spriteLocalBufferSpaceToDocumentBufferSpace(PVector.ZERO());
-		verts.translate(shift.x, shift.y);
-		rt.getVectorShapeDrawer().setDrawingStyle(new Color(255,255,255,0), c, 4);
-		rt.getVectorShapeDrawer().drawVertices2(verts);
+	//public static void drawQuad(Sprite sprite, Color c, BufferedImageRenderTarget rt) {
+	//	Vertices2 verts = sprite.imageQuad.getSpriteBufferSpaceQuadVertices();
+	//	PVector shift = sprite.spriteLocalBufferSpaceToDocumentBufferSpace(PVector.ZERO());
+	//	verts.translate(shift.x, shift.y);
+	//	rt.getVectorShapeDrawer().setDrawingStyle(new Color(255,255,255,0), c, 4);
+	//	rt.getVectorShapeDrawer().drawVertices2(verts);
 		
 		//for(int n = 0; n<4; n++) {
 		//	PVector quadPt = verts.get(n);
@@ -353,7 +353,7 @@ public class SceneHelper {
 			
 		//}
 		 
-	}
+	//}
 	
 	public static Rect getDocSpaceRectFromNormalisedRect(float left, float top, float right, float bottom) {
 		Rect nRect = new Rect();
@@ -401,14 +401,14 @@ public class SceneHelper {
 		// when the brightness is low, so is the contrast
 		//sprite.image = ImageProcessing.adjustContrast(sprite.image, brightness);
 		
-		sprite.setImage(ImageProcessing.adjustBrightness(sprite.getImage(), brightness));
+		sprite.setMainImage(ImageProcessing.adjustBrightness(sprite.getMainImage(), brightness));
 		//sprite.image = ImageProcessing.adjustBrightnessNoClip(sprite.image, brightness);
 
 	}
 	
 	static void addContrast(Sprite sprite, float contrast) {
 		// when the brightness is low, so is the contrast
-		sprite.setImage(ImageProcessing.adjustContrast(sprite.getImage(), contrast));
+		sprite.setMainImage(ImageProcessing.adjustContrast(sprite.getMainImage(), contrast));
 		
 		
 	}
@@ -420,7 +420,7 @@ public class SceneHelper {
 		float randV = ranStream.randRangeF(-rV, rV);
 		
 		
-		sprite.setImage(ImageProcessing.adjustHSV(sprite.getImage(), randH, randS, randV));
+		sprite.setMainImage(ImageProcessing.adjustHSV(sprite.getMainImage(), randH, randS, randV));
 	}
 	
 	

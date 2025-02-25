@@ -173,7 +173,7 @@ public class FloatImageRenderTarget implements MainDocumentRenderTarget {
 		int sourceHeight = sprite.getImageHeight();
 		int targetOffsetX = (int) bufferPt.x;
 		int targetOffsetY = (int) bufferPt.y;
-		WritableRaster sourceImageAlphaData = sprite.getImage().getAlphaRaster();
+		WritableRaster sourceImageAlphaData = sprite.getMainImage().getAlphaRaster();
 
 		for (int y = 0; y < sourceHeight; y++) {
 			for (int x = 0; x < sourceWidth; x++) {

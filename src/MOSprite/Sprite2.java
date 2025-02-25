@@ -21,108 +21,21 @@ import MOUtils.KeyValuePairList;
 import MOUtils.UniqueID;
 
 
-class SpriteImages{
-	
-	ArrayList<ImageAsset> imageList = new ArrayList<ImageAsset>();
-
-	public SpriteImages(){
-		clear();
-	}
-	
-	public void clear() {
-		imageList = new ArrayList<ImageAsset>();
-	}
-	
-	public void addImage(BufferedImage img, String name) {
-		img = ImageProcessing.assertImageTYPE_INT_ARGB(img);
-		img = sizeToMainImageDims( img);
-		imageList.add(new ImageAsset(img,name));
-	}
-	
-	public BufferedImage getImage(String nm) {
-		return getImageAsset(nm).image;
-	}
-	
-	public BufferedImage getImage(int i) {
-		return imageList.get(i).image;
-	}
-	
-	public int getNumImages() {
-		return imageList.size();
-	}
-	
-	
-	public void setImage(String nm, BufferedImage img) {
-		img = sizeToMainImageDims( img);
-		getImageAsset(nm).image = img;
-	}
-	
-	public void setImage(int i, BufferedImage img) {
-		img = sizeToMainImageDims( img);
-		imageList.get(i).image = img;
-	}
-	
-	private ImageAsset getImageAsset(String nm) {
-		int n = 0;
-		for (ImageAsset thisImage : imageList) {
-			if (thisImage.name.contentEquals(nm))
-				return thisImage;
-			n++;
-		}
-		System.out.println("SpriteImageStack:getImageStackElement - cannot find element called " + nm);
-		return null;
-	}
-	
-	BufferedImage sizeToMainImageDims(BufferedImage img) {
-		int w = getImage(0).getWidth();
-		int h = getImage(0).getHeight();
-		return ImageProcessing.resizeTo(img, w, h);
-	}
-	
-	
-	public void scale(float scaleW, float scaleH) {
-		for (ImageAsset thisImageAsset : imageList) {
-			if(scaleW==scaleH) {
-				// chance to use double scaling on very big scale reductions
-				thisImageAsset.image = ImageProcessing.scaleImage(thisImageAsset.image, scaleW);
-			}else {
-				thisImageAsset.image = ImageProcessing.scaleImage(thisImageAsset.image, scaleW, scaleH);
-			}
-		}
-		
-	}
-	
-	public void rotate(float degrees) {
-		for (ImageAsset thisImageAsset : imageList) {
-			thisImageAsset.image = ImageProcessing.rotateImage(thisImageAsset.image, degrees);
-		}
-	}
-	
-	public void mirror(boolean inX) {
-		for (ImageAsset thisImageAsset : imageList) {
-			if (inX) {
-				thisImageAsset.image = ImageProcessing.mirrorImage(thisImageAsset.image, true, false);
-			} else {
-				// in Y
-				thisImageAsset.image = ImageProcessing.mirrorImage(thisImageAsset.image,false, true);
-			}
-		}
-		
-	}
-	
-	public void bend(float startBend, float bendAmt, float severity) {
-		
-		BendImage bendImage = new BendImage();
-		for (ImageAsset thisImageAsset : imageList) {
-			thisImageAsset.image = bendImage.bendImage(thisImageAsset.image, startBend, bendAmt, severity);
-		}
-	}
-	
-	
-	
-}
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This version has a better structure, in that it does not contain a SpriteSeed, which is confusing. 
+// In fact there is no SpriteSeed class any more. Sprite data, if generated and stored separately, would be just a KeyValuePairList, or a CSV file.
+//
+// Convenient generation of prites
+// 
+// It has some critical data
+// in the headers, that all sprites must have. Anything else is stored in the KeyValuePairList, whihc is automatically copied over, so making
+// the sprite more extensible and reliable.
+// Also, the images are now in a single list, so there is no main image, just entries in the list. The first entry (pos 0) is the "main" image
+// all the others are overlay images
+//
+//
 public class Sprite2 {
 	////////////////////////////////////////////////////////////
 	// Sprite2 Data
@@ -130,7 +43,7 @@ public class Sprite2 {
 	// Critical data, explicitly stored in every sprite
 	
 	////////////////////////////////////////////////////
-	// This is the unique ID generator, shared between all seeds. It is instanced when the first
+	// This is the unique ID generator, shared between all sprites. It is instanced when the first
 	// seed is made. So IF you want to guarantee unique ID then all sprites
 	// should be forged using seeds
 	static UniqueID uniqueIDSource;   
@@ -141,13 +54,14 @@ public class Sprite2 {
 		
 	// This is the size of the sprite in the scene. In a 2D session, the unit is in Document Space units
 	// In a 3D session (using SceneData3D) , the unit is in the SceneData3D's 3D units.
-	private float sizeInScene = 0.01f; 
+	public float sizeInScene = 0.01f; 
 	// if set to true, then the size is scaled by this assets relative size to the largest asset in the asset group
 	public boolean useRelativeSizes = false;
 	
 	// The pivot point around which all scales and rotations are applied, in normalised units
-	private PVector pivotPoint = new PVector(0.5f, 0.5f);
+	public PVector pivotPoint = new PVector(0.5f, 0.5f);
 
+	public float depth = 1;
 	
 	// the doc point used to position  the item in the scene in Document Space coordinates
 	public PVector docPoint = new PVector(0.5f, 0.5f);
@@ -191,15 +105,24 @@ public class Sprite2 {
 	
 
 	public Sprite2() {
-		init();
+		init(true);
 	}
 	
-	void init() {
+	public Sprite2(KeyValuePairList spriteData) {
+		init(false);
+		setSpriteData(spriteData);
+	}
+	
+	private void init(boolean newUniqueID) {
 		
-		if(uniqueIDSource == null) {
-			uniqueIDSource = new UniqueID();
+		if(newUniqueID) {
+			if(uniqueIDSource == null) {
+				uniqueIDSource = new UniqueID();
+			}
+			this.uniqueID = uniqueIDSource.getUniqueID();
 		}
-		this.uniqueID = uniqueIDSource.getUniqueID();
+		
+		
 		this.randomKey = this.uniqueID;
 		
 		setRandomStreamPos( this.randomKey );
@@ -208,12 +131,12 @@ public class Sprite2 {
 	}
 
 	public Sprite2(BufferedImage img) {
-		init();
-		addImage(img, "main");
+		init(true);
+		addImage("main", img);
 	}
 
-	public void addImage(BufferedImage img, String name) {
-		images.addImage(img, name);
+	public void addImage(String name, BufferedImage img) {
+		images.setImage(name, img);
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -226,20 +149,18 @@ public class Sprite2 {
 		// image 1... are the overlay images
 		return images.getImage(i);
 	}
-
-	public void setImage(int i, BufferedImage img) {
-		// image 0 is the main sprite image
-		// image 1... are the overlay images
-		images.setImage(i, img);
+	
+	public BufferedImage getImage(String name) {
+		return images.getImage(name);
 	}
+
+	
 
 	public int getImageCount() {
 		return images.getNumImages();
 	}
 
-	public BufferedImage getImage(String name) {
-		return images.getImage(name);
-	}
+	
 
 	public void setSpriteData(KeyValuePairList data) {
 
@@ -252,10 +173,12 @@ public class Sprite2 {
 		float[] pp = data.getVector("PivotPoint");
 		pivotPoint = new PVector(pp[0], pp[1]);
 		
-		//sizeInScene = data.getFloat("SizeInScene");
-		//useRelativeSizes = data.getBoolean("UseRelativeSizes");
+		sizeInScene = data.getFloat("SizeInScene");
+		useRelativeSizes = data.getBoolean("UseRelativeSizes");
+		
+		depth = data.getFloat("Depth");
 
-		String[] excluded = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint"};
+		String[] excluded = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "UsreRelativeSizes"};
 		spriteData = data.copyExcept(excluded);
 	}
 
@@ -358,7 +281,7 @@ public class Sprite2 {
 		//}
 		
 		images.clear();
-		addImage( img, "main");
+		addImage( "main", img);
 		//System.out.println("reference to image in sprite is " + img);
 	}
 

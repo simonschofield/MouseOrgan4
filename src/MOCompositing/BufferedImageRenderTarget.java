@@ -171,7 +171,7 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 		//pasteImage_TopLeftDocPoint(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
 		int x = (int) sprite.getDocumentBufferSpaceRect().getTopLeft().x;
 		int y = (int) sprite.getDocumentBufferSpaceRect().getTopLeft().y;
-		pasteImage_BufferSpace(sprite.getImage(), x,y,  sprite.alpha);
+		pasteImage_BufferSpace(sprite.getMainImage(), x,y,  sprite.alpha);
 	}
 	
 	
@@ -201,7 +201,7 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 	// I.e. alters a pixel in the targetRenderImage where the alpha in the sprite image is > 0
 	// 
 	public void pasteSprite_ReplaceColour(Sprite sprite, Color c) {
-		pasteImage_ReplaceColour(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  c);
+		pasteImage_ReplaceColour(sprite.getMainImage(), sprite.getDocSpaceRect().getTopLeft(),  c);
 	}
 	
 	// replaces the colour of the image with a single colour
@@ -219,7 +219,7 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 	public void pasteSprite_AltImage(Sprite sprite, BufferedImage altImage, float alpha, boolean useSpriteAlpha) {
 		
 		if(useSpriteAlpha) {
-			BufferedImage altImageWithSpritesAlpha = ImageProcessing.replaceVisiblePixels(sprite.getImage(), altImage);
+			BufferedImage altImageWithSpritesAlpha = ImageProcessing.replaceVisiblePixels(sprite.getMainImage(), altImage);
 			pasteImage_DocSpace(altImageWithSpritesAlpha, sprite.getDocSpaceRect().getTopLeft(),  alpha);
 		}else {
 			pasteImage_DocSpace(altImage, sprite.getDocSpaceRect().getTopLeft(),  alpha);
@@ -238,7 +238,7 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(topLeftDocSpace);
 		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.DST_OUT, sprite.alpha);
 		getGraphics2D().setComposite(ac);
-		getGraphics2D().drawImage(sprite.getImage(), (int)bufferPt.x, (int)bufferPt.y, null);
+		getGraphics2D().drawImage(sprite.getMainImage(), (int)bufferPt.x, (int)bufferPt.y, null);
 	}
 	
 	
@@ -271,7 +271,7 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 		int targetHeight = targetRenderImage.getHeight();
 		
 		WritableRaster targetImageData = targetRenderImage.getRaster();
-		WritableRaster sourceImageAlphaData = sprite.getImage().getAlphaRaster();
+		WritableRaster sourceImageAlphaData = sprite.getMainImage().getAlphaRaster();
 		
 		int shortval = (int) (val * 65535);
 		if(shortval < 1) shortval = 1;

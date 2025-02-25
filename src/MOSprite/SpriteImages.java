@@ -7,62 +7,81 @@ import MOImage.BendImage;
 import MOImage.ImageProcessing;
 import MOImageCollections.ImageAsset;
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// THis class is contained by the Sprite Class
-// Overlay images are RGBA images that are kept "in step" with the main image though any geometric transformations.
-// They contain elements which can be treated differently from the main sprite (such as flowers on a larger plant, or a shirt on a person), but are in-register with the sprite through all its
-// different geometric transforms, and use the Sprite's pivot-point when pasting etc. 
-
-// All overlay images must be the same dimensions as the owning sprite's main sprite image. This is enforced in this class.
-// All overlay images are kept in step with any subsequent GEOMETRIC image operations to he main sprite image 
-// They can then be pasted, and will use the owning sprites pivot point to do so. using pasteSpriteAltImage(sprite, blendedImage,1f);
-//
-//
-
-public class SpriteOverlayImages {
+public class SpriteImages{
 	
 	ArrayList<ImageAsset> imageList = new ArrayList<ImageAsset>();
+
 	
-	Sprite owningSprite;
 	
-	public SpriteOverlayImages(Sprite s){
-		owningSprite = s;
+		
+	public SpriteImages(){
+		clear();
 	}
 	
-	public void addOverlayImage(BufferedImage img, String name) {
-		
-		img = ImageProcessing.assertImageTYPE_INT_ARGB(img);
-		
-		
-		
-		img = sizeToMainImageDims( img);
-		imageList.add(new ImageAsset(img,name));
+	boolean isInitialised() {
+		// The SpriteImages are considered as initialised if the there is an image set in the list;
+		if(imageList.size()==0) return false;
+		return true;
 	}
+	
+	public void clear() {
+		imageList = new ArrayList<ImageAsset>();
+	}
+	
+	
 	
 	public BufferedImage getImage(String nm) {
 		return getImageAsset(nm).image;
 	}
 	
 	public BufferedImage getImage(int i) {
-		return imageList.get(i).image;
+		return imageList.get(i).image ;
 	}
 	
-	public int getNumOverlayImage() {
+	public int getNumImages() {
 		return imageList.size();
+	}
+	
+	public boolean imageNameExists(String nm) {
+		for (ImageAsset thisImage : imageList) {
+			if (thisImage.name.contentEquals(nm))
+				return true;
+		}
+		return false;
+	}
+	
+	public void setImage(int i, BufferedImage img) {
+		// 
+		imageList.get(i).image = img;
+		
 	}
 	
 	
 	public void setImage(String nm, BufferedImage img) {
-		img = sizeToMainImageDims( img);
-		getImageAsset(nm).image = img;
+		// if there are no images, add the "main" image
+		// if the image exists then the image is replaced, 
+		// if the image does not exist then the image is added
+		if ( isInitialised() == false ) {
+			addImage("main", img);
+			return;
+		}
+		
+		img = sizeToMainImageDims(img);
+		
+		if(imageNameExists(nm)) {
+			getImageAsset(nm).image = img;
+			return;
+		}
+		
+		addImage(nm, img);
+		
 	}
 	
-	public void setImage(int i, BufferedImage img) {
-		img = sizeToMainImageDims( img);
-		imageList.get(i).image = img;
+	private void addImage(String name, BufferedImage img) {
+		img = ImageProcessing.assertImageTYPE_INT_ARGB(img);
+		imageList.add(new ImageAsset(img,name));
 	}
-	
+
 	private ImageAsset getImageAsset(String nm) {
 		int n = 0;
 		for (ImageAsset thisImage : imageList) {
@@ -75,7 +94,10 @@ public class SpriteOverlayImages {
 	}
 	
 	BufferedImage sizeToMainImageDims(BufferedImage img) {
-		return ImageProcessing.resizeTo(img, owningSprite.getImageWidth(), owningSprite.getImageHeight());
+		if ( isInitialised() == false ) return img;
+		int w = getImage(0).getWidth();
+		int h = getImage(0).getHeight();
+		return ImageProcessing.resizeTo(img, w, h);
 	}
 	
 	
@@ -118,7 +140,5 @@ public class SpriteOverlayImages {
 	}
 	
 	
+	
 }
-
-
-

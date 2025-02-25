@@ -244,7 +244,7 @@ public class Scene3DHelper {
 				float rot = grad.heading();
 				float scaledRot = rot*mag*amt;
 				System.out.println("rotation " + scaledRot);
-				if(scaledRot > 0 && flipInDirection) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
+				if(scaledRot > 0 && flipInDirection) sprite.setMainImage(ImageProcessing.mirrorImage(sprite.getMainImage(), true, false));
 				sprite.rotate((float)Math.toDegrees(scaledRot));
 				return scaledRot;
 			}
@@ -254,7 +254,7 @@ public class Scene3DHelper {
 		
 		public static void addWave(Sprite sprite, float rotationDegrees,  boolean flipInDirection) {
 			
-			if(rotationDegrees > 0 && flipInDirection) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
+			if(rotationDegrees > 0 && flipInDirection) sprite.setMainImage(ImageProcessing.mirrorImage(sprite.getMainImage(), true, false));
 			sprite.rotate(rotationDegrees);
 			
 		}
@@ -265,7 +265,7 @@ public class Scene3DHelper {
 			float rotationDegrees =  getWaveRotationDegrees( waveImageName, sprite.getDocPoint(), sprite.getRandomStream(),  degreesLeft,  degreesRight,  noise);
 			
 			
-			if(rotationDegrees > 0 && flipInDirection) sprite.setImage(ImageProcessing.mirrorImage(sprite.getImage(), true, false));
+			if(rotationDegrees > 0 && flipInDirection) sprite.setMainImage(ImageProcessing.mirrorImage(sprite.getMainImage(), true, false));
 			sprite.rotate(rotationDegrees);
 			return rotationDegrees;
 		}

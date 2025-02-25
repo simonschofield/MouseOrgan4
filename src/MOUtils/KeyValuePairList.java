@@ -80,6 +80,7 @@ public class KeyValuePairList{
     addKeyValuePair(kv);
   }
   
+  
   public void addKeyValue(String k, float[] f){
 	 KeyValuePair kv = new KeyValuePair();
 	 kv.set(k,f);
@@ -117,7 +118,7 @@ public class KeyValuePairList{
     return keyValuePairs.get(n);
   }
 
-  boolean keyExists(String kquery){
+  public boolean keyExists(String kquery){
     for(KeyValuePair kv: keyValuePairs){
       if(kv.keyIs(kquery)) return true;
     }

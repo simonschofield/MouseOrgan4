@@ -28,10 +28,7 @@ public class SpriteSeed {
 	// should be forged using seeds
 	static UniqueID uniqueIDSource;   
 	
-	
-	
-	
-	
+
 	////////////////////////////////////////////////////
 	// For Identification purposes - the seed-generator name.
 	// this enables the user to identify seeds from different batches
@@ -40,7 +37,7 @@ public class SpriteSeed {
 	////////////////////////////////////////////////////
 	// For Identification purposes
 	// this enables the creating system to add a tag if it needs to
-	public String SeedTag = "";
+	// public String SeedTag = "";
 	
 	////////////////////////////////////////////////////
 	// For Identification purposes only
@@ -61,26 +58,17 @@ public class SpriteSeed {
 	
 	// the doc point of the seed
 	// used to position (translate) the item
-	public float docPointX = 0;
-	public float docPointY = 0;
-
-	// scale
-	public float scale = 1;
-
-	//Rotation, in degrees clockwise
-	//where 0 represent the "up" of the image
-	public float rotation = 0;
-
-	// flip in x and y
-	public boolean flipX = false;
-	public boolean flipY = false;
-
+	//public float docPointX = 0;
+	//public float docPointY = 0;
+    PVector docPoint;
+	
 	/////////////////////////////////////////////////////
 	// the depth is set to the normalised depth in the 3D scene, 
 	// usually used to sort the render order of the seeds
 	// 
 	public float depth = 1;
 
+	/////////////////////////////////////////////////////
 	// this is so that you can turn sprites on and off in clipping/culling processes
 	// This is not saved/loaded to/from file
 	public boolean isActive = true;
@@ -107,15 +95,10 @@ public class SpriteSeed {
 		SpriteSeed cpy = new SpriteSeed();
 		
 		cpy.SeedBatchName = this.SeedBatchName;
-		cpy.SeedTag = this.SeedTag;
+		
 		cpy.uniqueID = this.uniqueID;
 		cpy.randomKey = this.randomKey;
-		cpy.docPointX = this.docPointX;
-		cpy.docPointY = this.docPointY;
-		cpy.scale  = this.scale;
-		cpy.rotation  = this.rotation;
-		cpy.flipX  = this.flipX;
-		cpy.flipY  = this.flipY;
+		cpy.docPoint = this.docPoint.copy();
 		cpy.depth = this.depth;
 		cpy.isActive = this.isActive;
 		
@@ -125,17 +108,19 @@ public class SpriteSeed {
 	
 	
 	public PVector getDocPoint() {
-		return new PVector(docPointX, docPointY, 0);
+		return docPoint;
 	}
 
 
 	public void setDocPoint(PVector p) {
-		docPointX = p.x;
-		docPointY = p.y;
+		docPoint = new PVector();
+		docPoint.x = p.x;
+		docPoint.y = p.y;
+		docPoint.z = 0;
 	}
 
 	PVector getDocPointWithDepth() {
-		return new PVector(docPointX, docPointY, depth);
+		return new PVector(docPoint.x, docPoint.y, depth);
 	}
 
 	float getDepth() {
@@ -164,24 +149,13 @@ public class SpriteSeed {
 
 	public String getAsCSVStr() {
 		// Called by a File Saving operation to gather the full line of CSV data
-		
-
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.addKeyValue("SeedBatchName", SeedBatchName);
-		kvlist.addKeyValue("SeedTag", SeedTag);
 		kvlist.addKeyValue("UniqueId", uniqueID);
 		kvlist.addKeyValue("RandomKey", randomKey);
-		
-		PVector p = new PVector(docPointX, docPointY);
-		kvlist.addKeyValue("DocPointX", p.x);
-		kvlist.addKeyValue("DocPointY", p.y);
-		
-		kvlist.addKeyValue("Scale", scale);
-		kvlist.addKeyValue("Rotation", rotation);
-		kvlist.addKeyValue("FlipX", flipX);
-		kvlist.addKeyValue("FlipY", flipY);
+		kvlist.addKeyValue("DocPoint", docPoint.array());
 		kvlist.addKeyValue("Depth", depth);
-		//kvlist.addKeyValue("IsActive", isActive);
+		kvlist.addKeyValue("IsActive", isActive);
 		
 		String line =  kvlist.getAsCSVLine();
 		
@@ -198,22 +172,23 @@ public class SpriteSeed {
 		kvlist.ingestCSVLine(csvStr);
 		
 		SeedBatchName = kvlist.getString("SeedBatchName");
-		SeedTag = kvlist.getString("SeedTag");
+		//SeedTag = kvlist.getString("SeedTag");
 		uniqueID = kvlist.getInt("UniqueId");
 		randomKey = kvlist.getInt("RandomKey");
 		
-		float px = kvlist.getFloat("DocPointX");
-		float py = kvlist.getFloat("DocPointY");
+		float[] pv = kvlist.getVector("DocPoint");
+		//float py = kvlist.getFloat("DocPointY");
 		
 		// we need to convert them back into the master document space, not the current ROI space!
 		// PVector dpt = normalisedSpaceToDocSpace(new PVector(npX, npY));
-		PVector p = new PVector(px,py);
+		PVector p = new PVector();
+		p.set(pv);
 		setDocPoint(p);
 		
-		scale = kvlist.getFloat("Scale");
-		rotation = kvlist.getFloat("Rotation");
-		flipX = kvlist.getBoolean("FlipX");
-		flipY = kvlist.getBoolean("FlipY");
+		//scale = kvlist.getFloat("Scale");
+		//rotation = kvlist.getFloat("Rotation");
+		//flipX = kvlist.getBoolean("FlipX");
+		//flipY = kvlist.getBoolean("FlipY");
 		depth = kvlist.getFloat("Depth");
 		//isActive = kvlist.getBoolean("IsActive");
 		
