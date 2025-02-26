@@ -33,6 +33,39 @@ public class KeyValuePairList{
 	    return kvplCopy;
 	  }
   
+   public void append(KeyValuePairList otherKVList, String[] excluded){
+	    // Make a copy of the otherList, as this process is destructive 
+	    // first update any previoulsy existing variables in the list with new values
+	   KeyValuePairList tempCopyOther = otherKVList.copy();
+	   
+	   for(KeyValuePair existingKVP: keyValuePairs) {
+		   
+	    for(KeyValuePair otherKVP: tempCopyOther.keyValuePairs) {
+	      // if the keys are for the same variable, then update the existing KVP list with the new value
+	      if( existingKVP.isSameVariable(otherKVP)) {
+	    	  existingKVP = otherKVP.copy();
+	    	  otherKVP.setType( KeyValuePair.NOTSET );
+	      }
+	      
+	    }
+	    
+	   }
+	    
+	    // now add all the new variables in the otherKVPList, excluding the exclude list
+	    for(KeyValuePair otherKVP: tempCopyOther.keyValuePairs) {
+	    	if( MOStringUtils.stringListContains(excluded, otherKVP.getKey()) ) continue;
+	    	if( otherKVP.getTYPE() == KeyValuePair.NOTSET) continue;
+	    	
+	    	keyValuePairs.add(otherKVP.copy());
+	    	
+	    	
+	    }
+	    
+	   
+	    
+	  }
+
+  
   // for comparing a KVPList against this one, to see if it contains an equal KVP - i.e. both K and V are the same
   public boolean containsEqual(KeyValuePairList otherKvpList) {
 	  for(KeyValuePair otherKvp: otherKvpList.keyValuePairs) {

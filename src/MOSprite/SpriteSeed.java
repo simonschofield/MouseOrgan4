@@ -21,23 +21,12 @@ import MOUtils.UniqueID;
 // It also contains the seed-generator name, for selection purposes by the user.
 
 public class SpriteSeed {
-	
-	////////////////////////////////////////////////////
-	// This is the unique ID generator, shared between all seeds. It is instanced when the first
-	// seed is made. So IF you want to guarantee unique ID then all sprites
-	// should be forged using seeds
-	static UniqueID uniqueIDSource;   
-	
 
 	////////////////////////////////////////////////////
 	// For Identification purposes - the seed-generator name.
 	// this enables the user to identify seeds from different batches
 	public String SeedBatchName = "";
 	
-	////////////////////////////////////////////////////
-	// For Identification purposes
-	// this enables the creating system to add a tag if it needs to
-	// public String SeedTag = "";
 	
 	////////////////////////////////////////////////////
 	// For Identification purposes only
@@ -50,7 +39,8 @@ public class SpriteSeed {
 	/////////////////////////////////////////////////////
 	// This is a Unique ID set by the generating seed batch. It is used to guarantee
 	// the same results for the same seed in this batch by seeding random streams
-	// it encounters
+	// it encounters. It set here, rather than later on in the sprite itself,  as it may be used in the actual Sprite instantiating processes
+	// such as a SpriteFont, where it may be used to determine the associated image asset. In order to control this, we cannot use the UniqueID. 
 	private int randomKey;
 	
 	/////////////////////////////////////////////////////
@@ -63,8 +53,12 @@ public class SpriteSeed {
     PVector docPoint;
 	
 	/////////////////////////////////////////////////////
-	// the depth is set to the normalised depth in the 3D scene, 
-	// usually used to sort the render order of the seeds
+    // For a 3D scene the depth defines the drawing order and scale of the item.
+    // The depth is set to the real 3D unit depth in the 3D scene. 
+    // Although the depth can also be recovered at run time from the scene.
+    // In the case of a 2D scene, the depth can be used 
+    // to define the drawing order
+	// 
 	// 
 	public float depth = 1;
 
@@ -74,23 +68,12 @@ public class SpriteSeed {
 	public boolean isActive = true;
 	
 	public SpriteSeed() {
-		if(uniqueIDSource == null) {
-			uniqueIDSource = new UniqueID();
-		}
-		this.uniqueID = uniqueIDSource.getUniqueID();
+		
+		this.uniqueID = GlobalSettings.getNextUniqueID();
 		this.randomKey = this.uniqueID;
 	}
 	
-	public SpriteSeed(int ranKey) {
-		// this is the constructor called by the SeedBatch
-		if(uniqueIDSource == null) {
-			uniqueIDSource = new UniqueID();
-		}
-		this.uniqueID = uniqueIDSource.getUniqueID();
-		this.randomKey = ranKey;
-	}
-	
-	
+
 	public SpriteSeed copy() {
 		SpriteSeed cpy = new SpriteSeed();
 		
@@ -146,9 +129,8 @@ public class SpriteSeed {
 	public int getUniqueID() {
 		return uniqueID;
 	}
-
-	public String getAsCSVStr() {
-		// Called by a File Saving operation to gather the full line of CSV data
+	
+	public KeyValuePairList getAsKeyValuePairList() {
 		KeyValuePairList kvlist = new KeyValuePairList();
 		kvlist.addKeyValue("SeedBatchName", SeedBatchName);
 		kvlist.addKeyValue("UniqueId", uniqueID);
@@ -156,8 +138,12 @@ public class SpriteSeed {
 		kvlist.addKeyValue("DocPoint", docPoint.array());
 		kvlist.addKeyValue("Depth", depth);
 		kvlist.addKeyValue("IsActive", isActive);
-		
-		String line =  kvlist.getAsCSVLine();
+		return kvlist;
+	}
+
+	public String getAsCSVStr() {
+		// Called by a File Saving operation to gather the full line of CSV data
+		String line =  getAsKeyValuePairList().getAsCSVLine();
 		
 		return line;
 
@@ -172,12 +158,11 @@ public class SpriteSeed {
 		kvlist.ingestCSVLine(csvStr);
 		
 		SeedBatchName = kvlist.getString("SeedBatchName");
-		//SeedTag = kvlist.getString("SeedTag");
 		uniqueID = kvlist.getInt("UniqueId");
 		randomKey = kvlist.getInt("RandomKey");
 		
 		float[] pv = kvlist.getVector("DocPoint");
-		//float py = kvlist.getFloat("DocPointY");
+		
 		
 		// we need to convert them back into the master document space, not the current ROI space!
 		// PVector dpt = normalisedSpaceToDocSpace(new PVector(npX, npY));
@@ -185,14 +170,8 @@ public class SpriteSeed {
 		p.set(pv);
 		setDocPoint(p);
 		
-		//scale = kvlist.getFloat("Scale");
-		//rotation = kvlist.getFloat("Rotation");
-		//flipX = kvlist.getBoolean("FlipX");
-		//flipY = kvlist.getBoolean("FlipY");
+		
 		depth = kvlist.getFloat("Depth");
-		//isActive = kvlist.getBoolean("IsActive");
-		
-		
 
 		//System.out.println("Loading seed: " + this.getAsCSVStr());
 

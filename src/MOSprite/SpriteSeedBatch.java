@@ -19,20 +19,18 @@ import MOUtils.GlobalSettings;
 ///////////////////////////////////////////////////////////////////////////
 // A SpriteSeedBatch is an iterable collection of type SpriteSeed.
 // It does not have a name, as a seed batch will always be created by some other process and just uses the seed batch as storeage.
-//  So the name is set by the making process, not the seed batch itself.
+// So the name is set by the making process, not the seed batch itself.
 //
 
 public class SpriteSeedBatch extends CollectionIterator{
 	
 	
 	private ArrayList<SpriteSeed> spriteSeedList = new ArrayList<SpriteSeed>();
-	//String seedBatchName = "";
-	
+
 	
 	public SpriteSeedBatch(){
 		
 	}
-	
 	
 	
 	public SpriteSeedBatch copy() {
@@ -112,10 +110,6 @@ public class SpriteSeedBatch extends CollectionIterator{
 	// load and save seeds using csv
 	public void saveSeeds(String fileAndPath) {
 		// there should be a directory in the project folder called seeds
-		
-		
-		
-
 		FileWriter csvWriter = null;
 		try{
 			csvWriter = new FileWriter(fileAndPath);

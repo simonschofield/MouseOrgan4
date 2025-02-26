@@ -60,13 +60,26 @@ public class GlobalSettings {
 	
 	public static boolean printOn = false;
 	
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Unique ID source
+	// This should be accessed globally
+	//
+	static UniqueID uniqueIDSource;  
+	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// Initialisation of Session Immutables	
 	// Called from UserSession->initialiseUserSession() which must contain a call to Surface.initialiseSystem(....)
 	// Surface.initialiseSystem(....) calls init(...), instantiates the MainDocument then calls setTheDocumentCoordSystem(...)
 	public static String initialiseSession(String userSessionPth, float sessionScl, Surface surf) {
 	// only called in Surface.initialiseSystem()
-	
+			
+			if(uniqueIDSource == null) {
+				uniqueIDSource = new UniqueID();
+			}
+		
+		
 			String fullPath = GlobalSettings.makeUserSessionPath(userSessionPth); // adds the sub path to the base path
 		
 			if (fullPath.contains(liveProjectsBasePath) == false) {
@@ -264,6 +277,10 @@ public class GlobalSettings {
 	public static void setImageAssetGroupManager(ScaledImageAssetGroupManager theSpriteImageGroupManager) {
 		// only set by the SpriteImageGroupManager when instantiated
 		GlobalSettings.theImageAssetGroupManager = theSpriteImageGroupManager;
+	}
+	
+	public static int getNextUniqueID() {
+		return uniqueIDSource.getUniqueID();
 	}
 
 }

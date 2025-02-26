@@ -171,7 +171,13 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 		//pasteImage_TopLeftDocPoint(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
 		int x = (int) sprite.getDocumentBufferSpaceRect().getTopLeft().x;
 		int y = (int) sprite.getDocumentBufferSpaceRect().getTopLeft().y;
-		pasteImage_BufferSpace(sprite.getMainImage(), x,y,  sprite.alpha);
+		
+		float alpha = 1;
+		if( sprite.spriteData.keyExists("Alpha") ) {
+			alpha = sprite.spriteData.getFloat("Alpha");
+		}
+
+		pasteImage_BufferSpace(sprite.getMainImage(), x,y,  alpha);
 	}
 	
 	
@@ -236,7 +242,14 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 	public void pasteSprite_Erase(Sprite sprite) {
 		PVector topLeftDocSpace = sprite.getDocSpaceRect().getTopLeft();
 		PVector bufferPt = coordinateSystem.docSpaceToBufferSpace(topLeftDocSpace);
-		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.DST_OUT, sprite.alpha);
+		
+		float alpha = 1;
+		if( sprite.spriteData.keyExists("Alpha") ) {
+			alpha = sprite.spriteData.getFloat("Alpha");
+		}
+		
+		
+		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.DST_OUT, alpha);
 		getGraphics2D().setComposite(ac);
 		getGraphics2D().drawImage(sprite.getMainImage(), (int)bufferPt.x, (int)bufferPt.y, null);
 	}

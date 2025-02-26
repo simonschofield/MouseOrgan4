@@ -64,7 +64,7 @@ public class SpriteSeedBatchHelper_Scene3D {
 	}
 
 	
-	public SpriteSeedBatch generateSpriteSeedBatch(int randomKeySeed) {
+	public SpriteSeedBatch generateSpriteSeedBatch(int ranKey) {
 		if(pointGenerator == null) {
 			System.out.println("SeedBatchFactory_Scene3D::generateSpriteSeedBatch -  point packing is undefined , please call definePointPacking before using this method");
 			return null;
@@ -75,12 +75,13 @@ public class SpriteSeedBatchHelper_Scene3D {
 		
 		System.out.println("Generating seeds " + thisHelperName );
 		
+		pointGenerator.setRandomStreamSeed(ranKey);
 		ArrayList<PVector> points = pointGenerator.generatePoints();
 		
 		
 		for(PVector p: points) {
 			// here1234
-			SpriteSeed seedInstance = new SpriteSeed(randomKeySeed++);
+			SpriteSeed seedInstance = new SpriteSeed();
 			seedInstance.setDocPoint(p);
 			seedInstance.setDepth(p.z);
 			seedInstance.SeedBatchName = thisHelperName;

@@ -51,6 +51,10 @@ public class PointGenerator_Random extends CollectionIterator{
 		//System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
 	}
 	
+	public void setRandomStreamSeed(int rseed) {
+		randomStream = new RandomStream(rseed);
+	}
+	
 	
 	void clearPointsAndUPdatePointsCache() {
 		pointsCache.addAll(points);

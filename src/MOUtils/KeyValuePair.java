@@ -9,17 +9,17 @@ import java.util.Arrays;
 //The KeyValuePair contains just one key and an initialised Data Type , of the type specified by TYPE
 //Rules about storing strings - you cannot use the words 'true' or 'false' or the '%' character when storing strings, as these are used to determine booleans and vector types
 public class KeyValuePair {
-	static final int NOTSET = 0;
-	static final int BOOLEAN = 1;
-	static final int INTEGER = 2;
-	static final int FLOAT = 3;
-	static final int STRING = 4;
-	static final int VECTOR = 5;
+	public static final int NOTSET = 0;
+	public static final int BOOLEAN = 1;
+	public static final int INTEGER = 2;
+	public static final int FLOAT = 3;
+	public static final int STRING = 4;
+	public static final int VECTOR = 5;
 	
 	String theKey;
 
 	// the type of data set
-	private int TYPE = NOTSET;
+	int TYPE = NOTSET;
 
 	// the values; only one of these should be set
 	boolean bval = false;
@@ -46,11 +46,15 @@ public class KeyValuePair {
 	public KeyValuePair(String k, String v) {
 		set(k, v);
 	}
+	
+	public KeyValuePair(String k, float[] v) {
+		set(k, v);
+	}
 
 	public KeyValuePair copy() {
 		KeyValuePair kvpcopy = new KeyValuePair();
 		kvpcopy.theKey = new String(this.theKey);
-		kvpcopy.TYPE = this.TYPE;
+		kvpcopy.TYPE = this.getTYPE();
 		kvpcopy.bval = this.bval;
 		kvpcopy.ival = this.ival;
 		kvpcopy.fval = this.fval;
@@ -62,15 +66,15 @@ public class KeyValuePair {
 
 	public String getStr() {
 		String s = "Key " + theKey;
-		if (TYPE == BOOLEAN)
+		if (getTYPE() == BOOLEAN)
 			s = s + " Value : Boolean : " + this.bval;
-		if (TYPE == INTEGER)
+		if (getTYPE() == INTEGER)
 			s = s + " Value : Int : " + this.ival;
-		if (TYPE == FLOAT)
+		if (getTYPE() == FLOAT)
 			s = s + " Value : Float : " + this.fval;
-		if (TYPE == STRING)
+		if (getTYPE() == STRING)
 			s = s + " Value : String : " + this.sval;
-		if (TYPE == VECTOR)
+		if (getTYPE() == VECTOR)
 			s = s + " Value : Vector : " + getVectorValueString();
 		
 		return s;
@@ -81,15 +85,15 @@ public class KeyValuePair {
 	boolean equals(KeyValuePair other) {
 		if (this.theKey.equals(other.theKey) == false)
 			return false;
-		if (TYPE == BOOLEAN && this.bval == other.bval)
+		if (getTYPE() == BOOLEAN && this.bval == other.bval)
 			return true;
-		if (TYPE == INTEGER && this.ival == other.ival)
+		if (getTYPE() == INTEGER && this.ival == other.ival)
 			return true;
-		if (TYPE == FLOAT && this.fval == other.fval)
+		if (getTYPE() == FLOAT && this.fval == other.fval)
 			return true;
-		if (TYPE == STRING && stringValueEquals(other.sval))
+		if (getTYPE() == STRING && stringValueEquals(other.sval))
 			return true;
-		if (TYPE == VECTOR && Arrays.equals(vval, other.vval))
+		if (getTYPE() == VECTOR && Arrays.equals(vval, other.vval))
 			return true;
 		return false;
 	}
@@ -103,6 +107,13 @@ public class KeyValuePair {
 			return true;
 		if (otherString.equals("*"))
 			return true;
+		return false;
+	}
+	
+	public boolean isSameVariable(KeyValuePair other) {
+		// returns true if the key is the same as other ,and they are of the same type.
+		// Used in replacing existing values in KVPLists
+		if(other.theKey.equals(this.theKey)  && other.getTYPE() == this.getTYPE() ) return true;
 		return false;
 	}
 
@@ -138,6 +149,11 @@ public class KeyValuePair {
 					"KeyValuePair:setString - cannot set a string to *true* or *false*, as these are reserved for booleans");
 			return;
 		}
+		if (v.contains("%")) {
+			System.out.println(
+					"KeyValuePair:setString - cannot set a using the *%* symbol, as these are reserved for seperating vector values");
+			return;
+		}
 		if (v.contentEquals(""))
 			v = " ";
 
@@ -171,7 +187,7 @@ public class KeyValuePair {
 	}
 
 	public int getType() {
-		return TYPE;
+		return getTYPE();
 	}
 
 	public boolean getBoolean() {
@@ -198,22 +214,22 @@ public class KeyValuePair {
 //private methods
 
 	String getAsKeyValueString() {
-		if (TYPE == NOTSET) {
+		if (getTYPE() == NOTSET) {
 			return "";
 		}
-		if (TYPE == BOOLEAN) {
+		if (getTYPE() == BOOLEAN) {
 			return theKey + ":" + bval;
 		}
-		if (TYPE == INTEGER) {
+		if (getTYPE() == INTEGER) {
 			return theKey + ":" + ival;
 		}
-		if (TYPE == FLOAT) {
+		if (getTYPE() == FLOAT) {
 			return theKey + ":" + fval;
 		}
-		if (TYPE == STRING) {
+		if (getTYPE() == STRING) {
 			return theKey + ":" + sval;
 		}
-		if (TYPE == VECTOR) {
+		if (getTYPE() == VECTOR) {
 			
 			return theKey + ":" + getVectorValueString();
 		}
@@ -309,6 +325,13 @@ public class KeyValuePair {
 
 	String[] splitPairIntoKeyValue(String pair) {
 		return pair.split(":");
+	}
+	public void setType(int t) {
+		TYPE = t;
+	}
+
+	public int getTYPE() {
+		return TYPE;
 	}
 
 }// end class
