@@ -11,7 +11,7 @@ import MOMaths.QRandomStream;
 //  can be named individually, so as to identify sprites from  and treat different fonts
 //
 
-public class SpriteFontBiome  implements SpriteSourceInterface{
+public class SpriteFontBiome{
 
 	String spriteFontBiomeName;
 	
@@ -48,7 +48,7 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 		return s;
 	}
 	
-	
+	/*
 	public Sprite getSpriteInstance(SpriteSeed s, boolean setRandomStreamKeyPositionWithID)  {
 		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.getRandomKey());
 		SpriteFont spriteFont = getRandomSpriteFontInstance();
@@ -58,11 +58,18 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 		
 		//System.out.println("randomKey of " + s.getRandomKey() + " results in image " + sprite.getImageName());
 		return sprite;
+	}*/
+	
+	public void addImageData(Sprite s, boolean setRandomStreamKeyPositionWithID)  {
+		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.randomKey);
+		SpriteFont spriteFont = getRandomSpriteFontInstance();
+		s.setSpriteFontDataAndSelectImage(spriteFont);
 	}
 	
 	// instead of using a random number generated internally by the sprites's randomKey value to determine the particular SpriteFont used
 	// this method uses a value passed in from outside. This could be another random stream, or more likely, a value based on a second image to create spatial clusters
 	// of particular sprite fonts from a sprite font biome.  spriteFontSelectionValue should be in the range 0..1
+	/*
 	public Sprite getSpriteInstance(SpriteSeed s, float spriteFontSelectionValue)  {
 		
 		SpriteFont spriteFont = getSpriteFontFromProbabilityStack(spriteFontSelectionValue);
@@ -70,6 +77,7 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 		//System.out.println("randomKey of " + s.getRandomKey() + " results in image " + sprite.getImageName());
 		return sprite;
 	}
+	*/
 	
 	
 	///////////////////////////////////////////////////////////////////////////////
@@ -120,7 +128,7 @@ public class SpriteFontBiome  implements SpriteSourceInterface{
 		probabilitiesNormalised = true;
 	}
 
-	@Override
+	
 	public void setRandomStreamKeyPosition(int keyPos) {
 		randomStream.startKeyedPosition(keyPos);
 	}

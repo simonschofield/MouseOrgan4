@@ -17,6 +17,7 @@ import MOScene3D.SceneData3D;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
+import MOUtils.MOStringUtils;
 
 public class Sprite {
 	
@@ -67,6 +68,7 @@ public class Sprite {
 	public String ImageGroupItemShortName= "";						
 	//public float alpha = 1;
 	
+	public boolean isActive = true;
 	
 	///////////////////////////////////////////////////////////////
 	// for internal workings
@@ -85,17 +87,21 @@ public class Sprite {
 	
 
 	public Sprite() {
-		SpriteSeed seed = new SpriteSeed();
-		setSpriteSeedData(seed);
-		setRandomStreamPos(this.randomKey);
+		
+		
+		//SpriteSeed seed = new SpriteSeed();
+		//setSpriteSeedData(seed);
+		//setRandomStreamPos(this.randomKey);
 		//overlayImages = new SpriteOverlayImages(this);
+		init();
 		images = new SpriteImages();
 	}
 
 	public Sprite(BufferedImage img) {
-		SpriteSeed seed = new SpriteSeed();
-		setSpriteSeedData(seed);
-		setRandomStreamPos(this.randomKey);
+		//SpriteSeed seed = new SpriteSeed();
+		//setSpriteSeedData(seed);
+		init();
+		//setRandomStreamPos(this.randomKey);
 		
 		//overlayImages = new SpriteOverlayImages(this);
 		images = new SpriteImages();
@@ -103,21 +109,45 @@ public class Sprite {
 	}
 
 
-	public Sprite(SpriteSeed seed) {
-		setSpriteSeedData(seed);
+	// slated for removal
+	//public Sprite(SpriteSeed seed) {
+	//	setSpriteSeedData(seed);
+	//	setRandomStreamPos(this.randomKey);
+		
+	//	images = new SpriteImages();
+	//}
+	
+	private void init() {
+		this.uniqueID = GlobalSettings.getNextUniqueID();	
+		setRandomKey(this.uniqueID);
+	}
+	
+	public void setRandomKey(int k) {
+		this.randomKey = k;
 		setRandomStreamPos(this.randomKey);
-		
-		images = new SpriteImages();
 	}
 	
-	public void setSpriteSeedData(SpriteSeed seed) {
-		KeyValuePairList kvlist = seed.getAsKeyValuePairList();
-		//System.out.println("setSpriteSeedData " + kvlist.getAsCSVLine());
-		setSpriteData( kvlist );
+	// slated for removal
+	//public void setSpriteSeedData(SpriteSeed seed) {
+	//	KeyValuePairList kvlist = seed.getAsKeyValuePairList();
+	//	//System.out.println("setSpriteSeedData " + kvlist.getAsCSVLine());
+	//	setSpriteData( kvlist );
+	//	
 		
-		
-	}
+	//}
 	
+	
+	///////////////////////////////////////////////////////////////////////////////
+	// This allows the setting of complete or "partial" data back to the sprite
+	// Is used, for instance, in the initial SpriteBatch, where only ID and positional data is added,
+	// and in the SpriteFont, where only image asset related data is set
+	// 
+	//
+	public void  setSpriteDataWithCSVLine(String line) {
+		KeyValuePairList kvpl = new KeyValuePairList();
+		kvpl.ingestCSVLine(line);
+		setSpriteData(kvpl);
+	}
 	
 	
 	public void setSpriteData(KeyValuePairList dataIn) {
@@ -128,11 +158,13 @@ public class Sprite {
 		}
 		
 		if( dataIn.keyExists("UniqueID") ) {
+			// maybe don't allow this to be set
 			uniqueID = dataIn.getInt("UniqueID");
 		}
 		
 		if( dataIn.keyExists("RandomKey") ) {
-			randomKey = dataIn.getInt("RandomKey");
+			int r = dataIn.getInt("RandomKey");
+			setRandomKey(r);
 		}
 		
 		if( dataIn.keyExists("PivotPoint") ) {
@@ -163,16 +195,60 @@ public class Sprite {
 
 		String[] excluded = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "UseRelativeSizes", "ImageAssetGroupName", "ImageGroupItemShortName"};
 		//System.out.println("Sprite data to append is " + dataIn.getAsCSVLine());
-		spriteData.append(dataIn, excluded); 
+		
+		
+		KeyValuePairList copyDataIn = dataIn.copy();
+		copyDataIn.removeKVPs(excluded);
+		spriteData.append(copyDataIn); 
 		//System.out.println("Sprite data is now " + spriteData.getAsCSVLine());
 	}
 	
-	// for convenience
-	public void setSpriteData(KeyValuePair kvp) {
-		KeyValuePairList kvlist = new KeyValuePairList();
-		kvlist.addKeyValuePair(kvp);
-		setSpriteData(kvlist);
+	///////////////////////////////////////////////////////////////////////////////
+	// This allows the setting of complete or "partial" data back from the sprite
+	// Is used, for instance, in the initial SpriteBatch, where only ID and positional data is saved
+	// When selecting partial sprite data, use the "include" list of desire keys 
+	// "include" is nullable, in which case all data is returned.
+	//
+	public String getSpriteDataAsCSVLine(String[] include) {
+		KeyValuePairList kvpl = getSpriteData(include);
+		return kvpl.getAsCSVLine();
 	}
+	
+	
+	public KeyValuePairList getSpriteData(String[] include) {
+		KeyValuePairList outList = new KeyValuePairList();
+
+		outList.addKeyValuePair(   new KeyValuePair("DocPoint", docPoint.array()  )  );
+
+		outList.addKeyValuePair(   new KeyValuePair("UniqueID", uniqueID  )  );
+		
+		outList.addKeyValuePair(   new KeyValuePair("RandomKey", randomKey  )  );
+		
+		outList.addKeyValuePair(   new KeyValuePair("PivotPoint", pivotPoint.array()  )  );
+
+		outList.addKeyValuePair(   new KeyValuePair("SizeInScene", sizeInScene  )  );
+		
+		outList.addKeyValuePair(   new KeyValuePair("UseRelativeSizes", useRelativeSizes  )  );
+	
+		outList.addKeyValuePair(   new KeyValuePair("Depth", depth  )  );
+
+		outList.addKeyValuePair(   new KeyValuePair("ImageAssetGroupName", ImageAssetGroupName  )  );
+		
+		outList.addKeyValuePair(   new KeyValuePair("ImageGroupItemShortName", ImageGroupItemShortName  )  );
+		
+		outList.append(spriteData);
+		
+		outList.keepKVPs(include);
+
+		return outList;
+	}
+
+	// for convenience
+	//public void setSpriteData(KeyValuePair kvp) {
+	//	KeyValuePairList kvlist = new KeyValuePairList();
+	//	kvlist.addKeyValuePair(kvp);
+	//	setSpriteData(kvlist);
+	//}
 	
 	// generally for identification purposes
 	String getSpiteDataString(String key) {
@@ -345,6 +421,11 @@ public class Sprite {
 
 	public PVector getPivotPoint() {
 		return pivotPoint.copy();
+	}
+	
+	
+	public float getDepth() {
+		return depth;
 	}
 
 	//////////////////////////////////////////////////////////

@@ -11,7 +11,7 @@ import MOImage.AlphaEdgeDrawer;
 import MOImage.ImageProcessing;
 import MOImageCollections.MOColorTransformParameters;
 import MOMaths.PVector;
-import MOSprite.SpriteSeed;
+//import MOSprite.SpriteSeed;
 import MOUtils.KeyValuePairList;
 import MOUtils.MOStringUtils;
 

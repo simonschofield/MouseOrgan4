@@ -11,11 +11,13 @@ import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
 import MOPointGeneration.PointGenerator_RadialPackSurface3D;
 import MOScene3D.SceneData3D;
-
-import MOSprite.SpriteSeed;
-import MOSprite.SpriteSeedBatch;
+import MOSprite.Sprite;
+import MOSprite.SpriteBatch;
+//import MOSprite.SpriteSeed;
+//import MOSprite.SpriteSeedBatch;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
+import MOUtils.KeyValuePairList;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Bundles a single SpriteFontBiome with a 3D point generator
@@ -23,7 +25,7 @@ import MOUtils.GlobalSettings;
 // If you need more than one biome, then declare more than one of this class
 //
 
-public class SpriteSeedBatchHelper_Scene3D {
+public class SpriteBatchHelper_Scene3D {
 	String thisHelperName;
 	
 	SceneData3D sceneData3D;
@@ -31,14 +33,33 @@ public class SpriteSeedBatchHelper_Scene3D {
 	PointGenerator_RadialPackSurface3D pointGenerator;
 	
 	
-	boolean saveOutContributingSeedReport = false;
+	//boolean saveOutContributingSeedReport = false;
 
-	public SpriteSeedBatchHelper_Scene3D(String name,  SceneData3D sd3d) {
-		this.thisHelperName = name;
-		
+	public SpriteBatchHelper_Scene3D(SceneData3D sd3d) {
 		sceneData3D = sd3d;
 		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
 	}
+	
+//	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
+//		PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
+//		SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
+//		seedBatchHelper.thisHelperName = name;
+//		seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
+//		seedBatchHelper.setDepthSensitivePacking(0.5f, 125);
+//		seedBatchHelper.setMaxNumPoints(maxNumPoints);
+//		return seedBatchHelper.generateSpriteBatch(seedRandomKey);
+//	} 
+	
+	
+	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
+		PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
+		//SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
+		thisHelperName = name;
+		definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
+		setDepthSensitivePacking(0.5f, 125);
+		setMaxNumPoints(maxNumPoints);
+		return generateSpriteBatch(seedRandomKey);
+	} 
 	
 	
 	public PointGenerator_RadialPackSurface3D definePointPacking(String namePointDisImage, PackingInterpolationScheme packingInterpolationScheme, int pointDistRSeed) {
@@ -62,18 +83,18 @@ public class SpriteSeedBatchHelper_Scene3D {
 	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
 		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
 	}
-
 	
-	public SpriteSeedBatch generateSpriteSeedBatch(int ranKey) {
+	
+	public SpriteBatch generateSpriteBatch(int ranKey) {
 		if(pointGenerator == null) {
 			System.out.println("SeedBatchFactory_Scene3D::generateSpriteSeedBatch -  point packing is undefined , please call definePointPacking before using this method");
 			return null;
 		}
 		
 		
-		SpriteSeedBatch seedbatch = new SpriteSeedBatch();
+		SpriteBatch spriteBatch = new SpriteBatch();
 		
-		System.out.println("Generating seeds " + thisHelperName );
+		System.out.println("Generating sprites " + thisHelperName );
 		
 		pointGenerator.setRandomStreamSeed(ranKey);
 		ArrayList<PVector> points = pointGenerator.generatePoints();
@@ -81,22 +102,41 @@ public class SpriteSeedBatchHelper_Scene3D {
 		
 		for(PVector p: points) {
 			// here1234
-			SpriteSeed seedInstance = new SpriteSeed();
-			seedInstance.setDocPoint(p);
-			seedInstance.setDepth(p.z);
-			seedInstance.SeedBatchName = thisHelperName;
-			seedbatch.addSpriteSeed(seedInstance);
+			Sprite sprite = new Sprite();
+			//"DocPoint", "UniqueID", "RandomKey",  "Depth" ,"SpriteBatchName"};
+			KeyValuePairList kvpl = new KeyValuePairList();
+			float depth = p.z;
+			p.z = 0;
+			
+			kvpl.addKeyValue("DocPoint", p.array());
+			kvpl.addKeyValue("Depth", depth);
+			kvpl.addKeyValue("SpriteBatchName", thisHelperName);
+			
+			
+			sprite.setSpriteData(kvpl);
+			
+			//sprite.setDocPoint(p);
+			//sprite.setDepth(p.z);
+			//sprite.SeedBatchName = thisHelperName; 
+			
+			
+			
+			
+			spriteBatch.addSprite(sprite);
 			
 			
 		}
 		
 		
-		
+		// tbd - UniqueID and randomKey are set on sprite instantiation inside the sprite
 		
 
-		return seedbatch;
+		return spriteBatch;
 		
 	}
+
+	
+
 	
 
 	

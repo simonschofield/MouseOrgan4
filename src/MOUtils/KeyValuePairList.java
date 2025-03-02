@@ -21,49 +21,85 @@ public class KeyValuePairList{
     return kvplCopy;
   }
   
-  public KeyValuePairList copyExcept(String[] excluded){
-	    // this is a deep copy to avoid sharing references between objects
-	    KeyValuePairList kvplCopy = new KeyValuePairList();
-	    for(KeyValuePair kvp: keyValuePairs){
-	    	
-	      if( MOStringUtils.stringListContains(excluded, kvp.getKey()) ) continue;
-	      kvplCopy.addKeyValuePair( kvp.copy() );
-	      
-	    }
-	    return kvplCopy;
-	  }
+
   
-   public void append(KeyValuePairList otherKVList, String[] excluded){
-	    // Make a copy of the otherList, as this process is destructive 
-	    // first update any previoulsy existing variables in the list with new values
-	   KeyValuePairList tempCopyOther = otherKVList.copy();
-	   
-	   for(KeyValuePair existingKVP: keyValuePairs) {
-		   
-	    for(KeyValuePair otherKVP: tempCopyOther.keyValuePairs) {
-	      // if the keys are for the same variable, then update the existing KVP list with the new value
-	      if( existingKVP.isSameVariable(otherKVP)) {
-	    	  existingKVP = otherKVP.copy();
-	    	  otherKVP.setType( KeyValuePair.NOTSET );
-	      }
-	      
-	    }
-	    
-	   }
-	    
-	    // now add all the new variables in the otherKVPList, excluding the exclude list
-	    for(KeyValuePair otherKVP: tempCopyOther.keyValuePairs) {
-	    	if( MOStringUtils.stringListContains(excluded, otherKVP.getKey()) ) continue;
-	    	if( otherKVP.getTYPE() == KeyValuePair.NOTSET) continue;
-	    	
-	    	keyValuePairs.add(otherKVP.copy());
-	    	
-	    	
-	    }
-	    
-	   
-	    
+  public void append(KeyValuePairList otherKVList){
+	  // adds in KVPs from another KVPList - "otherKVList" - this this KVPList. 
+	  // If any "same variables" are found, the new value is updated.uses deep copying
+	  
+
+	  // Make a copy of the otherKVList, and remove any in the exclude list 
+	  KeyValuePairList tempCopyOther = otherKVList.copy();
+	  
+	  
+	  // first update "same variables" in the list with new values
+	  for(KeyValuePair existingKVP: keyValuePairs) {
+
+		  for(KeyValuePair tempCopyKVP: tempCopyOther.keyValuePairs) {
+			  // if the keys are for the same variable, then update the existing KVP list with the new value
+			  if( existingKVP.isSameVariable(tempCopyKVP)) {
+				  existingKVP = tempCopyKVP.copy();
+				  tempCopyKVP.setType( KeyValuePair.NOTSET );
+			  }
+
+		  }
+
 	  }
+
+	  // remove the notset kvps from the temp copy
+	  tempCopyOther.removeNotSetKVPs();
+
+	  // now copy over the remaining KVP's
+	  for(KeyValuePair tempCopyKVP: tempCopyOther.keyValuePairs) {
+		  keyValuePairs.add(tempCopyKVP.copy());
+	  }
+
+
+
+  }
+  
+  public void removeKVPs(String[] keys) {
+	// removes all KVP's in the list of keys
+	// If the keys is set to NULL, then none are removed
+	  
+	  if(keys==null) return;
+	  
+	  KeyValuePairList tempCopy = new KeyValuePairList();
+	   for(KeyValuePair thisKVP: keyValuePairs) {
+		   if( MOStringUtils.stringListContains(keys, thisKVP.getKey()) ) continue;
+		   tempCopy.addKeyValuePair( thisKVP.copy() );
+	   }
+	   
+	   keyValuePairs = tempCopy.keyValuePairs;
+	  
+  }
+  
+  public void keepKVPs(String[] keys) {
+	  // removes all KVP's NOT in the list of keys
+	  // If the keys is set to NULL, then all are kept
+	  
+	  if(keys==null) return;
+	  
+	  KeyValuePairList tempCopy = new KeyValuePairList();
+	   for(KeyValuePair thisKVP: keyValuePairs) {
+		   if( MOStringUtils.stringListContains(keys, thisKVP.getKey()) ) {
+			   tempCopy.addKeyValuePair( thisKVP.copy() );
+		   }
+		   
+	   }
+	   
+	   keyValuePairs = tempCopy.keyValuePairs;
+	  
+  }
+   
+   
+   private void removeNotSetKVPs() {
+	   KeyValuePairList tempCopy = new KeyValuePairList();
+	   for(KeyValuePair thisKVP: keyValuePairs) {
+		   if(thisKVP.TYPE != KeyValuePair.NOTSET)  tempCopy.addKeyValuePair(thisKVP);
+	   }
+	   keyValuePairs = tempCopy.keyValuePairs;
+   }
 
   
   // for comparing a KVPList against this one, to see if it contains an equal KVP - i.e. both K and V are the same

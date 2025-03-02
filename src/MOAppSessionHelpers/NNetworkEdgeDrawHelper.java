@@ -28,7 +28,7 @@ import MONetwork.RibbonLetter;
 import MONetwork.TextRibbonManager;
 import MOSprite.Sprite;
 import MOSprite.SpriteFont;
-import MOSprite.SpriteSourceInterface;
+//import MOSprite.SpriteSourceInterface;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
@@ -573,7 +573,7 @@ public class NNetworkEdgeDrawHelper {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//This is use to place items along the road
 	//
-	static boolean updateDrawRoadLines(SpriteSourceInterface spriteFont, EdgeRunVerticesCrawler edgeCrawler, float crawlStep, float overlap1, float overlap2) {
+	static boolean updateDrawRoadLines(SpriteFont spriteFont, EdgeRunVerticesCrawler edgeCrawler, float crawlStep, float overlap1, float overlap2) {
 		// draws the item on the line of the road
 
 

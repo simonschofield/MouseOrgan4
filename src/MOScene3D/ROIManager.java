@@ -11,8 +11,10 @@ import MOApplication.MainDocument;
 import MOCompositing.ContributingSpritesList;
 import MOMaths.PVector;
 import MOMaths.Rect;
-import MOSprite.SpriteSeed;
-import MOSprite.SpriteSeedBatch;
+import MOSprite.Sprite;
+import MOSprite.SpriteBatch;
+//import MOSprite.SpriteSeed;
+//import MOSprite.SpriteSeedBatch;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.ImageDimensions;
@@ -208,7 +210,7 @@ public class ROIManager {
 	//
 	
 	
-	
+	/*
 	public SpriteSeedBatch applyROIToSpriteSeedBatch(SpriteSeedBatch seedbatch) {
 		if(isUsingMaster()) return seedbatch;
 
@@ -249,15 +251,53 @@ public class ROIManager {
 		//System.out.println("applyROIToSeeds: seeds before appplication of ROI " + seedbatch.getNumItems() + ". Adjusted number of seeds in ROI " + seedbatchOut.getNumItems());
 		return seedbatchOut;
 	}
+	*/
 	
 	
 	
-	
-	
-	
+	public SpriteBatch applyROIToSpriteBatch(SpriteBatch seedbatch) {
+		if(isUsingMaster()) return seedbatch;
+
+		
+		System.out.println("here applyROIToSpriteBatch 1");
+		SpriteBatch contributingSpriteSeedBatch = removeNoncontributingSpritesInROI(seedbatch);
+		
+		//SpriteBatch contributingSpriteSeedBatch = seedbatch;
+		
+		
+		SubROI currentROIInfo =  this.getCurrentROIInfo();
+		
+		
+		SpriteBatch spriteBatchOut = new SpriteBatch();
+		contributingSpriteSeedBatch.resetItemIterator();
+		// The seeds are read in the master coordinate system doc space.
+		// They need to be normalised within the current subROI, then converted to the SubROI document space
+		// The current document space is that stored in the GlobalSettings coordinate system
+		
+		
+		
+		while( contributingSpriteSeedBatch.areItemsRemaining()) {
+
+			Sprite s = contributingSpriteSeedBatch.getNextSprite().copy();
+			PVector masterDocSpacePoint = s.getDocPoint();
+
+			PVector subROIDocspacePoint = masterDocSpaceToSubROIDocSpace(masterDocSpacePoint);
+			s.setDocPoint(subROIDocspacePoint);
+
+			spriteBatchOut.addSprite(s);
+			//System.out.println(" seeds master docpoint " + masterDocSpacePoint.toStr() +  " in ROI doc space " + subROIDocspacePoint.toString());
+		}
 
 
-	public SpriteSeedBatch removeNoncontributingSpritesInROI(SpriteSeedBatch seedbatch) {
+
+		spriteBatchOut.resetItemIterator();
+
+		//System.out.println("applyROIToSeeds: seeds before appplication of ROI " + seedbatch.getNumItems() + ". Adjusted number of seeds in ROI " + seedbatchOut.getNumItems());
+		return spriteBatchOut;
+	}
+	
+	
+	public SpriteBatch removeNoncontributingSpritesInROI(SpriteBatch seedbatch) {
 		// this only removed seeds if a "contributing sprite" file has been saved for this ROI (i.e. with the ROI's name) in the seeds folder
 		// if the file cannot be found, then the class is alerted to save one out at the end of this session
 		if(isUsingMaster()) return seedbatch;
@@ -275,13 +315,33 @@ public class ROIManager {
 
 	}
 
+	/*
+	public SpriteSeedBatch removeNoncontributingSpritesInROI(SpriteSeedBatch seedbatch) {
+		// this only removed seeds if a "contributing sprite" file has been saved for this ROI (i.e. with the ROI's name) in the seeds folder
+		// if the file cannot be found, then the class is alerted to save one out at the end of this session
+		if(isUsingMaster()) return seedbatch;
+		//SpriteCropDecisionList spriteCropList = theDocument.getRenderBorder().getSpriteCropDecisionList();
+		ContributingSpritesList spriteCropList = new ContributingSpritesList();
+
+		String fname = getContributingSpritesFilePathAndName();
+		boolean loadResult = spriteCropList.load(fname);
+		if(loadResult == false) {
+			saveOutContributingSeedReport = true;
+			return seedbatch;
+		}
+		System.out.println("here removeNoncontributingSpritesInROI 1");
+		return spriteCropList.removeNonContributingSprites(seedbatch);
+
+	}
+	*/
+
 
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public void saveContributingSpritesReport(MainDocument theDocument, boolean forcesave) {
 		// called at the end of the session
-
+		System.out.println("saveContributingSpritesReport called");
 		if(isUsingMaster()) return;
 
 		if(forcesave) saveOutContributingSeedReport = true;

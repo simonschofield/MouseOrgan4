@@ -19,7 +19,7 @@ import MOImageCollections.ImageAssetGroup;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
-import MOSprite.SpriteSeed;
+//import MOSprite.SpriteSeed;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.ImageDimensions;

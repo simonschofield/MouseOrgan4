@@ -26,7 +26,8 @@ import MOSimpleUI.TextInputBox;
 //import MOSimpleUI.TextInputBox;
 import MOSimpleUI.UIEventData;
 import MOSprite.Sprite;
-import MOSprite.SpriteSeedBatch;
+import MOSprite.SpriteBatch;
+//import MOSprite.SpriteSeedBatch;
 import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
 
@@ -62,20 +63,18 @@ public class Scene3DHelper {
 			return new PVector(x,y,z);
 		}
 		
-		public static SpriteSeedBatch createSeedbatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey) {
-			
-			return createSeedbatch3D( name,  packingImage,  controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax,  pointPackingRanSeed,  seedRandomKey,1000000);
-		}
 		
-		public static SpriteSeedBatch createSeedbatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
-			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
-			SpriteSeedBatchHelper_Scene3D seedBatchHelper = new SpriteSeedBatchHelper_Scene3D(name, sceneData3D);
-			seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
-			seedBatchHelper.setDepthSensitivePacking(0.5f, 125);
-			seedBatchHelper.setMaxNumPoints(maxNumPoints);
-			return seedBatchHelper.generateSpriteSeedBatch(seedRandomKey);
-		} 
 		
+		
+//		public static SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
+//			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
+//			SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
+//			seedBatchHelper.thisHelperName = name;
+//			seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
+//			seedBatchHelper.setDepthSensitivePacking(0.5f, 125);
+//			seedBatchHelper.setMaxNumPoints(maxNumPoints);
+//			return seedBatchHelper.generateSpriteBatch(seedRandomKey);
+//		} 
 		
 		
 		

@@ -1,72 +1,64 @@
 package MOSprite;
 
-import java.io.FileWriter;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 
 import MOCompositing.BufferedImageRenderTarget;
 import MOMaths.PVector;
 import MOMaths.Range;
-import MOMaths.Rect;
 import MOUtils.CollectionIterator;
 import MOUtils.GlobalSettings;
+import MOUtils.KeyValuePair;
 
-
-
-///////////////////////////////////////////////////////////////////////////
-// A SpriteSeedBatch is an iterable collection of type SpriteSeed.
-// It does not have a name, as a seed batch will always be created by some other process and just uses the seed batch as storeage.
-// So the name is set by the making process, not the seed batch itself.
-//
-
-public class SpriteSeedBatch extends CollectionIterator{
+public class SpriteBatch extends CollectionIterator{
 	
 	
-	private ArrayList<SpriteSeed> spriteSeedList = new ArrayList<SpriteSeed>();
+	private ArrayList<Sprite> spriteList = new ArrayList<Sprite>();
 
 	
-	public SpriteSeedBatch(){
+	public SpriteBatch(){
 		
 	}
 	
 	
-	public SpriteSeedBatch copy() {
-		SpriteSeedBatch cpy = new SpriteSeedBatch();
-		cpy.spriteSeedList = (ArrayList<SpriteSeed>) this.spriteSeedList.clone();
+	public SpriteBatch copy() {
+		SpriteBatch cpy = new SpriteBatch();
+		cpy.spriteList = (ArrayList<Sprite>) this.spriteList.clone();
 		return cpy;
 	}
 	
-	public void addSpriteSeed(SpriteSeed s) {
+	public void addSprite(Sprite s) {
 		//s.SeedBatchName = seedBatchName;
-		spriteSeedList.add(s);
+		spriteList.add(s);
 	}
 
 
-	public ArrayList<SpriteSeed> getSpriteSeeds(){
-		return spriteSeedList;
+	public ArrayList<Sprite> getSpriteList(){
+		return spriteList;
 	}
 	
 	
-	public void setSpriteSeeds(ArrayList<SpriteSeed> sds) {
-		spriteSeedList = sds;
+	public void setSpriteList(ArrayList<Sprite> sprites) {
+		spriteList = sprites;
 	}
 	
 	
 	
-	public void append(SpriteSeedBatch otherBatch) {
-		ArrayList<SpriteSeed> otherSeeds = otherBatch.getSpriteSeeds();
-		for(SpriteSeed s : otherSeeds) {
-			spriteSeedList.add(s);
+	public void append(SpriteBatch otherBatch) {
+		ArrayList<Sprite> otherSprites = otherBatch.getSpriteList();
+		for(Sprite s : otherSprites) {
+			spriteList.add(s);
 		}
 		
 	}
 	
-	public void appendTo(SpriteSeedBatch appendingToThisBatch) {
+	public void appendTo(SpriteBatch appendingToThisBatch) {
 		if(appendingToThisBatch==null) {
-			System.out.println("SpriteSeedBatch:appendTo ERROR -  the appendingToThisBatch is null - please instantiate beofore using" );
+			System.out.println("SpriteBatch:appendTo ERROR -  the appendingToThisBatch is null - please instantiate beofore using" );
 			return;
 		}
 		appendingToThisBatch.append(this);
@@ -74,14 +66,14 @@ public class SpriteSeedBatch extends CollectionIterator{
 	}
 	
 	public void depthSort() {
-		spriteSeedList.sort(Comparator.comparing(SpriteSeed::getDepth).reversed());
+		spriteList.sort(Comparator.comparing(Sprite::getDepth).reversed());
 	}
 	
 	public Range getDepthExtrema() {
 		Range depthExtrema = new Range();
 		depthExtrema.initialiseForExtremaSearch();
 		
-		for(SpriteSeed s : spriteSeedList) {
+		for(Sprite s : spriteList) {
 			float d = s.getDepth();
 			depthExtrema.addExtremaCandidate(d);
 		}
@@ -91,32 +83,34 @@ public class SpriteSeedBatch extends CollectionIterator{
 
 	public ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
-		for(SpriteSeed s : spriteSeedList) {
+		for(Sprite s : spriteList) {
 			points.add(s.getDocPoint());
 		}
 		return points;
 	}
 
 	
-	public void setSeedBatchNameInSeeds(String newName) {
+	//public void setSeedBatchNameInSeeds(String newName) {
 		// overwrites the seedbatch name with this name
-		for(SpriteSeed s: spriteSeedList){
-			s.SeedBatchName = newName;
-		}
-		
-	}
+	///	for(Sprite s: spriteList){
+	//		s.setSpriteData(new KeyValuePair("SpriteBatchName", newName));
+			//s.SeedBatchName = newName;
+	//	}
+	//	
+	//}
 
 	///////////////////////////////////////////////////////
 	// load and save seeds using csv
-	public void saveSeeds(String fileAndPath) {
+	public void saveSpriteData(String fileAndPath) {
 		// there should be a directory in the project folder called seeds
 		FileWriter csvWriter = null;
 		try{
 			csvWriter = new FileWriter(fileAndPath);
 
-
-			for(SpriteSeed s: spriteSeedList){
-				csvWriter.append(s.getAsCSVStr());
+			String[] include = {"DocPoint", "UniqueID", "RandomKey",  "Depth" ,"SpriteBatchName"};
+			// String[] include = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "UseRelativeSizes", "ImageAssetGroupName", "ImageGroupItemShortName","SpriteBatchName"};
+			for(Sprite s: spriteList){
+				csvWriter.append(s.getSpriteDataAsCSVLine(include));
 			}
 
 			csvWriter.flush();
@@ -130,7 +124,7 @@ public class SpriteSeedBatch extends CollectionIterator{
 
 	}
 
-	public void loadSeeds(String fileAndPath) {
+	public void loadSpriteData(String fileAndPath) {
 		// there should be a directory in the project folder called seeds
 		try{
 			BufferedReader csvReader = new BufferedReader(new FileReader(fileAndPath));
@@ -140,10 +134,10 @@ public class SpriteSeedBatch extends CollectionIterator{
 			while ((row = csvReader.readLine()) != null) {
 
 				// do something with the data
-				SpriteSeed s = new SpriteSeed();
-				s.setWithCSVStr(row);
+				Sprite s = new Sprite();
+				s.setSpriteDataWithCSVLine(row);
 				//System.out.println("Loading seed "+ s.getDocPoint().toStr());
-				spriteSeedList.add(s);
+				spriteList.add(s);
 			}
 			csvReader.close();
 		} catch(Exception e){
@@ -154,43 +148,43 @@ public class SpriteSeedBatch extends CollectionIterator{
 	}
 
 	
-	public void convertSeedsFromNormalisedSpaceToDocSpace() {
-		// should the seeds be generated b y an external application, it is likely the seeds will have been saved
+	//public void convertSeedsFromNormalisedSpaceToDocSpace() {
+	//	// should the seeds be generated b y an external application, it is likely the seeds will have been saved
 		// with normalised coordinates. This turns normalised into docspace points using the current global coordinate system
-		for(SpriteSeed s: spriteSeedList){
-			PVector normCoord = s.getDocPoint();
-			PVector docSpaceCoord = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(normCoord);
-			s.setDocPoint(docSpaceCoord);
-		}
+	//	for(Sprite s: spriteList){
+	//		PVector normCoord = s.getDocPoint();
+	//		PVector docSpaceCoord = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(normCoord);
+	//		s.setDocPoint(docSpaceCoord);
+	//	}
 		
 		
-	}
+	//}
 	
 
 	@Override
 	public int getNumItems() {
 		// TODO Auto-generated method stub
-		return spriteSeedList.size();
+		return spriteList.size();
 	}
 
 	@Override
 	public Object getItem(int n) {
 		// TODO Auto-generated method stub
-		return spriteSeedList.get(n);
+		return spriteList.get(n);
 	}
 
 
-	public SpriteSeed getNextSeed() {
-		return (SpriteSeed) getNextItem();
+	public Sprite getNextSprite() {
+		return (Sprite) getNextItem();
 	}
 	
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////
-	public void printSeedLocations(int num, String message) {
+	public void printSpriteLocations(int num, String message) {
 		
 		int n = 0;
-		for(SpriteSeed s : spriteSeedList) {
+		for(Sprite s : spriteList) {
 			System.out.println(message  + s.getDocPoint().toStr());
 			n++;
 			if(n>=num) break;
@@ -201,15 +195,13 @@ public class SpriteSeedBatch extends CollectionIterator{
 	
 	
 	
-	public void drawSeeds(Color col, float pixelradius, BufferedImageRenderTarget rt) {
+	public void drawDocPoint(Color col, float pixelradius, BufferedImageRenderTarget rt) {
 		
-		for(SpriteSeed s : spriteSeedList) {
+		for(Sprite s : spriteList) {
 			rt.drawPoint(s.getDocPoint(), col, pixelradius);
 		}
 	}
 
 
 }
-
-
 

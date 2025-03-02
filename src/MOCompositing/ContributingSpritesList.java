@@ -11,9 +11,10 @@ import java.util.Collections;
 import java.util.Scanner;
 
 import MOMaths.PVector;
-
-import MOSprite.SpriteSeed;
-import MOSprite.SpriteSeedBatch;
+import MOSprite.Sprite;
+import MOSprite.SpriteBatch;
+//import MOSprite.SpriteSeed;
+//import MOSprite.SpriteSeedBatch;
 import MOUtils.KeyValuePairList;
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // This is used to speed up the rendering process of ROIs within a previously larger image,
@@ -33,10 +34,7 @@ public class ContributingSpritesList{
 	}
 
 
-	
-	
-	
-	public SpriteSeedBatch removeNonContributingSprites(SpriteSeedBatch seedbatch) {
+	public SpriteBatch removeNonContributingSprites(SpriteBatch seedbatch) {
 		
 		
 		// Faster apparoach
@@ -57,15 +55,15 @@ public class ContributingSpritesList{
 		}
 		
 		
-		ArrayList<SpriteSeed> allSeedsList = seedbatch.getSpriteSeeds();
+		ArrayList<Sprite> allSeedsList = seedbatch.getSpriteList();
 		
 		
-		for(SpriteSeed thisSeed: allSeedsList) {
+		for(Sprite thisSeed: allSeedsList) {
 			thisSeed.isActive = false;
 		}
 		
 		int count = 0;
-		for(SpriteSeed thisSeed: allSeedsList) {
+		for(Sprite thisSeed: allSeedsList) {
 			
 			int thisSeedUniqueID = thisSeed.getUniqueID();
 			if(thisSeedUniqueID >= maxUniqueIDOfContributingSprites) continue;
@@ -79,17 +77,15 @@ public class ContributingSpritesList{
 		
 		
 		
-		ArrayList<SpriteSeed> croppedSeeds = new ArrayList<SpriteSeed>();
-		for(SpriteSeed thisSeed: allSeedsList) {
+		ArrayList<Sprite> croppedSeeds = new ArrayList<Sprite>();
+		for(Sprite thisSeed: allSeedsList) {
 			if(thisSeed.isActive) croppedSeeds.add(thisSeed);
 		}
 		
-		SpriteSeedBatch croppedDataBatch = new SpriteSeedBatch();
-		croppedDataBatch.setSpriteSeeds(croppedSeeds);
+		SpriteBatch croppedDataBatch = new SpriteBatch();
+		croppedDataBatch.setSpriteList(croppedSeeds);
 		return croppedDataBatch;
 	}
-
-	
 	  
 	
 	///////////////////////////////////////////////////////
