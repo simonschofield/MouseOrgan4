@@ -19,6 +19,7 @@ import MOImage.ImageProcessing;
 // in UserSession initialiseUserSession you MUST call initialsieSystem(....)
 // RenderSaver (Optional)
 import MOImageCollections.ScaledImageAssetGroupManager;
+import MOScene3D.SceneData3D;
 
 public class GlobalSettings {
 	
@@ -32,6 +33,7 @@ public class GlobalSettings {
 	private static ScaledImageAssetGroupManager  theImageAssetGroupManager;
 	private static MainDocument theDocument;
 	private static Surface theSurface;
+	private static SceneData3D theSceneData3D;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// paths used by the system
@@ -76,7 +78,7 @@ public class GlobalSettings {
 	// only called in Surface.initialiseSystem()
 			
 			if(uniqueIDSource == null) {
-				uniqueIDSource = new UniqueID();
+				uniqueIDSource = new UniqueID(1000000);
 			}
 		
 		
@@ -281,6 +283,19 @@ public class GlobalSettings {
 	
 	public static int getNextUniqueID() {
 		return uniqueIDSource.getUniqueID();
+	}
+	
+	public static void grabUniqueIDFromOtherSource(int n) {
+		uniqueIDSource.grabID(n);
+	}
+	
+	
+	public static void setSceneData3D(SceneData3D sd3d) {
+		theSceneData3D = sd3d;
+	}
+	
+	public static SceneData3D getSceneData3D() {
+		return theSceneData3D;
 	}
 
 }

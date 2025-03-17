@@ -118,7 +118,9 @@ public class FloatImageRenderTarget implements MainDocumentRenderTarget {
 				}else {
 					shortval = (int) MOMaths.map(f, loF,hiF, 0 , 65535);
 				}
-				targetImageData.setSample(x, y, 0,shortval);
+				// the shortval is large for far distances and small for near distances,
+				// so to make more visually intuitive, we invert the number, so that far => black, and near => white
+				targetImageData.setSample(x, y, 0,65535-shortval);
 				
 			}
 		}

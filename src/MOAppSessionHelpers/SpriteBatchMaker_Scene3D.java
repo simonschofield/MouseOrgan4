@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOApplication.MainDocument;
-import MOCompositing.ContributingSpritesList;
+//import MOCompositing.ContributingSpritesList;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
@@ -20,43 +20,49 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Bundles a single SpriteFontBiome with a 3D point generator
-// This can then generate a seed batch from that biome, that can be used directly or saved and reloaded by this class
-// If you need more than one biome, then declare more than one of this class
-//
+// produces a sprite batch from 
+// A sprite batch is cheifly a list of sprites. The spites have a hash-field called SpriteBatchName
+// When sprite batches are appended together the sprites maintain their original SpriteBatchName 
 
-public class SpriteBatchHelper_Scene3D {
+public class SpriteBatchMaker_Scene3D {
 	String thisHelperName;
 	
-	SceneData3D sceneData3D;
+	//SceneData3D sceneData3D;
 	
 	PointGenerator_RadialPackSurface3D pointGenerator;
 	
+	float depthSensitivePacking_FarMultiplier = 1f;
+	float depthSensitivePacking_nearThreshold = 1f;;
 	
-	//boolean saveOutContributingSeedReport = false;
-
-	public SpriteBatchHelper_Scene3D(SceneData3D sd3d) {
-		sceneData3D = sd3d;
-		ensureSeedsDirectoryExists(GlobalSettings.getUserSessionPath());
+	Rect extentsRect;
+	
+	
+	// call this before creating the seedbatches. They should all have the same depth-sensitive packing
+	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
+		depthSensitivePacking_FarMultiplier = farMultiplier;
+		depthSensitivePacking_nearThreshold = nearThreshold;
 	}
 	
-//	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
-//		PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
-//		SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
-//		seedBatchHelper.thisHelperName = name;
-//		seedBatchHelper.definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
-//		seedBatchHelper.setDepthSensitivePacking(0.5f, 125);
-//		seedBatchHelper.setMaxNumPoints(maxNumPoints);
-//		return seedBatchHelper.generateSpriteBatch(seedRandomKey);
-//	} 
+	public void setExtentsRect(Rect r) {
+		extentsRect = r;
+	}
 	
 	
+	
+
+	// call this to return a new seedbatch
 	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
+		ensureSpriteBatchDirectoryExists(GlobalSettings.getUserSessionPath());
 		PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
 		//SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
 		thisHelperName = name;
 		definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
-		setDepthSensitivePacking(0.5f, 125);
+		pointGenerator.setDepthSensitivePacking(depthSensitivePacking_FarMultiplier, depthSensitivePacking_nearThreshold);
+		
+		if(extentsRect != null) {
+			pointGenerator.setGenerationArea(extentsRect);
+		}
+		
 		setMaxNumPoints(maxNumPoints);
 		return generateSpriteBatch(seedRandomKey);
 	} 
@@ -65,6 +71,7 @@ public class SpriteBatchHelper_Scene3D {
 	public PointGenerator_RadialPackSurface3D definePointPacking(String namePointDisImage, PackingInterpolationScheme packingInterpolationScheme, int pointDistRSeed) {
 		// sets up the pontGenerator for this seed batch
 		// optionally returns the point generator if you need it
+		SceneData3D sceneData3D = GlobalSettings.getSceneData3D();
 		sceneData3D.setCurrentRenderImage(namePointDisImage);
 		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage(true);
 		PointGenerator_RadialPackSurface3D pointField = new PointGenerator_RadialPackSurface3D(pointDistRSeed, sceneData3D);
@@ -80,9 +87,7 @@ public class SpriteBatchHelper_Scene3D {
 		pointGenerator.setMaxNumPointsLimit(n);
 	}
 	
-	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
-		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
-	}
+	
 	
 	
 	public SpriteBatch generateSpriteBatch(int ranKey) {
@@ -92,7 +97,7 @@ public class SpriteBatchHelper_Scene3D {
 		}
 		
 		
-		SpriteBatch spriteBatch = new SpriteBatch();
+		SpriteBatch spriteBatch = new SpriteBatch(thisHelperName);
 		
 		System.out.println("Generating sprites " + thisHelperName );
 		
@@ -101,9 +106,9 @@ public class SpriteBatchHelper_Scene3D {
 		
 		
 		for(PVector p: points) {
-			// here1234
-			Sprite sprite = new Sprite();
-			//"DocPoint", "UniqueID", "RandomKey",  "Depth" ,"SpriteBatchName"};
+			Sprite sprite = new Sprite(true);
+			// sprites create their own UniqueID and randomKey on instantiation, then add in
+			//"DocPoint", "Depth" ,"SpriteBatchName";
 			KeyValuePairList kvpl = new KeyValuePairList();
 			float depth = p.z;
 			p.z = 0;
@@ -111,37 +116,19 @@ public class SpriteBatchHelper_Scene3D {
 			kvpl.addKeyValue("DocPoint", p.array());
 			kvpl.addKeyValue("Depth", depth);
 			kvpl.addKeyValue("SpriteBatchName", thisHelperName);
-			
-			
 			sprite.setSpriteData(kvpl);
-			
-			//sprite.setDocPoint(p);
-			//sprite.setDepth(p.z);
-			//sprite.SeedBatchName = thisHelperName; 
-			
-			
-			
-			
+	
 			spriteBatch.addSprite(sprite);
-			
-			
+
 		}
-		
-		
-		// tbd - UniqueID and randomKey are set on sprite instantiation inside the sprite
-		
 
 		return spriteBatch;
 		
 	}
 
-	
 
-	
-
-	
-	private void ensureSeedsDirectoryExists(String path) {
-		String alledgedDirectory = path + "seeds";
+	private void ensureSpriteBatchDirectoryExists(String path) {
+		String alledgedDirectory = path + "SpriteBatches";
 		if(MOStringUtils.checkDirectoryExist(alledgedDirectory)) return;
 		MOStringUtils.createDirectory(alledgedDirectory);
 	}

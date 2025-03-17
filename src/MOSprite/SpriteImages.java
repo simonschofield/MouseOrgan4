@@ -139,6 +139,15 @@ public class SpriteImages{
 		}
 	}
 	
+	public void removeAllImages() {
+		// this should be called after the sprite has "finished" so as to to avoid
+		// taking up loads of memory.
+		for (ImageAsset thisImageAsset : imageList) {
+			thisImageAsset.image = null;
+		}
+	}
+	
+	
 	
 	
 }

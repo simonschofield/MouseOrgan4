@@ -308,7 +308,7 @@ public class KeyValuePair {
 	}
 	
 	boolean isVectorDataType(String str) {
-		// Vectors are stored thus, using the percent symbol to separate the three numbers
+		// Vectors are stored thus, using the percent symbol to separate the numbers
 		// "KeyName:3.141%1245.6%5678.234"
 		 return str.contains("%");
 	}

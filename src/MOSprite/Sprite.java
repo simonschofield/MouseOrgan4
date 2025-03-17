@@ -81,44 +81,34 @@ public class Sprite {
 	// Extra Sprite Data
 	//
 	// To be replaced with a keyValuePairList called spriteData
-	
 	public KeyValuePairList spriteData = new KeyValuePairList();
 	
 	
 
-	public Sprite() {
-		
-		
-		//SpriteSeed seed = new SpriteSeed();
-		//setSpriteSeedData(seed);
-		//setRandomStreamPos(this.randomKey);
-		//overlayImages = new SpriteOverlayImages(this);
-		init();
+	
+	///////////////////////////////////////////////////////////
+	// Constructors
+	//
+	// 
+	public Sprite(boolean newUniqueID) {
+		if(newUniqueID) newUniqueID();
 		images = new SpriteImages();
 	}
 
 	public Sprite(BufferedImage img) {
-		//SpriteSeed seed = new SpriteSeed();
-		//setSpriteSeedData(seed);
-		init();
-		//setRandomStreamPos(this.randomKey);
-		
-		//overlayImages = new SpriteOverlayImages(this);
+		newUniqueID();
 		images = new SpriteImages();
 		setMainImage(img);
 	}
-
-
-	// slated for removal
-	//public Sprite(SpriteSeed seed) {
-	//	setSpriteSeedData(seed);
-	//	setRandomStreamPos(this.randomKey);
-		
-	//	images = new SpriteImages();
-	//}
 	
-	private void init() {
+	private void newUniqueID() {
 		this.uniqueID = GlobalSettings.getNextUniqueID();	
+		setRandomKey(this.uniqueID);
+	}
+	
+	public void setUniqueIDFromOtherSource(int id) {
+		GlobalSettings.grabUniqueIDFromOtherSource(id);
+		this.uniqueID = id;
 		setRandomKey(this.uniqueID);
 	}
 	
@@ -126,17 +116,7 @@ public class Sprite {
 		this.randomKey = k;
 		setRandomStreamPos(this.randomKey);
 	}
-	
-	// slated for removal
-	//public void setSpriteSeedData(SpriteSeed seed) {
-	//	KeyValuePairList kvlist = seed.getAsKeyValuePairList();
-	//	//System.out.println("setSpriteSeedData " + kvlist.getAsCSVLine());
-	//	setSpriteData( kvlist );
-	//	
-		
-	//}
-	
-	
+
 	///////////////////////////////////////////////////////////////////////////////
 	// This allows the setting of complete or "partial" data back to the sprite
 	// Is used, for instance, in the initial SpriteBatch, where only ID and positional data is added,
@@ -159,7 +139,10 @@ public class Sprite {
 		
 		if( dataIn.keyExists("UniqueID") ) {
 			// maybe don't allow this to be set
-			uniqueID = dataIn.getInt("UniqueID");
+			int id = dataIn.getInt("UniqueID");
+			setUniqueIDFromOtherSource( id);
+			// this will grab the id from the unique list
+			// and will set the random key also
 		}
 		
 		if( dataIn.keyExists("RandomKey") ) {
@@ -243,12 +226,6 @@ public class Sprite {
 		return outList;
 	}
 
-	// for convenience
-	//public void setSpriteData(KeyValuePair kvp) {
-	//	KeyValuePairList kvlist = new KeyValuePairList();
-	//	kvlist.addKeyValuePair(kvp);
-	//	setSpriteData(kvlist);
-	//}
 	
 	// generally for identification purposes
 	String getSpiteDataString(String key) {
@@ -341,7 +318,7 @@ public class Sprite {
 		// returns a completely identical, but independent copy
 		// The image is set by shared reference for speed purposes
 		//
-		Sprite cpy = new Sprite();
+		Sprite cpy = new Sprite(false);
 
 		cpy.uniqueID = this.getUniqueID();
 		cpy.randomKey = this.randomKey;
@@ -478,7 +455,7 @@ public class Sprite {
 
 		
 	public Rect getDocumentBufferSpaceRect() {
-		// returns the rect in BufferSpace of the sprite at its current docPoint
+		// returns the rect in the Document's BufferSpace of the sprite at its current docPoint
 		PVector topLeft = spriteLocalBufferSpaceToDocumentBufferSpace(  new PVector(0,0));
 		PVector bottomRight = spriteLocalBufferSpaceToDocumentBufferSpace( new PVector(getImageWidth()-1,getImageHeight()-1));
 		return new Rect(topLeft, bottomRight);

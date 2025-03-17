@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -62,6 +63,12 @@ public class MOStringUtils {
 		if (targetFolder.exists())
 			return true;
 		return false;
+	}
+	
+	public static boolean checkFileExists(String fullPathAndFileName) {
+		File f = new File(fullPathAndFileName);
+		return f.exists();
+		
 	}
 	
 	
@@ -161,6 +168,13 @@ public class MOStringUtils {
 		    }
 		}
 		return false;
+	}
+	
+	public static String[] addToStringList(String[] oldArray, String newString)
+	{
+	    String[] newArray = Arrays.copyOf(oldArray, oldArray.length+1);
+	    newArray[oldArray.length] = newString;
+	    return newArray;
 	}
 	
 	

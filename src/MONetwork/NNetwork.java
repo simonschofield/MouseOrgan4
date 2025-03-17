@@ -94,7 +94,7 @@ public class NNetwork {
 	void clearNetwork() {
 		points = new ArrayList<NPoint>();
 		edges = new ArrayList<NEdge>();
-		uniqueIDGenerator.setMinNewID(0);
+		uniqueIDGenerator.reset();
 	}
 
 	void refreshIDs() {

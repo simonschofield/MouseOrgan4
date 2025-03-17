@@ -92,7 +92,7 @@ public class NPoint extends NAttributes {
 		float x = kvp.getFloat("XLOC");
 		float y = kvp.getFloat("YLOC");
 		setID_Override( kvp.getInt("ID") ); 
-		theNetwork.uniqueIDGenerator.setMinNewID(getID());
+		theNetwork.uniqueIDGenerator.grabID(getID());
 		coordinates = new PVector(x, y);
 		attributes = kvp;
 

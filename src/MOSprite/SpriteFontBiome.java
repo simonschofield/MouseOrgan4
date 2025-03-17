@@ -48,17 +48,7 @@ public class SpriteFontBiome{
 		return s;
 	}
 	
-	/*
-	public Sprite getSpriteInstance(SpriteSeed s, boolean setRandomStreamKeyPositionWithID)  {
-		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.getRandomKey());
-		SpriteFont spriteFont = getRandomSpriteFontInstance();
-		Sprite sprite =  spriteFont.getSpriteInstance(s, true);// could be false
-		
-		
-		
-		//System.out.println("randomKey of " + s.getRandomKey() + " results in image " + sprite.getImageName());
-		return sprite;
-	}*/
+	
 	
 	public void addImageData(Sprite s, boolean setRandomStreamKeyPositionWithID)  {
 		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.randomKey);
@@ -66,18 +56,7 @@ public class SpriteFontBiome{
 		s.setSpriteFontDataAndSelectImage(spriteFont);
 	}
 	
-	// instead of using a random number generated internally by the sprites's randomKey value to determine the particular SpriteFont used
-	// this method uses a value passed in from outside. This could be another random stream, or more likely, a value based on a second image to create spatial clusters
-	// of particular sprite fonts from a sprite font biome.  spriteFontSelectionValue should be in the range 0..1
-	/*
-	public Sprite getSpriteInstance(SpriteSeed s, float spriteFontSelectionValue)  {
-		
-		SpriteFont spriteFont = getSpriteFontFromProbabilityStack(spriteFontSelectionValue);
-		Sprite sprite =  spriteFont.getSpriteInstance(s, true);// could be false
-		//System.out.println("randomKey of " + s.getRandomKey() + " results in image " + sprite.getImageName());
-		return sprite;
-	}
-	*/
+	
 	
 	
 	///////////////////////////////////////////////////////////////////////////////

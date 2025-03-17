@@ -1,6 +1,7 @@
 package MOSprite;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,13 +11,15 @@ import java.util.Comparator;
 import MOCompositing.BufferedImageRenderTarget;
 import MOMaths.PVector;
 import MOMaths.Range;
+import MOScene3D.ROIManager;
 import MOUtils.CollectionIterator;
 import MOUtils.GlobalSettings;
-import MOUtils.KeyValuePair;
+import MOUtils.KeyValuePairList;
+import MOUtils.MOStringUtils;
 
 public class SpriteBatch extends CollectionIterator{
 	
-	
+	public String thisSpriteBatchName = "";
 	private ArrayList<Sprite> spriteList = new ArrayList<Sprite>();
 
 	
@@ -24,9 +27,12 @@ public class SpriteBatch extends CollectionIterator{
 		
 	}
 	
+	public SpriteBatch(String name) {
+		thisSpriteBatchName = name;
+	}
 	
 	public SpriteBatch copy() {
-		SpriteBatch cpy = new SpriteBatch();
+		SpriteBatch cpy = new SpriteBatch(thisSpriteBatchName);
 		cpy.spriteList = (ArrayList<Sprite>) this.spriteList.clone();
 		return cpy;
 	}
@@ -49,6 +55,9 @@ public class SpriteBatch extends CollectionIterator{
 	
 	
 	public void append(SpriteBatch otherBatch) {
+		// when appending the sprites maintain their original sprite batch names.
+		// If you want to update their names to this spriteBatch then call
+		// updateAllSpriteBatchName(String name)
 		ArrayList<Sprite> otherSprites = otherBatch.getSpriteList();
 		for(Sprite s : otherSprites) {
 			spriteList.add(s);
@@ -88,16 +97,33 @@ public class SpriteBatch extends CollectionIterator{
 		}
 		return points;
 	}
-
 	
-	//public void setSeedBatchNameInSeeds(String newName) {
-		// overwrites the seedbatch name with this name
-	///	for(Sprite s: spriteList){
-	//		s.setSpriteData(new KeyValuePair("SpriteBatchName", newName));
-			//s.SeedBatchName = newName;
-	//	}
-	//	
-	//}
+	public void setAllSpriteBatchName(String name){
+		// 
+		KeyValuePairList kvpl = new KeyValuePairList();
+		kvpl.addKeyValue("SpriteBatchName", name);
+		for(Sprite s : spriteList) {
+			s.setSpriteData(kvpl);
+		}
+		
+	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	public String getSpriteBatchDirectoryPath() {
+		return GlobalSettings.getUserSessionPath() + "SpriteBatches";
+	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	public String getROISpriteBatchDataFileName(ROIManager rm) {
+		String roiname = rm.getCurrentROIName();
+		String sessionname = GlobalSettings.getDocumentName();
+		return getSpriteBatchDirectoryPath() + "//ROISpriteBatchData_" + sessionname + ".csv";
+	}
+	
+	
+	public String getMasterSpriteBatchDataFileName() {
+		return getSpriteBatchDirectoryPath() + "//MasterSpriteBatchData.csv";
+	}
 
 	///////////////////////////////////////////////////////
 	// load and save seeds using csv
@@ -109,13 +135,17 @@ public class SpriteBatch extends CollectionIterator{
 
 			String[] include = {"DocPoint", "UniqueID", "RandomKey",  "Depth" ,"SpriteBatchName"};
 			// String[] include = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "UseRelativeSizes", "ImageAssetGroupName", "ImageGroupItemShortName","SpriteBatchName"};
+			int activeSprites = 0;
 			for(Sprite s: spriteList){
-				csvWriter.append(s.getSpriteDataAsCSVLine(include));
+				if(s.isActive)  {
+					csvWriter.append(s.getSpriteDataAsCSVLine(include));
+					activeSprites++;
+				}
 			}
 
 			csvWriter.flush();
 			csvWriter.close();
-
+			System.out.println("SeedBatch.saveSeedsAsCSV: saved " + activeSprites + " spritedata out of a total of " + spriteList.size());
 		}// end try
 		catch(Exception ex){
 			System.out.println("SeedBatch.saveSeedsAsCSV: csv writer failed - "  + fileAndPath + ex);
@@ -134,7 +164,8 @@ public class SpriteBatch extends CollectionIterator{
 			while ((row = csvReader.readLine()) != null) {
 
 				// do something with the data
-				Sprite s = new Sprite();
+				
+				Sprite s = new Sprite(false);
 				s.setSpriteDataWithCSVLine(row);
 				//System.out.println("Loading seed "+ s.getDocPoint().toStr());
 				spriteList.add(s);
@@ -147,18 +178,44 @@ public class SpriteBatch extends CollectionIterator{
 
 	}
 
-	
-	//public void convertSeedsFromNormalisedSpaceToDocSpace() {
-	//	// should the seeds be generated b y an external application, it is likely the seeds will have been saved
-		// with normalised coordinates. This turns normalised into docspace points using the current global coordinate system
-	//	for(Sprite s: spriteList){
-	//		PVector normCoord = s.getDocPoint();
-	//		PVector docSpaceCoord = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(normCoord);
-	//		s.setDocPoint(docSpaceCoord);
-	//	}
-		
-		
+	//private void ensureSpriteBatchDirectoryExists(String path) {
+	//	String alledgedDirectory = path + "SpriteBatches";
+	//	if(MOStringUtils.checkDirectoryExist(alledgedDirectory)) return;
+	//	MOStringUtils.createDirectory(alledgedDirectory);
 	//}
+	
+	public void loadROISprites(ROIManager roiManager) {
+		// called if not generating the master collection of sprite data
+		// from the master session there should be a file called "MasterSriteBatchData.csv" in the seeds folder 
+		// There may also be a previously saved ROISpriteBatchFile called ROISpriteBatchData_roiname.csv. .. If this exists then load this file
+		// else load the masterSpriteBatchdata and shift into ROI space
+		String MasterSpriteBatchFile = getMasterSpriteBatchDataFileName();
+		String ROISpriteBatchFile = getROISpriteBatchDataFileName(roiManager);
+
+		
+		
+		if(  MOStringUtils.checkFileExists(ROISpriteBatchFile)   ) {
+			System.out.println("this ROI file exists " + ROISpriteBatchFile);
+			loadSpriteData(ROISpriteBatchFile);
+		} else {
+			
+			if( MOStringUtils.checkFileExists(MasterSpriteBatchFile) == false  ) {
+				System.out.println("this MasterSriteBatchData file does not exist - please generate ");
+				return;
+			}
+			
+			System.out.println("there is no ROI file so loading the master file  ");
+			loadSpriteData(MasterSpriteBatchFile);
+			
+			// only use if the file loaded the master seeds collated seeds
+			SpriteBatch shiftedSpriteBatch = roiManager.applyROIToSpriteBatch(this);
+			System.out.println("shifter master sprite batch has  " + shiftedSpriteBatch.getNumItems() + " sprites");
+			this.spriteList = (ArrayList<Sprite>) shiftedSpriteBatch.spriteList.clone();
+			this.resetItemIterator();
+		}
+		
+		
+	}
 	
 
 	@Override

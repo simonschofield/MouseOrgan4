@@ -83,7 +83,7 @@ public class SpriteFont{
 	public Sprite getSpriteInstance(boolean setRandomStreamKeyPositionWithID) {
 		// generates a sprite with image selected from the SpriteFont, sprite font data
 		// but no positional data
-		Sprite sprite = new Sprite();
+		Sprite sprite = new Sprite(true);
 		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(sprite.randomKey);
 		sprite.setSpriteFontDataAndSelectImage(this);
 		return sprite;

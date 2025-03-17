@@ -24,7 +24,7 @@ public class PointGenerator_Random extends CollectionIterator{
 	// The points could be in any coordinate space, but the default setting
 	// is to define the  generationAreaRect as the whole document space
 	// Hence the points generated are in DocumentSpace
-	Rect generationAreaRect;
+	Rect generationAreaRect = new Rect(0,0,1,1);
 	// the mask image is set to black/white specifiying where points may be
 	// generated
 	
@@ -48,7 +48,7 @@ public class PointGenerator_Random extends CollectionIterator{
 		float w = GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth();
 		float h = GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight();
 		setGenerationArea(new Rect(0,0,w,h));
-		//System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
+		System.out.println("PointGenerator_Random generation area " + generationAreaRect.toStr());
 	}
 	
 	public void setRandomStreamSeed(int rseed) {

@@ -5,20 +5,45 @@ package MOUtils;
 //
 //
 public class UniqueID{
-	int idNumCounter = 0;
+	private boolean[] idList;
 
-
+	public UniqueID(){
+		idList = new boolean[1000000];
+	}
+	
+	UniqueID(int maxNumIDs){
+		
+		idList = new boolean[maxNumIDs];
+	}
+	
+	
 	public int getUniqueID(){
-		return idNumCounter++;
+		for(int n = 0; n < idList.length; n++) {
+			boolean b = idList[n];
+			if(b == false) {
+				idList[n]=true;
+				return n;
+			}
+		}
+		System.out.println("UniqueID::getNextUniqueID - all the IDs have been taken");
+		return 0;
 	}
 
 	public void reset(){
-		idNumCounter=0;
+		for(int n = 0; n < idList.length; n++) {
+			boolean b = idList[n] = false;
+		}
 	}
 
-	public void setMinNewID(int n){
-		if( n > idNumCounter){
-			idNumCounter = n + 1;
+	/////////////////////////////////////////////////////////////////////////////////////
+	// this to be called if some other process, such as a file-load, takes up some Unique ID's
+	// generally, you should do all the grabbing before getting any uniqueID's at run-time
+	// otherwise, the ID you are grabbing may have already been generated
+	public void grabID(int n){
+		boolean b = idList[n];
+		if(b==true) {
+			System.out.println("UniqueID::grabID - grabbing an already taken ID " + n);
 		}
+		idList[n] = true;
 	}
 }

@@ -39,7 +39,7 @@ import MOUtils.GlobalSettings;
 // and used to speed-up subsequent renders
 public class RenderBorder {
 	
-	private ContributingSpritesList contributingSpritesList;
+	//private ContributingSpritesList contributingSpritesList;
 	
 	
 	public static final int	CROP_ACTION_NONE = 0;
@@ -65,7 +65,7 @@ public class RenderBorder {
 	public RenderBorder(){
 		
 		boarderRect = new Rect(0,0,GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth(), GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight());
-		contributingSpritesList = new ContributingSpritesList();
+		//contributingSpritesList = new ContributingSpritesList();
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////
@@ -99,33 +99,9 @@ public class RenderBorder {
 		isActive = active;
 	}
 	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// Crop decision methods
-	
-	private boolean logSpriteCropDecision(Sprite sprite, boolean contributes) {
-		// this is used to echo the crop decision in the above method, and log it
-		// to a list, which is saved as a file at the end of the render. This can
-		// then be used to speed up subsequent renders by culling sprites that do not
-		// contribute to the image (e.g. totally outside the renderBoarder, or the document bounds if no render boarder has been set)
-		//System.out.println("crop report id " + sprite.spriteData.id + " contribues? " + contributes);
-		if(contributes) contributingSpritesList.addContributingSpriteID(sprite.getUniqueID());
-		return contributes;
-	}
-	
-	
-	public ContributingSpritesList getContributingSpritesList() {
-		return contributingSpritesList;
-	}
-	
-	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// useful data access, may be used by the user to optimise the render
-	
-	public boolean isActive() {
-		return isActive;
-	}
 	
 	public Rect getBoarderRect() {
 		return boarderRect.copy();
@@ -160,6 +136,7 @@ public class RenderBorder {
 		
 		for(int n = 0; n < numImages; n++) {
 			boolean cropResult = cropEnumeratedSpriteImage( sprite, n);
+			// if any of the sprite images is fully cropped then return false, as there is no point carrying on
 			if(cropResult == false) return false;
 		}
 		return true;
@@ -175,10 +152,10 @@ public class RenderBorder {
 		
 		// do the trivial non-cropping actions if the image is wholly inside or outside the boarderRect
 		// or is fully excluded, or there is no action to be taken
-		if(overlapReport.equals("NONE")) return logSpriteCropDecision( sprite, false);
-		if(overlapReport.equals("WHOLLYINSIDE")) return logSpriteCropDecision( sprite, true);
-		if(checkCrop_Action_None(overlapReport)) return logSpriteCropDecision( sprite, true);
-		if(checkCrop_Action_Exclude(overlapReport)) return logSpriteCropDecision( sprite, false);
+		if(overlapReport.equals("NONE")) return false;
+		if(overlapReport.equals("WHOLLYINSIDE")) return true;
+		if(checkCrop_Action_None(overlapReport)) return true;
+		if(checkCrop_Action_Exclude(overlapReport)) return false;
 		
 		
 		// beyond this point some cropping of the sprite takes place
@@ -202,7 +179,7 @@ public class RenderBorder {
 		//System.out.println("doBespokeCrop:croppedRectBufferSpace " + croppedRectBufferSpace.toStr());
 		// if the crop rect is zero in either dimension return the culled decision
 		if(croppedRectBufferSpace.getWidth() < 1 || croppedRectBufferSpace.getHeight() < 1) {
-			return logSpriteCropDecision( sprite, false);
+			return false;
 		}
 
 		
@@ -221,7 +198,7 @@ public class RenderBorder {
 			boolean result = doBespokeCrop(preCroppedImage, overlapReport );
 			if(result == false) {
 				// the bespoke crop obliterated the image
-				return logSpriteCropDecision( sprite, false);
+				return false;
 			}
 			
 			
@@ -236,16 +213,10 @@ public class RenderBorder {
 		
 		
 	    // image has been cropped OK
-		return logSpriteCropDecision( sprite, true);
+		return true;
 	}
 	
-	
-	
-	
-	
-	
-	
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// private methods

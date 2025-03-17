@@ -71,6 +71,9 @@ public class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPac
 
 		if( sceneData.isSubstance(docSpcPt)==false) return false;
 		
+		if(generationAreaRect.isPointInside(docSpcPt)==false) {
+			return false;
+		}
 		
 		PVector thisPoint3d = sceneData.get3DSurfacePoint(docSpcPt);
 

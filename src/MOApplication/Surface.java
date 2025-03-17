@@ -17,7 +17,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-
+import MOImage.ImageProcessing;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOSimpleUI.SimpleUI;
@@ -142,6 +142,20 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		// ok to do these now
 		theViewControl.init(this);
 		buildUI();
+		
+		// some default settings
+		setCanvasUpdateFrequency(500);
+		if(GlobalSettings.getSessionScale()>= 0.5f) {
+			setCanvasUpdateFrequency(10);
+		}
+		
+		//sets the canvas colour in the ui panel only, not in the image
+		setCanvasBackgroundColor(new Color(255,255,255,255));
+		
+		
+		if(GlobalSettings.getSessionScale()>= 0.5f) {
+			ImageProcessing.setInterpolationQuality(ImageProcessing.INTERPOLATION_BICUBIC);
+		}
 	}
 	
 	
@@ -441,7 +455,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
 		if(theUI!=null) theUI.handleMouseEvent(e, "mouseReleased");
-		canvasUpdateFrequency = 50;
+		canvasUpdateFrequency = 500;
 	}
 
 	@Override

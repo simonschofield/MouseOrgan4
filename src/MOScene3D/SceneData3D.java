@@ -18,6 +18,7 @@ import MOImageCollections.ImageAssetGroup;
 
 import MOMaths.PVector;
 import MOMaths.Range;
+import MOMaths.Ray3D;
 import MOMaths.Rect;
 //import MOSprite.SpriteSeed;
 import MOUtils.GlobalSettings;
@@ -70,25 +71,24 @@ public class SceneData3D {
 		
 		// create a default ROIManager. This will probably be user-specified later
 		roiManager = createROIManager(3000);
+		
+		
+		GlobalSettings.setSceneData3D(this);
+		
 	}
 
-	public void loadTexturemaps(String[] includesList) {
-		
-		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(directoryPath, "png");
-		int num = dfns.getNumFiles();
-		System.out.println("SceneData3D is loading " + num + " texturemaps");
-		textureMapImages = new ImageAssetGroup();
-		textureMapImages.setDirectoryFileNameScanner(dfns);
-		textureMapImages.loadImages();
-		setCurrentRenderImage(0);
-		
-	}
 	
-	public void loadTexturemaps() {
+	
+	public void loadTexturemaps(String[] include) {
 		
+		include = MOStringUtils.addToStringList(include, "blank");
+
 		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(directoryPath, "png");
+		dfns.keep(include);
+		
 		int num = dfns.getNumFiles();
 		System.out.println("SceneData3D is loading " + num + " texturemaps");
+		dfns.printToConsoleShortFileNames();
 		textureMapImages = new ImageAssetGroup();
 		textureMapImages.setDirectoryFileNameScanner(dfns);
 		textureMapImages.loadImages();
@@ -201,7 +201,7 @@ public class SceneData3D {
 		PVector topLeft = masterDocSpaceRect.norm(   currentROIDocSpaceRect.getTopLeft()   );
 		PVector bottomRight = masterDocSpaceRect.norm(   currentROIDocSpaceRect.getBottomRight()   );
 		Rect cropRect = new Rect(topLeft, bottomRight);
-		System.out.println("warning using untested cropToROI in scenedata class");
+		//System.out.println("warning using untested cropToROI in scenedata class");
 		return ImageProcessing.cropImageWithNormalisedRect(uncropped, cropRect);
 	}
 
@@ -279,7 +279,15 @@ public class SceneData3D {
 		return depthBuffer3d.docSpaceToWorld3D(masterSpace);
 	}
 	
+	public PVector docSpaceToWorld3D(PVector docSpace, float depth) {
+		return depthBuffer3d.docSpaceToWorld3D(docSpace, depth);
+	}
 	
+	public Ray3D castRayIntoScene(PVector docSpace) {
+		PVector rayOrigin = docSpaceToWorld3D(docSpace, 1);
+		PVector rayNormal = new PVector(0,0,1);
+		return new Ray3D(rayOrigin,rayNormal);
+	}
 
 	/*
 	PVector get3DVolumePoint(PVector docSpace, float normDepth) {
@@ -346,460 +354,6 @@ public class SceneData3D {
 
 
 
-/*
- * 
- * Old SceneData using old geometry 3D
- * 
- * 
- * 
- * 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-
-
-import MOImage.ConvolutionFilter;
-import MOImage.FloatImage;
-import MOImage.ImageProcessing;
-import MOImage.KeyImageSampler;
-import MOImage.MOPackedColor;
-import MOImageCollections.DirectoryFileNameScanner;
-import MOImageCollections.ImageAssetGroup;
-import MOMaths.Fustrum3D;
-import MOMaths.PVector;
-import MOMaths.Range;
-import MOMaths.Rect;
-import MOUtils.GlobalSettings;
-import MOUtils.MOStringUtils;
-
-
-public class V1_SceneData3D {
-	
-	// path to the specified input scenedata folder
-		String directoryPath;
-		
-		
-		// view data from the original 3D scene
-		PVector cameraPosition;
-		PVector cameraLookat;
-		
-		
-		//CoordinateSpaceConverter coordinateSpaceConverter;
-		KeyImageSampler distanceBufferKeyImageSampler;
-		// document aspect is the aspect of the
-		// output compositer render, not the input roi
-		//float mouseOrganDocAspect;
-		
-		// the with and height of the renders and depth images (should all be the same)
-		int renderWidth;
-		int renderHeight;
-		
-		// The renders in the scenedata are (probably) a crop of a larger view (the "original view"). This data is used to add offsets back into the geometry calculation.
-		// Specifically, the FOV is for the whole original view before it was cropped. We need to recover the correct vector into the scene
-		// for 3D and depth calculations. The viewROICrop is used to add offsets to the X and Y of pixels to enable this.
-		// 
-		Rect originalViewCropRect;
-		int originalViewWidth;
-		int originalViewHeight;
-		
-		
-		
-		// this reads in and contains all the png files within the input folder
-		ImageAssetGroup renderImages;
-		BufferedImage currentRenderKeyImage;
-		boolean currentRenderKeyImageHasAlpha;
-		
-		// depth stuff. The depthImage is normalised to 0..1 after loading
-		// but the original min and max depth are kept so the
-		// original depths can be recalculated
-		
-		Range originalDepthExtrema;
-		public V1_GeometryBuffer3D geometryBuffer3d;
-		
-		FloatImage distanceImage;
-		float fov;
-		
-		// if you want to focus in on a region of the 
-		// sceneData to be the extents of the image you
-		// are rendering then set the roiRect. 
-		// The roiRect is in normalised extents of the master view and is usually
-		// got from the ROIhelper class
-		Rect roiRect = new Rect();
-		boolean maintainRelativeScaling = true;
-		// contains the min and max normalised depth values from the master within the roi
-		Range roiDepthExtrema=null;
-		
-		
-		public V1_SceneData3D() {
-			
-			
-		}
-
-		public void load(String targetDirectory) {
-			directoryPath = targetDirectory;
-			load();
-		}
-			
-	    public void load(){
-	    	DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(directoryPath, "png");
-	    	renderImages = new ImageAssetGroup();
-	    	renderImages.setDirectoryFileNameScanner(dfns);
-			renderImages.loadImages();
-			
-	    	
-	    	
-	    	
-			//renderImages = new DirectoryImageGroup(directoryPath, ".png", "");
-			//renderImages.loadImages();
-			
-			// this is a "distance" image, it is converted to a proper depth image
-			// in the DepthBuffer object
-			distanceImage = new FloatImage(directoryPath + "\\distance.data");
-
-			// the render width of the images in the scenedata folder should be all the same
-			renderWidth = distanceImage.getWidth();
-			renderHeight = distanceImage.getHeight();
-
-			// from the view.txt file....
-			// read the FOV
-			ArrayList<String> strList = MOStringUtils.readTextFile(directoryPath + "\\view.txt");
-			String fovString = strList.get(2);
-			fov = Float.parseFloat(fovString);
-			
-			// read the original view width and height
-			String originalViewWidthString = strList.get(3);
-			originalViewWidth = Integer.parseInt(originalViewWidthString);
-			
-			String originalViewHeightString = strList.get(4);
-			originalViewHeight = Integer.parseInt(originalViewHeightString);
-			
-			// read the crop of the original view
-			String topleftSt = strList.get(5);
-			String botRighSt = strList.get(6);
-			
-			PVector topLeftV = new PVector();
-			topLeftV.fromString(topleftSt);
-			
-			PVector botRighV = new PVector();
-			botRighV.fromString(botRighSt);
-			
-			
-			originalViewCropRect = new Rect(topLeftV,botRighV);
-			
-			distanceBufferKeyImageSampler = new KeyImageSampler(distanceImage);
-			
-			geometryBuffer3d = new V1_GeometryBuffer3D(distanceImage, fov,   originalViewWidth, originalViewHeight, originalViewCropRect);
-			
-			setCurrentRenderImage(0);
-		}
-	    
-
-		public void setROIRect(Rect r, boolean maintainRelativeAssetScale) {
-			// The roiRect is in normalised extents of the master view
-			roiRect = r.copy();
-			maintainRelativeScaling = maintainRelativeAssetScale;
-			
-			
-			
-			
-			
-		}
-		
-		public float getCroppedAngleOfView() {
-			// this returns the angle of view that remains when taking into consideration the 
-			// the initial cropRect from the 3D SceneData3D file, and the ROI rect from the MouseOrgan session
-			float originalFOV = geometryBuffer3d.getOriginalAngleOfView();
-			float originalCropFOV = geometryBuffer3d.getCroppedAngleOfView();
-			
-			float roiNormalisedHeight = roiRect.getHeight();
-			float residualAngleOfView =  originalCropFOV * roiNormalisedHeight;
-			
-			System.out.println("getCroppedAngleOfView originalFOV   " + originalFOV);
-			System.out.println("getCroppedAngleOfView originalCropFOV   " + originalCropFOV);
-			System.out.println("getCroppedAngleOfView ROI Cropped FOV   " + residualAngleOfView);
-			
-			return residualAngleOfView;
-		}
-		
-		public Rect getROIRect() {
-			return roiRect.copy();
-		}
-		
-		
-		
-	    
-		/////////////////////////////////////////////////////////////////////////////////////
-		// The mask image is an image reflecting the sky/land pixels
-		// land pixels are set to white, sky to black
-		
-		
-		
-		public ArrayList<String> getRenderImageNames(){
-			return renderImages.getImageAssetNamesList();
-		}
-
-		public BufferedImage setCurrentRenderImage(String shortName) {
-			currentRenderKeyImage = renderImages.getImage(shortName);
-			currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentRenderKeyImage);
-			return currentRenderKeyImage;
-		}
-		
-		public void setCurrentRenderImage(int  n) {
-			currentRenderKeyImage = renderImages.getImage(n);
-			String shortName = renderImages.getImageAssetName(n);
-			System.out.println("curren render image is " + shortName);
-			currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentRenderKeyImage);
-		}
-
-		////////////////////////////////////////////////////////////////
-		//
-		// get images
-		//
-		public BufferedImage getSubstanceMaskImage(boolean cropToRoi) {
-			if(cropToRoi) return cropToROI(geometryBuffer3d.substanceImage);
-			return geometryBuffer3d.substanceImage;
-		}
-		
-		public BufferedImage getCurrentRenderImage(boolean cropToRoi) {
-			if(cropToRoi)  return cropToROI(currentRenderKeyImage);
-			return currentRenderKeyImage;
-		}
-		
-		public BufferedImage getRenderImage(String shortName, boolean cropToRoi) {
-			BufferedImage renderImage = renderImages.getImage(shortName);
-			if(cropToRoi)  return cropToROI(renderImage);
-			return renderImage;
-		}
-		
-		
-		////////////////////////////////////////////////////////////////
-		//
-		// when using the ROI
-		//
-			
-		BufferedImage cropToROI(BufferedImage uncropped) {
-			// returns the roi cropped image from whatever function
-			//System.out.println("cropping to roi rect " + roiRect.toStr());
-			return ImageProcessing.cropImageWithNormalisedRect(uncropped,roiRect);
-		}
-		
-		
-		// IF you are using a ROI as a smaller region of the MASTER document, then this method converts between the
-		// docSpace in the ROI to the docSpace in the MASTER
-		public PVector ROIDocSpaceToMasterDocSpace(PVector docSpace) {
-			
-			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
-			// scale down docspace into the roi
-			// then re-interpolate that across the roi to get back to the ROI as a sort of crop-rect within the larger image 
-			PVector roiIterpolatedPoint = roiRect.interpolate(normalisedPoint); // so this scrunches the point which is in DocSpace (0..1,0..1) down into the roiRect (l,t,r,b)
-			
-			//return MOMaths.normalisedSpaceToDocSpace(roiIterpolatedPoint, this.getWholeSceneAspect());
-			return GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(roiIterpolatedPoint);
-			
-		}
-		
-		// less used than above. If you happen to have calculated anything in Master Doc space, and want to convert that to
-		// the ROIs docSpace...
-		public PVector masterDocSpaceToROIDocSpace(PVector docSpace) {
-			PVector normalisedPoint = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(docSpace);
-			PVector newROIPoint = roiRect.norm(normalisedPoint); // convert to normalised space within the roi
-			return GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(newROIPoint);
-			
-		}
-		
-		public boolean isUsingROI() {
-			Rect identityRect = new Rect();
-			return !(roiRect.equals(identityRect));
-		}
-		
-		public Range getFullSceneDepthExtrema() {
-			return geometryBuffer3d.depthBufferExtrema.copy();
-		}
-		
-		public Range getFullSceneDistanceExtrema() {
-			return geometryBuffer3d.distanceBufferExtrema.copy();
-		}
-		
-		public Range getROINormalisedDepthExtrema(boolean forceRecalculation) {
-			//
-			// return the normalised depth extrema within the ROI
-			//
-			if(roiDepthExtrema==null) forceRecalculation = true;
-			if(forceRecalculation==false) return roiDepthExtrema;
-			
-			int left = (int)(roiRect.left*renderWidth);
-			int top = (int)(roiRect.top*renderHeight);
-			int right = (int)(roiRect.right*renderWidth);
-			int bottom = (int)(roiRect.bottom*renderHeight);
-			roiDepthExtrema = new Range();
-			roiDepthExtrema.initialiseForExtremaSearch();
-			for(int y=top; y<bottom; y++) {
-				for(int x = left; x<right; x++) {
-					float d = geometryBuffer3d.getDepthNormalised(x, y);
-					if(geometryBuffer3d.isSubstance(x,y)) roiDepthExtrema.addExtremaCandidate(d);
-				}
-			}
-			return roiDepthExtrema;
-		}
-		
-		public Range getROIDepthExtrema() {
-			//
-			// return the original depth extrema within the ROI
-			//
-			int left = (int)(roiRect.left*renderWidth);
-			int top = (int)(roiRect.top*renderHeight);
-			int right = (int)(roiRect.right*renderWidth);
-			int bottom = (int)(roiRect.bottom*renderHeight);
-			Range depthExtrema = new Range();
-			depthExtrema.initialiseForExtremaSearch();
-			for(int y=top; y<bottom; y++) {
-				for(int x = left; x<right; x++) {
-					float d = geometryBuffer3d.getDepth(x, y);
-					if(geometryBuffer3d.isSubstance(x,y)) depthExtrema.addExtremaCandidate(d);
-				}
-			}
-			return depthExtrema;
-		}
-		
-		public float getROINormalisedDepth(PVector docSpace) {
-			float masterNormalisedDepth = getDepthNormalised(docSpace);
-			Range normalisedDepthExtrema = getROINormalisedDepthExtrema(false);
-			return normalisedDepthExtrema.norm(masterNormalisedDepth);
-		}
-		
-		////////////////////////////////////////////////////////////////
-		//
-		// get pixel data 
-		//
-		public float getCurrentRender01Value(PVector docSpace) {
-			Color rgb = getCurrentRenderColor(docSpace);
-			int r = rgb.getRed();
-			int g = rgb.getGreen();
-			int b = rgb.getBlue();
-			return (r+g+b)/765f;
-		}
-		
-		
-		
-		Color getCurrentRenderColor(PVector docSpace) {
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			
-			PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
-			int packedCol = currentRenderKeyImage.getRGB((int)coord.x, (int)coord.y);
-			
-			return MOPackedColor.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
-		}
-		
-		public PVector getCurrentRenderGradiant(PVector docSpace) {
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			ConvolutionFilter cf = new ConvolutionFilter();
-			
-			PVector grad = cf.getGradient(roiSpace, currentRenderKeyImage);
-			return grad;
-		}
-		
-		public boolean isSubstance(PVector docSpace) {
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			PVector coord = distanceBufferKeyImageSampler.docSpaceToBufferSpace(roiSpace);
-			return geometryBuffer3d.isSubstance((int)coord.x, (int)coord.y);
-		}
-
-		public PVector get3DSurfacePoint(PVector docSpace) {
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			
-			return geometryBuffer3d.docSpaceToWorld3D(roiSpace);
-		}
-		
-		PVector get3DVolumePoint(PVector docSpace, float normDepth) {
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			
-			// needs to take angle into consideration but OK for the moment
-			float realDistance = geometryBuffer3d.normalisedDepthToRealDepth(normDepth);
-			return geometryBuffer3d.docSpaceToWorld3D( roiSpace, realDistance);
-		}
-		
-		
-		
-		
-		public Fustrum3D getViewFustrum() {
-			// returns the 8 points that represnt the extents of the viewing fustrum
-			// in this order starting at index 
-			// Front plane Top Left
-			Fustrum3D fustrum = new Fustrum3D();
-			float docWidth = GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth();
-			float docHeight = GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight();
-			
-			System.out.println("doc width and height " + docWidth + " " + docHeight);
-			
-			
-			fustrum.farTopLeft = get3DVolumePoint(new PVector(0,0), 1);
-			fustrum.farTopRight = get3DVolumePoint(new PVector(docWidth,0), 1);
-			fustrum.farBottomLeft = get3DVolumePoint(new PVector(0,docHeight), 1);
-			fustrum.farBottomRight = get3DVolumePoint(new PVector(docWidth,docHeight), 1);
-			
-			fustrum.nearTopLeft = get3DVolumePoint(new PVector(0,0), 0);
-			fustrum.nearTopRight = get3DVolumePoint(new PVector(docWidth,0), 0);
-			fustrum.nearBottomLeft = get3DVolumePoint(new PVector(0,docHeight), 0);
-			fustrum.nearBottomRight = get3DVolumePoint(new PVector(docWidth,docHeight), 0);
-			
-			return fustrum;
-		}
-		
-		public float get3DScale(PVector docSpace) {
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			
-			float relativeAssetScale = 1;
-			if(maintainRelativeScaling) {
-				float verticalCropProportion = roiRect.bottom-roiRect.top;
-				relativeAssetScale = 1/verticalCropProportion;
-			}
-			
-			float geomScale3D =  geometryBuffer3d.get3DScale(roiSpace) * relativeAssetScale;
-			//System.out.println("get3DScale: docSpace " + docSpace.toString() + " roiPoint point " + roiSpace.toString() + " relativeAssetScale = " + relativeAssetScale + "geom svcale 3d " + geomScale3D);
-			
-			return geomScale3D;
-		}
-		
-		
-		public float getDepth(PVector docSpace) {
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			
-			return geometryBuffer3d.getDepth(roiSpace);
-		}
-		
-		
-		public float getDepthNormalised(PVector docSpace) {
-			// this returns the normalised depth of the master view - not the roi.
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			
-			return geometryBuffer3d.getDepthNormalised(roiSpace);
-		}
-		
-		
-		
-		
-		
-		public float getDistance(PVector docSpace) {
-			PVector roiSpace = ROIDocSpaceToMasterDocSpace(docSpace);
-			
-			return geometryBuffer3d.getDistance(roiSpace);
-		}
-		
-		
-		
-		public PVector  world3DToDocSpace(PVector world3dPt) {
-			
-			PVector docSpaceInMasterView = geometryBuffer3d.world3DToDocSpace(world3dPt);
-			return masterDocSpaceToROIDocSpace(docSpaceInMasterView);
-			
-		}
-		
-		
-
-	}
-
-
-*/
 
 
 

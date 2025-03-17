@@ -5,7 +5,7 @@ import MOApplication.Surface;
 
 //////////////////////////////////////////////////////////////////////////////////
 //
-// a very simple state sequencer. like a finite state machine but simpler.
+// a very simple state sequencer. like a finite state machine .
 // Allows the user to create named sequences of events.
 // During the execution of the sequence it expects to find and call the methods
 // InitialiseSequence(String what), UpdateSequence(String what), FinaliseSequence(String what)

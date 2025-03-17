@@ -453,11 +453,7 @@ public class Scene3DHelper {
 			theSurface.theUI.deleteCanvasOverlayShapes("measuringTool");
 			return;
 		}
-		
-		
-		//System.out.println("measuringToolSize " + measuringToolSize);
-		
-		
+
 		theSurface.theUI.deleteCanvasOverlayShapes("measuringTool");
 		PVector endPt = docPt.copy();
 		float worldScale = sceneData3D.get3DScale(docPt);
@@ -465,23 +461,24 @@ public class Scene3DHelper {
 		//float distance = sceneData3D_v1.getDistance(docPt);
 		float depth = sceneData3D.getDepth(docPt);
 		
-		
-		
 		float textX = endPt.x;
 		endPt.y -= (worldScale * measuringToolSize);
 		float textY1 = endPt.y + (0.1f);
 		float textY2 = endPt.y + (0.12f);
 		float textY3 = endPt.y + (0.14f);
+		float textY4 = endPt.y + (0.16f);
 		float len = docPt.dist(endPt);
-		// System.out.println("roi depth extrema = " + normalisedDepthExtrema.toStr() + " masterNormalisedDepth " + masterNormalisedDepth + " ROI normalised depth " + roiNormalisedDepth);
-		// theUI.addCanvasOverlayShape("mouseDot", uied.docSpacePt, radiusOffset, "ellipse", new Color(127, 0, 0, 255), Color.gray, 1);
 		
+		PVector rectTopLeft = new PVector( endPt.x-0.01f, textY1 - 0.02f);
+		PVector rectBottomRight = new PVector( endPt.x+0.33f, textY4 + 0.01f);
+		
+		theSurface.theUI.addCanvasOverlayShape("measuringTool", rectTopLeft, rectBottomRight, "rect", Color.white, Color.white, 4);
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
 		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), " 3d size " + measuringToolSize ,  Color.red, 20);
 		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), " depth " + depth ,  Color.red, 20);
 		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY3), "  p3d = " + p3d.toStr() ,  Color.red, 20);
-		//theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), ,  Color.blue, 20);
-		//theSurface.theUI.addCanvasOverlayText("measuringTool", endPt, "  Stick Hght = " + measuringToolSize,  Color.blue, 20);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY4), " docP = " + docPt.toStr() ,  Color.red, 20);
+		
 		
 	}
 	

@@ -239,7 +239,7 @@ public class NRegion  extends NAttributes {
 		}
 
 		setID_Override( kvp.getInt("ID") ); 
-		theNetwork.uniqueIDGenerator.setMinNewID(getID());
+		theNetwork.uniqueIDGenerator.grabID(getID());
 		attributes = kvp;
 
 		//// do not want attributes to have copies of the core values

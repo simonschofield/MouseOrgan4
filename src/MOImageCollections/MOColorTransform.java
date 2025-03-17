@@ -77,7 +77,7 @@ public class MOColorTransform {
 	
 	
 	public BufferedImage doColorTransforms(BufferedImage imageIn) {
-		System.out.print("MOColorTransform.doColorTransforms:: doColorTransforms .. in list are " + scriptableColorTransformParametersList.size());
+		//System.out.print("MOColorTransform.doColorTransforms:: doColorTransforms .. in list are " + scriptableColorTransformParametersList.size());
 		updateProgressMessage();
 		
 		if(scriptableColorTransformParametersList.size()==0) {

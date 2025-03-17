@@ -3,6 +3,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import MOMaths.MOMaths;
+import MOUtils.MOStringUtils;
 
 
 
@@ -50,6 +51,41 @@ public class DirectoryFileNameScanner  {
 		cacheFileNames();
 	}
 	
+	public void keep(String[] keepTheseShortFileNames) {
+		if(keepTheseShortFileNames == null) return;
+		
+		ArrayList<String> shortNameList = getShortNameList();
+		ArrayList<String> keptFullPathAndFileNamesList  = new ArrayList<String>();
+		
+		for(int n = 0; n < shortNameList.size(); n++) {
+			String thisShortName = shortNameList.get(n);
+			if(MOStringUtils.stringListContains(keepTheseShortFileNames, thisShortName)) {
+				String keepFullPathAndFileName = fullPathAndFileNamesList.get(n);
+				keptFullPathAndFileNamesList.add(keepFullPathAndFileName);
+			}
+		}
+		fullPathAndFileNamesList = keptFullPathAndFileNamesList;
+	}
+	
+	public void remove(String[] removeTheseShortFileNames) {
+		if(removeTheseShortFileNames == null) return;
+		
+		ArrayList<String> shortNameList = getShortNameList();
+		ArrayList<String> keptFullPathAndFileNamesList  = new ArrayList<String>();
+		
+		for(int n = 0; n < shortNameList.size(); n++) {
+			String thisShortName = shortNameList.get(n);
+			if(MOStringUtils.stringListContains(removeTheseShortFileNames, thisShortName)==false) {
+				String keepFullPathAndFileName = fullPathAndFileNamesList.get(n);
+				keptFullPathAndFileNamesList.add(keepFullPathAndFileName);
+			}
+		}
+		fullPathAndFileNamesList = keptFullPathAndFileNamesList;
+		
+		
+		
+	}
+	
 	///////////////////////////////////////////////////////////////////////////
 	// is applied to those already found by filters set so far
 	public void setFileListRange(Integer lo, Integer hi) {
@@ -65,6 +101,7 @@ public class DirectoryFileNameScanner  {
 		return directoryPath;
 	}
 	
+	
 
 	public ArrayList<String> getShortNameList() {
 		ArrayList<String> shortFileNamesList = new ArrayList<String>();
@@ -79,6 +116,9 @@ public class DirectoryFileNameScanner  {
 		}
 		return shortFileNamesList;
 	}
+	
+	
+
 	
 	
 	public void copyConstraints(DirectoryFileNameScanner otherScanner) {
@@ -104,6 +144,12 @@ public class DirectoryFileNameScanner  {
 		}
 		return true;
 	}
+	
+	
+	
+	
+	
+	
 
 	////////////////////////////////////////////////////////////////////////////
 	// Private methods
@@ -214,13 +260,13 @@ public class DirectoryFileNameScanner  {
 		return false;
 	}
 	
-	public void listShortFileNames() {
+	public void printToConsoleShortFileNames() {
 		// for debugging only
 		ArrayList<String> shortFileNamesList = this.getShortNameList();
 		for(String s: shortFileNamesList) {
-			System.out.println(s);
+			System.out.print(s + ", ");
 		}
-		
+		System.out.println();
 	}
 
 }

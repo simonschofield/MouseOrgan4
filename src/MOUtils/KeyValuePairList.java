@@ -261,6 +261,32 @@ public class KeyValuePairList{
     }
     return null;
   }
+  
+  //////////////////////////////////////////////////////
+  // array of strings getting and setting. Used in Processing for handy file saving
+  //
+
+  public String[] getAsKVStringArray(){
+	  int num = keyValuePairs.size();
+	  String[] outStrs = new String[num];
+	  for(int n=0; n < num; n++){
+		  outStrs[n] = keyValuePairs.get(n).getAsKeyValueString();
+	  }
+	  return outStrs;
+  }
+
+
+  public void setWithKVStringArray(String[] stringArray){
+	  int num = stringArray.length;
+	  String compiled ="";
+	  for(int n=0; n < num; n++){
+		  String s = stringArray[n];
+		  
+		  compiled += s;
+		  if(n<num-1) compiled+=",";
+	  }
+	  ingestCSVLine( compiled);
+  }
 
   //////////////////////////////////////////////////////
   // CSV-based data retreval and setting

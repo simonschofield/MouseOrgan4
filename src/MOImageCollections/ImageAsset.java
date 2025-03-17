@@ -12,11 +12,18 @@ import MOMaths.PVector;
 //
 public class ImageAsset{
 
-	// currently used
+	// the buffered image
 	public BufferedImage image;
+	
+	// the user-set name, which may also be the short file name
 	public String name = "";
-	public ImageStats stats;
 
+	// the path to the asset on file
+	public String fullPath;
+	
+	// image stats
+	public ImageStats stats;
+	
 	public ImageAsset() {}
 	
 	public ImageAsset(BufferedImage img, String nm) {
