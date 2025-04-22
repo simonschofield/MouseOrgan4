@@ -12,6 +12,7 @@ import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
+import MOMaths.Rect3D;
 import MOMaths.SNum;
 import MOScene3D.SceneData3D;
 import MOUtils.GlobalSettings;
@@ -115,6 +116,10 @@ public class Sprite {
 	public void setRandomKey(int k) {
 		this.randomKey = k;
 		setRandomStreamPos(this.randomKey);
+	}
+	
+	public int getUniqueID() {
+		return uniqueID;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -256,16 +261,29 @@ public class Sprite {
 
 	}
 	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	/// sprite image setting
+	///////////////////////////////////////////////////////////////////////////////////////////
 	
-	public void addImage(BufferedImage img, String name) {
-		images.setImage(name, img);
-	}
-	
+
 	public BufferedImage getImage(int i) {
+		// returns an image from the image list using a numerical index
 		return images.getImage(i);
 	}
 	
+	
+	public BufferedImage getImage(String name) {
+		// returns an image from the image list using an identifying name
+		return images.getImage(name);
+	}
+	public void setImage(String name, BufferedImage img) {
+		// If the existing name already exists, it replaces that image, otherwise adds a new image
+		// The same as setImage
+		images.setImage(name, img);
+	}
+	
 	public void setImage(int i, BufferedImage img) {
+		// sets an image via numerical index. The list element must already exist for this to work
 		images.setImage(i, img);
 	}
 	
@@ -273,10 +291,12 @@ public class Sprite {
 		return images.getNumImages();
 	}
 	
-	
-	public BufferedImage getImage(String name) {
-		return images.getImage(name);
+	public void duplicateImage(String sourceImageName, String duplicateName) {
+		// deep copies the image sourceImageName, and creates a new image at duplicateName
+		BufferedImage copyImg = ImageProcessing.copyImage(getImage(sourceImageName));
+		setImage(duplicateName, copyImg);
 	}
+	
 	
 	// for convenience
 	public BufferedImage getMainImage() {
@@ -288,9 +308,9 @@ public class Sprite {
 		images.setImage("main",img);
 	}
 
-
-	
-	
+	public void clearImages() {
+		images.removeAllImages();
+	}
 	
 	// called by the generating sprite font
 	// this selects the image as well so is good to go....
@@ -495,12 +515,12 @@ public class Sprite {
 
 		//if( isQuickRenderMode() ) return;
 		
-		if(scaleW==scaleH) {
+		//if(scaleW==scaleH) {
 			// chance to use double scaling on very big scale reductions
 			//setImage(ImageProcessing.scaleImage(getImage(), scaleW));
-		}else {
+		//}else {
 			//setImage(ImageProcessing.scaleImage(getImage(), scaleW, scaleH));
-		}
+		//}
 
 		images.scale(scaleW, scaleH);
 	}
@@ -794,21 +814,49 @@ public class Sprite {
 	}
 
 
-	
+	public Rect3D getSpriteRectInScene3D() {
+		// this needs to be called  after all geometric calculations 
+		// have been completed.
+		Rect spriteRect = getDocSpaceRect();
+		// the sprite's docSpace may be in local ROI coordinates, so we need to convert to master Coordinates
+		PVector masterDocSpaceTopLeft = GlobalSettings.getSceneData3D().subROIDocSpaceToMasterDocSpace(spriteRect.getTopLeft());
+		PVector masterDocSpaceBottomRight = GlobalSettings.getSceneData3D().subROIDocSpaceToMasterDocSpace(spriteRect.getBottomRight());
+		
+		float depth = getDepth();
+		
+		PVector corner1 = GlobalSettings.getSceneData3D().get3DVolumePoint(masterDocSpaceTopLeft,  depth);
+		PVector corner2 = GlobalSettings.getSceneData3D().get3DVolumePoint(masterDocSpaceBottomRight,  depth);
+		
+		return new Rect3D(corner1,corner2);
+	}
+
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	/// end of geometric transforms
 	///////////////////////////////////////////////////////////////////////////////////////////
+	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	/// sprite image colour transforms
+	///////////////////////////////////////////////////////////////////////////////////////////
+	
+	
 
-	//public void  colorTransform(int function, float p1, float p2, float p3) {
-	//	setImage(ImageProcessing.colorTransform( getImage(),  function,  p1,  p2,  p3));
-	//}
+	public void applyLevels(String imageName, float[] levels) {
+		BufferedImage img = this.getImage(imageName);
+		BufferedImage transformedImg = ImageProcessing.adjustLevels(img, levels[0], levels[1], levels[2]);
+		this.setImage(imageName, transformedImg);
+	}
 
 	public void colorTransform(MOColorTransform colTransform) {
-
 		setMainImage(colTransform.doColorTransforms(getMainImage()));
-		
 	}
+	
+	public void colorTransform(String imageName, MOColorTransform colTransform) {
+		BufferedImage img = this.getImage(imageName);
+		BufferedImage transformedImg = colTransform.doColorTransforms(img);
+		this.setImage(imageName, transformedImg);
+	}
+
 
 
 
@@ -825,17 +873,9 @@ public class Sprite {
 	}
 
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// experimental: A region is extracted from the sprite via the mask image. The mask image is a grey-scale
-	// image that extracts the visible region region of the sprite-image. If the mask image is white then the extraction is 100%, 127 would yield a 50% extraction etc.
-	// The effect is applied to the extracted image and re-merged with the original
-
-	
 	
 
-	public int getUniqueID() {
-		return uniqueID;
-	}
+	
 
 }
 

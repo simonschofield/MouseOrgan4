@@ -337,6 +337,24 @@ public class SceneHelper {
 	}
 	
 	
+	// this is used to fudge the appeareance of base grass etc to make it fill out in the disytnace, but be skinny in
+	// the foreground etc
+	public static void tweakSpriteScaleOnDepth(Sprite sprite, float nearDepth, float farDepth, float nearWidthScale, float farWidthScale, float nearHeightScale, float farHeightScale) {
+		
+			
+			float d = sprite.getDepth();
+			
+			if(d > farDepth) return;
+			
+			
+			float widthScale = MOMaths.mapClamped(d, nearDepth, farDepth, nearWidthScale, farWidthScale);
+			float heightScale = MOMaths.mapClamped(d, nearDepth, farDepth, nearHeightScale, farHeightScale);
+			
+			sprite.scale(widthScale, heightScale);
+			
+		}
+	
+	
 	//public static void drawQuad(Sprite sprite, Color c, BufferedImageRenderTarget rt) {
 	//	Vertices2 verts = sprite.imageQuad.getSpriteBufferSpaceQuadVertices();
 	//	PVector shift = sprite.spriteLocalBufferSpaceToDocumentBufferSpace(PVector.ZERO());

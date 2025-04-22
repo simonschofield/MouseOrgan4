@@ -31,7 +31,7 @@ public class MOPackedColor {
 		return packedCol & 0xFF; // blue
 	}
 
-	static int getAlpha(int packedCol) {
+	public static int getAlpha(int packedCol) {
 		return (packedCol >> 24) & 0xFF;// alpha
 	}
 

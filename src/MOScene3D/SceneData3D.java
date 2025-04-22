@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import MOImage.ConvolutionFilter;
 import MOImage.FloatImage;
 import MOImage.ImageProcessing;
-import MOImage.KeyImageSampler;
 import MOImage.MOPackedColor;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.ImageAssetGroup;
@@ -20,7 +19,8 @@ import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Ray3D;
 import MOMaths.Rect;
-//import MOSprite.SpriteSeed;
+import MOMaths.Rect3D;
+import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.ImageDimensions;
@@ -236,7 +236,7 @@ public class SceneData3D {
 	}
 
 	public Range getFullSceneDepthExtrema() {
-		return depthBuffer3d.depthBufferExtrema.copy();
+		return depthBuffer3d.getDepthExtrema().copy();
 	}
 
 	////////////////////////////////////////////////////////////////
@@ -279,26 +279,17 @@ public class SceneData3D {
 		return depthBuffer3d.docSpaceToWorld3D(masterSpace);
 	}
 	
-	public PVector docSpaceToWorld3D(PVector docSpace, float depth) {
-		return depthBuffer3d.docSpaceToWorld3D(docSpace, depth);
+	public PVector get3DVolumePoint(PVector docSpace, float depth) {
+		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+		return depthBuffer3d.docSpaceToWorld3D(masterSpace, depth);
 	}
 	
 	public Ray3D castRayIntoScene(PVector docSpace) {
-		PVector rayOrigin = docSpaceToWorld3D(docSpace, 1);
+		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
+		PVector rayOrigin = get3DVolumePoint(masterSpace, 1);
 		PVector rayNormal = new PVector(0,0,1);
 		return new Ray3D(rayOrigin,rayNormal);
 	}
-
-	/*
-	PVector get3DVolumePoint(PVector docSpace, float normDepth) {
-		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
-
-		// needs to take angle into consideration but OK for the moment
-		float realDistance = depthBuffer3d.normalisedDepthToRealDepth(normDepth);
-
-		return depthBuffer3d.docSpaceToWorld3D(masterSpace, realDistance);
-	}
-	*/
 
 	public float get3DScale(PVector ROIdocSpace) {
 		// Returns the document-space distance in master units, that is the unit 3D distance (1.0) at master document space point in the 3D scene.
@@ -323,14 +314,16 @@ public class SceneData3D {
 		return depthBuffer3d.getDepthBilinear(bufferSpace);
 	}
 	
-	/*
-	public float getDepthNormalised(PVector docSpace) {
-		PVector roiSpace = subROIDocSpaceToMasterDocSpace(docSpace);
-		PVector bufferSpace = depthBuffer3d.docSpaceToBufferSpace(roiSpace);
-		return depthBuffer3d.getDepthNormalised(bufferSpace);
+	
+	public float getNormalisedDepth(PVector docSpace) {
+		// useful for applying effect based on depth, such as fog and depth sensitive packing
+		// The normalisation is between the near Z and far Z of the full depthBuffer, where the 
+		// Respective returned values are nearZ -> 0, farZ -> 1
+		float worldDepth =  getDepth(docSpace);
+		return depthBuffer3d.normaliseDepth(worldDepth);
 	}
-	*/
-
+	
+	
 	public PVector world3DToDocSpace(PVector world3dPt) {
 
 		PVector docSpaceInMasterView = depthBuffer3d.world3DToDocSpace(world3dPt);
@@ -340,7 +333,6 @@ public class SceneData3D {
 	
 	
 	
-
 }
 
 

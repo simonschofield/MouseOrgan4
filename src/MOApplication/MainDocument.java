@@ -7,7 +7,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 
-import MOCompositing.MainDocumentRenderTarget;
+import MOCompositing.RenderTargetInterface;
 import MOCompositing.RenderBorder;
 import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.FloatImageRenderTarget;
@@ -34,7 +34,7 @@ public class MainDocument{
 	//public SessionSettings sessionSettings;
 	
 	
-	ArrayList<MainDocumentRenderTarget> renderTargets = new ArrayList<MainDocumentRenderTarget>();
+	ArrayList<RenderTargetInterface> renderTargets = new ArrayList<RenderTargetInterface>();
 	public RenderBorder renderBoarder;
 	int width, height;
 	
@@ -77,19 +77,19 @@ public class MainDocument{
 		return renderTargets.size();
 	}
 	
-	public MainDocumentRenderTarget getRenderTarget(int n) {
+	public RenderTargetInterface getRenderTarget(int n) {
 		if( n >= getNumRenderTargets() || n < 0) {
 			System.out.println("MainRenderDocument::getRenderTarget - illegal index " + n);
 			return null;
 		}
-		return (MainDocumentRenderTarget) renderTargets.get(n);
+		return (RenderTargetInterface) renderTargets.get(n);
 		
 	}
 	
 	
 	public BufferedImageRenderTarget getBufferedImageRenderTarget(String name) {
 		
-		MainDocumentRenderTarget rt =  getRenderTarget( name);
+		RenderTargetInterface rt =  getRenderTarget( name);
 		if(rt.getFileExtension().equals(".png")) return (BufferedImageRenderTarget) rt;
 		System.out.println("MainRenderDocument::getBufferedImageRenderTarget - cannot find buffered image render target called " + name);
 		return null;
@@ -97,17 +97,17 @@ public class MainDocument{
 	
 	public FloatImageRenderTarget getFloatImageRenderTarget(String name) {
 		
-		MainDocumentRenderTarget rt =  getRenderTarget( name);
+		RenderTargetInterface rt =  getRenderTarget( name);
 		if(rt.getFileExtension().equals(".data")) return (FloatImageRenderTarget) rt;
 		System.out.println("MainRenderDocument::getBufferedImageRenderTarget - cannot find buffered image render target called " + name);
 		return null;
 	}
 	
 	
-	public MainDocumentRenderTarget getRenderTarget(String name) {
+	public RenderTargetInterface getRenderTarget(String name) {
 		
-		for(MainDocumentRenderTarget rt: renderTargets) {
-			if( rt.getName().equals(name)) return (MainDocumentRenderTarget) rt;
+		for(RenderTargetInterface rt: renderTargets) {
+			if( rt.getName().equals(name)) return (RenderTargetInterface) rt;
 		}
 		System.out.println("MainRenderDocument::getRenderTarget - cannot find render target called " + name);
 		return null;
@@ -118,7 +118,7 @@ public class MainDocument{
 	
 	
 	public void saveRenderTargetToFile(String renderTargetName, String pathAndFilename) {
-		MainDocumentRenderTarget rt =  getRenderTarget(renderTargetName);
+		RenderTargetInterface rt =  getRenderTarget(renderTargetName);
 		rt.saveRenderToFile(pathAndFilename);
 	}
 	
@@ -138,7 +138,7 @@ public class MainDocument{
 	
 	
 	public void pasteSprite(String renderTargetName, Sprite sprite) {
-		MainDocumentRenderTarget rt = getRenderTarget(renderTargetName);
+		RenderTargetInterface rt = getRenderTarget(renderTargetName);
 		rt.pasteSprite(sprite);
 	}
 	

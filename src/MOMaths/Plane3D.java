@@ -8,6 +8,7 @@ public class Plane3D {
 	public Plane3D(PVector snorm, PVector pointOnPln){
 		pointOnPlane = pointOnPln.copy();
 		surfaceNormal = snorm.copy();
+		surfaceNormal.normalize();
 	}
 	
 	public Plane3D copy() {

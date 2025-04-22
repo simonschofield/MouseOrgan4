@@ -25,7 +25,7 @@ import MOScene3D.SceneData3D;
 
 
 
-public class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
+public class OLD_PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPack2D {
 
 	float farDistanceMultiplier = 1;
 	float nearDistanceThreshold = 0.5f;
@@ -40,7 +40,7 @@ public class PointGenerator_RadialPackSurface3D extends PointGenerator_RadialPac
 	boolean useSurfaceArea = true;
 
 
-	public PointGenerator_RadialPackSurface3D(int rseed, SceneData3D sd) {
+	public OLD_PointGenerator_RadialPackSurface3D(int rseed, SceneData3D sd) {
 		super(rseed);
 		sceneData = sd;
 	}

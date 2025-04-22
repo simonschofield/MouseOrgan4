@@ -12,7 +12,7 @@ import MOImage.ImageProcessing;
 import MOImage.MOPackedColor;
 import MOMaths.AABox3D;
 import MOMaths.Fustrum3D;
-import MOMaths.Intersection3D;
+import MOMaths.Util3D;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Plane3D;

@@ -36,6 +36,17 @@ public class AABox3D{
 		
 	}
 	
+	public PVector norm(PVector p) {
+		// returns the normalised coordinate of p within the box
+		float nx = MOMaths.norm(p.x, getLeft(), getRight());
+		float ny = MOMaths.norm(p.y, getBottom(), getTop());
+		float nz = MOMaths.norm(p.z, getFront(), getBack());
+		return new PVector(nx,ny,nz);
+	}
+	
+	
+	
+	
 	public PVector getMin() {
 		return minXYZ.copy();
 	}
@@ -43,5 +54,64 @@ public class AABox3D{
 	public PVector getMax() {
 		return maxXYZ.copy();
 	}
+	
+	public String toStr() {
+		return "Min:" + minXYZ.toStr() + " Max:" + maxXYZ.toStr();
+	}
+	
+	public float getWidth() {
+		return maxXYZ.x-minXYZ.x;
+	}
+	
+	public float getHeight() {
+		return maxXYZ.y-minXYZ.y;
+	}
+	
+	public float getDepth() {
+		return maxXYZ.z-minXYZ.z;
+	}
+	
+	public float getLeft() {
+		// minX
+		return minXYZ.x;
+	}
+	
+	public float getRight() {
+		// maxX
+		return maxXYZ.x;
+	}
+	
+	public float getTop() {
+		// maxY
+		return maxXYZ.y;
+	}
+	
+	public float getBottom() {
+		// minY
+		return minXYZ.y;
+	}
+	
+	public float getFront() {
+		// minZ
+		return minXYZ.z;
+	}
+	
+	public float getBack() {
+		// maxZ
+		return maxXYZ.z;
+	}
+	
+	public PVector constrain(PVector p) {
+		
+		
+		float cx = MOMaths.constrain(p.x, getLeft(), getRight());
+		float cy = MOMaths.constrain(p.y, getBottom(), getTop());
+		float cz = MOMaths.constrain(p.x, getFront(), getBack());
+		
+		return new PVector(cx,cy,cz);
+		
+		
+	}
+	
 
 }

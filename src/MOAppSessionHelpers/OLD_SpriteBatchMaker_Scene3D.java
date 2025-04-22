@@ -9,7 +9,8 @@ import MOApplication.MainDocument;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
-import MOPointGeneration.PointGenerator_RadialPackSurface3D;
+import MOPointGeneration.OLD_PointGenerator_RadialPackSurface3D;
+import MOPointGeneration.PointGenerator_SurfacePack3D;
 import MOScene3D.SceneData3D;
 import MOSprite.Sprite;
 import MOSprite.SpriteBatch;
@@ -20,16 +21,17 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// produces a sprite batch from 
-// A sprite batch is cheifly a list of sprites. The spites have a hash-field called SpriteBatchName
+// A helper class. Produces a sprite batch from scene 3D data using a packing algorithm
+// A sprite batch is a list of sprites. The spites have a hash-field called SpriteBatchName
 // When sprite batches are appended together the sprites maintain their original SpriteBatchName 
-
-public class SpriteBatchMaker_Scene3D {
+//
+public class OLD_SpriteBatchMaker_Scene3D {
 	String thisHelperName;
 	
 	//SceneData3D sceneData3D;
 	
-	PointGenerator_RadialPackSurface3D pointGenerator;
+	//PointGenerator_RadialPackSurface3D pointGenerator;
+	PointGenerator_SurfacePack3D pointGenerator;
 	
 	float depthSensitivePacking_FarMultiplier = 1f;
 	float depthSensitivePacking_nearThreshold = 1f;;
@@ -38,7 +40,7 @@ public class SpriteBatchMaker_Scene3D {
 	
 	
 	// call this before creating the seedbatches. They should all have the same depth-sensitive packing
-	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
+	public void setDepthThinning(float farMultiplier, float nearThreshold) {
 		depthSensitivePacking_FarMultiplier = farMultiplier;
 		depthSensitivePacking_nearThreshold = nearThreshold;
 	}
@@ -53,7 +55,7 @@ public class SpriteBatchMaker_Scene3D {
 	// call this to return a new seedbatch
 	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
 		ensureSpriteBatchDirectoryExists(GlobalSettings.getUserSessionPath());
-		PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
+		PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.CLAMP,  PackingInterpolationScheme.EXCLUDE); 
 		//SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
 		thisHelperName = name;
 		definePointPacking(packingImage, interpolationScheme, pointPackingRanSeed);
@@ -68,18 +70,19 @@ public class SpriteBatchMaker_Scene3D {
 	} 
 	
 	
-	public PointGenerator_RadialPackSurface3D definePointPacking(String namePointDisImage, PackingInterpolationScheme packingInterpolationScheme, int pointDistRSeed) {
+
+	
+	
+	public PointGenerator_SurfacePack3D definePointPacking(String namePointDisImage, PackingInterpolationScheme packingInterpolationScheme, int pointDistRSeed) {
 		// sets up the pontGenerator for this seed batch
 		// optionally returns the point generator if you need it
 		SceneData3D sceneData3D = GlobalSettings.getSceneData3D();
 		sceneData3D.setCurrentRenderImage(namePointDisImage);
-		BufferedImage pointDistributionImage = sceneData3D.getCurrentRenderImage(true);
-		PointGenerator_RadialPackSurface3D pointField = new PointGenerator_RadialPackSurface3D(pointDistRSeed, sceneData3D);
-
-		pointField.setMaskImage(sceneData3D.getSubstanceMaskImage(true));
-		pointField.setPackingInterpolationScheme(packingInterpolationScheme, pointDistributionImage);
-		pointGenerator = pointField;
-		return pointField;
+		
+		float maxRadius = packingInterpolationScheme.getMaxRadius();
+		pointGenerator = new PointGenerator_SurfacePack3D(sceneData3D);
+		pointGenerator.setPackingInterpolationScheme(packingInterpolationScheme);
+		return pointGenerator;
 	}
 	
 	
@@ -87,9 +90,7 @@ public class SpriteBatchMaker_Scene3D {
 		pointGenerator.setMaxNumPointsLimit(n);
 	}
 	
-	
-	
-	
+
 	public SpriteBatch generateSpriteBatch(int ranKey) {
 		if(pointGenerator == null) {
 			System.out.println("SeedBatchFactory_Scene3D::generateSpriteSeedBatch -  point packing is undefined , please call definePointPacking before using this method");

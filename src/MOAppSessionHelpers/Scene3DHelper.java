@@ -14,7 +14,7 @@ import MOMaths.Plane3D;
 import MOMaths.QRandomStream;
 import MOMaths.Range;
 import MOMaths.Ray3D;
-import MOMaths.Intersection3D;
+import MOMaths.Util3D;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
@@ -467,10 +467,11 @@ public class Scene3DHelper {
 		float textY2 = endPt.y + (0.12f);
 		float textY3 = endPt.y + (0.14f);
 		float textY4 = endPt.y + (0.16f);
+		float textY5 = endPt.y + (0.18f);
 		float len = docPt.dist(endPt);
 		
 		PVector rectTopLeft = new PVector( endPt.x-0.01f, textY1 - 0.02f);
-		PVector rectBottomRight = new PVector( endPt.x+0.33f, textY4 + 0.01f);
+		PVector rectBottomRight = new PVector( endPt.x+0.33f, textY5 + 0.01f);
 		
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", rectTopLeft, rectBottomRight, "rect", Color.white, Color.white, 4);
 		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
@@ -478,6 +479,9 @@ public class Scene3DHelper {
 		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), " depth " + depth ,  Color.red, 20);
 		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY3), "  p3d = " + p3d.toStr() ,  Color.red, 20);
 		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY4), " docP = " + docPt.toStr() ,  Color.red, 20);
+		
+		PVector bp = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(docPt);
+		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY5), " XY = " + bp.toStr() ,  Color.red, 20);
 		
 		
 	}

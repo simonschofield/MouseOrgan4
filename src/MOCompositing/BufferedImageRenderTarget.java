@@ -50,11 +50,11 @@ import MOVectorGraphics.VectorShapeDrawer;
 // with the option to also save a 16Bit Gray of the FloatImage to get visual feedback and to feed into Photoshop proccessing 
 // if required
 
-public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
+public class BufferedImageRenderTarget implements RenderTargetInterface{
 	private Graphics2D graphics2D;
 	protected BufferedImage targetRenderImage;
 	
-	
+	public boolean saveRenderAtEndOfSession = true;
 	
 	public ImageCoordinateSystem coordinateSystem;
 	
@@ -178,6 +178,19 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 		}
 
 		pasteImage_BufferSpace(sprite.getMainImage(), x,y,  alpha);
+	}
+	
+	public void pasteSprite(Sprite sprite, String imageName) {
+		//pasteImage_TopLeftDocPoint(sprite.getImage(), sprite.getDocSpaceRect().getTopLeft(),  sprite.alpha);
+		int x = (int) sprite.getDocumentBufferSpaceRect().getTopLeft().x;
+		int y = (int) sprite.getDocumentBufferSpaceRect().getTopLeft().y;
+		
+		float alpha = 1;
+		if( sprite.spriteData.keyExists("Alpha") ) {
+			alpha = sprite.spriteData.getFloat("Alpha");
+		}
+
+		pasteImage_BufferSpace(sprite.getImage(imageName), x,y,  alpha);
 	}
 	
 	
@@ -332,6 +345,10 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 
 	public void saveRenderToFile(String pathAndFilename) {
 		// the correct extension has already been added by the render saver
+		if(saveRenderAtEndOfSession == false) {
+			System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename + " save set to false ");
+			return;
+		}
 		System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename);
 		ImageProcessing.saveImage(pathAndFilename, targetRenderImage);
 	}
@@ -370,6 +387,11 @@ public class BufferedImageRenderTarget implements MainDocumentRenderTarget{
 
 		shapeDrawer.drawEllipse(left, top, w, w);
 
+	}
+	
+	public void drawRectBufferSpace(Rect r, Color fillColor, Color lineColor, float lineThickness) {
+		shapeDrawer.setDrawingStyle(fillColor, lineColor, lineThickness);
+		shapeDrawer.drawRect(r);
 	}
 	
 	public void clearRect(Rect r) {

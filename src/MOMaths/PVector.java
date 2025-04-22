@@ -1,6 +1,7 @@
 package MOMaths;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 @SuppressWarnings("serial")
 /* -*- mode: java; c-basic-offset: 2; indent-tabs-mode: nil -*- */
@@ -479,6 +480,13 @@ public class PVector implements Serializable{
 		float dz = z - v.z;
 		return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
 	}
+	
+	public float distSq(PVector v) {
+		float dx = x - v.x;
+		float dy = y - v.y;
+		float dz = z - v.z;
+		return (float) (dx * dx + dy * dy + dz * dz);
+	}
 
 	public float distXY(PVector v) {
 		float dx = x - v.x;
@@ -894,6 +902,22 @@ public class PVector implements Serializable{
 	}
 	
 	public float getZ() { return z; }
+	
+	public static ArrayList<PVector> deepCopy(ArrayList<PVector> in) {
+		ArrayList<PVector> deepCopy = new ArrayList<PVector>();
+		for(PVector p: in) {
+			deepCopy.add(p.copy());
+		}
+		return deepCopy;
+	}
+	
+	public static PVector[] deepCopy(PVector[] in) {
+		PVector[] deepCopy = new PVector[in.length];
+		for(int n = 0; n < in.length; n++) {
+			deepCopy[n] = in[n].copy();
+		}
+		return deepCopy;
+	}
 	
 	
 }

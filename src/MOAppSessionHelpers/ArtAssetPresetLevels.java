@@ -5,7 +5,7 @@ import MOMaths.MOMaths;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This class helps the user define what is a "dark" version of an art asset, and what is a "light" version of an art asset using 
 // levels to adjust between the two. 
-// Once defines, the user can ask for the level using 
+// Once defined, the user can ask for the level using a control variable (0..1), where 0 returns the dark version, 1 returns the bright version,
 //
 //
 //

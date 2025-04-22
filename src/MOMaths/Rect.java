@@ -34,6 +34,8 @@ public class Rect{
 		this.right = Math.max(x1, x2);
 		this.bottom = Math.max(y1, y2);
 	}
+	
+	
 
 	public void setWithDimensions(float x, float y, float w, float h) {
 		left = x;
@@ -54,6 +56,10 @@ public class Rect{
 				right == other.right && bottom == other.bottom) return true;
 		return false;
 	}
+	
+	
+	
+	
 
 	
 	//////////////////////////////////////////////////////////////////////////////////
@@ -115,6 +121,25 @@ public class Rect{
 	
 	public String toStr() {
 		return new String("x " + left + ", y " + top + ", width " + getWidth() + ", height " + getHeight()) ;
+	}
+	
+	public static Rect getExtents(PVector[] pointList) {
+		Range xrange = new Range();
+		xrange.initialiseForExtremaSearch();
+		Range yrange = new Range();
+		yrange.initialiseForExtremaSearch();
+		
+		
+		for(PVector p: pointList) {
+			xrange.addExtremaCandidate(p.x);
+			yrange.addExtremaCandidate(p.y);
+		}
+		
+		PVector p1 = new PVector(xrange.getLower(), yrange.getLower());
+		PVector p2 = new PVector(xrange.getUpper(), yrange.getUpper());
+		
+		Rect extents = new Rect(p1,p2);
+		return extents;
 	}
 	
 	

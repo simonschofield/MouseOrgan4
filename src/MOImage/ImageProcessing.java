@@ -559,6 +559,11 @@ public class ImageProcessing {
 	//
 	private static BufferedImage scaleImage_SinglePass(BufferedImage originalImage, float inx, float iny) {
 		// if inx != iny the you have to use this
+		//System.out.println("single pass scale");
+		
+		
+		
+		
 		int w = originalImage.getWidth();
 		int h = originalImage.getHeight();
 
@@ -568,6 +573,10 @@ public class ImageProcessing {
 		if(scaledWidth <= 0) scaledWidth = 1;
 		if(scaledHeight <= 0) scaledHeight = 1;
 
+		
+		//BufferedImage scaledImage = (BufferedImage) originalImage.getScaledInstance(scaledWidth, scaledHeight, originalImage.getType());
+				
+				
 		BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, originalImage.getType());
 		Graphics2D g = scaledImage.createGraphics();
 		setInterpolationQuality(g);
@@ -583,6 +592,7 @@ public class ImageProcessing {
 		// downscaling to something less than factor 0.5, you get the best result by doing multiple downscaling with a minimum factor of 0.5 
 		// (in other words: each scaling operation should scale to maximum half the size).
 		// Currently can only work with uniform scaling
+		//System.out.println("progressive scale");
 		int w = before.getWidth();
 		int h = before.getHeight();
 		int targetW = (int) (w*scale);

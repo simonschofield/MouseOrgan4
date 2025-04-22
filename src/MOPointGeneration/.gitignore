@@ -3,3 +3,7 @@
 /PointGenerator_RadialPackSurface3D.class
 /PointGenerator_Random.class
 /PointGenerator_Volume3D.class
+/PointBox3D.class
+/PointGenerator_SurfacePack3D_V2.class
+/OLD_PointGenerator_RadialPackSurface3D.class
+/SpatialIndexBox3D.class

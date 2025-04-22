@@ -8,7 +8,11 @@ public class Ray3D {
 	
 	PVector origin = new PVector();
 	PVector direction = new PVector(0, 0, -1);
-	private PVector intersectionPoint = new PVector(0, 0, 0);
+	
+	// data to be set in intersection algorithms and 
+	// later recovered by the user if necessary
+	public PVector intersectionPoint = new PVector(0, 0, 0);
+	public PVector intersectionNormal = new PVector(0, 0, 0);
 
 	boolean isIntersection = false;
 	
@@ -38,6 +42,9 @@ public class Ray3D {
 		PVector p1 = PVector.mult(direction, d);
 		return PVector.add(p1, origin);
 	}
+	
+	
+	
 	
 	
 

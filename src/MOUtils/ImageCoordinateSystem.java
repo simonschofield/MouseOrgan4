@@ -1,5 +1,6 @@
 package MOUtils;
 
+import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
 
@@ -25,6 +26,15 @@ public class ImageCoordinateSystem {
 
 			float bx = docPt.x * longestBufferEdge;
 			float by = docPt.y * longestBufferEdge;
+			return new PVector(bx, by);
+		}
+		
+		public PVector docSpaceToBufferSpaceClamped(PVector docPt) {
+
+			float bx = docPt.x * longestBufferEdge;
+			float by = docPt.y * longestBufferEdge;
+			bx = MOMaths.constrain(bx, 0, bufferWidth-1);
+			by = MOMaths.constrain(by, 0, bufferHeight-1);
 			return new PVector(bx, by);
 		}
 

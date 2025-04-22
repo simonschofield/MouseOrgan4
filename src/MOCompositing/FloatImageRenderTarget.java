@@ -15,14 +15,17 @@ import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.MOStringUtils;
 
-public class FloatImageRenderTarget implements MainDocumentRenderTarget {
+public class FloatImageRenderTarget implements RenderTargetInterface {
 	// this is used if required in saving float data (e.g. actual depth values).
 	private FloatImage floatImage;
-	private boolean floatImageMake16BitCopyOnSave = false;
+	
 	private float floatImageCopyGamma;
 
 	public ImageCoordinateSystem coordinateSystem;
 
+	private boolean floatImageMake16BitCopyOnSave = false;
+	public boolean saveRenderAtEndOfSession = true;
+	
 	public FloatImageRenderTarget(int w, int h, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
 		floatImage = new FloatImage(w, h);
 		floatImageMake16BitCopyOnSave = saveTYPE_USHORT_GRAYcopy;
@@ -65,23 +68,22 @@ public class FloatImageRenderTarget implements MainDocumentRenderTarget {
 
 	@Override
 	public void saveRenderToFile(String pathAndFilename) {
-		System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename);
-		// check to see if extension exists
+		if(saveRenderAtEndOfSession == false) {
+			System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename + " save set to false ");
+		} else {
+			System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename);
+			saveFloatImage(pathAndFilename);
+		}
 		
-		
-		// check to see if the floatImage has been used
-		// if so, then copy the floatData to the TYPE_USHORT_GRAY image
-		// save out the floatImage using the path etc and proceed with saving the 
-		// TYPE_USHORT_GRAY data normally
-		
-			
-		saveFloatImage(pathAndFilename);
 			
 		if( floatImageMake16BitCopyOnSave ) {
+			
 			BufferedImage TYPE_USHORT_GRAY_BufferedImage = copyFloatDataToBufferedImage(floatImageCopyGamma);
 			
 			String  fnameAndPathNoExt = MOStringUtils.getFileNameWithoutExtension(pathAndFilename);
 			String bufferedImageFileName = fnameAndPathNoExt + ".png";
+			
+			System.out.println("RenderTarget:saveRenderToFile  " + bufferedImageFileName);
 			ImageProcessing.saveImage(bufferedImageFileName, TYPE_USHORT_GRAY_BufferedImage);
 		} 
 
@@ -143,8 +145,22 @@ public class FloatImageRenderTarget implements MainDocumentRenderTarget {
 		return coordinateSystem;
 	}
 	
+	// getting and setting in BufferSpace
 	public void setPixel(int x, int y, float val) {
 		floatImage.set(x, y, val);
+		
+	}
+	
+	public float getPixel(int x, int y) {
+		return floatImage.get(x, y);
+		
+	}
+	
+	
+	// getting pixel in doc space, using bilinear
+	public float getPixel(PVector p) {
+		PVector bufferSpacePt = coordinateSystem.docSpaceToBufferSpace(p);
+		return floatImage.getPixelBilin(bufferSpacePt.x, bufferSpacePt.y);
 		
 	}
 
@@ -190,6 +206,12 @@ public class FloatImageRenderTarget implements MainDocumentRenderTarget {
 			}
 		}
 
+	}
+
+	@Override
+	public void pasteSprite(Sprite sprite, String imageName) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

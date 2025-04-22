@@ -49,6 +49,12 @@ public class MOMaths {
 		return lerp(p1, outRangeLo, outRangeHi);
 
 	}
+	
+	public static float mapClamped(float p, float inRangeLo, float inRangeHi, float outRangeLo, float outRangeHi) {
+		float p1 = norm(p, inRangeLo, inRangeHi);
+		float m =  lerp(p1, outRangeLo, outRangeHi);
+		return constrain(m, outRangeLo, outRangeHi);
+	}
 
 	public static float constrain(float val, float lower, float upper) {
 		if (val < lower)
@@ -207,6 +213,19 @@ public class MOMaths {
 		float det = v1.x*v2.y - v1.y*v2.x;      
 		return (float) (Math.atan2(det, dot) + Math.PI);  // atan2(y, x) or atan2(sin, cos)
 		
+	}
+	
+	public static boolean isPointInTriangle(PVector p, PVector t1, PVector t2, PVector t3)
+	{
+		// untested
+	    float s = (t1.x - t3.x) * (p.y - t3.y) - (t1.y - t3.y) * (p.x - t3.x);
+	    float t = (t2.x - t1.x) * (p.y - t1.y) - (t2.y - t1.y) * (p.x - t1.x);
+
+	    if ((s < 0) != (t < 0) && s != 0 && t != 0)
+	        return false;
+
+	    var d = (t3.x - t2.x) * (p.y - t2.y) - (t3.y - t2.y) * (p.x - t2.x);
+	    return d == 0 || (d < 0) == (s + t <= 0);
 	}
 	
 

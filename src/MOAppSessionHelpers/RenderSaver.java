@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import MOApplication.MainDocument;
 //import MOCompositing.MainDocumentRenderTarget;
 import MOCompositing.BufferedImageRenderTarget;
-import MOCompositing.MainDocumentRenderTarget;
+import MOCompositing.RenderTargetInterface;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
@@ -52,6 +52,7 @@ public class RenderSaver {
 	
 	
 	MainDocument theDocument;
+	boolean isActive = true;
 	
 	int currentSessionEnumerator = 0;
 	
@@ -88,6 +89,17 @@ public class RenderSaver {
 		//}
 	}
 	
+	public void setActive(boolean b) {
+		isActive = b;
+	}
+	
+	public boolean isActive() {
+		if(isActive == false){
+			System.out.println( "RenderSaver is inactive - no file saves" );
+		}
+		return isActive;
+	}
+	
 	public void useReverseLayerNumbering(int startNum) {
 		useReverseLayerNumbering = true;
 		layerCounter = startNum;
@@ -110,6 +122,10 @@ public class RenderSaver {
 	// 
 	// 
 	public void saveDocumentImages() {
+		
+		if( isActive() == false) {
+			return;
+		}
 		
 		String currentNumeratorString = getSessionEnumeratorString();
 		
@@ -229,7 +245,7 @@ public class RenderSaver {
 	private void saveDocumentSupplementaryImages(String fullPath, String enumerator) {
 		if(theDocument.getNumRenderTargets()==1) return;
 		for(int n = 1; n < theDocument.getNumRenderTargets(); n++) {
-			MainDocumentRenderTarget rt = theDocument.getRenderTarget(n);
+			RenderTargetInterface rt = theDocument.getRenderTarget(n);
 			String fullSessionName = rt.getFullSessionName();
 			String ext = rt.getFileExtension();
 			String fullPathAndName =  fullPath + fullSessionName + enumerator + ext;

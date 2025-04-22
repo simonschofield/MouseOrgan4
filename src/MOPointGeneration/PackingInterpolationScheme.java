@@ -14,7 +14,7 @@ import MOMaths.MOMaths;
 //Hence the user may wish the interpolation to be in terms of resultant surface area, or volume of a point's "exclusion zone". Surface_area is the default mode.
 //
 //Another special consideration with distribution interpolations, is what to do beyond the controlMin and controlMax values
-//This is dealt with by the underInputMinAction a,d overInputMaxOption settings, so that beyond this the min/max input extents:-
+//This is dealt with by the underInputMinAction and overInputMaxOption settings, so that beyond this the min/max input extents:-
 //EXCLUDE -  report that this value is excluded, so no further action may be taken (e.g. do not put a point down at all)
 //CLAMP -  clamp the input to that extent, so the returned value is constant beyond that extent (e.g. keep the same distribution as if it was the extent)
 //EXTRAPOLATE - keep on interpolating beyond that extent (i.e. so the output values exceed the outputValueAtInputMin/Max values )
@@ -100,25 +100,27 @@ public class PackingInterpolationScheme {
 	}
 
 	boolean isExcluded(float controlVal) {
-		if (controlVal < controlValueMin && underControlValueMinOption == EXCLUDE)
-			return true;
-		if (controlVal > controlValueMax && overControlValueMaxOption == EXCLUDE)
-			return true;
-		return false;
+		boolean result = false;
+		if (controlVal < controlValueMin && underControlValueMinOption == EXCLUDE) result = true;
+			
+		if (controlVal > controlValueMax && overControlValueMaxOption == EXCLUDE)result = true;
+		
+		
+			
+		//System.out.println("Control val " + controlVal + " controlValueMax " + controlValueMax + " overControlValueMaxOption " + overControlValueMaxOption);
+		
+		
+		
+		return result;
 	}
 
 
-	float getRadius(float controlVal) {
+	public float getRadius(float controlVal) {
 
-		if ((underControlValueMinOption == CLAMP || underControlValueMinOption == EXCLUDE)
-				&& controlVal < controlValueMin)
-			controlVal = controlValueMin;
-		if ((overControlValueMaxOption == CLAMP || overControlValueMaxOption == EXCLUDE)
-				&& controlVal > controlValueMax)
-			controlVal = controlValueMax;
+		if (  (underControlValueMinOption == CLAMP || underControlValueMinOption == EXCLUDE) && controlVal < controlValueMin)  controlVal = controlValueMin;
+		if (  (overControlValueMaxOption == CLAMP || overControlValueMaxOption == EXCLUDE)  && controlVal > controlValueMax)   controlVal = controlValueMax;
 
-		float val = MOMaths.map(controlVal, controlValueMin, controlValueMax, interpolationUnitsAtControlValMin,
-				interpolationUnitsAtControlValMax);
+		float val = MOMaths.map(controlVal, controlValueMin, controlValueMax, interpolationUnitsAtControlValMin, interpolationUnitsAtControlValMax);
 
 		if (interpolationUnitsOption == RANGE_UNITS_SURFACE_AREA) {
 			return (float) Math.sqrt(val / Math.PI);
@@ -130,6 +132,14 @@ public class PackingInterpolationScheme {
 
 		return val;
 
+	}
+	
+	
+	public float getMaxRadius() {
+		// as we cannot be sure which way the system is interpolating, we do both extremes and return the max
+		float r1 = getRadius(controlValueMin);
+		float r2 = getRadius(controlValueMax);
+		return Math.max(r1, r2);
 	}
 
 }

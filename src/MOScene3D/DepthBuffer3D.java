@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import MOImage.FloatImage;
 import MOImage.KeyImageSampler;
 import MOImage.MOPackedColor;
+import MOMaths.AABox3D;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
@@ -25,7 +26,10 @@ public class DepthBuffer3D {
 		// the orthogonal distance from the object to the camera plane
 		// in original viewing application units
 		FloatImage depthBuffer;
-		Range depthBufferExtrema;
+		
+		
+		Range worldXExtrema, worldYExtrema, worldZExtrema;
+		
 		
 		int width, height;
 		float widthBy2, heightBy2;
@@ -55,15 +59,17 @@ public class DepthBuffer3D {
 			makeSubstanceBuffer();
 			
 			
-			depthBufferExtrema = depthBuffer.getExtrema();
+			Range depthBufferExtrema = depthBuffer.getExtrema();
 			float farDepth = depthBufferExtrema.getUpper();
 			
 			// Replace the current -Float.MAX_VALUE vaulues in the depth buffer with a 
 			// "less toxic" value for when non-substance pixels may get included in bi-linear interpolation calculations
 			depthBuffer.replaceMaskValue(farDepth+1);
 			
+			calculateWorld3DExtents();
 			
 			System.out.println("depth buffer extrema are " + depthBufferExtrema.limit1 + " " + depthBufferExtrema.limit2);
+			System.out.println("worldZExtrema extrema are " + worldZExtrema.limit1 + " " + worldZExtrema.limit2);
 		}
 		
 		private void makeSubstanceBuffer() {
@@ -89,6 +95,11 @@ public class DepthBuffer3D {
 		
 		public PVector docSpaceToWorld3D(PVector docSpace) {
 			PVector bufferSpace = docSpaceToBufferSpace(docSpace);
+			return bufferSpaceToWorld3D(bufferSpace);
+		}
+		
+		public PVector bufferSpaceToWorld3D(int x, int y) {
+			PVector bufferSpace = new PVector(x,y);
 			return bufferSpaceToWorld3D(bufferSpace);
 		}
 		
@@ -163,20 +174,19 @@ public class DepthBuffer3D {
 			return depthBuffer.getPixelBilin(bufferSpace.x, bufferSpace.y);
 		}
 		
-		/*
-		public float getDepthNormalised(PVector bufferSpace) {
-			float d =  depthBuffer.getPixelBilin(bufferSpace.x, bufferSpace.y);
-			return depthBufferExtrema.norm(d);
-		}
 		
-		public float normalisedDepthToRealDepth(float normDepth) {
-			return depthBufferExtrema.lerp(normDepth);
-		}
-		*/
 		
 		public float getDepth(int x, int y) {
-			if(depthBufferCoordinateSystem.isInsideBufferSpace(x, y)==false) return depthBufferExtrema.getUpper();
+			if(depthBufferCoordinateSystem.isInsideBufferSpace(x, y)==false) return worldZExtrema.getUpper();
 			return depthBuffer.get(x,y);
+		}
+		
+		public float normaliseDepth(float worldDepth) {
+			return worldZExtrema.norm(worldDepth);
+		}
+		
+		public Range getDepthExtrema() {
+			return worldZExtrema;
 		}
 		
 		public PVector get3DDisplacedDocPoint(PVector docPt, PVector displacement) {
@@ -222,6 +232,42 @@ public class DepthBuffer3D {
 			PVector bufferSpace = world3DToBufferSpace(world3dPt);
 			return depthBufferCoordinateSystem.bufferSpaceToDocSpace(bufferSpace);
 		}
+		
+		public AABox3D getExtents() {
+			float xLo = worldXExtrema.getLower();
+			float yLo = worldYExtrema.getLower();
+			float zLo = worldZExtrema.getLower();
+			
+			float xHi = worldXExtrema.getUpper();
+			float yHi = worldYExtrema.getUpper();
+			float zHi = worldZExtrema.getUpper();
+			
+			PVector lo = new PVector(xLo,yLo,zLo);
+			PVector hi = new PVector(xHi,yHi,zHi);
+			
+			return new AABox3D(lo,hi);
+		}
+		
+		private void calculateWorld3DExtents() {
+			worldXExtrema = new Range(); worldXExtrema.initialiseForExtremaSearch();
+			worldYExtrema = new Range(); worldYExtrema.initialiseForExtremaSearch();
+			worldZExtrema = new Range(); worldZExtrema.initialiseForExtremaSearch();
+			
+			for(int y = 0; y < depthBuffer.getHeight(); y++) {
+				
+				for(int x = 0; x < depthBuffer.getWidth(); x++) {
+					if( isSubstance( x,  y) == false ) continue;
+					
+					PVector p3 = bufferSpaceToWorld3D(x,y);
+					worldXExtrema.addExtremaCandidate(p3.x);
+					worldYExtrema.addExtremaCandidate(p3.y);
+					worldZExtrema.addExtremaCandidate(p3.z);
+				}
+			}
+			
+			
+		}
+		
 		
 		
 		

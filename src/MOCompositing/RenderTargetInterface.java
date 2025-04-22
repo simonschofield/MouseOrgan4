@@ -8,7 +8,7 @@ import MOUtils.ImageCoordinateSystem;
 //
 //
 
-public interface MainDocumentRenderTarget {
+public interface RenderTargetInterface {
 	
 	public void setName(String name);
 	
@@ -22,8 +22,12 @@ public interface MainDocumentRenderTarget {
 	
 	public void pasteSprite(Sprite sprite);
 	
+	public void pasteSprite(Sprite sprite, String imageName);
+	
 	public void saveRenderToFile(String pathAndFilename);
 
 	public ImageCoordinateSystem getCoordinateSystem();
+	
+	
 
 }

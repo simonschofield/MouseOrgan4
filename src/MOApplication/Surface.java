@@ -209,6 +209,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		// It automatically called userSessionFinishe() method once, then
 		// goes into idle state
 		theUserSessionState = UserSessionState.FINALISE;
+		this.forceRefreshDisplay();
 		//System.out.println("User session state in endUserSession = " + theUserSessionState);
 		keepAwake.setActive(false);
 	}
@@ -217,11 +218,6 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	Rect getCanvasWindowRect() {
 		return canvasWindowRect.copy();
 	}
-	
-	//Rect getViewPortDocSpace() {
-	//	return theViewControl.getCurrentViewPortDocSpace();
-	//}
-	
 	
 	
 
