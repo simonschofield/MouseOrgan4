@@ -26,6 +26,7 @@ import javax.imageio.ImageIO;
 import MOAppSessionHelpers.SceneHelper;
 import MOImage.FloatImage;
 import MOImage.ImageProcessing;
+import MOImage.MOPackedColor;
 import MOMaths.Line2;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
@@ -56,6 +57,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	
 	public boolean saveRenderAtEndOfSession = true;
 	
+	
 	public ImageCoordinateSystem coordinateSystem;
 	
 
@@ -69,6 +71,12 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	
 	public BufferedImageRenderTarget(int w, int h, int imgType) {
 		setRenderBuffer( w,  h,  imgType);
+	}
+	
+	@Override
+	public void setCoordinateSystem(ImageCoordinateSystem ics) {
+		// TODO Auto-generated method stub
+		coordinateSystem = ics;
 	}
 	
 	
@@ -107,6 +115,9 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	}
 	
 	
+	
+	
+	
 	public BufferedImage getImage() {
 		return targetRenderImage;
 	}
@@ -116,7 +127,11 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	}
 	
 	public int getType() {
-		return targetRenderImage.getType();
+		int t =  targetRenderImage.getType();
+		if(t==0) {
+			System.out.println("BufferedImageRenderTarget::getType - is returning 0 ... this is reserved for Floating Point images");
+		}
+		return t;
 	}
 	
 	
@@ -267,6 +282,55 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 		getGraphics2D().drawImage(sprite.getMainImage(), (int)bufferPt.x, (int)bufferPt.y, null);
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////
+	// Experimental using a TYPE_INT_ARGB buffered image to store sprite ID,s
+	// These can then be queried
+	public void pasteSpriteIDToARGBImage(Sprite sprite) {
+		if(getType() != BufferedImage.TYPE_INT_ARGB) {
+			System.out.println("RenderTarget.pasteSpriteIDToARGBImage :: target image is not TYPE_INT_ARGB");
+			return;
+		}
+		
+		//WritableRaster renderTargeImageData = targetRenderImage.getRaster();
+		//WritableRaster spriteImageAlphaData = sprite.getMainImage().getAlphaRaster();
+		
+		Rect bufferSpaceRect = sprite.getDocumentBufferSpaceRect();
+		int idval = sprite.getID();
+		BufferedImage spriteImage = sprite.getMainImage();
+		
+		//System.out.println(" UShort Depth  = " + shortval);
+		for (int y = 0; y < bufferSpaceRect.getHeight(); y++) {
+			for (int x = 0; x < bufferSpaceRect.getWidth(); x++) {
+				
+				
+				
+				
+				int spriteRGBA = spriteImage.getRGB(x, y);
+				int alpha = MOPackedColor.getAlpha(spriteRGBA);
+				
+				
+				int bufferPointX = (int) (x + bufferSpaceRect.left);
+				int bufferPointY = (int) (y + bufferSpaceRect.top);
+				
+				if( bufferSpaceRect.isPointInside(bufferPointX, bufferPointY)==false) continue;
+				//System.out.println("wirting ID :: " + idval + " at pt " + bufferPointX + "," + bufferPointY);
+				if(alpha>16) this.setPixel(bufferPointX, bufferPointY,idval);
+				
+				
+			}
+		}
+		
+	}
+	
+	
+	public int getSpriteID(PVector docPoint) {
+		
+		int id = getPixel(docPoint);
+		
+		return id;
+	}
+	
+	
 	
 	////////////////////////////////////////////////////////////////////////////////////
 	// Experimental custom mask paste operation for 16 bit data (e.g. a depth mask),
@@ -320,10 +384,28 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////
-	// Unusual direct access to the target image. Probably only used for testing stuff
+	// Unusual direct access to the target image. Slow so use carefully
 	public void setPixel(int x, int y, Color c) {
 		
 		targetRenderImage.setRGB(x, y, c.getRGB());
+		
+	}
+	
+	public void setPixel(int x, int y, int c) {
+		
+		targetRenderImage.setRGB(x, y, c);
+		
+	}
+	
+	
+	public int getPixel(PVector docSpace) {
+		PVector bufferSpace = coordinateSystem.docSpaceToBufferSpaceClamped(docSpace);
+		return getPixel((int)bufferSpace.x,(int)bufferSpace.y);
+	}
+	
+	public int getPixel(int x, int y) {
+		
+		return targetRenderImage.getRGB(x, y);
 		
 	}
 	
@@ -423,6 +505,13 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 		// which has no line styles etc....
 		Rect bufferRect = coordinateSystem.docSpaceToBufferSpace(r);
 		fillBackground_BufferSpace(bufferRect, fillColor);
+	}
+	
+	
+	public void drawRect_DocSpace(Rect r, Color fillColor, Color lineColor, float pixelWeight) {
+		shapeDrawer.setDrawingStyle(fillColor, lineColor, pixelWeight);
+		Rect bufferRect = coordinateSystem.docSpaceToBufferSpace(r);
+		shapeDrawer.drawRect(bufferRect);
 	}
 
 	//////////////////////////////////////////
@@ -558,5 +647,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 		}
 		return scaled;
 	}
+
+	
 
 }

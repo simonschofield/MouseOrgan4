@@ -256,6 +256,9 @@ public  class QRandomStream {
 	}
 	
 	
+	
+	
+	
 	public void startKeyedPosition(int keyNumber) {
 		if(preKeyedCachedPosition!=null) {
 			//System.out.println("QRandomStream:startKeyedPosition is already in use - ignoring");

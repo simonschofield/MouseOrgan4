@@ -33,8 +33,8 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 import MOUtils.MOStringUtils;
-import MOUtils.ObjectWithValueList;
 import MOUtils.TextBank;
+import MOZZZ_Depricated.ObjectWithValueList;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // common network operations
@@ -592,7 +592,7 @@ public class NNetworkEdgeDrawHelper {
 		sprite.mapToLine2(line,  overlap1, overlap2, 0.005f);
 
 
-		if( GlobalSettings.getDocument().cropSpriteToBoarder(sprite) ) GlobalSettings.getDocument().getMain().pasteSprite(sprite);
+		if( GlobalSettings.getDocument().cropSpriteToBorder(sprite) ) GlobalSettings.getDocument().getMain().pasteSprite(sprite);
 
 		return true;
 		//theDocument.getMain().drawLine(line.p1, line.p2, Color.RED, 5);
@@ -636,7 +636,7 @@ public class NNetworkEdgeDrawHelper {
 			sprite.rotate(rot);
 			sprite.setDocPoint(line.p1);
 			//SceneHelper.addRandomHSV( sprite,  0.1f,  0.2f,  0.0f);
-			if( GlobalSettings.getDocument().cropSpriteToBoarder(sprite) ) GlobalSettings.getDocument().getMain().pasteSprite(sprite);
+			if( GlobalSettings.getDocument().cropSpriteToBorder(sprite) ) GlobalSettings.getDocument().getMain().pasteSprite(sprite);
 
 		}
 

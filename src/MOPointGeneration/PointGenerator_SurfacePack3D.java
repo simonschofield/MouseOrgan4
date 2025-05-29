@@ -2,12 +2,12 @@ package MOPointGeneration;
 
 import java.util.ArrayList;
 
-import MOMaths.AABox3D;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.RandomStream;
 import MOMaths.Rect;
+import MOScene3D.AABox3D;
 import MOScene3D.SceneData3D;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // The idea is to iterate in floating point 2D to generate 3D points on the surface of the scene

@@ -1,4 +1,4 @@
-package MOUtils;
+package MOZZZ_Depricated;
 import MOMaths.PVector;
 
 public class Func {

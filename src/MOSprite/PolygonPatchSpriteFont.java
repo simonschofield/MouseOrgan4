@@ -20,7 +20,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 	float scaleToFit = 0;
 
 	public PolygonPatchSpriteFont(String sdFontName, String imageSampleGroupName, int rseed) {
-		super( sdFontName,  imageSampleGroupName, 1,  false,  new PVector(0,0),  rseed);
+		super( sdFontName,  imageSampleGroupName, 1f,  0f,  new PVector(0,0),  rseed);
 		
 
 	}

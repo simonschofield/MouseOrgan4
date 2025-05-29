@@ -16,7 +16,7 @@ import MOMaths.Vertices2;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
-import MOUtils.ObjectWithValueList;
+import MOZZZ_Depricated.ObjectWithValueList;
 
 //////////////////////////////////////////////////////////////////////////////////////
 // 

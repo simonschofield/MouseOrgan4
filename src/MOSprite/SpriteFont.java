@@ -26,7 +26,9 @@ public class SpriteFont{
 	public String thisSpriteFontName = "";
 	public String imageSampleGroupName;
 	public float sizeInScene = 1;
-	public boolean useRelativeSizes = false;
+	//public boolean useRelativeSizes = false;
+	public float relativeGroupSizeEqualization = 0;
+	
 	public PVector spritePivotPoint = new PVector(0.5f, 0.5f);
 	
 	// only used when this SpriteFont is within a SpriteFontBiome
@@ -38,13 +40,13 @@ public class SpriteFont{
 	boolean quickRenderMode = false;
 	
 	public SpriteFont(String thisSpriteFontName, String imageSampleGroupName,
-			float sizeInScene, boolean useRelativeSizes, PVector pivotPoint, int rseed) {
+			float sizeInScene, float relativeSizeEQ, PVector pivotPoint, int rseed) {
 		
 		randomStream = new QRandomStream(rseed);
 		this.thisSpriteFontName = thisSpriteFontName;
 		this.imageSampleGroupName = imageSampleGroupName;
 		this.sizeInScene = sizeInScene;
-		this.useRelativeSizes = useRelativeSizes;
+		this.relativeGroupSizeEqualization = relativeSizeEQ;
 		this.spritePivotPoint = pivotPoint;
 	}
 	

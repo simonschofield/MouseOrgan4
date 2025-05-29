@@ -10,16 +10,16 @@ import MOImage.ConvolutionFilter;
 import MOImage.ImageProcessing;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
-import MOMaths.Plane3D;
 import MOMaths.QRandomStream;
 import MOMaths.Range;
-import MOMaths.Ray3D;
-import MOMaths.Util3D;
 import MOMaths.Rect;
 import MOMaths.SNum;
 import MOMaths.Vertices2;
 import MOPointGeneration.PackingInterpolationScheme;
+import MOScene3D.Plane3D;
+import MOScene3D.Ray3D;
 import MOScene3D.SceneData3D;
+import MOScene3D.Util3D;
 import MOSimpleUI.Slider;
 import MOSimpleUI.TextInputBox;
 //import MOSimpleUI.Slider;
@@ -40,6 +40,7 @@ public class Scene3DHelper {
 		static SceneData3D sceneData3D = null;
 		
 		static float measuringToolSize = 10;
+		static PVector measuringToolStartPoint;
 		
 		public static void initialise(SceneData3D sd3d, Surface s) {
 			theSurface = s;
@@ -152,8 +153,8 @@ public class Scene3DHelper {
 			
 			PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(docPoint);
 			PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
-			PVector shiftedDocPointNOROI = sceneData3D.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
-			PVector shiftedDocPoint= sceneData3D.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
+			PVector shiftedDocPoint = sceneData3D.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
+			//PVector shiftedDocPoint= shiftedDocPointNOROI;
 			
 			
 			
@@ -189,49 +190,11 @@ public class Scene3DHelper {
 		}
 		
 		public static void shiftSpriteDocPoint3DYAmount(Sprite sprite, float shiftY) {
-			
-			PVector shiftedDocPt = shiftDocPoint3DYAmount(sprite.getDocPoint(),  shiftY);
+			PVector shiftedDocPt = sceneData3D.depthBuffer3d.get3DDisplacedDocPoint(sprite.getDocPoint(), new PVector(0,shiftY,0));
 			sprite.setDocPoint(shiftedDocPt);
-			
 		}
 		
-		public static PVector shiftDocPoint3DYAmount(PVector initialDocPoint, float shiftY) {
-			// adjusts the initialDocPoint by calculating a point in 3D that is shiftY (in 3D units) above the 3D location of the initial docPoint. Probably best used
-			// at the very end of the sprite transforms, as otherwise you may be picking up scene data from the wrong point. Think of it as being like
-			// an invisible stick - length shiftY - above the initial scene point - the sprite is pasted at the top of this stick.
-			// 
-			// used in preference to shifting the pivot point of sprites because the using the pivot point, the resultant shift is relative the assets height, not an absolute in scene terms. 
-			// So if you want a range of assets of different heights to be shifted by the same amount, this is the only way.
-			//
-			//
-			
-			PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(initialDocPoint);
-			PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
-			PVector shiftedDocPointNOROI = sceneData3D.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
-			PVector shiftedDocPoint= sceneData3D.masterDocSpaceToROIDocSpace(shiftedDocPointNOROI);
-			
-			return shiftedDocPoint;
-		}
-		
-		/*
-		static float getLerpDistanceEffect(Sprite sprite, float distMinEffect, float distMaxEffect) {
-			float dist = sceneData3D_v1.getDistance(sprite.getDocPoint());
-			float val = MOMaths.norm(dist, distMinEffect, distMaxEffect);
-			return MOMaths.constrain(val, 0, 1);
-		}
-		
-		static float getRampedDistanceEffect(Sprite sprite, float distMinEffectNear, float distMaxEffect, float distMinEffectFar) {
-			float dist = sceneData3D_v1.getDistance(sprite.getDocPoint());
-			if(dist < distMaxEffect) {
-				return getLerpDistanceEffect( sprite,  distMinEffectNear,  distMaxEffect);
-			}
-			
-			return getLerpDistanceEffect( sprite,  distMinEffectFar,  distMaxEffect);
-			
-		}
-		*/
-		
-		
+
 		public static float addWave(Sprite sprite, String waveImageName, float amt, boolean flipInDirection) {
 			
 			
@@ -447,54 +410,109 @@ public class Scene3DHelper {
 		theSurface.theUI.setText("ruler size", rounded);
 	}
 	
-	public static void draw3DMeasuringTool(PVector docPt, boolean visible) {
+	public static void draw3DMeasuringTool(PVector docPt, boolean visible, String mouseEventType) {
+		///////////////////////////////////////////////////////////////////////////////////////
+		// Displays scene data information under the mouse, and draws two measuring lines
+		// The blue line indicates a set scene height (defaul 5) in the scene. The green line indicates a drag distance, and the respective (3D, doc space) lengths
+		// are shown in the text box.
+		//
+		// Implementation note
+		// some of these drawing events happen in doc Space, and are always in relation to the overall scene zoom
+		// such as the measuring lines. 
+		// Some things we want in a consistent "ScreenSpace", such as the text box, that are not zoomed along with the scene.
+		// For these things we need to calculate (on the fly) the screen-space locations, then convert them into doc space.
+		//
+		// canvasSpace = theSurface.theUI.docSpaceToCanvasCoord(PVector docSpace)
+		//
+		// docSpace =  theSurface.theUI.appWindowCoordinateToDocSpace(canvasX, canvasY)
+		//
+		// converting distances between screen and doc space requires two points generated and the distance measured.
+		//
+		
+		
+		
 		
 		if(visible == false) {
 			theSurface.theUI.deleteCanvasOverlayShapes("measuringTool");
 			return;
 		}
+		
+		
+		if(mouseEventType.contentEquals("mousePressed")) {
+			measuringToolStartPoint = docPt.copy();
+		}
+		
+		
 
 		theSurface.theUI.deleteCanvasOverlayShapes("measuringTool");
-		PVector endPt = docPt.copy();
+		PVector heightIndicatorEndPt = docPt.copy();
 		float worldScale = sceneData3D.get3DScale(docPt);
-		PVector p3d = sceneData3D.get3DSurfacePoint(docPt);
+		PVector startPoint3D = sceneData3D.get3DSurfacePoint(measuringToolStartPoint);
+		PVector currentPoint3D = sceneData3D.get3DSurfacePoint(docPt);
+		
+		float dragDistance3DSurface = startPoint3D.dist(currentPoint3D);
+		float dragDistanceDocSpace = docPt.dist(measuringToolStartPoint);
+		
 		//float distance = sceneData3D_v1.getDistance(docPt);
 		float depth = sceneData3D.getDepth(docPt);
 		
-		float textX = endPt.x;
-		endPt.y -= (worldScale * measuringToolSize);
-		float textY1 = endPt.y + (0.1f);
-		float textY2 = endPt.y + (0.12f);
-		float textY3 = endPt.y + (0.14f);
-		float textY4 = endPt.y + (0.16f);
-		float textY5 = endPt.y + (0.18f);
-		float len = docPt.dist(endPt);
 		
-		PVector rectTopLeft = new PVector( endPt.x-0.01f, textY1 - 0.02f);
-		PVector rectBottomRight = new PVector( endPt.x+0.33f, textY5 + 0.01f);
+		heightIndicatorEndPt.y -= (worldScale * measuringToolSize);
 		
-		theSurface.theUI.addCanvasOverlayShape("measuringTool", rectTopLeft, rectBottomRight, "rect", Color.white, Color.white, 4);
-		theSurface.theUI.addCanvasOverlayShape("measuringTool", docPt, endPt, "line", Color.black, Color.blue, 4);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY1), " 3d size " + measuringToolSize ,  Color.red, 20);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY2), " depth " + depth ,  Color.red, 20);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY3), "  p3d = " + p3d.toStr() ,  Color.red, 20);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY4), " docP = " + docPt.toStr() ,  Color.red, 20);
+		//float len = docPt.dist(heightIndicatorEndPt);
+		
+		// the rect is to be 20 screen pixels to the right of the mouse
+		PVector canvasMousePoint = theSurface.theUI.docSpaceToCanvasCoord(docPt);
+		
+		
+		//PVector finalCanvasCalc = theSurface.theUI.docSpaceToCanvasCoord(canvasPtToDocPt);
+		//System.out.println("docPoint in " + docPt.toStr() + " canvas point " + canvasMousePoint.toStr() + " recalculated docPt " + canvasPtToDocPt.toStr() + " final canvasPt " + finalCanvasCalc.toStr());
+		PVector canvasBackingRectTL = PVector.add(canvasMousePoint, new PVector(10,10));
+		PVector canvasBackingRectBR = PVector.add(canvasBackingRectTL, new PVector(550,160));
+		PVector rectTopLeft =  theSurface.theUI.canvasCoordToDocSpace(canvasBackingRectTL);
+		PVector rectBottomRight = theSurface.theUI.canvasCoordToDocSpace(canvasBackingRectBR);
+		//add the white background rectangle
+		Color lightGray = new Color(220,220,220,170);
+		theSurface.theUI.addCanvasOverlayShape_DoscSpace("measuringTool", rectTopLeft, rectBottomRight, "rect", lightGray, lightGray, 4);
+		
+		
+		
+		int textSize = 15;
+		
+		//PVector zeroV = theSurface.theUI.canvasCoordToDocSpace(new PVector(0,0));
+		//PVector dsgap = theSurface.theUI.canvasCoordToDocSpace(new PVector(textSize+10,textSize+10));
+		
+		//float gap = zeroV.dist(dsgap);
+		float gap = theSurface.theUI.canvasUnitsToDocSpaceUnits(textSize+10);
+		
+		float textX = rectTopLeft.x + gap;
+		float textY1 = rectTopLeft.y + (gap*1);
+		float textY2 = rectTopLeft.y + (gap*2);
+		float textY3 = rectTopLeft.y + (gap*3);
+		float textY4 = rectTopLeft.y + (gap*4);
+		float textY5 = rectTopLeft.y + (gap*5);
+		float textY6 = rectTopLeft.y + (gap*6);
+		
+		
+		theSurface.theUI.addCanvasOverlayShape_DoscSpace("measuringTool", docPt, heightIndicatorEndPt, "line", Color.black, Color.blue, 3);
+		theSurface.theUI.addCanvasOverlayShape_DoscSpace("measuringTool", docPt, measuringToolStartPoint, "line", Color.black, Color.green, 3);
+		theSurface.theUI.addCanvasOverlayText_DocSpace("measuringTool", new PVector(textX, textY1), "3d height line " + measuringToolSize ,  Color.red, textSize);
+		theSurface.theUI.addCanvasOverlayText_DocSpace("measuringTool", new PVector(textX, textY2), "Depth " + depth ,  Color.red, textSize);
+		theSurface.theUI.addCanvasOverlayText_DocSpace("measuringTool", new PVector(textX, textY3), "3D Loc = " + currentPoint3D.toStr() + " 3D drag dist = " + dragDistance3DSurface ,  Color.red, textSize);
+		theSurface.theUI.addCanvasOverlayText_DocSpace("measuringTool", new PVector(textX, textY4), "Doc Point = " + docPt.toStr() + " drag doc dist " + dragDistanceDocSpace,  Color.red, textSize);
 		
 		PVector bp = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(docPt);
-		theSurface.theUI.addCanvasOverlayText("measuringTool", new PVector(textX, textY5), " XY = " + bp.toStr() ,  Color.red, 20);
+		theSurface.theUI.addCanvasOverlayText_DocSpace("measuringTool", new PVector(textX, textY5), "Buffer XY = " + bp.toStr() ,  Color.red, textSize);
 		
+		if( GlobalSettings.getDocument().renderTargetExists("SpriteID")) {
+			
+			int spriteID = GlobalSettings.getDocument().getBufferedImageRenderTarget("SpriteID").getSpriteID(docPt);
+			theSurface.theUI.addCanvasOverlayText_DocSpace("measuringTool", new PVector(textX, textY6), "SpriteID = " + spriteID,  Color.red, textSize);
+		}
+		
+		//GlobalSettings.getDocument().getMain().drawPoint(docPt, Color.RED, 5);
 		
 	}
 	
-	/*
-	public static void print3DSceneData(PVector docPt) {
-		float worldScale = sceneData3D_v1.get3DScale(docPt);
-		float distance = sceneData3D_v1.getDistance(docPt);
-		
-		float normalisedDepth = sceneData3D_v1.getDepthNormalised(docPt);
-		
-		System.out.println("3DSceneData at:" + docPt.toStr() + " world scale:" + worldScale + " Distance:" + distance +  " Normalised depth:" + normalisedDepth);     
-	}
-	*/
 	
 }

@@ -1,4 +1,6 @@
-package MOMaths;
+package MOScene3D;
+
+import MOMaths.PVector;
 
 //////////////////////////////////////////////////////////////////////
 // 3D geometric elements

@@ -52,6 +52,7 @@ public class VectorShape{
 		style.setStyle(fillC, lineC, lineWt); 
 	}
 	
+	
 	public void setTextShape(float x1, float y1, String content, Color fillC, int txtSz) {
 		p1 = new PVector(x1,y1);
 		p2 = new PVector(x1,y1);

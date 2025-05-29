@@ -1,23 +1,13 @@
 package MOAppSessionHelpers;
 
-
-
-
-
 import java.util.ArrayList;
-
-import MOApplication.MainDocument;
-//import MOCompositing.ContributingSpritesList;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
-import MOPointGeneration.OLD_PointGenerator_RadialPackSurface3D;
 import MOPointGeneration.PointGenerator_SurfacePack3D;
 import MOScene3D.SceneData3D;
 import MOSprite.Sprite;
 import MOSprite.SpriteBatch;
-//import MOSprite.SpriteSeed;
-//import MOSprite.SpriteSeedBatch;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
@@ -44,6 +34,12 @@ public class SpriteBatchHelper_Scene3D {
 	//
 	
 	public void setDepthThinning(float farMultiplier, float nearThreshold) {
+		// Increases the packing radius according to scene depth. Uses normalised depth
+		// Normalised depth is always with respect to whole (master) scene data, not the ROI. 
+		// Set the farMultiplier > 1 to get thinning to happen in the distance
+		// Thinning occurs between the nearThreshold (no thinning) and the far depth (full thinning)
+		// when the distance is far (1), the value out == radiusIn*farMultimpler
+		// when the distance is nearDistanceThreshold value out == radius
 		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
 	}
 	

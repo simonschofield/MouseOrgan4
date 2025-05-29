@@ -1,4 +1,7 @@
-package MOMaths;
+package MOScene3D;
+
+import MOMaths.MOMaths;
+import MOMaths.PVector;
 
 public class AABox3D{
 	

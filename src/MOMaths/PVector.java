@@ -494,6 +494,13 @@ public class PVector implements Serializable{
 
 		return (float) Math.sqrt(dx * dx + dy * dy);
 	}
+	
+	public float distXZ(PVector v) {
+		float dx = x - v.x;
+		float dz = z - v.z;
+
+		return (float) Math.sqrt(dx * dx + dz * dz);
+	}
 
 	/**
 	 * @param v1 any variable of type PVector

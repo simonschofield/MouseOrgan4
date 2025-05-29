@@ -111,7 +111,8 @@ public class ScaledImageAssetGroupManager {
     	dfns.setFileListRange(from, to);
     	
     	int n = dfns.getNumFiles();
-    	System.out.println("loadImageAssetGroup loading " + n + " images " + assetGroupName );
+    	//System.out.println("loadImageAssetGroup loading " + n + " images " + assetGroupName );
+    	
     	
     	
     	ScaledImageAssetGroup scaledImageAssetGroup  = new ScaledImageAssetGroup(assetGroupName);

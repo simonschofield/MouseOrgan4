@@ -19,3 +19,6 @@
 /DespeckleImage.class
 /BilinearBufferedImageSampler.class
 /FloatBufferedImage.class
+/ByteImageGetterSetter.class
+/ImageCoordinate.class
+/ImageDimensions.class

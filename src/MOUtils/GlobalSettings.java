@@ -4,6 +4,7 @@ import java.io.File;
 
 import MOApplication.MainDocument;
 import MOApplication.Surface;
+import MOImage.ImageDimensions;
 import MOImage.ImageProcessing;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // This is a repository for all common data that needs to accessed across the application, partially in order to avoid complex passing of objects around but

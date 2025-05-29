@@ -6,7 +6,6 @@ import java.awt.image.BufferedImage;
 import MOImage.FloatImage;
 import MOImage.KeyImageSampler;
 import MOImage.MOPackedColor;
-import MOMaths.AABox3D;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
@@ -37,6 +36,9 @@ public class DepthBuffer3D {
 		float distanceCameraToViewingPlane;
 		
 		public ImageCoordinateSystem depthBufferCoordinateSystem;
+		
+		//public boolean flipY = true;
+		
 		
 		public DepthBuffer3D(FloatImage depthBuff, float distancecamToVP) {
 			
@@ -92,6 +94,9 @@ public class DepthBuffer3D {
 			}
 			
 		}
+		
+		
+		
 		
 		public PVector docSpaceToWorld3D(PVector docSpace) {
 			PVector bufferSpace = docSpaceToBufferSpace(docSpace);
@@ -157,15 +162,36 @@ public class DepthBuffer3D {
 			return false;
 		}
 		
+		//////////////////////////////////////////////////////////////////////////////////////
+		// Image Quadrant Space places (0,0) at the centre of the image. So that +v Y is in 3D is going "up"
+		// we flip the buffer-space Y to be +ve going up.
+		// Quadrant space is therefore described (xyz)
+		//
+		// (-ve X ,+ve Y, depth)	(+ve X ,+ve Y, depth)
+		// (-ve X ,-ve Y, depth)	(+ve X ,-ve Y, depth)
+		//
+		
+		
 		private PVector bufferSpaceToImageQuadrantSpace(PVector bufferSpace) {
 			float i = bufferSpace.x - widthBy2;
-			float j = bufferSpace.y - heightBy2;
+			float j;
+			//if(flipY) {
+				j = (height-bufferSpace.y) - heightBy2;
+			//}else {
+			//	j = (bufferSpace.y) - heightBy2;
+			//}
 			return new PVector(i,j);
 		}
 		
 		private PVector imageQuadrantSpaceToBufferSpace(PVector imageQuadrantSpace) {
 			float x = imageQuadrantSpace.x + widthBy2;
-			float y = imageQuadrantSpace.y + heightBy2;
+			float y;
+			//if(flipY) {
+				y = height-(imageQuadrantSpace.y + heightBy2);
+			//}else {
+			//	y = (imageQuadrantSpace.y + heightBy2);
+			//}
+
 			return new PVector(x,y);
 		}
 		
@@ -173,6 +199,8 @@ public class DepthBuffer3D {
 		public float getDepthBilinear(PVector bufferSpace) {
 			return depthBuffer.getPixelBilin(bufferSpace.x, bufferSpace.y);
 		}
+		
+		
 		
 		
 		

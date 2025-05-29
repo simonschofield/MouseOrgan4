@@ -80,10 +80,18 @@ public class ViewController {
 
 		theDocumentWidth = GlobalSettings.getTheDocumentCoordSystem().getBufferWidth();
 		theDocumentHeight = GlobalSettings.getTheDocumentCoordSystem().getBufferHeight();
+		
+		
+		
+		
 		theDocumentAspect = theDocumentWidth / (float) theDocumentHeight;
 		theDocumentCentre = new PVector(theDocumentWidth / 2f, theDocumentHeight / 2f);
 		theDocumentRect = new Rect(0,0,theDocumentWidth,theDocumentHeight);
 		currentViewCropRect = new Rect(0, 0, theDocumentWidth, theDocumentHeight);
+		
+		
+		
+		System.out.println("INIT VIEW theDocumentWidth " + theDocumentWidth + " theDocumentHeight " + theDocumentHeight );
 
 	}
 	
@@ -138,13 +146,16 @@ public class ViewController {
 		// used by the SimpleUI interface canvas object
 		// takes a pixel location within the viewDisplayRect (0,0) top left
 		// and maps it to Document space
-		x = x + (int)canvasWindowRect.left;
-		y = y + (int)canvasWindowRect.top;
+		
+		
+		//System.out.println("appWindowCoordinateToDocSpace x,y " + x + "," + y); // confirms this is the raw position in the canvas area (not the app)
+		
 		PVector viewDisplayRectPoint = new PVector(x,y);
 		
 		if (zoomSetting == 0) {
 			// do the correct mapping for the fitToWindow set up
 			PVector pixelInImageBuffer = Rect.map(viewDisplayRectPoint,  fitToWindowCentreRect, theDocumentRect);
+			//
 			PVector docSpace = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(pixelInImageBuffer);
 			//System.out.println("appWindowCoordinateToDocSpace window click x " + x + " y " + y + " pixelInImageBuffer " + pixelInImageBuffer + "doc space point is " + docSpace.toStr());
 			return docSpace;
@@ -169,6 +180,7 @@ public class ViewController {
 		PVector pointInCurrentCropRect = new PVector(xInCurrentCropRect,yInCurrentCropRect);
 		return Rect.map(pointInCurrentCropRect, currentViewCropRect, canvasWindowRect);
 	}
+	
 
 	void showFitToViewDisplayRect(Graphics2D g2d) {
 		// "fit to window" stuff. This is a special case, so uses own algorithm.

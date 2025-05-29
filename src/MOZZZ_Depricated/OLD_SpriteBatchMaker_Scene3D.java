@@ -1,4 +1,4 @@
-package MOAppSessionHelpers;
+package MOZZZ_Depricated;
 
 
 import java.awt.image.BufferedImage;
@@ -9,7 +9,6 @@ import MOApplication.MainDocument;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
-import MOPointGeneration.OLD_PointGenerator_RadialPackSurface3D;
 import MOPointGeneration.PointGenerator_SurfacePack3D;
 import MOScene3D.SceneData3D;
 import MOSprite.Sprite;

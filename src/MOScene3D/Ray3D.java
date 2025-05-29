@@ -1,5 +1,6 @@
-package MOMaths;
+package MOScene3D;
 
+import MOMaths.PVector;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Really basic Ray class
@@ -41,6 +42,10 @@ public class Ray3D {
 		// returns the point on the ray at distance d from the origin
 		PVector p1 = PVector.mult(direction, d);
 		return PVector.add(p1, origin);
+	}
+	
+	public String toStr() {
+		return "Ray3D:  origin: " + origin.toStr() + " direction: " + direction.toStr();
 	}
 	
 	

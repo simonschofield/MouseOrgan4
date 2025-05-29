@@ -1,4 +1,4 @@
-package MOSprite;
+package MOZZZ_Depricated;
 
 
 
@@ -13,6 +13,7 @@ import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
+import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 
 //////////////////////////////////////////////////////////////////////

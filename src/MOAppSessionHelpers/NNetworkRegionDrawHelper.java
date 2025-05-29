@@ -19,7 +19,7 @@ import MONetwork.NRegion;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
-import MOUtils.ObjectWithValueList;
+import MOZZZ_Depricated.ObjectWithValueList;
 
 /**
  * @author User

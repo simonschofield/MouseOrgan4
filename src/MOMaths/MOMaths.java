@@ -7,6 +7,17 @@ public class MOMaths {
 		return N.isNaN();
 	}
 	
+	
+	public static float epsilon() {
+		return (Float.MIN_VALUE * 3);
+	}
+	
+	public static boolean nearZero(float v) {
+
+		  if ( Math.abs(v) <= epsilon()) return true;
+		  return false;
+	}
+	
 	public static boolean isOdd(int n) {
 		if (n % 2 == 0) return false;
 		return true;

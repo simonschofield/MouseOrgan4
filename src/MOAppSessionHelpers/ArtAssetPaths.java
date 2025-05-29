@@ -91,7 +91,7 @@ public class ArtAssetPaths {
 	
 		String cachedFolderName = cachFolderRoot + baseName + "\\cached_scaled_" + scalePercentile + "\\";
 		
-		System.out.println("scaled images cache directory ..." + cachedFolderName);
+		//System.out.println("scaled images cache directory ..." + cachedFolderName);
 		return cachedFolderName;
 	}
 	

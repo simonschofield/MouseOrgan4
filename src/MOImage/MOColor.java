@@ -27,6 +27,8 @@ public class MOColor {
 		return cols;
 	}
 	
+	
+	
 	public static Color invisibleCol() {
 		return new Color(0,0,0,0);
 	}
@@ -35,6 +37,19 @@ public class MOColor {
 		int r = ranStream.randRangeInt(0, 255);
 		int g = ranStream.randRangeInt(0, 255);
 		int b = ranStream.randRangeInt(0, 255);
+		
+		return new Color(r,g,b, alpha);
+	}
+	
+	public static Color getKeyedRandomRGB(int key, int alpha) {
+		
+		ranStream.startKeyedPosition(key);
+		
+		int r = ranStream.randRangeInt(0, 255);
+		int g = ranStream.randRangeInt(0, 255);
+		int b = ranStream.randRangeInt(0, 255);
+		
+		ranStream.endKeyedPosition();
 		
 		return new Color(r,g,b, alpha);
 	}

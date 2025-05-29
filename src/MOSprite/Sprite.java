@@ -12,8 +12,8 @@ import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.QRandomStream;
 import MOMaths.Rect;
-import MOMaths.Rect3D;
 import MOMaths.SNum;
+import MOScene3D.BillboardRect3D;
 import MOScene3D.SceneData3D;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
@@ -44,7 +44,10 @@ public class Sprite {
 	// Item size-in-scene data and pivot-point
 	// 
 	private float sizeInScene = 1; // this is the size in the scene as set by the user 
-	public boolean useRelativeSizes = false;
+	
+	//when relativeGroupSizeEqualization is set to 0, the scale is sizeInScene * relative size of the asset within its group;
+	//when relativeGroupSizeEqualization is set to 1, the scale is sizeInScene * 1;
+	public float relativeGroupSizeEqualization = 0;
 	
 	/////////////////////////////////////////////////////
 	// The pivot-point - the local origin for pasting and transforms
@@ -164,8 +167,12 @@ public class Sprite {
 			sizeInScene = dataIn.getFloat("SizeInScene");
 		}
 		
-		if( dataIn.keyExists("UseRelativeSizes") ) {
-			useRelativeSizes = dataIn.getBoolean("UseRelativeSizes");
+		//if( dataIn.keyExists("UseRelativeSizes") ) {
+		//	useRelativeSizes = dataIn.getBoolean("UseRelativeSizes");
+		//}
+		
+		if( dataIn.keyExists("RelativeGroupSizeEqualization") ) {
+			relativeGroupSizeEqualization = dataIn.getFloat("RelativeGroupSizeEqualization");
 		}
 		
 		if( dataIn.keyExists("Depth") ) {
@@ -216,7 +223,9 @@ public class Sprite {
 
 		outList.addKeyValuePair(   new KeyValuePair("SizeInScene", sizeInScene  )  );
 		
-		outList.addKeyValuePair(   new KeyValuePair("UseRelativeSizes", useRelativeSizes  )  );
+		//outList.addKeyValuePair(   new KeyValuePair("UseRelativeSizes", useRelativeSizes  )  );
+		
+		outList.addKeyValuePair(   new KeyValuePair("RelativeGroupSizeEqualization", relativeGroupSizeEqualization  )  );
 	
 		outList.addKeyValuePair(   new KeyValuePair("Depth", depth  )  );
 
@@ -328,7 +337,8 @@ public class Sprite {
 		kvlist.addKeyValue("ImageAssetGroupName" , sf.imageSampleGroupName);
 		kvlist.addKeyValue("ImageGroupItemShortName" , shortName);
 		kvlist.addKeyValue("SizeInScene" , sf.sizeInScene);
-		kvlist.addKeyValue("UseRelativeSizes" , sf.useRelativeSizes);
+		
+		kvlist.addKeyValue("RelativeGroupSizeEqualization" , sf.relativeGroupSizeEqualization);
 		kvlist.addKeyValue("PivotPoint" , sf.spritePivotPoint.array());
 
 		setSpriteData(kvlist);
@@ -347,7 +357,8 @@ public class Sprite {
 		cpy.ImageGroupItemShortName= this.ImageGroupItemShortName;
 
 		cpy.sizeInScene = this.sizeInScene;
-		cpy.useRelativeSizes = this.useRelativeSizes;
+		//cpy.useRelativeSizes = this.useRelativeSizes;
+		cpy.relativeGroupSizeEqualization =  this.relativeGroupSizeEqualization;
 		cpy.pivotPoint = this.pivotPoint.copy();
 
 		cpy.docPoint = this.docPoint.copy();
@@ -475,6 +486,7 @@ public class Sprite {
 
 		
 	public Rect getDocumentBufferSpaceRect() {
+		
 		// returns the rect in the Document's BufferSpace of the sprite at its current docPoint
 		PVector topLeft = spriteLocalBufferSpaceToDocumentBufferSpace(  new PVector(0,0));
 		PVector bottomRight = spriteLocalBufferSpaceToDocumentBufferSpace( new PVector(getImageWidth()-1,getImageHeight()-1));
@@ -653,9 +665,15 @@ public class Sprite {
 	}
 
 	float getRelativeSizeInGroup() {
-		if( useRelativeSizes == false ) return 1f;
+		// returns the relative size of this sprite in its group (based on image heights)
+		// the relativeGroupSizeEqualization value comes into play here.
+		// If set to 0, then the returned value is the relative size, hence maintaining the relative sizes of the various assets in the group,
+		// If set to 1, then the returned value is always 1, so making each asset the same (relative) size, i.e. the size of the largest item in the group.
+		// Values in between 0..1 result in variously equalised sizes.
 		int i = getImageAssetGroup().getIndexOfImageAsset(ImageGroupItemShortName);
-		return getImageAssetGroup().getRelativeImageHeight(i);
+		float relativeSize =  getImageAssetGroup().getRelativeImageHeight(i);
+
+		return  MOMaths.map(relativeGroupSizeEqualization, 0, 1, relativeSize, 1);
 	}
 
 
@@ -783,51 +801,68 @@ public class Sprite {
 	public float scaleToSizeInScene(SceneData3D sceneData, float scaleModifier) {
 		// scales the image to the correct size using  sizeInScene to represent the
 		// items's size in the 3D scene in world units.
-		// System.out.println("Sprite ID " + this.uniqueID);
-		sizeInScene *= scaleModifier;
-		float heightInPixels = getBufferSpaceHeightFromSizeInScene(sceneData) * getRelativeSizeInGroup();
+		// 
 		
-		//System.out.println(" scaleToSizeinScene - sizeInScene:" + sizeInScene + " scaleModifyer " + scaleModifier + " target height in pixels " + heightInPixels+ " sprite image height " + getImageHeight());
+		// final 3D size in scene is calculated
+		float heightIn3D = sizeInScene * scaleModifier * getRelativeSizeInGroup();
+		
+		// getDocSpace units for this3D size at basePointInScene
+		PVector docSpaceBasePoint = getDocPoint();
+		float heightInPixels = getBufferSpaceHeightFromSizeInScene(sceneData, docSpaceBasePoint, heightIn3D) ;
+		
+		//System.out.println(">> scaleToSizeinScene - sizeInScene:" + modifiedHeight3D + " scaleModifyer " + scaleModifier + " target height in pixels " + heightInPixels+ " sprite image height " + getImageHeight());
 		float scale = (heightInPixels / getImageHeight()); 
 		if (scale > 1.5f) {
 			System.out.println(ImageGroupItemShortName + " overscaled, original size in pixels " + getImageHeight() + " to be scale to " + heightInPixels + " scale " + scale);
 		}
 		//System.out.println(" scaled by "  + scale );
 		scale(scale, scale);
-		
-		
-		
+
 		
 		return scale;
 	}
+	
+	
+	
+	
 
 	// get getBufferSpaceSizeInScene
-	float getBufferSpaceHeightFromSizeInScene(SceneData3D sceneData) {
-		float scale3D = sceneData.get3DScale(getDocPoint());
-		float heightDocSpace = sizeInScene * scale3D;
-
-		//System.out.println("getHeightInRenderTargetPixels3D: scale3D " + scale3D );
-		float docSizeInPixels =  GlobalSettings.getTheDocumentCoordSystem().docSpaceUnitToBufferSpaceUnit(heightDocSpace);
-		//System.out.println("sprite point " + docPoint.toString() + " height doc space = " + heightDocSpace + "  size pixels " + docSizeInPixels);
-		//System.out.println();
-		return docSizeInPixels;
+	
+	float getBufferSpaceHeightFromSizeInScene(SceneData3D sceneData, PVector docSpaceBasePoint, float heightIn3D) {
+		// This works out the height of the desired sprite in doc space from
+		// its 3D size-in-scene, at the docPoint of the sprite.
+		// It doesn't matter about the placement of the pivot point within the sprite; it still returns the desired height regardless
+		
+		
+		// this returns the docSpaceHeight of an item if height 1, at a particular depth in the scene
+		float unit3DSizeDocSpace = sceneData.get3DScale(docSpaceBasePoint); // this is correct. Master and RI now have the same doc points, and access the SceneData in exactly the same way
+		
+		// multiply this by by the heightIn3D to give the docSpaceUnitHeight
+		float heightDocSpace = heightIn3D * unit3DSizeDocSpace;    
+		
+		return GlobalSettings.getTheDocumentCoordSystem().docSpaceUnitToBufferSpaceUnit(heightDocSpace);
 	}
 
+	public PVector docSpaceRectLerp(PVector controlPoint) {
+		// given a control point within the sprite, represented by normPoint
+		// returns the docSpacePoint it maps to
+		return getDocSpaceRect().interpolate(controlPoint);
+	}
 
-	public Rect3D getSpriteRectInScene3D() {
+	public BillboardRect3D getSpriteBillboardRect3D() {
 		// this needs to be called  after all geometric calculations 
 		// have been completed.
 		Rect spriteRect = getDocSpaceRect();
 		// the sprite's docSpace may be in local ROI coordinates, so we need to convert to master Coordinates
-		PVector masterDocSpaceTopLeft = GlobalSettings.getSceneData3D().subROIDocSpaceToMasterDocSpace(spriteRect.getTopLeft());
-		PVector masterDocSpaceBottomRight = GlobalSettings.getSceneData3D().subROIDocSpaceToMasterDocSpace(spriteRect.getBottomRight());
+		PVector masterDocSpaceTopLeft = spriteRect.getTopLeft();
+		PVector masterDocSpaceBottomRight = spriteRect.getBottomRight();
 		
 		float depth = getDepth();
 		
 		PVector corner1 = GlobalSettings.getSceneData3D().get3DVolumePoint(masterDocSpaceTopLeft,  depth);
 		PVector corner2 = GlobalSettings.getSceneData3D().get3DVolumePoint(masterDocSpaceBottomRight,  depth);
 		
-		return new Rect3D(corner1,corner2);
+		return new BillboardRect3D(corner1,corner2);
 	}
 
 

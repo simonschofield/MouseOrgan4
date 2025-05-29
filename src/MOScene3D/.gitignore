@@ -16,3 +16,11 @@
 /OLD_GeometryBuffer3D.class
 /DepthBuffer3D.class
 /ShadowCast3D.class
+/AABox3D.class
+/BillboardRect3D.class
+/EyeSpaceVolume3D.class
+/Fustrum3D.class
+/Line3D.class
+/Plane3D.class
+/Ray3D.class
+/Util3D.class

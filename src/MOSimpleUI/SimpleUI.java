@@ -28,22 +28,9 @@ import MOVectorGraphics.VectorShapeDrawer;
 //////////////////////////////////////////////////////////////////
 // SimpleUIManager() is the only class you have to  create in your 
 // application to build the UI. 
-// With it you can add buttons (simple only at the moment,  toggle and radio groups coming later)
-// and Menus. later release will have text Input and Output, Canvas Widgets and FileIO dialogs
-// Later still - sliders and Color pickers.
-//
-//
-// You need to pass all the mouse events into the SimpleUIManager
-// e.g. 
-// void mousePressed(){ uiManager.handleMouseEvent("mousePressed",mouseX,mouseY); }
-// and for all the other mouse actions
-//
-// Once a mouse event has been received by a UI item (button, menu etc) it calls a function called
-// simpleUICallback(...) which you have to include in the 
-// main part of the project (below setup() and draw() etc.)
-//
-// Also, you need to call uiManager.drawMe() in the main draw() function
-//
+// 
+// The graphics context for the SimpleUI is the application window.
+// Any widgets and overlay graphics occur on the window-level graphics context, not the document images
 
 public class SimpleUI {
 
@@ -89,9 +76,11 @@ public class SimpleUI {
 	}
 
 	public void handleMouseEvent(MouseEvent me, String mouseEventType) {
-
+		
 		int x = me.getX();
 		int y = me.getY();
+		if(mouseEventType.equals("mouseClicked")) System.out.println("raw mouse pos " + x + " ," + y);
+		
 		handleMouseEvent(mouseEventType, x, y);
 	}
 
@@ -166,39 +155,50 @@ public class SimpleUI {
        if(canvasRect==null) return false;
        if(   canvasRect.isPointInside(x,y)) {
          UIEventData uied = new UIEventData(UIManagerName, "canvas" , "canvas", mouseEventType,x,y);
-         uied.canvasX = (int) (x - canvasRect.left);
-         uied.canvasY = (int) (y - canvasRect.top);
-         
 	     //the document space location of the canvas event
-	     uied.docSpacePt = canvasCoordToDocSpace(uied.canvasX, uied.canvasY);
+         uied.docSpacePt = canvasCoordToDocSpace(x, y);
          handleUIEvent(uied);
          return true;
        }
        return false;
     }
 	
-	
-	PVector canvasCoordToDocSpace(int x, int y) {
-
-	    return parentSurface.theViewControl.appWindowCoordinateToDocSpace(x,y);
-	   
+	////////////////////////////////////////////////////////////////////////////
+	// coordinate space stuff when using the canvas points.
+	//
+	public PVector canvasCoordToDocSpace(PVector canvasPoint) {
+	    return canvasCoordToDocSpace((int)canvasPoint.x, (int)canvasPoint.y);
 	}
 	
-	PVector docSpaceToCanvasCoord(PVector docSpace) {
-		
-		
+	public PVector canvasCoordToDocSpace(int x, int y) {
+	    return parentSurface.theViewControl.appWindowCoordinateToDocSpace(x,y);
+	}
+	
+
+	public PVector docSpaceToCanvasCoord(PVector docSpace) {
 		PVector canvasPt = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(docSpace);
-
-		// now clamp them to legal values
-		//float nx = MOMaths.constrain(canvasPt.x,  canvasRect.left,  canvasRect.right);
-		//float ny = MOMaths.constrain(canvasPt.y,  canvasRect.top,  canvasRect.bottom);
-
-		//return new PVector(nx,ny);
 		return canvasPt;
 	}
 	
+	// converting distances or units between screen and doc space requires two points generated and the distance measured.
+	public float canvasUnitsToDocSpaceUnits(float canvasPixelDistance) {
+		PVector zeroV = canvasCoordToDocSpace(new PVector(0,0));
+		PVector dsgap = canvasCoordToDocSpace(new PVector(0,canvasPixelDistance));
+		return zeroV.dist(dsgap);
+	}
+	
+	public float docSpaceUnitsToCanvasUnits(float doSpaceDistance) {
+		PVector zeroV = docSpaceToCanvasCoord(new PVector(0,0));
+		PVector dsgap = docSpaceToCanvasCoord(new PVector(0,doSpaceDistance));
+		return zeroV.dist(dsgap);
+	}
+	
 
 	
+	
+	
+	
+	////////////////////////////////////////////////////////////////////////////
 	
 	public void drawCanvas() {
 		if (canvasRect == null)
@@ -211,7 +211,7 @@ public class SimpleUI {
 		
 		
 		for(VectorShape ds: canvasOverlayShapes) {
-			drawCanvasOverlayShape(ds);
+			drawCanvasOverlayShape_DocSpace(ds);
 		}
 		
 		
@@ -239,7 +239,7 @@ public class SimpleUI {
 	
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
-	// canvas overlay shape methods
+	// canvas overlay shape methods. Work in DocSpace
 	//
 	void clearCanvasOverlayShapes() {
 		canvasOverlayShapes.clear();
@@ -257,30 +257,31 @@ public class SimpleUI {
 		
 	}
 	
-	public void addCanvasOverlayShape(String idName, PVector docPt1, PVector docPt2, String shapeType, Color fillC, Color lineC, int lineWt) {
+	public void addCanvasOverlayShape_DoscSpace(String idName, PVector docPt1, PVector docPt2, String shapeType, Color fillC, Color lineC, int lineWt) {
 		//System.out.println("addShape idName" + idName + " docPt1 " + docPt1 + " docPt2 " + docPt2 + " shapeType " + shapeType );
 		VectorShape ds = new VectorShape();
 		ds.setShape(docPt1.x, docPt1.y, docPt2.x, docPt2.y, shapeType, fillC, lineC, lineWt);
 		
-		addCanvasOverlayShape(ds,idName);
+		addCanvasOverlayShape_DocSpace(ds,idName);
 		
 	}
 	
-	public void addCanvasOverlayText(String idName, PVector docPt1, String content,  Color textColor, int txtSz) {
+	
+	public void addCanvasOverlayText_DocSpace(String idName, PVector docPt1, String content,  Color textColor, int txtSz) {
 		
 		VectorShape ds = new VectorShape();
 		ds.setTextShape(docPt1.x, docPt1.y, content, textColor, txtSz);
 
-		addCanvasOverlayShape(ds,idName);
+		addCanvasOverlayShape_DocSpace(ds,idName);
 	}
 	
-	void addCanvasOverlayShape(VectorShape ds, String id) {
+	void addCanvasOverlayShape_DocSpace(VectorShape ds, String id) {
 		ds.setID(id);
 		canvasOverlayShapes.add(ds);
 	}
 	
 
-	void drawCanvasOverlayShape(VectorShape ds) {
+	void drawCanvasOverlayShape_DocSpace(VectorShape ds) {
 		// converts a doc space shape to a canvas space shape via the view controller then draws it
 		PVector canvasPt1 = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(ds.p1);
 		PVector canvasPt2 = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(ds.p2);
@@ -292,6 +293,9 @@ public class SimpleUI {
 		}
 		drawer.drawDrawnShape(viewScaledShape);
 	}
+	
+	
+	
 	
 	////////////////////////////////////////////////////////////////////////////
 	// widget creation

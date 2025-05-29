@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 
 import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.FloatImageRenderTarget;
+import MOImage.ImageDimensions;
 import MOImage.ImageProcessing;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.MOColorTransform;
@@ -21,7 +22,6 @@ import MOScene3D.SceneData3D;
 import MOSprite.Sprite;
 import MOSprite.SpriteFont;
 import MOUtils.GlobalSettings;
-import MOUtils.ImageDimensions;
 import MOUtils.MOStringUtils;
 
 public class SceneHelper {

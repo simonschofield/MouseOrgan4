@@ -11,7 +11,7 @@ import MOMaths.PVector;
 import MOMaths.QRandomStream;
 
 import MOUtils.KeyValuePairList;
-import MOUtils.ObjectWithValueList;
+import MOZZZ_Depricated.ObjectWithValueList;
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 // add edge detail using random sections across a  displacement image (up to you, but use a fractal one for nice results). 

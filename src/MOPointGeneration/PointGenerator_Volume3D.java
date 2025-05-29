@@ -7,11 +7,11 @@ import java.util.Comparator;
 import MOCompositing.BufferedImageRenderTarget;
 import MOImage.ImageProcessing;
 import MOImage.MOColor;
-import MOMaths.AABox3D;
-import MOMaths.EyeSpaceVolume3D;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.RandomStream;
+import MOScene3D.AABox3D;
+import MOScene3D.EyeSpaceVolume3D;
 import MOUtils.CollectionIterator;
 import MOUtils.GlobalSettings;
 

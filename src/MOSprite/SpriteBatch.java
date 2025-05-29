@@ -8,10 +8,10 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import MOApplication.ROIManager;
 import MOCompositing.BufferedImageRenderTarget;
 import MOMaths.PVector;
 import MOMaths.Range;
-import MOScene3D.ROIManager;
 import MOUtils.CollectionIterator;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
@@ -121,13 +121,20 @@ public class SpriteBatch extends CollectionIterator{
 	}
 	
 	
+	public String getROIFullFilePath(String shortname) {
+		
+		return getSpriteBatchDirectoryPath() + "//ROISpriteBatchData_" + shortname + ".csv";
+		
+	}
+	
+	
 	public String getMasterSpriteBatchDataFileName() {
 		return getSpriteBatchDirectoryPath() + "//MasterSpriteBatchData.csv";
 	}
 
 	///////////////////////////////////////////////////////
 	// load and save seeds using csv
-	public void saveSpriteData(String fileAndPath) {
+	public void saveSpriteBatch(String fileAndPath) {
 		// there should be a directory in the project folder called seeds
 		FileWriter csvWriter = null;
 		try{
@@ -145,7 +152,7 @@ public class SpriteBatch extends CollectionIterator{
 
 			csvWriter.flush();
 			csvWriter.close();
-			System.out.println("SeedBatch.saveSeedsAsCSV: saved " + activeSprites + " spritedata out of a total of " + spriteList.size());
+			//System.out.println("SeedBatch.saveSeedsAsCSV: saved " + activeSprites + " spritedata out of a total of " + spriteList.size());
 		}// end try
 		catch(Exception ex){
 			System.out.println("SeedBatch.saveSeedsAsCSV: csv writer failed - "  + fileAndPath + ex);
@@ -154,7 +161,7 @@ public class SpriteBatch extends CollectionIterator{
 
 	}
 
-	public void loadSpriteData(String fileAndPath) {
+	public void loadSpriteBatch(String fileAndPath) {
 		// there should be a directory in the project folder called seeds
 		try{
 			BufferedReader csvReader = new BufferedReader(new FileReader(fileAndPath));
@@ -178,17 +185,15 @@ public class SpriteBatch extends CollectionIterator{
 
 	}
 
-	//private void ensureSpriteBatchDirectoryExists(String path) {
-	//	String alledgedDirectory = path + "SpriteBatches";
-	//	if(MOStringUtils.checkDirectoryExist(alledgedDirectory)) return;
-	//	MOStringUtils.createDirectory(alledgedDirectory);
-	//}
 	
 	public void loadROISprites(ROIManager roiManager) {
-		// called if not generating the master collection of sprite data
-		// from the master session there should be a file called "MasterSriteBatchData.csv" in the seeds folder 
-		// There may also be a previously saved ROISpriteBatchFile called ROISpriteBatchData_roiname.csv. .. If this exists then load this file
-		// else load the masterSpriteBatchdata and shift into ROI space
+		// This attempts to load a previously saved ROISpriteBatchData file, saved as an efficiency measure
+		// as only "contributing" sprites are saved to this file. It may not exist (yet) as it needs to be generated, per-roi render, once
+		// the MasterSriteBatchData has been generated. If it does not exist then the MasterSriteBatchData file is loaded, and the ROI rendered there of.
+		//
+		// TBD: any change to the roi master file will delete all roi files in the same folder
+		//
+		
 		String MasterSpriteBatchFile = getMasterSpriteBatchDataFileName();
 		String ROISpriteBatchFile = getROISpriteBatchDataFileName(roiManager);
 
@@ -196,7 +201,7 @@ public class SpriteBatch extends CollectionIterator{
 		
 		if(  MOStringUtils.checkFileExists(ROISpriteBatchFile)   ) {
 			System.out.println("this ROI file exists " + ROISpriteBatchFile);
-			loadSpriteData(ROISpriteBatchFile);
+			loadSpriteBatch(ROISpriteBatchFile);
 		} else {
 			
 			if( MOStringUtils.checkFileExists(MasterSpriteBatchFile) == false  ) {
@@ -205,16 +210,41 @@ public class SpriteBatch extends CollectionIterator{
 			}
 			
 			System.out.println("there is no ROI file so loading the master file  ");
-			loadSpriteData(MasterSpriteBatchFile);
-			
-			// only use if the file loaded the master seeds collated seeds
-			SpriteBatch shiftedSpriteBatch = roiManager.applyROIToSpriteBatch(this);
-			System.out.println("shifter master sprite batch has  " + shiftedSpriteBatch.getNumItems() + " sprites");
-			this.spriteList = (ArrayList<Sprite>) shiftedSpriteBatch.spriteList.clone();
-			this.resetItemIterator();
+			loadSpriteBatch(MasterSpriteBatchFile);
 		}
 		
 		
+	}
+	
+	
+	
+	public void deleteROISpriteBatchFiles(ROIManager roiManager) {
+		// This should be called after the MasterSpriteBatch file has been re-saved, as, in doing so, any previously
+		// saved ROI spritebatches are invalidated
+		// 
+		
+		System.out.println("removeROISpriteBatchFiles  ");
+		
+		ArrayList<String> roiNames = roiManager.getROINames();
+		
+		
+		
+		for(String thisROIName: roiNames ) {
+			
+			
+			String target = getROIFullFilePath(thisROIName);
+			
+			//System.out.println("removing  " + target);
+			
+			if(  MOStringUtils.checkFileExists(target)   ) {
+				
+				MOStringUtils.deleteFile(target);
+				
+			}
+			
+			
+		}
+	
 	}
 	
 

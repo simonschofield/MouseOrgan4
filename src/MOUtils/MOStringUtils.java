@@ -96,6 +96,17 @@ public class MOStringUtils {
 		return directory;
 	}
 	
+	public static void deleteFile(String pathAndName) {
+
+		File myObj = new File(pathAndName); 
+	    if (myObj.delete()) { 
+	      System.out.println("Deleted the file: " + myObj.getName());
+	    } else {
+	      System.out.println("Failed to delete the file.");
+	    } 
+		
+	}
+	
 	public static String getPaddedNumberString(Integer num, int lengthOfString) {
 		String  inputString =  num.toString();
 	    if (inputString.length() >= lengthOfString) {

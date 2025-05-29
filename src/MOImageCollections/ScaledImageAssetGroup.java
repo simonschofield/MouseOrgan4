@@ -260,7 +260,7 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		setAllImageaTo_TYPE_INT_ARGB();
 		
 		
-		System.out.println("loadCachedImages:: loaded " + theImageAssetList.size() + " images");
+		//System.out.println("loadCachedImages:: loaded " + theImageAssetList.size() + " images");
 	}
 	
 	

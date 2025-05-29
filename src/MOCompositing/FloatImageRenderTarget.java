@@ -10,6 +10,7 @@ import MOImage.ImageProcessing;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Range;
+import MOMaths.Rect;
 import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
@@ -26,23 +27,38 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 	private boolean floatImageMake16BitCopyOnSave = false;
 	public boolean saveRenderAtEndOfSession = true;
 	
+	private String renderTargetName = "";
+	
 	public FloatImageRenderTarget(int w, int h, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
 		floatImage = new FloatImage(w, h);
 		floatImageMake16BitCopyOnSave = saveTYPE_USHORT_GRAYcopy;
 		floatImageCopyGamma = imageCopyGamma;
 		coordinateSystem = new ImageCoordinateSystem(w, h);
 	}
+	
+	
+	@Override
+	public void setCoordinateSystem(ImageCoordinateSystem ics) {
+		// TODO Auto-generated method stub
+		coordinateSystem = ics;
+	}
+	
 
-	String renderTargetName = "";
+	
 
 	@Override
 	public void setName(String name) {
 		renderTargetName = name;
 
 	}
-
+	
+	
 	public String getName() {
 		return renderTargetName;
+	}
+	
+	public int getType() {
+		return 0;
 	}
 
 	public String getFullSessionName() {
@@ -163,6 +179,11 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 		return floatImage.getPixelBilin(bufferSpacePt.x, bufferSpacePt.y);
 		
 	}
+	
+	public FloatImage getFloatImage() {
+		
+		return floatImage;
+	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	// The idea here is to preserve actual floating point values, and the only option for that is to have a 
@@ -201,7 +222,7 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 					continue;
 
 				int sourceImageAphaValue = sourceImageAlphaData.getSample(x, y, 0);
-				if (sourceImageAphaValue > 127)
+				if (sourceImageAphaValue > 8)
 					floatImage.set(targetX, targetY, val);
 			}
 		}
@@ -213,5 +234,7 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 		// TODO Auto-generated method stub
 		
 	}
+
+	
 
 }

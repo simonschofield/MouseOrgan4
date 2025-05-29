@@ -28,8 +28,8 @@ public class SpriteFontBiome{
 		randomStream = new QRandomStream(biomeRanSeed);
 	}
 
-	public void addSpriteFont(  String imageSampleGroupName, float sizeInScene, boolean useRelativeSizes, PVector pivotPoint, int fontRanSeed, float probability) {
-		SpriteFont spriteFont = new SpriteFont(spriteFontBiomeName, imageSampleGroupName,  sizeInScene,  useRelativeSizes,  pivotPoint, fontRanSeed);
+	public void addSpriteFont(  String imageSampleGroupName, float sizeInScene, float relativeSizeEQ , PVector pivotPoint, int fontRanSeed, float probability) {
+		SpriteFont spriteFont = new SpriteFont(spriteFontBiomeName, imageSampleGroupName,  sizeInScene,  relativeSizeEQ,  pivotPoint, fontRanSeed);
 		spriteFont.SpriteFontBiomeProbability = probability;
 		biomeItems.add(spriteFont);
 		probabilitiesNormalised = false;

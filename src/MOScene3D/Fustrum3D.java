@@ -1,4 +1,6 @@
-package MOMaths;
+package MOScene3D;
+
+import MOMaths.PVector;
 
 public class Fustrum3D {
 	public PVector nearTopLeft, nearTopRight, nearBottomRight, nearBottomLeft;

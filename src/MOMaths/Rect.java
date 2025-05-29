@@ -256,6 +256,7 @@ public class Rect{
 	}
 	
 	int getQuadrant(PVector p){
+		// Returns the quadant of a point relative to the rect. Only quadrant 4 is inside the rect.
 		// The rectangle divides the space into 9 quadrants
 		// 0,1,2
 		// 3,4,5
@@ -276,7 +277,13 @@ public class Rect{
 		return -1;
 	}
 
-
+	public PVector constrain(PVector p) {
+		
+		float x = MOMaths.constrain(p.x, this.left, this.right);
+		float y = MOMaths.constrain(p.y, this.top, this.bottom);
+		return new PVector(x,y);
+		
+	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	// rect-rect intersection

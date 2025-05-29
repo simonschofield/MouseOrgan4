@@ -8,8 +8,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 
+import MOApplication.ROIManager;
 import MOImage.ConvolutionFilter;
 import MOImage.FloatImage;
+import MOImage.ImageDimensions;
 import MOImage.ImageProcessing;
 import MOImage.MOPackedColor;
 import MOImageCollections.DirectoryFileNameScanner;
@@ -17,13 +19,10 @@ import MOImageCollections.ImageAssetGroup;
 
 import MOMaths.PVector;
 import MOMaths.Range;
-import MOMaths.Ray3D;
 import MOMaths.Rect;
-import MOMaths.Rect3D;
 import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
-import MOUtils.ImageDimensions;
 import MOUtils.KeyValuePairList;
 import MOUtils.MOStringUtils;
 ///////////////////////////////////////////////////////////////////////
@@ -81,14 +80,19 @@ public class SceneData3D {
 	
 	public void loadTexturemaps(String[] include) {
 		
-		include = MOStringUtils.addToStringList(include, "blank");
-
 		DirectoryFileNameScanner dfns = new DirectoryFileNameScanner(directoryPath, "png");
-		dfns.keep(include);
+
 		
-		int num = dfns.getNumFiles();
-		System.out.println("SceneData3D is loading " + num + " texturemaps");
-		dfns.printToConsoleShortFileNames();
+		if(include!=null) {
+			include = MOStringUtils.addToStringList(include, "blank");
+			dfns.keep(include);
+			System.out.println("SceneData3D is loading " + dfns.getNumFiles() + " texturemaps");
+			dfns.printToConsoleShortFileNames();
+		}else {
+			System.out.println("SceneData3D loading all texture maps. " + dfns.getNumFiles() + " in total");
+		}
+		
+
 		textureMapImages = new ImageAssetGroup();
 		textureMapImages.setDirectoryFileNameScanner(dfns);
 		textureMapImages.loadImages();
@@ -110,6 +114,10 @@ public class SceneData3D {
 	
 	public float getAspect() {
 		return depthBuffer3d.width/(float)depthBuffer3d.height;
+	}
+	
+	public Rect getDocumentSpaceRect() {
+		return depthBuffer3d.depthBufferCoordinateSystem.getDocumentRect();
 	}
 
 	private float getCameraDistToVPFromFile(String fileAndPath) {
@@ -133,9 +141,9 @@ public class SceneData3D {
 
 	
 
-	public Rect getROIRect() {
-		return roiManager.getCurrentROIDocRect();
-	}
+	//public Rect getROIRect() {
+	//	return roiManager.getCurrentROIDocRect();
+	//}
 
 	private ImageCoordinateSystem getDepthBufferKeyImageSampler() {
 		return depthBuffer3d.depthBufferCoordinateSystem;
@@ -205,31 +213,8 @@ public class SceneData3D {
 		return ImageProcessing.cropImageWithNormalisedRect(uncropped, cropRect);
 	}
 
-	//////////////////////////////////////////////////////////////////
-	// Converting from LocalROIDocSpace to MasterDocSpace
-	// When this method is used, you assume that the local ROI is in-play as the current document space, hence
-	// you can use the GlobalSettings coordinate space conversions
-	// IN the V2 version, the MasterRect is stored as a documentSpace rect, and the
-	// ROIRect is stored as a wholly contained, sub-rect of the masterRect. Therefore conversion of point localDocPoint in localROIDocSpace to
-	// the MasterDocSpace is as follows
-	// localNormalised = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(roiLocalDocSpace)
-	// masterDocSpace = ROIRect.interpolate(localNormalised)
 	
-	//
-	public PVector subROIDocSpaceToMasterDocSpace(PVector roiLocalDocSpace) {
-
-			return roiManager.subROIDocSpaceToMasterDocSpace(roiLocalDocSpace);
-	}
-
-	///////////////////////////////////////////////////////////////
-	// less used than above. If you happen to have calculated anything in Master Doc
-	// space, and want to convert that to
-	// the ROIs docSpace...
-	// Assume that the local ROI is in-play as the current document space
-	public PVector masterDocSpaceToROIDocSpace(PVector masterDocSpace) {
-		return roiManager.masterDocSpaceToSubROIDocSpace(masterDocSpace);
-
-	}
+	
 
 	public boolean isUsingROI() {
 		return roiManager.isUsingROI();
@@ -252,41 +237,34 @@ public class SceneData3D {
 	}
 
 	Color getCurrentRenderColor(PVector docSpace) {
-		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
-
-		PVector coord = getDepthBufferKeyImageSampler().docSpaceToBufferSpace(masterSpace);
+		PVector coord = getDepthBufferKeyImageSampler().docSpaceToBufferSpaceClamped(docSpace);
+		//System.out.println("Buffer space pt = " + coord.toStr());
 		int packedCol = currentTextureMapImage.getRGB((int) coord.x, (int) coord.y);
-
 		return MOPackedColor.packedIntToColor(packedCol, currentRenderKeyImageHasAlpha);
 	}
 
 	public PVector getCurrentRenderGradiant(PVector docSpace) {
-		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
 		ConvolutionFilter cf = new ConvolutionFilter();
 
-		PVector grad = cf.getGradient(masterSpace, currentTextureMapImage);
+		PVector grad = cf.getGradient(docSpace, currentTextureMapImage);
 		return grad;
 	}
 
 	public boolean isSubstance(PVector docSpace) {
-		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
-		PVector coord = getDepthBufferKeyImageSampler().docSpaceToBufferSpace(masterSpace);
+		PVector coord = getDepthBufferKeyImageSampler().docSpaceToBufferSpace(docSpace);
 		return depthBuffer3d.isSubstance((int) coord.x, (int) coord.y);
 	}
 
 	public PVector get3DSurfacePoint(PVector docSpace) {
-		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
-		return depthBuffer3d.docSpaceToWorld3D(masterSpace);
+		return depthBuffer3d.docSpaceToWorld3D(docSpace);
 	}
 	
 	public PVector get3DVolumePoint(PVector docSpace, float depth) {
-		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
-		return depthBuffer3d.docSpaceToWorld3D(masterSpace, depth);
+		return depthBuffer3d.docSpaceToWorld3D(docSpace, depth);
 	}
 	
 	public Ray3D castRayIntoScene(PVector docSpace) {
-		PVector masterSpace = subROIDocSpaceToMasterDocSpace(docSpace);
-		PVector rayOrigin = get3DVolumePoint(masterSpace, 1);
+		PVector rayOrigin = get3DVolumePoint(docSpace, 1);
 		PVector rayNormal = new PVector(0,0,1);
 		return new Ray3D(rayOrigin,rayNormal);
 	}
@@ -295,22 +273,18 @@ public class SceneData3D {
 		// Returns the document-space distance in master units, that is the unit 3D distance (1.0) at master document space point in the 3D scene.
 		// so for points further away the distance will be shorter etc.
 		// Used for scaling things accurately against the scene
-		
-		PVector masterSpace = subROIDocSpaceToMasterDocSpace(ROIdocSpace);
-		PVector displacedPointMasterSpace = depthBuffer3d.get3DDisplacedDocPoint(masterSpace, new PVector(0, 1,0));
-		PVector displacedPointROIDocSpace =  this.masterDocSpaceToROIDocSpace(displacedPointMasterSpace);
+		PVector displacedPointDocSpace = depthBuffer3d.get3DDisplacedDocPoint(ROIdocSpace, new PVector(0, -1,0));
 		
 		//if( unitSizeMasterDocSpace > 0.002) System.out.println("get3DScale : ROI doc point " + docSpace.toStr() + " masterSpace doc point " +  masterSpace.toStr() + " p3d " + original3DPoint + " unit size " + unitSizeMasterDocSpace);
 
-		float distanceInROIDocSpace = ROIdocSpace.dist(displacedPointROIDocSpace);
-		return distanceInROIDocSpace;
+		return ROIdocSpace.dist(displacedPointDocSpace);
 	}
 
 	
 
 	public float getDepth(PVector docSpace) {
-		PVector roiSpace = subROIDocSpaceToMasterDocSpace(docSpace);
-		PVector bufferSpace = depthBuffer3d.docSpaceToBufferSpace(roiSpace);
+		
+		PVector bufferSpace = depthBuffer3d.docSpaceToBufferSpace(docSpace);
 		return depthBuffer3d.getDepthBilinear(bufferSpace);
 	}
 	
@@ -326,8 +300,8 @@ public class SceneData3D {
 	
 	public PVector world3DToDocSpace(PVector world3dPt) {
 
-		PVector docSpaceInMasterView = depthBuffer3d.world3DToDocSpace(world3dPt);
-		return masterDocSpaceToROIDocSpace(docSpaceInMasterView);
+		return  depthBuffer3d.world3DToDocSpace(world3dPt);
+		
 
 	}
 	

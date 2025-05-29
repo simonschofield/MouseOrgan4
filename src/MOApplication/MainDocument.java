@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 
 import MOCompositing.RenderTargetInterface;
+import MOImage.ImageDimensions;
+import MOMaths.Rect;
 import MOCompositing.RenderBorder;
 import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.FloatImageRenderTarget;
@@ -25,9 +27,15 @@ import MOUtils.GlobalSettings;
 // the same ImageCoordinateSystem.
 // 
 // 
-// The type of image-buffer class contained is defined by the interface MainDocumentRenderTarget. This allows the addition of bespoke image-classes, such as floating point (for depth information) and integer for 
+// The type of image-buffer class contained is defined by the interface RenderTargetInterface. This allows the addition of bespoke image-classes, such as floating point (for depth information) and integer for 
 // item-id that can all handle the pasting of ImageSprites in various ways to create images and mask-type images.
 //
+// These are the Java Image Types used in MouseOrgan
+//	public static final int TYPE_CUSTOM = 0; -- in this implementation we use this to indicate FLOAT image, which is NOT a buffered image type, but wrapped in a RenderTargetInterface
+//	public static final int TYPE_INT_ARGB = 2; -- A buffered image type, Used for colour + alpha images in, may also be used to provide INT images if required
+//	public static final int TYPE_BYTE_GRAY = 10; -- A buffered image type,used for 8 bit grey scale images
+//	public static final int TYPE_USHORT_GRAY = 11; - A buffered image type, used for 16 bit greyscale images
+
 
 
 public class MainDocument{
@@ -35,38 +43,68 @@ public class MainDocument{
 	
 	
 	ArrayList<RenderTargetInterface> renderTargets = new ArrayList<RenderTargetInterface>();
-	public RenderBorder renderBoarder;
+	public RenderBorder renderBorder;
 	int width, height;
 	
-	public MainDocument(int wdth, int hght, int mainRenderType) {
+	ImageCoordinateSystem documentImageCordinateSystem;
+	
+	
+	public MainDocument(int fullScaleWidth, int fullScaleHeight, int mainRenderType) {
+		// simple non-roi based document
 		
-		width = wdth;
-		height = hght;
-		addRenderTarget("main", mainRenderType);
+		// session scaling of the document image happens here....
+		float scl = GlobalSettings.getSessionScale();
+		width = (int)Math.round(fullScaleWidth * scl);
+		height = (int)Math.round(fullScaleHeight * scl);
+		
+		
+		// The documentImageCordinateSystem is now used for all Document Render Targets (a reference is shared between them)
+		documentImageCordinateSystem = new ImageCoordinateSystem(width,height);
 		GlobalSettings.setTheDocumentCoordSystem(this);
-		renderBoarder = new RenderBorder();
+		renderBorder = new RenderBorder();
 		
+		
+		addRenderTarget("main", mainRenderType);
+	}
+	
+	public MainDocument(ROIManager roiManager, int mainRenderType) {
+		// for a roi based document
+		
+		// session scaling of the document image happens here....
+		// The documentImageCordinateSystem is now used for all Document Render Targets (a reference is shared between them)
+		documentImageCordinateSystem = roiManager.getCurrentROIImageCoordinateSystem_SessionScaled().copy();
+		width = documentImageCordinateSystem.getBufferWidth();
+		height = documentImageCordinateSystem.getBufferHeight();
+
+		GlobalSettings.setTheDocumentCoordSystem(this);
+		renderBorder = new RenderBorder();
+		
+		System.out.println(">>" + documentImageCordinateSystem.toStr());
+		addRenderTarget("main", mainRenderType);
 	}
 	
 	
-	
+	// they should all have the same coordinate system within a document
 	public ImageCoordinateSystem getCoordinateSystem() {
-		return renderTargets.get(0).getCoordinateSystem();
-		
+		return documentImageCordinateSystem;
 	}
 	
 	public void addRenderTarget(String name, int type) {
 			BufferedImageRenderTarget rt = new BufferedImageRenderTarget(width, height,type);
+			rt.setCoordinateSystem(documentImageCordinateSystem);
 			rt.setName(name);
 			renderTargets.add(rt);
 	}
 	
 	public void addFloatRenderTarget(String name, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
 		if(imageCopyGamma == 0 ) imageCopyGamma = 1;
+
 		FloatImageRenderTarget rt = new FloatImageRenderTarget(width, height,  saveTYPE_USHORT_GRAYcopy,  imageCopyGamma);// deferred
+		rt.setCoordinateSystem(documentImageCordinateSystem);
+
 		rt.setName(name);
 		renderTargets.add(rt);
-}
+	}
 	
 	public BufferedImageRenderTarget getMain() {
 		// because this one is the most used.. it has a special short-hand access method
@@ -103,6 +141,13 @@ public class MainDocument{
 		return null;
 	}
 	
+	public boolean renderTargetExists(String name) {
+		for(RenderTargetInterface rt: renderTargets) {
+			if( rt.getName().equals(name)) return true;
+		}
+		return false;
+	}
+	
 	
 	public RenderTargetInterface getRenderTarget(String name) {
 		
@@ -124,15 +169,15 @@ public class MainDocument{
 	
 
 	public void setRenderBorder(RenderBorder rb) {
-		renderBoarder = rb;
+		renderBorder = rb;
 	}
 	
 	public RenderBorder getRenderBorder() {
-		return renderBoarder;
+		return renderBorder;
 	}
 	
-	public boolean cropSpriteToBoarder(Sprite sprite) {
-		return renderBoarder.cropSprite(sprite);
+	public boolean cropSpriteToBorder(Sprite sprite) {
+		return renderBorder.cropSprite(sprite);
 	}
 	
 	

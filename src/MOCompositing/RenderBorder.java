@@ -3,10 +3,12 @@ package MOCompositing;
 
 
 import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOImage.ImageProcessing;
+import MOImage.MOColor;
 import MOImageCollections.DirectoryFileNameScanner;
 import MOImageCollections.ScaledImageAssetGroup;
 import MOMaths.PVector;
@@ -62,9 +64,14 @@ public class RenderBorder {
 	// this is for selecting the particular edge-mask
 	QRandomStream qRandomStream = new QRandomStream(1);
 	
+	private Rect documentRect;
+	
+	
 	public RenderBorder(){
 		
-		boarderRect = new Rect(0,0,GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth(), GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight());
+		//boarderRect = new Rect(0,0,GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth(), GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight());
+		boarderRect = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
+		documentRect = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
 		//contributingSpritesList = new ContributingSpritesList();
 	}
 	
@@ -104,8 +111,10 @@ public class RenderBorder {
 	// useful data access, may be used by the user to optimise the render
 	
 	public Rect getBoarderRect() {
+		System.out.println(">>>>getBoarderRect " + boarderRect.toStr() );
 		return boarderRect.copy();
 	}
+	
 	
 	public boolean isPointInsideBoarderRect(PVector docSpacePt) {
 		
@@ -135,7 +144,7 @@ public class RenderBorder {
 		int numImages = sprite.getNumImages();
 		
 		for(int n = 0; n < numImages; n++) {
-			boolean cropResult = cropEnumeratedSpriteImage( sprite, n);
+			boolean cropResult = cropSpriteImage( sprite, n);
 			// if any of the sprite images is fully cropped then return false, as there is no point carrying on
 			if(cropResult == false) return false;
 		}
@@ -143,12 +152,12 @@ public class RenderBorder {
 	}
 	
 	
-	private boolean cropEnumeratedSpriteImage(Sprite sprite, int enumeratedImageNum) {
+	private boolean cropSpriteImage(Sprite sprite, int enumeratedImageNum) {
 		int numImage = sprite.getNumImages();
 		
 		String overlapReport = sprite.getDocSpaceRect().reportIntersection(boarderRect);
 		
-		//System.out.println("cropSprite " + overlapReport);
+		//System.out.println("cropSprite 
 		
 		// do the trivial non-cropping actions if the image is wholly inside or outside the boarderRect
 		// or is fully excluded, or there is no action to be taken
@@ -159,24 +168,39 @@ public class RenderBorder {
 		
 		
 		// beyond this point some cropping of the sprite takes place
-		// so work out the geometric crop-rect
-		// System.out.println("cropToPermittedPasteArea");
+		// so work out the crop-rect. First get the intersection of the sprite's rect
+		// with the document rect (all in doc space units)
 		Rect uncroppedSpriteRect = sprite.getDocSpaceRect();
-		Rect croppedSpriteRect = boarderRect.getBooleanIntersection(uncroppedSpriteRect);
-
-		// Shift the croppedSpriteRect so that it is relative to the uncroppedSprte rect in the sprites own space, rather than the document space  
-		// 
-		float uncroppedLeft = uncroppedSpriteRect.left;
-		float uncroppedTop = uncroppedSpriteRect.top;
-		croppedSpriteRect.translate(-uncroppedLeft, -uncroppedTop);
-
-		// work out the buffer space coords in the sprite image
-		PVector bTopLeft = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(croppedSpriteRect.getTopLeft());
-		PVector bBottomRight = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(croppedSpriteRect.getBottomRight());
-
-
-		Rect croppedRectBufferSpace = new Rect(bTopLeft,bBottomRight);
-		//System.out.println("doBespokeCrop:croppedRectBufferSpace " + croppedRectBufferSpace.toStr());
+		Rect spriteDocRectIntersection = boarderRect.getBooleanIntersection(uncroppedSpriteRect);
+		
+		// debug
+		//Color c = MOColor.getRandomRGB(255);
+		//GlobalSettings.getDocument().getMain().drawRect_DocSpace(spriteDocRectIntersection, new Color(0,0,0,0), c, 3);
+		
+		
+		
+		/////////////////////////////////////////////////////////////////////////////////////////////////
+		// Shift the croppedSpriteRect so that it is relative to the uncroppedSprte rect in the sprites own space, rather   
+		// than the document space.
+		// this is now the sprite's local docSpace representation of the area within the sprite to be kept (i.e. cropped to)
+		Rect spriteSpaceDocRectIntersection = spriteDocRectIntersection.copy();
+		spriteSpaceDocRectIntersection.translate(-uncroppedSpriteRect.left, -uncroppedSpriteRect.top);
+		
+		
+		//
+		// get the BufferSpace unit equivalent of this rect
+		Rect croppedRectBufferSpace = GlobalSettings.getTheDocumentCoordSystem().docSpaceUnitToBufferSpaceUnit(spriteSpaceDocRectIntersection);
+		
+		// this does not work because topleft is 0,0 .. and this now translates to some abitraru point outside of local doc space. need to use units as above!
+		//PVector testLT = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(spriteSpaceDocRectIntersection.getTopLeft());
+		//PVector testBR = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(spriteSpaceDocRectIntersection.getBottomRight());
+		//Rect testRect = new Rect(testLT,testBR);
+		
+		
+		// System.out.println("croppedRectBufferSpace " + croppedRectBufferSpace.toStr() + " testRect " + testRect.toStr() );
+		
+		//System.out.println("doBespokeCrop:uncroppedSpriteRect " + uncroppedSpriteRect.toStr() + " in doc rect " + documentRect.toStr() + " translatedCroppedSpriteRect " + translatedSpriteDocRectIntersection.toStr());
+		//System.out.println("doBespokeCrop:croppedRectBufferSpace " + croppedRectBufferSpace.toStr() + " sprite image size " + sprite.getImageWidth() + "," + + sprite.getImageHeight());
 		// if the crop rect is zero in either dimension return the culled decision
 		if(croppedRectBufferSpace.getWidth() < 1 || croppedRectBufferSpace.getHeight() < 1) {
 			return false;
@@ -203,14 +227,11 @@ public class RenderBorder {
 			
 			
 		}
-
+		
 		// paste the cropped image back into the empty output image at the correct point
 		BufferedImage outputImage = new BufferedImage(sprite.getImageWidth(), sprite.getImageHeight(), sprite.getMainImage().getType());
-		ImageProcessing.compositeImage_ChangeTarget(preCroppedImage, outputImage, (int)bTopLeft.x, (int)bTopLeft.y, 1);
+		ImageProcessing.compositeImage_ChangeTarget(preCroppedImage, outputImage, (int)croppedRectBufferSpace.left, (int)croppedRectBufferSpace.top, 1);
 		sprite.setImage(enumeratedImageNum,outputImage);
-		
-		
-		
 		
 	    // image has been cropped OK
 		return true;
@@ -415,6 +436,7 @@ public class RenderBorder {
 		PVector bottomRight = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(bottomRightNormSpace);
 		
 		boarderRect = new Rect(topLeft, bottomRight);
+		System.out.println(">>>>RenderBoarder: boarderRect " + boarderRect.toStr());
 	}
 	
 	

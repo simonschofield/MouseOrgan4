@@ -1,5 +1,6 @@
 package MOCompositing;
 
+import MOMaths.Rect;
 import MOSprite.Sprite;
 import MOUtils.ImageCoordinateSystem;
 
@@ -28,6 +29,12 @@ public interface RenderTargetInterface {
 
 	public ImageCoordinateSystem getCoordinateSystem();
 	
+	public void setCoordinateSystem(ImageCoordinateSystem ics);
 	
+	//public int getImageType();
+	
+	//public int getPixel(float x, float y);
+	
+	//public void setPixel()
 
 }

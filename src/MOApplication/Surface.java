@@ -17,6 +17,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import MOImage.ImageDimensions;
 import MOImage.ImageProcessing;
 import MOMaths.PVector;
 import MOMaths.Rect;
@@ -122,40 +123,60 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 
 	/////////////////////////////////////////////////////////////////////
-	// Initialisation methods
-	// This MUST be called from the InitialiseSession method of the UserSession
-	// After this has been called the GlobalSettings are fully initialised, and
-	// the user can use theDocument as a reference to the MainDocument
-	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType, boolean applySessionScaleToDimensions) {
-		// this is the only place this method is called
-		//GlobalSettings.init(userSessionPth, fullScaleRenderW, fullScaleRenderH, sessionScl, this);
+	// Initialisation method called from initialise Session in User Session
+	// Straight forward session initialisation, not using a ROI manager
+	// 
+	//
+	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType) {
+
+		fullScaleRenderW = (int)(fullScaleRenderW * GlobalSettings.getSessionScale());
+		fullScaleRenderH = (int)(fullScaleRenderH * GlobalSettings.getSessionScale());
 		
-		
-		if(applySessionScaleToDimensions) {
-			fullScaleRenderW = (int)(fullScaleRenderW * GlobalSettings.getSessionScale());
-			fullScaleRenderH = (int)(fullScaleRenderH * GlobalSettings.getSessionScale());
-			
-		}
 
 		theDocument = new MainDocument(fullScaleRenderW, fullScaleRenderH, mainDocumentRenderType);
-		//GlobalSettings.setTheDocumentCoordSystem(theDocument);
+		
+		initialiseViewAndUI();
+	}
+	
+
+	/////////////////////////////////////////////////////////////////////
+	// Initialisation method called from initialise Session in User Session
+	// Initialising using a ROImanager. This is presumed to become the dominant way
+	// to initialise the system.
+	//
+	public void initialiseDocument(ROIManager roiManager, int mainDocumentRenderType) {
+
+		GlobalSettings.mainSessionName = roiManager.getCurrentROIName();
+		System.out.println("initialiseDocument:: session name = " + GlobalSettings.mainSessionName);
+			
+		theDocument = new  MainDocument( roiManager, mainDocumentRenderType);
+
+		initialiseViewAndUI();
+	}
+	
+	
+	
+	private void initialiseViewAndUI() {
+
 		// ok to do these now
 		theViewControl.init(this);
 		buildUI();
-		
+
 		// some default settings
 		setCanvasUpdateFrequency(500);
 		if(GlobalSettings.getSessionScale()>= 0.5f) {
 			setCanvasUpdateFrequency(10);
 		}
-		
+
 		//sets the canvas colour in the ui panel only, not in the image
 		setCanvasBackgroundColor(new Color(255,255,255,255));
-		
-		
+
+
 		if(GlobalSettings.getSessionScale()>= 0.5f) {
 			ImageProcessing.setInterpolationQuality(ImageProcessing.INTERPOLATION_BICUBIC);
 		}
+		
+		
 	}
 	
 	
@@ -378,7 +399,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	
 	////////////////////////////////////////////////////////////////////////
 	// overridden functions in the user's project
-	// - i.e. YOUR CODE
+	// - i.e. YOUR UserSession CODE
 
 	
 	protected abstract void initialiseUserSession();
