@@ -104,7 +104,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 		rt.fillBackground(Color.BLACK);
 		rt.getVectorShapeDrawer().setDrawingStyle(Color.WHITE,  Color.WHITE, 1);
 		rt.getVectorShapeDrawer().drawVertices2(spriteBufferSpacePolygon);
-		return rt.getImage();
+		return rt.getBufferedImage();
 	}
 	
 	BufferedImage  cropTextureToMask(BufferedImage chosenTexture, BufferedImage polygonMask, boolean randomDisplace) {

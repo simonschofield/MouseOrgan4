@@ -40,7 +40,7 @@ public class ImageCoordinateSystem {
 			documentSpaceRect = asRoi.copy();
 			
 			bufferWidth = targetBufferWidth;
-			bufferHeight = (int) (targetBufferWidth / documentSpaceRect.aspect()   + 0.5f);
+			bufferHeight = (int) ((targetBufferWidth / documentSpaceRect.aspect())  + 0.5f) ;
 			
 			documentWidth = documentSpaceRect.getWidth();
 			documentHeight = documentSpaceRect.getHeight();
@@ -100,11 +100,13 @@ public class ImageCoordinateSystem {
 			return new Rect(bsL,bsT,bsW,bsH);
 		}
 
+		
+		
 		public PVector bufferSpaceToDocSpace(PVector p) {
-			return bufferSpaceToDocSpace((int) (p.x), (int) (p.y));
+			return bufferSpaceToDocSpace( (p.x),  (p.y));
 		}
 		
-		public PVector bufferSpaceToDocSpace(int bx, int by) {
+		public PVector bufferSpaceToDocSpace(float bx, float by) {
 			
 			// get the normalised coordinates for the buffer space
 			float nx = bx/(float)bufferWidth;
@@ -113,6 +115,10 @@ public class ImageCoordinateSystem {
 			PVector normPoint = new PVector(nx, ny);
 			
 			return documentSpaceRect.interpolate(normPoint);
+		}
+		
+		public PVector bufferSpaceToDocSpace(int bx, int by) {
+			return bufferSpaceToDocSpace((float)bx, (float)by);
 		}
 		
 		

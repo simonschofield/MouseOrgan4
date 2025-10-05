@@ -34,7 +34,21 @@ public class Plane3D {
 	}
 	
 	
+	public PVector nearestPointOnPlane(PVector pointPosition)
+    {
+	    
+	    
+	    PVector v1 = PVector.sub(pointPosition, pointOnPlane);
+	    float sn = -PVector.dot(surfaceNormal, v1);
+	    float sd = PVector.dot(surfaceNormal, surfaceNormal);
+	    float sb = sn / sd; 
+	    PVector v2 = PVector.mult(surfaceNormal, sb);  
+	    return PVector.add(pointPosition, v2);
+    }
 	
+	
+	
+
 	
 	
 	

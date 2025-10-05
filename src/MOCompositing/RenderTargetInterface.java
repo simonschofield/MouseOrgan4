@@ -1,5 +1,7 @@
 package MOCompositing;
 
+import java.awt.image.BufferedImage;
+
 import MOMaths.Rect;
 import MOSprite.Sprite;
 import MOUtils.ImageCoordinateSystem;
@@ -31,7 +33,9 @@ public interface RenderTargetInterface {
 	
 	public void setCoordinateSystem(ImageCoordinateSystem ics);
 	
-	//public int getImageType();
+	public int getImageType();
+	
+	public BufferedImage getBufferedImage();
 	
 	//public int getPixel(float x, float y);
 	

@@ -82,7 +82,10 @@ public class PointGenerator_SurfacePack3D {
 	float farDistanceMultiplier = 1;
 	float nearDistanceThreshold = 0.5f;
 	
+	Progress progress;
+	
 	public PointGenerator_SurfacePack3D(SceneData3D sd, float maxRadius) {
+		
 		sceneData = sd;
 		fullExtents = sceneData.depthBuffer3d.getExtents();
 		int numBoxesX = (int) Math.ceil(fullExtents.getWidth()/maxRadius);
@@ -99,6 +102,7 @@ public class PointGenerator_SurfacePack3D {
 	}
 	
 	public PointGenerator_SurfacePack3D(SceneData3D sd) {
+		
 		init( 1,  sd,  50,  50,  50);
 	}
 	
@@ -140,7 +144,7 @@ public class PointGenerator_SurfacePack3D {
 		setAllNeighbours();
 		
 		generationArea = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
-		
+		progress = new Progress("Generating Points: ");
 	}
 	
 	
@@ -191,7 +195,7 @@ public class PointGenerator_SurfacePack3D {
 	
 	public ArrayList<PVector> generatePoints() {
 		clearAllPoints();
-		Progress.reset();
+		progress.reset();
 		timer = new SecondsTimer();
 		timer.start();
 		
@@ -203,7 +207,7 @@ public class PointGenerator_SurfacePack3D {
 			PVector p3 = null;
 			PVector p2 = getRandomDocSpacePoint();
 			float controlValue = sceneData.getCurrentRender01Value(p2);
-			
+			//System.out.println("value at docx = ")
 			if( isExcluded(controlValue)) {
 				isPlaced = false;
 			} else {
@@ -224,7 +228,7 @@ public class PointGenerator_SurfacePack3D {
 				p2.z = p3.z;
 				points2DWithDepth.add(p2);
 
-				Progress.print(points2DWithDepth.size(), this.maxNumPoints);
+				progress.print(points2DWithDepth.size(), this.maxNumPoints);
 
 			} else {
 				failedSequentialTries++;

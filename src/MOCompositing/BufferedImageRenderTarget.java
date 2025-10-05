@@ -118,7 +118,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	
 	
 	
-	public BufferedImage getImage() {
+	public BufferedImage getBufferedImage() {
 		return targetRenderImage;
 	}
 	
@@ -126,7 +126,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 		return ImageProcessing.copyImage(targetRenderImage);
 	}
 	
-	public int getType() {
+	public int getImageType() {
 		int t =  targetRenderImage.getType();
 		if(t==0) {
 			System.out.println("BufferedImageRenderTarget::getType - is returning 0 ... this is reserved for Floating Point images");
@@ -286,7 +286,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	// Experimental using a TYPE_INT_ARGB buffered image to store sprite ID,s
 	// These can then be queried
 	public void pasteSpriteIDToARGBImage(Sprite sprite) {
-		if(getType() != BufferedImage.TYPE_INT_ARGB) {
+		if(getImageType() != BufferedImage.TYPE_INT_ARGB) {
 			System.out.println("RenderTarget.pasteSpriteIDToARGBImage :: target image is not TYPE_INT_ARGB");
 			return;
 		}
@@ -342,7 +342,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	// The value to be added should be in the range 0...1
 	public void pasteSpriteMaskTo16BitGray(Sprite sprite, float val) {
 		
-		if(getType() != BufferedImage.TYPE_USHORT_GRAY) {
+		if(getImageType() != BufferedImage.TYPE_USHORT_GRAY) {
 			System.out.println("RenderTarget.pasteSpriteMaskTo16BitGray :: target mask is not USHORT_GRAY");
 			return;
 		}
@@ -647,6 +647,8 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 		}
 		return scaled;
 	}
+
+	
 
 	
 

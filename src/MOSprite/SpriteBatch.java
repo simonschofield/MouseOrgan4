@@ -19,9 +19,10 @@ import MOUtils.MOStringUtils;
 
 public class SpriteBatch extends CollectionIterator{
 	
+	
 	public String thisSpriteBatchName = "";
 	private ArrayList<Sprite> spriteList = new ArrayList<Sprite>();
-
+	
 	
 	public SpriteBatch(){
 		
@@ -29,6 +30,7 @@ public class SpriteBatch extends CollectionIterator{
 	
 	public SpriteBatch(String name) {
 		thisSpriteBatchName = name;
+		
 	}
 	
 	public SpriteBatch copy() {
@@ -52,7 +54,16 @@ public class SpriteBatch extends CollectionIterator{
 		spriteList = sprites;
 	}
 	
-	
+	public Sprite getSpriteFromID(int searchID) {
+		
+		for(Sprite s : spriteList) {
+			int thisID = s.getID();
+			if(thisID == searchID) return s;
+		}
+		
+		return null;
+		
+	}
 	
 	public void append(SpriteBatch otherBatch) {
 		// when appending the sprites maintain their original sprite batch names.
@@ -86,9 +97,11 @@ public class SpriteBatch extends CollectionIterator{
 			float d = s.getDepth();
 			depthExtrema.addExtremaCandidate(d);
 		}
-		System.out.println("getting sprite batch depth extrema " + depthExtrema.toStr());
+		System.out.println("Sprite batch depth extrema " + depthExtrema.toStr());
 		return depthExtrema;
 	}
+	
+	
 
 	public ArrayList<PVector> getPoints(){
 		ArrayList<PVector> points = new ArrayList<PVector>();
@@ -162,7 +175,7 @@ public class SpriteBatch extends CollectionIterator{
 	}
 
 	public void loadSpriteBatch(String fileAndPath) {
-		// there should be a directory in the project folder called seeds
+		// there should be a directory in the project folder called SpriteBatches
 		try{
 			BufferedReader csvReader = new BufferedReader(new FileReader(fileAndPath));
 

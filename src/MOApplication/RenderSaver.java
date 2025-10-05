@@ -1,4 +1,4 @@
-package MOAppSessionHelpers;
+package MOApplication;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
-import MOApplication.MainDocument;
 //import MOCompositing.MainDocumentRenderTarget;
 import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.RenderTargetInterface;
@@ -84,6 +83,8 @@ public class RenderSaver {
 		layerCounter = 0;
 		
 		updateCurrentSessionEnumerator();
+		
+		GlobalSettings.setRenderSaver(this);
 		//if(useSubDirectory) {
 		//	subDirectoryPath = MOStringUtils.createDirectory(GlobalSettings.getUserSessionPath(), GlobalSettings.getDocumentName() + getSessionEnumeratorString() + "\\", false);
 		//}
@@ -134,14 +135,14 @@ public class RenderSaver {
 			// if FILENAME_INCREMENT an new enumerated directory has been created at instantiation of this object and subDirectoryPath set to this
 			// if FILENAME_OVERWRITE then the previously-saved highest-numbered session directory has been set as the subDirectoryPath, so the files within are overwritten
 			createSubDirectory();
-			saveDocumentMainImage(subDirectoryPath,"");
-			saveDocumentSupplementaryImages(subDirectoryPath,"");
+			//saveDocumentMainImage(subDirectoryPath,"");
+			saveAllDocumentImages(subDirectoryPath,"");
 			
 		} else {
 			// if FILENAME_INCREMENT the filename generated will use the highest existing + 1 as the enumerator
 			// if FILENAME_OVERWRITE the filename generated will use the highest existing so will overwrite this file
-			saveDocumentMainImage(GlobalSettings.getUserSessionPath(),currentNumeratorString);
-			saveDocumentSupplementaryImages(GlobalSettings.getUserSessionPath(),currentNumeratorString);
+			//saveDocumentMainImage(GlobalSettings.getUserSessionPath(),currentNumeratorString);
+			saveAllDocumentImages(GlobalSettings.getUserSessionPath(),currentNumeratorString);
 		}
 		
 		
@@ -150,7 +151,11 @@ public class RenderSaver {
 		
 	}
 	
-	
+	public void saveAllImagesInUserSpecifiedLocation(String pth) {
+		// called from the save menu
+		//saveDocumentMainImage(pth,"");
+		saveAllDocumentImages(pth,"");
+	}
 	
 	public void saveUserSessionSourceCode() {
 		String currentNumeratorString = getSessionEnumeratorString();
@@ -188,7 +193,7 @@ public class RenderSaver {
 		
 		if(saveSupplementaryImagesAtEachLayer) {
 			String dirPath = subDirectoryPath + "\\";
-			saveDocumentSupplementaryImages(dirPath, layerString);
+			saveAllDocumentImages(dirPath, layerString);
 			if(!finalLayer) {
 				clearDocumentSupplementaryImages();
 			}
@@ -230,23 +235,28 @@ public class RenderSaver {
 		return fullString;
 	}
 	
-	private void saveDocumentMainImage(String fullPath, String enumerator) {
+	//private void saveDocumentMainImage(String fullPath, String enumerator) {
 		// this is where the document needs to have its own name and schemaName
 		
-			String fullSessionName = theDocument.getMain().getFullSessionName();
-			String ext = theDocument.getMain().getFileExtension();
-			String fullPathAndName = fullPath + fullSessionName + enumerator + ext;
-			theDocument.getMain().saveRenderToFile(fullPathAndName);
+	//		String fullSessionName = theDocument.getMain().getFullSessionName();
+	///		String ext = theDocument.getMain().getFileExtension();
+	//		String fullPathAndName = fullPath + fullSessionName + enumerator + ext;
+	//		theDocument.getMain().saveRenderToFile(fullPathAndName);
 		
 		//theDocument.getRenderTarget("main").saveRenderToFile(fullPathAndName  + ".png" );
 		
-	}
+	//}
 	
-	private void saveDocumentSupplementaryImages(String fullPath, String enumerator) {
-		if(theDocument.getNumRenderTargets()==1) return;
-		for(int n = 1; n < theDocument.getNumRenderTargets(); n++) {
+	private void saveAllDocumentImages(String fullPath, String enumerator) {
+		//if(theDocument.getNumRenderTargets()==1) return;
+		for(int n = 0; n < theDocument.getNumRenderTargets(); n++) {
 			RenderTargetInterface rt = theDocument.getRenderTarget(n);
 			String fullSessionName = rt.getFullSessionName();
+			
+			// don't want to save the sprite ID render if there is one.
+			if(fullSessionName.contains("spriteIDRenderTarget")) continue;
+			
+			
 			String ext = rt.getFileExtension();
 			String fullPathAndName =  fullPath + fullSessionName + enumerator + ext;
 			theDocument.getRenderTarget(n).saveRenderToFile(fullPathAndName);

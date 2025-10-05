@@ -33,6 +33,12 @@ public class Menu extends Widget {
 		parentManager = manager;
 		UIComponentType = "Menu";
 
+		setItems(menuItems);
+	}
+	
+	public void setItems(String[] menuItems) {
+		itemList.clear();
+		numItems = 0;
 		for (String s : menuItems) {
 			itemList.add(s);
 			numItems++;

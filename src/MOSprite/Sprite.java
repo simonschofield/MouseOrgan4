@@ -26,13 +26,15 @@ public class Sprite {
 	////////////////////////////////////////////////////
 	// the images contained within this sprite. The first image (image(0)) is the "main" image, and sets
 	// the size of all other added images. This implementation does not work with images of different dimensions
-	public SpriteImages images;
+	private SpriteImages images;
 	
 	////////////////////////////////////////////////////
-	// the id is a unique integer. It is set by the SpriteSeed constructor from the static UniqueID class declared above. 
+	// the id is a unique integer > 0. It is set by the sprite's constructor from the static UniqueID class declared above. 
 	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each sprite
 	// regardless of previous random events
 	// It is also used in optimisations such as registering whether or not a sprite is used in a render.
+	// NB: An ID of zero (0) is never used, as 0 is used in ID-RenderTargets (where the pixel information is the ID of the sprite)
+	// to represent "nothing".
 	private int uniqueID;						
 
 	// the randomKey is used to guarantee the same outcome from stochastic processes, rather than relying on the UniqueID. It is initially set to equal the uniqueID, but if the user is unhappy
@@ -50,18 +52,21 @@ public class Sprite {
 	public float relativeGroupSizeEqualization = 0;
 	
 	/////////////////////////////////////////////////////
-	// The pivot-point - the local origin for pasting and transforms
-	//
+	// The pivot-point - the local origin 1/ for mapping the docPoint
+	// to the sprite paste-point in the scene, 2/ All transforms use this to define a local origin.
+	// It is set and stored in normalised units within the sprite's image extents
+	// where (0.5,0.5) is the centre of any sprite, (0,0) is the TLH corner of any sprite.
+	// 
 	private PVector pivotPoint = new PVector(0.5f, 0.5f);
 	
 	/////////////////////////////////////////////////////
 	// the doc point used to position  the item in the scene
 	// While certain processes generate a doc point with Z value for depth, the docPoint should never contain
-	// any Z value, as this will screw up scaling calculations
+	// any Z value other than 0, as this will screw up scaling calculations
 	public PVector docPoint = new PVector(0.5f, 0.5f);
 	
 	/////////////////////////////////////////////////////
-	// the depth is set to the normalised depth in the 3D scene, 
+	// the depth is set to the actual depth in the 3D scene, 
 	// usually used to sort the render order of the seeds
 	// 
 	public float depth = 1;	
@@ -72,13 +77,25 @@ public class Sprite {
 	public String ImageGroupItemShortName= "";						
 	//public float alpha = 1;
 	
+	///////////////////////////////////////////////////////////////
+	// Generally useful flag, can be set by any process to exclude sprites
+	// within a batch from other processes
 	public boolean isActive = true;
 	
 	///////////////////////////////////////////////////////////////
-	// for internal workings
+	// The image quad keeps a track of the where the 4 corners of the image
+	// would notionally be under transformation (placement, rotation, scaling, bending)
+	// From this process, the user is able to track or map any normalised point within the sprite
+	// to its position in the scene
+	public SpriteImageQuad imageQuad;
+	
+	
+	
+	///////////////////////////////////////////////////////////////
+	// The sprites own random stream. 
 	//
-	//public SpriteImageQuad imageQuad;
 	private QRandomStream qRandomStream;
+	
 	
 	
 	////////////////////////////////////////////////////////////
@@ -97,12 +114,21 @@ public class Sprite {
 	public Sprite(boolean newUniqueID) {
 		if(newUniqueID) newUniqueID();
 		images = new SpriteImages();
+		
 	}
 
 	public Sprite(BufferedImage img) {
 		newUniqueID();
 		images = new SpriteImages();
 		setMainImage(img);
+		
+	}
+	
+	
+	private void initImageQuad() {
+		if( imageQuad==null ) {
+			imageQuad = new SpriteImageQuad(this);
+		}
 	}
 	
 	private void newUniqueID() {
@@ -242,7 +268,7 @@ public class Sprite {
 
 	
 	// generally for identification purposes
-	String getSpiteDataString(String key) {
+	public String getSpiteDataString(String key) {
 		String s = spriteData.getString(key);
 		if(s == null) {
 			System.out.println("Sprite2::getSpiteDataString, the key " + key + " does not exist");
@@ -271,10 +297,13 @@ public class Sprite {
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
-	/// sprite image setting
+	/// sprite image getting and setting
 	///////////////////////////////////////////////////////////////////////////////////////////
 	
-
+	public BufferedImage getMainImage() {
+		return images.getImage(0);
+	}
+	
 	public BufferedImage getImage(int i) {
 		// returns an image from the image list using a numerical index
 		return images.getImage(i);
@@ -285,51 +314,77 @@ public class Sprite {
 		// returns an image from the image list using an identifying name
 		return images.getImage(name);
 	}
+	
+	
+	
+	
+	// setting images
+	// for convenience
+	public void setMainImage(BufferedImage img) {
+		images.setImage("main",img);
+		initImageQuad();
+	}
+		
+	
 	public void setImage(String name, BufferedImage img) {
 		// If the existing name already exists, it replaces that image, otherwise adds a new image
 		// The same as setImage
 		images.setImage(name, img);
+		initImageQuad();
 	}
 	
 	public void setImage(int i, BufferedImage img) {
 		// sets an image via numerical index. The list element must already exist for this to work
 		images.setImage(i, img);
+		initImageQuad();
 	}
 	
 	public int getNumImages() {
 		return images.getNumImages();
 	}
 	
-	public void duplicateImage(String sourceImageName, String duplicateName) {
-		// deep copies the image sourceImageName, and creates a new image at duplicateName
+	///////////////////////////////////////////////////////////////////////////////////////
+	// useful for creating post-processed versions of sprite images on the fly
+	// - deep copies the image sourceImageName, and creates a new image at duplicateName
+	public void duplicateImage(String sourceImageName, String duplicateName) { 
 		BufferedImage copyImg = ImageProcessing.copyImage(getImage(sourceImageName));
 		setImage(duplicateName, copyImg);
 	}
 	
 	
-	// for convenience
-	public BufferedImage getMainImage() {
-		return images.getImage(0);
-	}
+	
 
-	// for convenience
-	public void setMainImage(BufferedImage img) {
-		images.setImage("main",img);
-	}
-
+	
+	///////////////////////////////////////////////////////////////////////////////////////
+	// call this when you have finished with a sprite if it is in a sprite batch
+	// or else you may run out of memory!
 	public void clearImages() {
+		
+		spriteData.addKeyValue("FinalImageWidth" , getImageWidth());
+		spriteData.addKeyValue("FinalImageHeight" , getImageHeight());
+		
 		images.removeAllImages();
 	}
 	
+	///////////////////////////////////////////////////////////////////////////////////////
 	// called by the generating sprite font
 	// this selects the image as well so is good to go....
 	public void setSpriteFontDataAndSelectImage(SpriteFont sf) {
 		
 		int index = sf.getRandomSpriteImageGroupItemNumber();
+		
+		//if(uniqueID == 18) {
+			
+			
+		//	System.out.println("Sprite ID 18 has been assigned image index " + index);
+			
+		//}
+		
+		
+		
 		ScaledImageAssetGroup siag = sf.getSpriteImageGroup();
 		String shortName = siag.getImageAssetName(index);
 		BufferedImage img = siag.getImage(index);
-		setMainImage(img);
 		
 		KeyValuePairList kvlist = new KeyValuePairList();
 
@@ -341,7 +396,13 @@ public class Sprite {
 		kvlist.addKeyValue("RelativeGroupSizeEqualization" , sf.relativeGroupSizeEqualization);
 		kvlist.addKeyValue("PivotPoint" , sf.spritePivotPoint.array());
 
+		kvlist.addKeyValue("OriginalImageWidth" , img.getWidth());
+		kvlist.addKeyValue("OriginalImageHeight" , img.getHeight());
 		setSpriteData(kvlist);
+		
+		
+		// do this at the end so the imageQuad is properly initialised with all the sprite data in place
+		setMainImage(img);
 	}
 
 	public Sprite copy() {
@@ -374,10 +435,7 @@ public class Sprite {
 	}
 
 
-	public void initQuad() {
-
-		//imageQuad = new SpriteImageQuad(this);
-	}
+	
 
 	public void setRandomStreamPos(int rseed) {
 		// a sprite's random stream is set by this
@@ -424,7 +482,7 @@ public class Sprite {
 
 	public void setPivotPoint(PVector p) {
 		pivotPoint = p.copy();
-		//imageQuad.setPivotPoint(pivotPoint);
+		imageQuad.setPivotPoint(pivotPoint);
 	}
 
 	public PVector getPivotPoint() {
@@ -434,6 +492,20 @@ public class Sprite {
 	
 	public float getDepth() {
 		return depth;
+	}
+	
+	public float getSizeInScene() {
+		if( spriteData.keyExists("FinalSizeInScene")) {
+			return spriteData.getFloat("FinalSizeInScene");
+		}
+		return sizeInScene;
+	}
+	
+	
+	public PVector mapNormalisedLocalSpritePointToDocSpace(float nx, float ny) {
+		
+		return imageQuad.getQuadDocumentPoint(nx, ny);
+		
 	}
 
 	//////////////////////////////////////////////////////////
@@ -523,17 +595,7 @@ public class Sprite {
 	//
 	public void scale(float scaleW, float scaleH) {
 		//imageQuad.theImage = image;
-		//imageQuad.applyScale(scaleW, scaleH);
-
-		//if( isQuickRenderMode() ) return;
-		
-		//if(scaleW==scaleH) {
-			// chance to use double scaling on very big scale reductions
-			//setImage(ImageProcessing.scaleImage(getImage(), scaleW));
-		//}else {
-			//setImage(ImageProcessing.scaleImage(getImage(), scaleW, scaleH));
-		//}
-
+		imageQuad.applyScale(scaleW, scaleH);
 		images.scale(scaleW, scaleH);
 	}
 
@@ -545,7 +607,7 @@ public class Sprite {
 		// Much more efficient than otherwise
 
 		
-		//imageQuad.applyRotation2(degrees);
+		imageQuad.applyRotation2(degrees);
 
 		double toRad = Math.toRadians(degrees);
 
@@ -576,17 +638,17 @@ public class Sprite {
 	public void mirror(boolean inX) {
 		
 		
-		//imageQuad.applyMirror(inX);
+		imageQuad.applyMirror(inX);
 		
-		//if( isQuickRenderMode() ) return;
+		
 		
 		
 		if (inX) {
-			//setImage(ImageProcessing.mirrorImage(getImage(), true, false));
+			
 			pivotPoint.x = 1.0f - pivotPoint.x;
 		} else {
 			// in Y
-			//setImage(ImageProcessing.mirrorImage(getImage(), false, true));
+			
 			pivotPoint.y = 1.0f - pivotPoint.y;
 		}
 		
@@ -607,14 +669,10 @@ public class Sprite {
 	 */
 	public void bend(float startBend, float bendAmt, float severity) {
 		
-		//imageQuad.applyHorizontalTopShear2(bendAmt);
-		
-		//if( isQuickRenderMode() ) return;
+		imageQuad.applyHorizontalTopShear2(bendAmt);
 		
 		float oldWidth = getImageWidth();
-		
-		BendImage bendImage = new BendImage();
-		
+
 		images.bend(startBend, bendAmt, severity);
 		//BufferedImage bentImage = bendImage.bendImage(this.getImage(), startBend, bendAmt, severity);
 		//this.setImage(bentImage);
@@ -644,9 +702,11 @@ public class Sprite {
 	public void scaleToSizeInScene(float scaleModifier) {
 		// The height of the sample image is set using pre-set sizeInScene member variable as a documentSpace measurement.
 		// i.e. sizeInScene of 1 means that the image is scaled to be the same as the longest edge of the document
-		float scale = scaleModifier * sizeInScene * getRelativeSizeInGroup();
+		float finalSizeInScene = scaleModifier * sizeInScene * getRelativeSizeInGroup();
+		
+		spriteData.addKeyValue("FinalSizeInScene", finalSizeInScene);
 		//System.out.println("scaleToSizeInScene  scaleModifier " + scaleModifier + "  sizeInScene " + data.sizeInScene + " result " + scale);
-		scaleToSizeInDocSpace(null, scale);
+		scaleToSizeInDocSpace(null, finalSizeInScene);
 	}
 
 	void scaleYToSizeInDocSpace(Float sizeY) {
@@ -805,6 +865,9 @@ public class Sprite {
 		
 		// final 3D size in scene is calculated
 		float heightIn3D = sizeInScene * scaleModifier * getRelativeSizeInGroup();
+		
+		spriteData.addKeyValue("FinalSizeInScene", heightIn3D);
+		
 		
 		// getDocSpace units for this3D size at basePointInScene
 		PVector docSpaceBasePoint = getDocPoint();

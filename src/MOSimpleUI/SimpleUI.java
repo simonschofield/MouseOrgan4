@@ -133,14 +133,42 @@ public class SimpleUI {
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile();
-			UIEventData uied = new UIEventData(UIManagerName, "fileSaveDialog", "fileSaveDialog", "mouseReleased", 0,
-					0);
+			UIEventData uied = new UIEventData(UIManagerName, "fileSaveDialog", "fileSaveDialog", "mouseReleased", 0,0);
 			uied.fileSelection = file.getPath();
 			uied.fileDialogPrompt = prompt;
 			handleUIEvent(uied);
 		} else {
 			// log.append("Open command cancelled by user." + newline);
 		}
+	}
+	
+	
+	public void openDirectoryChooseDialog(String prompt) {
+
+		JFileChooser  chooser = new JFileChooser(); 
+	    chooser.setCurrentDirectory(new java.io.File("."));
+	    chooser.setDialogTitle(prompt);
+	    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	    
+	    //
+	    // disable the "All files" option.
+	    //
+	    chooser.setAcceptAllFileFilterUsed(false);
+	    //    
+	    if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) { 
+
+	      	UIEventData uied = new UIEventData(UIManagerName, "directorySelectDialog", "directorySelectDialog", "mouseReleased", 0, 0);
+			String dirPath = chooser.getSelectedFile().toString() + "\\";
+			System.out.println("Directory selected: " +  uied.fileSelection);
+			uied.fileSelection = dirPath;
+			uied.fileDialogPrompt = prompt;
+			handleUIEvent(uied);
+			
+			
+	      }
+	    else {
+	      System.out.println("No Selection ");
+	      }
 	}
 
 	////////////////////////////////////////////////////////////////////////////

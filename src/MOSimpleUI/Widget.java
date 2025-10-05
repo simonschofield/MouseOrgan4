@@ -108,7 +108,7 @@ public class Widget {
 	void handleKeyEvent(char k, int kcode, String keyEventType) {
 	}
 
-	void setSelected(boolean s) {
+	public void setSelected(boolean s) {
 		selected = s;
 	}
 

@@ -59,7 +59,7 @@ public class ImageProcessing {
 	
 
 
-	static int interpolationQuality = 2;
+	static int interpolationQuality = INTERPOLATION_BICUBIC;
 	static int interpolationQualityRestore = interpolationQuality;
 	
 	
@@ -176,6 +176,14 @@ public class ImageProcessing {
 		// this is the preferred color model for the MouseOrgan system for output images and content items
 		if(source.getType() != BufferedImage.TYPE_INT_ARGB) {
 			return ImageProcessing.convertColorModel(source, BufferedImage.TYPE_INT_ARGB);
+		}		
+		return source;
+	}
+	
+	public static BufferedImage assertImageTYPE_BYTE_GRAY(BufferedImage source) {
+		// this is the preferred color model for the MouseOrgan system for output images and content items
+		if(source.getType() != BufferedImage.TYPE_BYTE_GRAY) {
+			return ImageProcessing.convertColorModel(source, BufferedImage.TYPE_BYTE_GRAY);
 		}		
 		return source;
 	}

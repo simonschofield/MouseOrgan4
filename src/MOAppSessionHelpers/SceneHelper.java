@@ -3,7 +3,7 @@ package MOAppSessionHelpers;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-
+import MOApplication.Surface;
 import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.FloatImageRenderTarget;
 import MOImage.ImageDimensions;
@@ -20,11 +20,19 @@ import MOMaths.SNum;
 import MOMaths.Vertices2;
 import MOScene3D.SceneData3D;
 import MOSprite.Sprite;
+import MOSprite.SpriteBatch;
 import MOSprite.SpriteFont;
 import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
 
 public class SceneHelper {
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	private static BufferedImageRenderTarget getBufferedImageRenderTarget(String name) {
@@ -337,7 +345,7 @@ public class SceneHelper {
 	}
 	
 	
-	// this is used to fudge the appeareance of base grass etc to make it fill out in the disytnace, but be skinny in
+	// this is used to fudge the appeareance of base grass etc to make it fill out in the distance, but be skinny in
 	// the foreground etc
 	public static void tweakSpriteScaleOnDepth(Sprite sprite, float nearDepth, float farDepth, float nearWidthScale, float farWidthScale, float nearHeightScale, float farHeightScale) {
 		

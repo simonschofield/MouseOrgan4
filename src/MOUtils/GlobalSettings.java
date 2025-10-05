@@ -3,6 +3,8 @@ package MOUtils;
 import java.io.File;
 
 import MOApplication.MainDocument;
+import MOApplication.ROIManager;
+import MOApplication.RenderSaver;
 import MOApplication.Surface;
 import MOImage.ImageDimensions;
 import MOImage.ImageProcessing;
@@ -35,6 +37,8 @@ public class GlobalSettings {
 	private static MainDocument theDocument;
 	private static Surface theSurface;
 	private static SceneData3D theSceneData3D;
+	private static RenderSaver theRenderSaver; // set on instantiation of the render saver
+	private static ROIManager theROIManager;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// paths used by the system
@@ -94,7 +98,7 @@ public class GlobalSettings {
 			GlobalSettings.userSessionPath = fullPath;
 			sessionScale = sessionScl;
 
-			ImageProcessing.setInterpolationQuality(getRenderQuality());
+			//ImageProcessing.setInterpolationQuality(getRenderQuality());
 			setDefaultSessionName();
 	
 			// for your convenience, and because we don't want a null one
@@ -124,7 +128,7 @@ public class GlobalSettings {
 		fullScaleRenderWidth = fullScaleRenderW;
 		fullScaleRenderHeight = fullScaleRenderH;
 		
-		ImageProcessing.setInterpolationQuality(getRenderQuality());
+		//ImageProcessing.setInterpolationQuality(getRenderQuality());
 		setDefaultSessionName();
 		
 		// for your convenience, and because we don't want a null one
@@ -297,6 +301,22 @@ public class GlobalSettings {
 	
 	public static SceneData3D getSceneData3D() {
 		return theSceneData3D;
+	}
+	
+	public static void setRenderSaver(RenderSaver rs) {
+		theRenderSaver = rs;
+	}
+	
+	public static RenderSaver getRenderSaver() {
+		return theRenderSaver;
+	}
+	
+	public static void setROIManager(ROIManager rm) {
+		theROIManager = rm;
+	}
+	
+	public static ROIManager getROIManager() {
+		return theROIManager;
 	}
 
 }

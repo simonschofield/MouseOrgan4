@@ -60,6 +60,7 @@ public class ViewController {
 	
 	Color viewDisplayRectBackgroundColor = Color.WHITE;
 	
+	private String theCurrentRenderTargetName = "main";
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Background Image
@@ -262,12 +263,21 @@ public class ViewController {
 		
 		// draw the render image
 		// 
-		BufferedImage displayImage = (theDocument.getBufferedImageRenderTarget("main")).getCropBufferSpace(currentViewCropRect);
+		BufferedImage displayImage =  theDocument.getCropBufferSpace(theCurrentRenderTargetName,  currentViewCropRect);
+		
+		
 		g2d.drawImage(displayImage, (int) imageDisplayRegion.left,
 				(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
 		
 		
 		
+	}
+	
+	
+	public void setRenderTargetAsMainView(String renderTargetName) {
+		
+		//System.out.println("ViewControl: setting render view to " + renderTargetName);
+		theCurrentRenderTargetName = renderTargetName;
 	}
 	
 	

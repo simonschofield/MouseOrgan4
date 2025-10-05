@@ -46,6 +46,8 @@ public class ROIManager {
 	
 	// useful rects for testing etc
 	public Rect WholeRect; 
+	public Rect WholeRect_5pcBorder; 
+	public Rect WholeRect_10pcBorder; 
 	public Rect TopLeftQtrRect; 
 	public Rect TopRightQtrRect; 
 	public Rect LeftHalfRect; 
@@ -71,16 +73,9 @@ public class ROIManager {
 		addROI("master", masterPixelExtents, masterWidth);
 		setCurrentROIName("master");
 		
-		
-		int widthOver2 = (int)(masterWidth/2f);
-		int heightOver2 = (int)(masterHeight/2f);
-		
-		WholeRect = new Rect(0,0,masterWidth,masterHeight); 
-		TopLeftQtrRect = new Rect(0,0,widthOver2,heightOver2); 
-		TopRightQtrRect = new Rect(widthOver2,0,widthOver2,heightOver2); 
-		LeftHalfRect = new Rect(0,0,widthOver2,masterHeight); 
-		TopHalfRect = new Rect(0,0,masterWidth,heightOver2); 
-		CentreRect = new Rect(widthOver2/2f,heightOver2/2f,widthOver2,heightOver2); 
+		// adds some predefined rois, for testing,
+		// with a pre-defined width equivalent to a 24-inch wide print
+		addPredefinedROIs(24*300);
 	}
 
 	
@@ -89,7 +84,49 @@ public class ROIManager {
 		return masterCoordinateSystem;
 	}
 	
-	
+	public void addPredefinedROIs(int fullSizeRenderWidth) {
+		int masterWidth = masterCoordinateSystem.getBufferWidth();
+		int masterHeight = masterCoordinateSystem.getBufferHeight();
+		
+		int widthOver2 = (int)(masterWidth/2f);
+		int heightOver2 = (int)(masterHeight/2f);
+		
+		float borderW_percentile = masterWidth/100f;
+		float borderH_percentile = masterHeight/100f;
+		
+		
+		WholeRect = new Rect(0,0,masterWidth,masterHeight); 
+		addROI("WholeRect", WholeRect, fullSizeRenderWidth);
+		
+		int w5pc = (int)(borderW_percentile*5);
+		int h5pc = (int)(borderH_percentile*5);
+		WholeRect_5pcBorder = new Rect(w5pc,h5pc,masterWidth-(2*w5pc),masterHeight-(2*h5pc)); 
+		addROI("WholeRect_5pcBorder", WholeRect_5pcBorder, fullSizeRenderWidth);
+		
+		int w10pc = (int)(borderW_percentile*10);
+		int h10pc = (int)(borderH_percentile*10);
+		WholeRect_10pcBorder = new Rect(w10pc,h10pc,masterWidth-(2*w10pc),masterHeight-(2*h10pc)); 
+		addROI("WholeRect_10pcBorder", WholeRect_10pcBorder, fullSizeRenderWidth);
+		
+		
+		TopLeftQtrRect = new Rect(0,0,widthOver2,heightOver2); 
+		addROI("TopLeftQtrRect", TopLeftQtrRect, fullSizeRenderWidth);
+		
+		TopRightQtrRect = new Rect(widthOver2,0,widthOver2,heightOver2); 
+		addROI("TopRightQtrRect", TopRightQtrRect, fullSizeRenderWidth);
+		
+		LeftHalfRect = new Rect(0,0,widthOver2,masterHeight); 
+		addROI("LeftHalfRect", LeftHalfRect, fullSizeRenderWidth);
+		
+		TopHalfRect = new Rect(0,0,masterWidth,heightOver2); 
+		addROI("TopHalfRect", TopHalfRect, fullSizeRenderWidth);
+		
+		CentreRect = new Rect(widthOver2/2f,heightOver2/2f,widthOver2,heightOver2); 
+		addROI("CentreRect", CentreRect, fullSizeRenderWidth);
+		
+		
+		
+	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// when getting the current render dimensions using a ROIManager session, this should be the ONLY place
@@ -137,8 +174,10 @@ public class ROIManager {
 	}
 
 	public void addROI(String name, Rect ROIRectInMasterPixels,  int fullROIRenderWidth) {
-		// extensts passed in are in Master Rect Buffer Space
-		// extents are calculated to be in Master Rect doc space
+		// extents passed in as ROIRectInMasterPixels are in Master Rect Buffer Space
+		// in order to facilitate the process of defining ROIs using a Photoshop image of the master, and 
+		// using the pixel location values of the roi defined (e.g. by using the vector rect tool).
+		// Extents are then calculated and stored internally in Master Rect doc space
 		
 		// convert to points within the
 		Rect ROIInMasterDocSpace = masterCoordinateSystem.bufferSpaceToDocSpace(ROIRectInMasterPixels);
@@ -151,23 +190,20 @@ public class ROIManager {
 	}
 	
 
-	public void drawROI(String roiName, Color c, String renderTagetName) {
+	public void drawROI(String roiName, Color c, float lineWEightPixels, String renderTagetName) {
 		if(isUsingMaster()) {
-			Rect roiRect = getROIRect(roiName);
+			Rect roiRect = getROIDocRect(roiName);
 			//System.out.println(" Drawing ROI REct rect  " + name + " " + roiRect.toStr());
 			//GlobalSettings.getDocument().getMain().drawRect_DocSpace(roiRect, new Color(0,0,0,0), c, 10);
 			
-			GlobalSettings.getDocument().getBufferedImageRenderTarget(renderTagetName).drawRect_DocSpace(roiRect, new Color(0,0,0,0), c, 10);
+			GlobalSettings.getDocument().getBufferedImageRenderTarget(renderTagetName).drawRect_DocSpace(roiRect, new Color(0,0,0,0), c, lineWEightPixels);
 		}
 	}
 	
 
 	
 	
-	public Rect getROIRect(String name) {
-		SubROI info =  getROIInfo(name);
-		return info.ROIRect;
-	}
+	
 	
 
 	public boolean isUsingROI() {
@@ -217,6 +253,11 @@ public class ROIManager {
     public Rect getCurrentROIDocRect() {
     	return getCurrentROIInfo().ROIRect;
     }
+    
+    public Rect getROIDocRect(String name) {
+		SubROI info =  getROIInfo(name);
+		return info.ROIRect;
+	}
 
 
 	public SubROI getCurrentROIInfo() {

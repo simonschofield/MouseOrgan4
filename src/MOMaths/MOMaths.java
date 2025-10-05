@@ -61,6 +61,22 @@ public class MOMaths {
 
 	}
 	
+	///////////////////////////////////////////////////////////////////////////////
+	// as p1 is in the range 0..1 , we apply gamma here
+	// A gamma of < 1, will result in p1 being bent up at low values, and not much differece at high value, so pushes more into high values quicker
+	// A gamma of > 1 will result in p1 being bent down at low values, with a more rapid increase in th e higher values
+	public static float mapWithGamma(float p, float inRangeLo, float inRangeHi, float outRangeLo, float outRangeHi, float gamma) {
+		float p1 = norm(p, inRangeLo, inRangeHi);
+		
+		p1 = (float) Math.pow(p1,  gamma);
+
+		return lerp(p1, outRangeLo, outRangeHi);
+
+	}
+	
+	
+	
+	
 	public static float mapClamped(float p, float inRangeLo, float inRangeHi, float outRangeLo, float outRangeHi) {
 		float p1 = norm(p, inRangeLo, inRangeHi);
 		float m =  lerp(p1, outRangeLo, outRangeHi);

@@ -324,7 +324,17 @@ public class KeyValuePair {
 	}
 
 	String[] splitPairIntoKeyValue(String pair) {
-		return pair.split(":");
+		// because some strings may contain ':' char, especially paths, we need to catch these.
+		String[] initialSplits = pair.split(":");
+		if(initialSplits.length==2) return initialSplits;
+		
+		// if you get here, there is a value string containing ':'
+		String[] split2 = new String[2];
+		split2[0] = initialSplits[0];
+		int chlen = split2[0].length() + 1;// need to remove the key and the first ':' in the pair string
+		split2[1] = pair.substring(chlen);
+		return split2;
+		
 	}
 	public void setType(int t) {
 		TYPE = t;

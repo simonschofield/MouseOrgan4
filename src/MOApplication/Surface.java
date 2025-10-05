@@ -17,10 +17,14 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import MOAppSessionHelpers.Scene3DHelper;
+import MOAppSessionHelpers.SceneInformationInspector;
 import MOImage.ImageDimensions;
 import MOImage.ImageProcessing;
 import MOMaths.PVector;
 import MOMaths.Rect;
+import MOSimpleUI.Menu;
+import MOSimpleUI.RadioButton;
 import MOSimpleUI.SimpleUI;
 import MOSimpleUI.UIEventData;
 
@@ -78,7 +82,9 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	// error
 	// but the number can be dropped during interactions for a smoother update rate.
 	private int canvasUpdateFrequency = 50;
-
+	//public String infoToolMode;
+	
+	
 	KeepAwake keepAwake = new KeepAwake();
 
 	public Surface(JFrame papp) {
@@ -102,6 +108,43 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 				
 	}
 	
+	
+
+
+	/////////////////////////////////////////////////////////////////////
+	// Initialisation method called from initialise Session in User Session
+	// Straight forward session initialisation, not using a ROI manager
+	// 
+	//
+	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType) {
+
+		fullScaleRenderW = (int)(fullScaleRenderW * GlobalSettings.getSessionScale());
+		fullScaleRenderH = (int)(fullScaleRenderH * GlobalSettings.getSessionScale());
+		
+
+		theDocument = new MainDocument(fullScaleRenderW, fullScaleRenderH, mainDocumentRenderType);
+		
+		initialiseView();
+	}
+	
+
+	/////////////////////////////////////////////////////////////////////
+	// Initialisation method called from initialise Session in User Session
+	// Initialising using a ROImanager. This is presumed to become the dominant way
+	// to initialise the system.
+	//
+	public void initialiseDocument(ROIManager roiManager, int mainDocumentRenderType) {
+
+		GlobalSettings.mainSessionName = roiManager.getCurrentROIName();
+		GlobalSettings.setROIManager(roiManager);
+		
+		System.out.println("initialiseDocument:: session name = " + GlobalSettings.mainSessionName);
+			
+		theDocument = new  MainDocument( roiManager, mainDocumentRenderType);
+
+		initialiseView();
+	}
+	
 	private void setWindowSize() {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int w = (int) screenSize.getWidth();
@@ -118,49 +161,17 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		parentApp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setFocusable(true);
 		
-		canvasWindowRect = new Rect(new PVector(100, 5), new PVector(windowWidth - 20,  windowHeight - 45));
-	}
-
-
-	/////////////////////////////////////////////////////////////////////
-	// Initialisation method called from initialise Session in User Session
-	// Straight forward session initialisation, not using a ROI manager
-	// 
-	//
-	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType) {
-
-		fullScaleRenderW = (int)(fullScaleRenderW * GlobalSettings.getSessionScale());
-		fullScaleRenderH = (int)(fullScaleRenderH * GlobalSettings.getSessionScale());
-		
-
-		theDocument = new MainDocument(fullScaleRenderW, fullScaleRenderH, mainDocumentRenderType);
-		
-		initialiseViewAndUI();
+		//canvasWindowRect = new Rect(new PVector(100, 20), new PVector(windowWidth - 20,  windowHeight - 45));
+		int left = 100;
+		int top = 30;
+		canvasWindowRect = new Rect(left, top, windowWidth - (left+20),  windowHeight - (top+40));
 	}
 	
-
-	/////////////////////////////////////////////////////////////////////
-	// Initialisation method called from initialise Session in User Session
-	// Initialising using a ROImanager. This is presumed to become the dominant way
-	// to initialise the system.
-	//
-	public void initialiseDocument(ROIManager roiManager, int mainDocumentRenderType) {
-
-		GlobalSettings.mainSessionName = roiManager.getCurrentROIName();
-		System.out.println("initialiseDocument:: session name = " + GlobalSettings.mainSessionName);
-			
-		theDocument = new  MainDocument( roiManager, mainDocumentRenderType);
-
-		initialiseViewAndUI();
-	}
-	
-	
-	
-	private void initialiseViewAndUI() {
+	private void initialiseView() {
 
 		// ok to do these now
 		theViewControl.init(this);
-		buildUI();
+		
 
 		// some default settings
 		setCanvasUpdateFrequency(500);
@@ -172,9 +183,9 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		setCanvasBackgroundColor(new Color(255,255,255,255));
 
 
-		if(GlobalSettings.getSessionScale()>= 0.5f) {
-			ImageProcessing.setInterpolationQuality(ImageProcessing.INTERPOLATION_BICUBIC);
-		}
+		
+		
+		
 		
 		
 	}
@@ -189,6 +200,8 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		
 		if(theUserSessionState == UserSessionState.INITIALISE) {
 			initialiseUserSession();
+			// the ui is built after initialisation, so it can include all render targets
+			buildUI();
 			if(theDocument == null) {
 				System.out.println("Fatal::You must initilase the session with initialiseSession() in initialiseUserSession");
 				System.exit(0);
@@ -225,10 +238,10 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 	}
 	
-	protected void endUserSession() {
-		// call this if you need to end the user session
-		// It automatically called userSessionFinishe() method once, then
-		// goes into idle state
+	protected final void endUpdateUserSession() {
+		// call this when the updateUserSession has finished
+		// Does some tidying up, then Moves the state machine on to FINALISE mode
+		// where the finaliseUserSession() is called once, which the user overrides, then goes into idle state
 		theUserSessionState = UserSessionState.FINALISE;
 		this.forceRefreshDisplay();
 		//System.out.println("User session state in endUserSession = " + theUserSessionState);
@@ -249,11 +262,24 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 		theUI = new SimpleUI(this);
 
-		String[] itemList = { "save render", "quit" };
+		String[] itemList = { "save render", "save all", "quit" };
 		
 		theUI.addToggleButton("Pause", 0, 200);
 		theUI.addPlainButton("End", 0, 230);
 		theUI.addMenu("File", 0, 2, itemList);
+		
+		
+		
+		
+		
+		Menu rendertargetViewMenu = theUI.addMenu("Render View", 60, 2, itemList);
+		
+		//theUI.addRadioButton("3d info", 0, 430, "info tools").setSelected(true);
+		//theUI.addRadioButton("sprite info", 0, 460, "info tools");
+		//infoToolMode = "3d info";
+		theDocument.setRenderTargetViewMenu(rendertargetViewMenu);
+		
+		
 		theUI.addCanvas((int) canvasWindowRect.left, (int) canvasWindowRect.top, (int) canvasWindowRect.getWidth(), (int) canvasWindowRect.getHeight());
 		theUI.setFileDialogTargetDirectory(GlobalSettings.getUserSessionPath());
 		
@@ -261,7 +287,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 	public void handleUIEvent(UIEventData uied) {
 		// you subclass this and add your own code here
-		// uied.print(1);
+		//uied.print(1);
 		if (uied.eventIsFromWidget("canvas")) {
 			handleCanvasMouseEvent(uied);
 			return;
@@ -269,11 +295,21 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		
 		
 		if (uied.menuItem.contentEquals("save render")) {
-			theUI.openFileSaveDialog("");
+			theUI.openFileSaveDialog("save render");
 		}
 
-		if (uied.eventIsFromWidget("fileSaveDialog")) {
+		if (uied.eventIsFromWidget("fileSaveDialog") && uied.fileDialogPrompt.equals("save render")) {
 			theDocument.saveRenderTargetToFile("main",uied.fileSelection);
+		}
+		
+		
+		if (uied.menuItem.contentEquals("save all")) {
+			theUI.openDirectoryChooseDialog("save all");
+			
+		}
+
+		if (uied.eventIsFromWidget("directorySelectDialog") && uied.fileDialogPrompt.equals("save all")) {
+			GlobalSettings.getRenderSaver().saveAllImagesInUserSpecifiedLocation(uied.fileSelection);
 		}
 		
 		if (uied.menuItem.contentEquals("quit")) {
@@ -286,14 +322,19 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		
 		if (uied.eventIsFromWidget("End")) {
 			userSessionAborted = true;
-			endUserSession();
+			endUpdateUserSession();
 		}
 
-		
 
 		if (uied.eventIsFromWidget("ruler size slider")) {
 			//setMeasuringToolSize(uied.sliderValue);
 		}
+		
+		if (uied.eventIsFromWidget("Render View")) {
+			theViewControl.setRenderTargetAsMainView(uied.menuItem);
+		}
+		
+		
 
 		// if there are any special UI's added by the user session handle them in the
 		// user session
@@ -411,7 +452,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	// optional
 	protected void finaliseUserSession() {}
 	
-	protected abstract void handleCanvasMouseEvent(UIEventData uied);
+	protected  abstract void handleCanvasMouseEvent(UIEventData uied);
 
 	protected abstract void handleUserSessionUIEvent(UIEventData uied);
 	

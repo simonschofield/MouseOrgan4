@@ -9,12 +9,15 @@ import java.util.ArrayList;
 
 import MOCompositing.RenderTargetInterface;
 import MOImage.ImageDimensions;
+import MOImage.ImageProcessing;
 import MOMaths.Rect;
+import MOSimpleUI.Menu;
 import MOCompositing.RenderBorder;
 import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.FloatImageRenderTarget;
 import MOSprite.Sprite;
 import MOUtils.ImageCoordinateSystem;
+import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -48,6 +51,7 @@ public class MainDocument{
 	
 	ImageCoordinateSystem documentImageCordinateSystem;
 	
+	Menu renderTargetViewMenu;
 	
 	public MainDocument(int fullScaleWidth, int fullScaleHeight, int mainRenderType) {
 		// simple non-roi based document
@@ -90,13 +94,56 @@ public class MainDocument{
 	}
 	
 	public void addRenderTarget(String name, int type) {
+			if( renderTargetExists(name) ) {
+				System.out.println("MainDocument addRendertarget " + name + " already exists - cannot add");
+				return;
+			}
 			BufferedImageRenderTarget rt = new BufferedImageRenderTarget(width, height,type);
 			rt.setCoordinateSystem(documentImageCordinateSystem);
 			rt.setName(name);
 			renderTargets.add(rt);
+			
+			updateRenderTargetMenu();
+			
+	}
+	
+	
+	
+	void updateRenderTargetMenu() {
+		// update the menu
+		String[] rtNames = getRenterTargetNames();
+		
+		if(renderTargetViewMenu != null) {
+			renderTargetViewMenu.setItems(rtNames);
+		}
+		
+	}
+	
+	
+	void setRenderTargetViewMenu(Menu rtViewMenu) {
+		// called on initUI() at start, so the document can add in render targets as it goes
+		System.out.println("setting render target menu");
+		renderTargetViewMenu = rtViewMenu;
+		
+		updateRenderTargetMenu();
+	}
+	
+	
+	String[] getRenterTargetNames() {
+		ArrayList<String> strList = new ArrayList<String> ();
+		for(RenderTargetInterface rt: renderTargets) {
+			//System.out.println("render targets in existence " + rt.getName());
+			strList.add(   rt.getName() );
+		}
+		
+		return MOStringUtils.toArray(strList);
 	}
 	
 	public void addFloatRenderTarget(String name, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
+		if( renderTargetExists(name) ) {
+			System.out.println("MainDocument addFloatRendertarget " + name + " already exists - cannot add");
+			return;
+		}
 		if(imageCopyGamma == 0 ) imageCopyGamma = 1;
 
 		FloatImageRenderTarget rt = new FloatImageRenderTarget(width, height,  saveTYPE_USHORT_GRAYcopy,  imageCopyGamma);// deferred
@@ -128,10 +175,57 @@ public class MainDocument{
 	public BufferedImageRenderTarget getBufferedImageRenderTarget(String name) {
 		
 		RenderTargetInterface rt =  getRenderTarget( name);
-		if(rt.getFileExtension().equals(".png")) return (BufferedImageRenderTarget) rt;
-		System.out.println("MainRenderDocument::getBufferedImageRenderTarget - cannot find buffered image render target called " + name);
+		if(rt == null) return null;
+		
+		
+		int image_type = rt.getImageType();
+		
+		
+		if( image_type == 0) {
+			// this is a FloatImage, so you if you really want to have this as a buffered
+			// image, then you need to convert
+			System.out.println("MainRenderDocument::getBufferedImageRenderTarget - render target called " + name + " is of type 0 -  a depth buffer. - returning null");
+			
+			return null;
+		}
+		
+		// these are the permitted types of BufferedImage render targets within mouse organ
+		if(image_type == BufferedImage.TYPE_INT_ARGB || image_type == BufferedImage.TYPE_BYTE_GRAY || image_type == BufferedImage.TYPE_USHORT_GRAY) {
+			 return (BufferedImageRenderTarget) rt;
+		}
+			
+		System.out.println("MainRenderDocument::getBufferedImageRenderTarget - render target called " + name + " is of type " + image_type + " which is not catered for in this application - returning null");
+		return null;
+			
+		
+		
+	}
+	
+	
+	public BufferedImage getBufferedImage(String name) {
+		
+		RenderTargetInterface rt =  getRenderTarget( name);
+		if(rt == null) return null;
+		
+		int image_type = rt.getImageType();
+		
+		// these are the permitted types of BufferedImage render targets within mouse organ
+		if(image_type == 0 || image_type == BufferedImage.TYPE_INT_ARGB || image_type == BufferedImage.TYPE_BYTE_GRAY || image_type == BufferedImage.TYPE_USHORT_GRAY) {
+			 return (BufferedImage) rt.getBufferedImage();
+		}
+		
 		return null;
 	}
+	
+	
+	// called by view controller to show the current image
+	public BufferedImage getCropBufferSpace(String rtname, Rect currentViewCropRect) {
+		BufferedImage currentBufferedImage = getBufferedImage(rtname);
+		
+		return ImageProcessing.cropImage(  currentBufferedImage , currentViewCropRect);
+	}
+	
+	
 	
 	public FloatImageRenderTarget getFloatImageRenderTarget(String name) {
 		
@@ -159,7 +253,20 @@ public class MainDocument{
 	}
 	
 	
-	
+	public void deleteRenderTarget(String name) {
+		
+		if( renderTargetExists(name)==false ) {
+			System.out.println("MainDocument deleteRenderTarget " + name + " does not exist");
+			return;
+		}
+		
+		
+		RenderTargetInterface toBeDeleted = getRenderTarget(name);
+		
+		renderTargets.remove(toBeDeleted);
+		
+		
+	}
 	
 	
 	public void saveRenderTargetToFile(String renderTargetName, String pathAndFilename) {

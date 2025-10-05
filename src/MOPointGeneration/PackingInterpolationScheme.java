@@ -50,6 +50,8 @@ public class PackingInterpolationScheme {
 
 	//userUnits - RADIUS, SURFACE_AREA, VOLUME
 	int interpolationUnitsOption = RANGE_UNITS_SURFACE_AREA;
+	
+	float gamma = 1;
 
 	public PackingInterpolationScheme() {
 
@@ -60,7 +62,7 @@ public class PackingInterpolationScheme {
 		set(controlValMin, controlValMax, radAtControlMin, radAtControlMax, underControlValMinOption, overControlValMaxOption);
 	}
 
-	void setRangeUnits(int m) {
+	public void setRangeUnits(int m) {
 		if (m == RANGE_UNITS_RADIUS)
 			interpolationUnitsOption = m;
 		if (m == RANGE_UNITS_SURFACE_AREA)
@@ -70,8 +72,13 @@ public class PackingInterpolationScheme {
 		// need to kick the whole system to recalculate the interpolation units
 		set(controlValueMin, controlValueMax, radiusAtControlMin, radiusAtControlMax, underControlValueMinOption, overControlValueMaxOption);
 	}
+	
+	public void setGamma(float g) {
+		
+		gamma = g;
+	}
 
-	void set(float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax,
+	private void set(float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax,
 			int underControlValMinOption, int overControlValMaxOption) {
 
 		controlValueMin = controlValMin;
@@ -120,8 +127,9 @@ public class PackingInterpolationScheme {
 		if (  (underControlValueMinOption == CLAMP || underControlValueMinOption == EXCLUDE) && controlVal < controlValueMin)  controlVal = controlValueMin;
 		if (  (overControlValueMaxOption == CLAMP || overControlValueMaxOption == EXCLUDE)  && controlVal > controlValueMax)   controlVal = controlValueMax;
 
-		float val = MOMaths.map(controlVal, controlValueMin, controlValueMax, interpolationUnitsAtControlValMin, interpolationUnitsAtControlValMax);
-
+		//float val = MOMaths.map(controlVal, controlValueMin, controlValueMax, interpolationUnitsAtControlValMin, interpolationUnitsAtControlValMax);
+		float val = MOMaths.mapWithGamma(controlVal, controlValueMin, controlValueMax, interpolationUnitsAtControlValMin, interpolationUnitsAtControlValMax, gamma);
+		
 		if (interpolationUnitsOption == RANGE_UNITS_SURFACE_AREA) {
 			return (float) Math.sqrt(val / Math.PI);
 		}

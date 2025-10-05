@@ -5,10 +5,14 @@ import java.text.SimpleDateFormat;
 import java.io.File;
 import java.io.IOException;
 import java.math.RoundingMode;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
+
+import MOCompositing.RenderTargetInterface;
 
 public class MOStringUtils {
 
@@ -146,6 +150,19 @@ public class MOStringUtils {
 	}
 	
 	
+	public static String getCWD() {
+		
+		Path path = FileSystems.getDefault().getPath("").toAbsolutePath();
+		
+		return path.toString();
+	}
+	
+	public static String filePathGetParent(String filePath) {
+		File f = new File(filePath);
+		return f.getParent();
+	}
+	
+	
 	
 	public static ArrayList<String> readTextFile(String pathAndName) {
 		ArrayList<String> stListOut = new ArrayList<String>();
@@ -181,6 +198,28 @@ public class MOStringUtils {
 		return false;
 	}
 	
+	public static boolean stringArrayListContains(ArrayList<String> stringList, String thisString) {
+		
+		for (String s : stringList) {
+		    if (s.equals(thisString)) {
+		        return true;
+		    }
+		}
+		return false;
+	}
+	
+    public static int getIndexOfThisString(ArrayList<String> stringList, String thisString) {
+		// return -1 if not found
+    	int count = 0;
+		for (String s : stringList) {
+		    if (s.equals(thisString)) {
+		        return count;
+		    }
+		    count++;
+		}
+		return -1;
+	}
+	
 	public static String[] addToStringList(String[] oldArray, String newString)
 	{
 	    String[] newArray = Arrays.copyOf(oldArray, oldArray.length+1);
@@ -188,7 +227,34 @@ public class MOStringUtils {
 	    return newArray;
 	}
 	
+	public static String[] toArray(ArrayList<String> arryList) {
+		
+		ArrayList<String> strList = new ArrayList<String> ();
+		int n = arryList.size();
+		String[] arrayOut = new String[ n ];
+		
+		int i = 0;
+		for(String s: arryList) {
+			arrayOut[i] = s;
+			i++;
+		}
+		return arrayOut;
+		
+	}
 	
+	
+	public static ArrayList<String> toArrayList(String[] array) {
+		
+		ArrayList<String> arrayListOut = new ArrayList<String> ();
+
+		int i = 0;
+		for(String s: array) {
+			arrayListOut.add(s);
+			
+		}
+		return arrayListOut;
+		
+	}
 	
 	
 	

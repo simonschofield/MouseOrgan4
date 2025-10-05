@@ -485,7 +485,7 @@ public class PVector implements Serializable{
 		float dx = x - v.x;
 		float dy = y - v.y;
 		float dz = z - v.z;
-		return (float) (dx * dx + dy * dy + dz * dz);
+		return (float) Math.abs(dx * dx + dy * dy + dz * dz);
 	}
 
 	public float distXY(PVector v) {

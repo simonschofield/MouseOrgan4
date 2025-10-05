@@ -1,9 +1,4 @@
-package MOZZZ_Depricated;
-
-
-
-
-
+package MOSprite;
 import java.awt.Color;
 
 import MOCompositing.BufferedImageRenderTarget;
@@ -13,13 +8,12 @@ import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
-import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 
 //////////////////////////////////////////////////////////////////////
 //Enables the tracking of arbitrary points within a sprite after multiple transforms to the sprite
 //The point is accessed using normalised coordinates within the sprite's image-space, as if the shape has not been transformed
-//( (0,0) is top left (1,1) is bottom right), in the same way the sprite's origin is defined.
+//( (0,0) is top left (1,1) is bottom right), in the same way the sprite's pivotPoint is defined.
 //So, after scaling, rotating, mirroring and bending a sprite, you can find where point (0.75,0.666) (using normalised coords) 
 //is positioned within documentSpace
 //This then enables you to 
@@ -33,7 +27,8 @@ import MOUtils.GlobalSettings;
 //
 
 public class SpriteImageQuad{
-	//Sprite theSprite;
+	
+	private Sprite theSprite;
 
 
 	// these are the points in BUFFER SPACE of the Sprite Image which are transformed
@@ -53,23 +48,13 @@ public class SpriteImageQuad{
 		VertC = new PVector(0,sprite.getImageHeight());
 		VertD = new PVector(sprite.getImageWidth(),sprite.getImageHeight());
 		spritePivotPoint = sprite.getPivotPoint();
+		theSprite = sprite;
 		//System.out.println("init quad: pivotPoint = " + spritePivotPoint.toStr());
 	}
 	
 	
-	SpriteImageQuad copy(Sprite s) {
-		SpriteImageQuad cpy = new SpriteImageQuad(s);
-		
-		cpy.VertA = VertA.copy();
-		cpy.VertB = VertB.copy();
-		cpy.VertC = VertC.copy();
-		cpy.VertD = VertD.copy();
-		
-		return cpy;
-	}
-	
-	void setPivotPoint(PVector p) {
-			
+
+	void setPivotPoint(PVector p) {	
 		spritePivotPoint = p.copy();
 	}
 	
@@ -87,16 +72,12 @@ public class SpriteImageQuad{
     }
 	
 	
-	public void printVertices() {
-		System.out.println("CornerA " + VertA.toStr());
-		System.out.println("CornerB " + VertB.toStr());
-		System.out.println("CornerC " + VertC.toStr());
-		System.out.println("CornerD " + VertD.toStr());
-		System.out.println();
-    }
+	
 
-	PVector getQuadDocumentPoint(PVector pastePoint, float normX, float normY) {
-		// pastePoint is in document space
+	// normalisedSpritePointToDocSpace
+	
+	PVector getQuadDocumentPoint(float normX, float normY) {
+		
 		// normx and normy are in normalised space within the original sprite image-space - so before any transforms are applied
 
 		// this is the key function. It enables the user to track any point in the original image
@@ -104,7 +85,10 @@ public class SpriteImageQuad{
 		// so given a pastePoint in document space, you may wish to know where the top centre point of the image has got to
 		// in documentSpace coordinates
 		// PVector transformedImagePoint = getDocumentPointUsingNormalisedCoordinates( pastePoint, 0.5 , 0.0) would return that point
-
+		
+		PVector pastePoint = theSprite.getDocPoint();
+		
+		
 		PVector pixelLocOfEnquiryPtInQuad = getQuadPointBufferCoords( normX,  normY);
 		//System.out.println(debugQuadPointsToStr());
 		//System.out.println("Pixel Loc in sprite of Enquiry Nom Point " + normX + " " + normY + " is " + pixelLocOfEnquiryPtInQuad.toStr());
@@ -188,7 +172,8 @@ public class SpriteImageQuad{
 		PVector newCentre = getCentre();
 		PVector centreOffset = PVector.sub(newCentre, oldCentre);
 		applyTranslation(centreOffset);
-		//System.out.println("ImageQuad: applyRotation new centre" + newCentre.toStr() );
+
+		//printVertices();
 		
 	}
 
@@ -293,21 +278,26 @@ public class SpriteImageQuad{
 	////////////////////////////////////
 	// debugging functions
 	
-	public void debugDrawQuadCorners(PVector pastePoint, BufferedImageRenderTarget rt) {
-		debugDrawQuadPoint( pastePoint, 0, 0, Color.RED, rt);
-		debugDrawQuadPoint( pastePoint, 1, 0, Color.GREEN, rt);
-		debugDrawQuadPoint( pastePoint, 0, 1, Color.BLUE,rt);
-		debugDrawQuadPoint( pastePoint, 1, 1, Color.BLACK, rt);
+	
+	
+	
+	public void debugDrawQuadCorners(BufferedImageRenderTarget rt) {
+		
+		debugDrawQuadPoint(  0, 0, Color.RED, rt);
+		debugDrawQuadPoint(  1, 0, Color.GREEN, rt);
+		debugDrawQuadPoint(  0, 1, Color.BLUE,rt);
+		debugDrawQuadPoint(  1, 1, Color.BLACK, rt);
 	}
 	
 	
-	public void debugDrawQuad(PVector pastePoint, Color col, float lineWidth, BufferedImageRenderTarget rt) {
+	public void debugDrawQuad(Color col, float lineWidth, BufferedImageRenderTarget rt) {
+		
 		// VertA, VertB
 		// VertC, VertD
-		PVector A = getQuadDocumentPoint( pastePoint, 0, 0);
-		PVector B = getQuadDocumentPoint( pastePoint, 1, 0);
-		PVector C = getQuadDocumentPoint( pastePoint, 0, 1);
-		PVector D = getQuadDocumentPoint( pastePoint, 1, 1);
+		PVector A = getQuadDocumentPoint(  0, 0);
+		PVector B = getQuadDocumentPoint(  1, 0);
+		PVector C = getQuadDocumentPoint(  0, 1);
+		PVector D = getQuadDocumentPoint(  1, 1);
 				
 		rt.drawLine(A, B, col, lineWidth);
 		rt.drawLine(B, D, col, lineWidth);
@@ -317,13 +307,14 @@ public class SpriteImageQuad{
 		}
 	
 	
-	public void debugDrawAsVerticalLine(PVector pastePoint, Color col, float lineWidth, BufferedImageRenderTarget rt) {
+	public void debugDrawAsVerticalLine(Color col, float lineWidth, BufferedImageRenderTarget rt) {
+		
 		// VertA, VertB
 		// VertC, VertD
-		PVector A = getQuadDocumentPoint( pastePoint, 0, 0);
-		PVector B = getQuadDocumentPoint( pastePoint, 1, 0);
-		PVector C = getQuadDocumentPoint( pastePoint, 0, 1);
-		PVector D = getQuadDocumentPoint( pastePoint, 1, 1);
+		PVector A = getQuadDocumentPoint(  0, 0);
+		PVector B = getQuadDocumentPoint(  1, 0);
+		PVector C = getQuadDocumentPoint(  0, 1);
+		PVector D = getQuadDocumentPoint(  1, 1);
 		
 		PVector topPoint = PVector.lerp(A, B, 0.5f);
 		PVector basePoint = PVector.lerp(C, D, 0.5f);
@@ -333,23 +324,26 @@ public class SpriteImageQuad{
 		
 		}
 	
-	public void debugDrawPivotPoint(PVector pastePoint, Color col, float pixelRadius, BufferedImageRenderTarget rt) {
-		rt.drawPoint(spritePivotPoint, col, pixelRadius);
+	
+	
+	public void debugDrawQuadPoint(float nx, float ny, Color c, BufferedImageRenderTarget rt) {
+
+		PVector docSpacePoint = getQuadDocumentPoint(  nx, ny);
+		rt.drawPoint(docSpacePoint, c, 5);
 		}
 	
 	
-	public void debugDrawQuadPoint(PVector pastePoint, float nx, float ny, Color c, BufferedImageRenderTarget rt) {
-	PVector docSpacePoint = getQuadDocumentPoint( pastePoint, nx, ny);
-	rt.drawPoint(docSpacePoint, c, 5);
-	}
-	
-	
-	public String debugQuadPointsToStr() {
-	
-	return "topLeft " + VertA.toStr() + ", topRight " + VertB.toStr() + "bottomLeft " + VertC.toStr() + ", bottomRight " + VertD.toStr();
+	public String toStr() {
+		return "topLeft " + VertA.toStr() + ", topRight " + VertB.toStr() + "bottomLeft " + VertC.toStr() + ", bottomRight " + VertD.toStr();
 	}
 
-
+	public void printVertices() {
+		System.out.println("CornerA " + VertA.toStr());
+		System.out.println("CornerB " + VertB.toStr());
+		System.out.println("CornerC " + VertC.toStr());
+		System.out.println("CornerD " + VertD.toStr());
+		System.out.println();
+    }
 
 }
 

@@ -74,7 +74,12 @@ public class SpriteBatchHelper_Scene3D {
 	//
 	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
 			
-			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.CLAMP,  PackingInterpolationScheme.EXCLUDE); 
+			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
+			
+			// thses are good setting for grasses etc
+			interpolationScheme.setRangeUnits(interpolationScheme.RANGE_UNITS_RADIUS);
+			interpolationScheme.setGamma(0.5f);
+			
 			//SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
 			currentSpriteBatchName = name;
 			

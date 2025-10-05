@@ -1,18 +1,59 @@
 package MOUtils;
 
 public class Progress {
-    static int lastpercentdisplayed = 0;
-
-    public static void reset() {
-    	lastpercentdisplayed = 0;
+    int lastpercentdisplayed = 0;
+    int count;
+    int totalNum;
+    public boolean active = true;
+    
+    String startMessage;
+    boolean startMessagePrinted = false;
+    
+    public Progress() {
+    	reset();
     }
     
-    public static void  print(int thisNum, int outOf) {
+    public Progress(String startMessage) {
+    	reset();
+    	setStartMessage(startMessage);
+    }
+    
+    public void setStartMessage(String s) {
+    	startMessage = s;
+    	
+    }
+    
+    public void reset() {
+    	lastpercentdisplayed = 0;
+    	count = 0;
+    	startMessagePrinted = false;
+    }
+    
+    public void reset(int totalN) {
+    	reset();
+    	totalNum = totalN;
+    }
+    
+    public void update() {
+    	
+    	print(count, totalNum);
+    	count++;
+    }
+    
+    public void  print(int thisNum, int outOf) {
     	
 		int percent = (int)( (thisNum/(float)outOf) * 100);
 		if(percent%10==0 && percent>lastpercentdisplayed) {
 			lastpercentdisplayed = percent;
-			System.out.print( percent + "% (" + thisNum + " out of " + outOf +  "), " );
+			if(active) {
+				
+				if(startMessagePrinted==false) {
+					System.out.print( startMessage );
+					startMessagePrinted = true;
+				}
+
+				System.out.print( percent + "%(" + thisNum + "/" + outOf +  "), " );
+			}
 		}
 	}
 }

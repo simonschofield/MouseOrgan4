@@ -34,6 +34,10 @@ public class Line3D {
 		return p1.dist(p2);
 	}
 	
+	public PVector getMidPoint() {
+		return PVector.lerp(p2, p1, 0.5f);
+	}
+	
 	public String toStr() {
 		
 		return "Line3D: p1: " + p1.toStr() + ", p2: " + p2.toStr();
@@ -54,8 +58,8 @@ public class Line3D {
 		float t = dotPABA / BA.dot(BA);
 
 		t = MOMaths.constrain(t, 0, 1);
-
-		PVector c = p1.add(PVector.mult(BA, t));
+		PVector tBA = PVector.mult(BA, t);
+		PVector c =  PVector.add(p1,tBA) ;
 		return c;
 	}
 

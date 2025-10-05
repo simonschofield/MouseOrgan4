@@ -51,8 +51,20 @@ public class SpriteFontBiome{
 	
 	
 	public void addImageData(Sprite s, boolean setRandomStreamKeyPositionWithID)  {
+		
+		
+		//if(s.getID() == 18) {
+			
+			
+		//	System.out.println("Sprite ID 18 has a random key of " + s.randomKey);
+			
+		//}
+		
+		
+		
 		if(setRandomStreamKeyPositionWithID) setRandomStreamKeyPosition(s.randomKey);
 		SpriteFont spriteFont = getRandomSpriteFontInstance();
+		spriteFont.setRandomStreamKeyPosition(s.randomKey);
 		s.setSpriteFontDataAndSelectImage(spriteFont);
 	}
 	
