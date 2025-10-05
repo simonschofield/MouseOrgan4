@@ -21,7 +21,7 @@ public class UniqueID{
 	}
 	
 	
-	public int  (){
+	public int getUniqueID(){
 		for(int n = 0; n < idList.length; n++) {
 			boolean b = idList[n];
 			if(b == false) {
