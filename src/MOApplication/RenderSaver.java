@@ -235,17 +235,7 @@ public class RenderSaver {
 		return fullString;
 	}
 	
-	//private void saveDocumentMainImage(String fullPath, String enumerator) {
-		// this is where the document needs to have its own name and schemaName
-		
-	//		String fullSessionName = theDocument.getMain().getFullSessionName();
-	///		String ext = theDocument.getMain().getFileExtension();
-	//		String fullPathAndName = fullPath + fullSessionName + enumerator + ext;
-	//		theDocument.getMain().saveRenderToFile(fullPathAndName);
-		
-		//theDocument.getRenderTarget("main").saveRenderToFile(fullPathAndName  + ".png" );
-		
-	//}
+	
 	
 	private void saveAllDocumentImages(String fullPath, String enumerator) {
 		//if(theDocument.getNumRenderTargets()==1) return;

@@ -23,16 +23,30 @@ public class SpriteBatchHelper_Scene3D {
 	
 	PointGenerator_SurfacePack3D pointGenerator;
 	String currentSpriteBatchName;
-	
+	int spriteRandomKey = 0;
 	
 	public SpriteBatchHelper_Scene3D(SceneData3D sd) {
 		pointGenerator = new PointGenerator_SurfacePack3D(sd);
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Packing settings
-	//
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// A sprite's randomKey is automatically set to be the same as its UniqueId upon instantiation.
+	// However this poses a problem if you want sprite batches to be stochastically independent of each other - as any
+	// alteration to sprite batch A's total number of generated sprites, would affect sprite batch B's randomKey allocation.
+	// To work round this, Sprite batch generators explicitly set the generated Sprite's random keys after sprite instantiation.
+	// The default is for each sprite batch generator to allocate sprite randomKeys starting
+	// at 0 and count upward, but this allows the user to set the start-count number on each sprite batch generator.
+	//
+	public void setSpriteRandomKey(int k) {
+		spriteRandomKey = k;
+		
+	}
+	
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Packing settings
+//
 	public void setDepthThinning(float farMultiplier, float nearThreshold) {
 		// Increases the packing radius according to scene depth. Uses normalised depth
 		// Normalised depth is always with respect to whole (master) scene data, not the ROI. 
@@ -117,6 +131,11 @@ public class SpriteBatchHelper_Scene3D {
 		
 		for(PVector p: points) {
 			Sprite sprite = new Sprite(true);
+			
+			// sprite batch makers should set the ransom ket to be different from the
+			// unique ID, so that the ran key is independent of previously made/loaded sprites
+			sprite.setRandomKey(spriteRandomKey++);
+			
 			// sprites create their own UniqueID and randomKey on instantiation, then add in
 			//"DocPoint", "Depth" ,"SpriteBatchName";
 			KeyValuePairList kvpl = new KeyValuePairList();

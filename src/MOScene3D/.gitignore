@@ -25,3 +25,7 @@
 /Ray3D.class
 /Util3D.class
 /BasePointLighting.class
+/Lighting_BasePoint.class
+/Lighting_CommonUtils.class
+/Lighting_HardShadow3D.class
+/Lighting_RadialInterShadow.class

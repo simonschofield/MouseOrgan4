@@ -239,6 +239,7 @@ public class SceneHelper {
 	// In order for them to be completely "synched" with the main sprite, for the moment they are identical in all geometric respects to the main sprite - i.e. same image size, and pivot point. They also share
 	// the same UniqueID number, meaning that the main sprite and linked sprite are processed identically by stochastic processes. They are only different in that the linked sprite has a different image.	
 	
+	/**** Think thsea are all old unused methods
 	
 	public static Sprite getLinkedSprite(Sprite sprite, String imageAssetGroupName, String shortImageName) {
 		Sprite linkedSprite = sprite.copy();
@@ -281,7 +282,10 @@ public class SceneHelper {
 		}
 	}
 
-		
+	*
+	*
+	*
+	*/	
 	
 	// load a SpriteImageGroup and add it to the ImageGroupManager (ImageGroupManager must be instantiated before calling this)
 //	public static void loadSpriteImageGroup(String spriteImageGroupSamplePath, String spriteImageGroupName, String fileNameContains) {

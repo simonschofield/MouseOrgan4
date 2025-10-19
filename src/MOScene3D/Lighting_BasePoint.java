@@ -19,7 +19,7 @@ import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.Progress;
 
-public class BasePointLighting {
+public class Lighting_BasePoint extends Lighting_CommonUtils{
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// renderShadow is called immediately after a sprite is pasted. In order to use this class, you first need to add a
@@ -30,61 +30,22 @@ public class BasePointLighting {
 	// There are a lot of optimisations here
 
 	
-
-	BufferedImageRenderTarget shadowRenderTarget;
-	BufferedImage shadowRenderImage;
 	Range basePointValueRange;
 
-	ByteImageGetterSetter  shadowImageGetSet;
-	//BufferedImage projectedLightImage;
-
-	// this is used to determine whether or not a particular sprite in a ROI session contributes to the image
-	// Because shadows extend beyond the sprite itself, sprites outside the ROI may contribute, so should be included in the
-	// roi session sprite batch file.
-	Rect theDoumentDocSpaceRect;
-	
-	SceneData3D sceneData3D;
-
-
-	boolean debugFlag = true;
-
-	Progress progress;
-
-	
-	public BasePointLighting(SceneData3D scene3D,  String nameOfShadowRender, float minBasePointValue, float maxBasePointValue){
-		if(scene3D == null) {
-			System.out.println("ShadowCast3D  SceneData3D == null, please initialse first ");
-
-		}
-		sceneData3D = scene3D;
-
+	public Lighting_BasePoint(SceneData3D scene3D,  String nameOfShadowRender, float minBasePointValue, float maxBasePointValue){
+		super(scene3D, nameOfShadowRender);
+		
 		Range worldY = sceneData3D.depthBuffer3d.worldYExtrema;
 		System.out.println("worldY extrama " + worldY.toStr() );
 		float sceneYMin = sceneData3D.depthBuffer3d.worldYExtrema.getUpper();
 
-		GlobalSettings.getDocument().addRenderTarget(nameOfShadowRender, BufferedImage.TYPE_BYTE_GRAY);
-
-		
-		shadowRenderTarget = GlobalSettings.getDocument().getBufferedImageRenderTarget(nameOfShadowRender);
-		shadowRenderTarget.fillBackground(Color.WHITE);
-		shadowImageGetSet = new ByteImageGetterSetter(shadowRenderTarget.getBufferedImage());
-
-
-		
 		basePointValueRange = new Range(minBasePointValue,maxBasePointValue);
 		
-		
+		coordinateSystem = GlobalSettings.getDocument().getCoordinateSystem();
 
 		progress = new Progress("Shadows: ");
 	}
 	
-	
-	
-
-	
-
-	
-
 
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,14 +55,12 @@ public class BasePointLighting {
 	// The ramp is measured and calculated in 3D height units, measured from the base of the sprite, as taller sprites would receive more light, or the light would be on a roughly consistent height level
 	// 
 	// sprite
-	// projecttedt texture ame
+	// 
 	// endBaseShadingHeight - height of span from 0 (black) -> endBaseShadeHeight (base_point_sample_tone)
 	// startTipLigtheningHeight - height of span from base_point_sample_tone (startTipLigtheningHeight) -> tipPoint (tipShade)
 	// tipBrightening (0..1) - tipShade = lerp(tipBrightening, base_point_sample_tone, white )
-	
-	
-	
-	// public void basePointLighting(Sprite sprite, String projectLightTextureName,  float baseRampEndHeight, float tipRampEndHieght, float stochaticAmount)
+	//
+	//
 	
 	public void basePointLighting(Sprite sprite, String projectLightTextureName,  float baseRampEndHeight, float tipRampStart, float tipRampEnd, float tipBrighteningAmount, float stochasticAmount) {
 		debugFlag=false;
@@ -246,14 +205,14 @@ public class BasePointLighting {
 		
 	}
 	
-	PVector BStoDS(int x, int y) {
-		return GlobalSettings.getDocument().getCoordinateSystem().bufferSpaceToDocSpace(x,y);
-	}
+	//PVector BStoDS(int x, int y) {
+	//	return GlobalSettings.getDocument().getCoordinateSystem().bufferSpaceToDocSpace(x,y);
+	///}
 
 	
-	PVector BStoDS(PVector buffPt) {
-		return GlobalSettings.getDocument().getCoordinateSystem().bufferSpaceToDocSpace(buffPt);
-	}
+	//PVector BStoDS(PVector buffPt) {
+	//	return GlobalSettings.getDocument().getCoordinateSystem().bufferSpaceToDocSpace(buffPt);
+	//}
 	
 
 }

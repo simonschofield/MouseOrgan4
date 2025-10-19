@@ -110,13 +110,15 @@ public class Sprite {
 	///////////////////////////////////////////////////////////
 	// Constructors
 	//
-	// 
+	// This one used by SpriteMakers.. they have to establish a 
+	// unique ID, which is used to set the ransomKet as well.
 	public Sprite(boolean newUniqueID) {
 		if(newUniqueID) newUniqueID();
 		images = new SpriteImages();
 		
 	}
 
+	// "naive" constructor
 	public Sprite(BufferedImage img) {
 		newUniqueID();
 		images = new SpriteImages();
@@ -405,6 +407,7 @@ public class Sprite {
 		setMainImage(img);
 	}
 
+	/***** Not sure we need or should encourage sprite copying
 	public Sprite copy() {
 		// returns a completely identical, but independent copy
 		// The image is set by shared reference for speed purposes
@@ -433,6 +436,7 @@ public class Sprite {
 		
 		return cpy;
 	}
+	*/
 
 
 	
