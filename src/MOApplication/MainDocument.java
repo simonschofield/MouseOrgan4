@@ -19,27 +19,27 @@ import MOSprite.Sprite;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// The idea behind the MainDocument class is that it provides an organised way to create and manage output images.
-// hopefully without constraining or second-guessing the use of the output images.
-// The class presumes that there is a "main" render output document. Typically this is the in the form BufferedImage.TYPE_INT_ARGB, but could also be
-// in the form of BufferedImage.TYPE_BYTE_GRAY. However, TYPE_BYTE_GRAY does not have an alpha channel so renders are against a "solid" background colour so are not suitable for layering in post-process operations.
-//
-// In terms of management, the MainDocument has no use of sessionScale, but does fix the width and height of the various contained images to be the same, after instantiation. This means that all image-buffers contained can use
-// the same ImageCoordinateSystem.
-// 
-// 
-// The type of image-buffer class contained is defined by the interface RenderTargetInterface. This allows the addition of bespoke image-classes, such as floating point (for depth information) and integer for 
-// item-id that can all handle the pasting of ImageSprites in various ways to create images and mask-type images.
-//
-// These are the Java Image Types used in MouseOrgan
-//	public static final int TYPE_CUSTOM = 0; -- in this implementation we use this to indicate FLOAT image, which is NOT a buffered image type, but wrapped in a RenderTargetInterface
-//	public static final int TYPE_INT_ARGB = 2; -- A buffered image type, Used for colour + alpha images in, may also be used to provide INT images if required
-//	public static final int TYPE_BYTE_GRAY = 10; -- A buffered image type,used for 8 bit grey scale images
-//	public static final int TYPE_USHORT_GRAY = 11; - A buffered image type, used for 16 bit greyscale images
-
-
+/*********************************************************
+*
+* Provides an organised way to create and manage the "output" images.<p>
+* 
+* The class presumes that there is a "main" render output document. Typically this is the in the form BufferedImage.TYPE_INT_ARGB, but could also be
+* in the form of BufferedImage.TYPE_BYTE_GRAY. However, TYPE_BYTE_GRAY does not have an alpha channel so renders are against a "solid" background colour so are not suitable for layering in post-process operations.<p>
+*
+* In terms of management, the MainDocument has no use of sessionScale, but does fix the width and height of the various contained images to be the same, after instantiation. This means that all image-buffers contained can use
+* the same ImageCoordinateSystem.<p>
+* 
+* 
+* The type of image-buffer class contained is defined by the interface RenderTargetInterface. This allows the addition of bespoke image-classes, such as floating point (for depth information) and integer for 
+* item-id that can all handle the pasting of ImageSprites in various ways to create images and mask-type images.<p>
+* These are the Java Image Types used in MouseOrgan<p>
+* public static final int TYPE_CUSTOM = 0; -- in this implementation we use this to indicate FLOAT image, which is NOT a buffered image type, but wrapped in a RenderTargetInterface<p>
+* public static final int TYPE_INT_ARGB = 2; -- A buffered image type, Used for colour + alpha images in, may also be used to provide INT images if required<p>
+* public static final int TYPE_BYTE_GRAY = 10; -- A buffered image type,used for 8 bit grey scale images<p>
+* public static final int TYPE_USHORT_GRAY = 11; - A buffered image type, used for 16 bit greyscale images<p>
+* 
+* 
+*/ 
 
 public class MainDocument{
 	//public SessionSettings sessionSettings;
@@ -53,6 +53,18 @@ public class MainDocument{
 	
 	Menu renderTargetViewMenu;
 	
+	/**
+	 * The type of image-buffer class contained is defined by the interface RenderTargetInterface. This allows the addition of bespoke image-classes, such as floating point (for depth information) and integer for 
+	 * item-id that can all handle the pasting of ImageSprites in various ways to create images and mask-type images.<p>
+	 * These are the Java Image Types used in MouseOrgan<p>
+	 * public static final int TYPE_CUSTOM = 0; -- in this implementation we use this to indicate FLOAT image, which is NOT a buffered image type, but wrapped in a RenderTargetInterface<p>
+	 * public static final int TYPE_INT_ARGB = 2; -- A buffered image type, Used for colour + alpha images in, may also be used to provide INT images if required<p>
+	 * public static final int TYPE_BYTE_GRAY = 10; -- A buffered image type,used for 8 bit grey scale images<p>
+	 * public static final int TYPE_USHORT_GRAY = 11; - A buffered image type, used for 16 bit greyscale images<p>
+	 * @param fullScaleWidth
+	 * @param fullScaleHeight
+	 * @param mainRenderType
+	 */
 	public MainDocument(int fullScaleWidth, int fullScaleHeight, int mainRenderType) {
 		// simple non-roi based document
 		
@@ -71,6 +83,10 @@ public class MainDocument{
 		addRenderTarget("main", mainRenderType);
 	}
 	
+	/**
+	 * @param roiManager
+	 * @param mainRenderType
+	 */
 	public MainDocument(ROIManager roiManager, int mainRenderType) {
 		// for a roi based document
 		
@@ -89,10 +105,17 @@ public class MainDocument{
 	
 	
 	// they should all have the same coordinate system within a document
+	/**
+	 * @return
+	 */
 	public ImageCoordinateSystem getCoordinateSystem() {
 		return documentImageCordinateSystem;
 	}
 	
+	/**
+	 * @param name
+	 * @param type
+	 */
 	public void addRenderTarget(String name, int type) {
 			if( renderTargetExists(name) ) {
 				System.out.println("MainDocument addRendertarget " + name + " already exists - cannot add");
@@ -109,6 +132,9 @@ public class MainDocument{
 	
 	
 	
+	/**
+	 * 
+	 */
 	void updateRenderTargetMenu() {
 		// update the menu
 		String[] rtNames = getRenterTargetNames();
@@ -120,6 +146,9 @@ public class MainDocument{
 	}
 	
 	
+	/**
+	 * @param rtViewMenu
+	 */
 	void setRenderTargetViewMenu(Menu rtViewMenu) {
 		// called on initUI() at start, so the document can add in render targets as it goes
 		System.out.println("setting render target menu");
@@ -129,6 +158,9 @@ public class MainDocument{
 	}
 	
 	
+	/**
+	 * @return
+	 */
 	String[] getRenterTargetNames() {
 		ArrayList<String> strList = new ArrayList<String> ();
 		for(RenderTargetInterface rt: renderTargets) {
@@ -139,6 +171,11 @@ public class MainDocument{
 		return MOStringUtils.toArray(strList);
 	}
 	
+	/**
+	 * @param name
+	 * @param saveTYPE_USHORT_GRAYcopy
+	 * @param imageCopyGamma
+	 */
 	public void addFloatRenderTarget(String name, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
 		if( renderTargetExists(name) ) {
 			System.out.println("MainDocument addFloatRendertarget " + name + " already exists - cannot add");
@@ -153,15 +190,25 @@ public class MainDocument{
 		renderTargets.add(rt);
 	}
 	
+	/**
+	 * @return
+	 */
 	public BufferedImageRenderTarget getMain() {
 		// because this one is the most used.. it has a special short-hand access method
 		return (BufferedImageRenderTarget) renderTargets.get(0);
 	}
 	
+	/**
+	 * @return
+	 */
 	public int getNumRenderTargets() {
 		return renderTargets.size();
 	}
 	
+	/**
+	 * @param n
+	 * @return
+	 */
 	public RenderTargetInterface getRenderTarget(int n) {
 		if( n >= getNumRenderTargets() || n < 0) {
 			System.out.println("MainRenderDocument::getRenderTarget - illegal index " + n);
@@ -172,6 +219,10 @@ public class MainDocument{
 	}
 	
 	
+	/**
+	 * @param name
+	 * @return
+	 */
 	public BufferedImageRenderTarget getBufferedImageRenderTarget(String name) {
 		
 		RenderTargetInterface rt =  getRenderTarget( name);
@@ -202,6 +253,10 @@ public class MainDocument{
 	}
 	
 	
+	/**
+	 * @param name
+	 * @return
+	 */
 	public BufferedImage getBufferedImage(String name) {
 		
 		RenderTargetInterface rt =  getRenderTarget( name);
@@ -219,6 +274,11 @@ public class MainDocument{
 	
 	
 	// called by view controller to show the current image
+	/**
+	 * @param rtname
+	 * @param currentViewCropRect
+	 * @return
+	 */
 	public BufferedImage getCropBufferSpace(String rtname, Rect currentViewCropRect) {
 		BufferedImage currentBufferedImage = getBufferedImage(rtname);
 		
@@ -227,6 +287,10 @@ public class MainDocument{
 	
 	
 	
+	/**
+	 * @param name
+	 * @return
+	 */
 	public FloatImageRenderTarget getFloatImageRenderTarget(String name) {
 		
 		RenderTargetInterface rt =  getRenderTarget( name);
@@ -235,6 +299,10 @@ public class MainDocument{
 		return null;
 	}
 	
+	/**
+	 * @param name
+	 * @return
+	 */
 	public boolean renderTargetExists(String name) {
 		for(RenderTargetInterface rt: renderTargets) {
 			if( rt.getName().equals(name)) return true;
@@ -243,6 +311,10 @@ public class MainDocument{
 	}
 	
 	
+	/**
+	 * @param name
+	 * @return
+	 */
 	public RenderTargetInterface getRenderTarget(String name) {
 		
 		for(RenderTargetInterface rt: renderTargets) {
@@ -253,6 +325,9 @@ public class MainDocument{
 	}
 	
 	
+	/**
+	 * @param name
+	 */
 	public void deleteRenderTarget(String name) {
 		
 		if( renderTargetExists(name)==false ) {
@@ -269,26 +344,44 @@ public class MainDocument{
 	}
 	
 	
+	/**
+	 * @param renderTargetName
+	 * @param pathAndFilename
+	 */
 	public void saveRenderTargetToFile(String renderTargetName, String pathAndFilename) {
 		RenderTargetInterface rt =  getRenderTarget(renderTargetName);
 		rt.saveRenderToFile(pathAndFilename);
 	}
 	
 
+	/**
+	 * @param rb
+	 */
 	public void setRenderBorder(RenderBorder rb) {
 		renderBorder = rb;
 	}
 	
+	/**
+	 * @return
+	 */
 	public RenderBorder getRenderBorder() {
 		return renderBorder;
 	}
 	
+	/**
+	 * @param sprite
+	 * @return
+	 */
 	public boolean cropSpriteToBorder(Sprite sprite) {
 		return renderBorder.cropSprite(sprite);
 	}
 	
 	
 	
+	/**
+	 * @param renderTargetName
+	 * @param sprite
+	 */
 	public void pasteSprite(String renderTargetName, Sprite sprite) {
 		RenderTargetInterface rt = getRenderTarget(renderTargetName);
 		rt.pasteSprite(sprite);

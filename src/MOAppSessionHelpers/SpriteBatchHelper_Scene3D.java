@@ -38,7 +38,7 @@ public class SpriteBatchHelper_Scene3D {
 	// The default is for each sprite batch generator to allocate sprite randomKeys starting
 	// at 0 and count upward, but this allows the user to set the start-count number on each sprite batch generator.
 	//
-	public void setSpriteRandomKey(int k) {
+	public void setSpriteRandomKeyStartNumber(int k) {
 		spriteRandomKey = k;
 		
 	}
@@ -48,7 +48,7 @@ public class SpriteBatchHelper_Scene3D {
 // Packing settings
 //
 	public void setDepthThinning(float farMultiplier, float nearThreshold) {
-		// Increases the packing radius according to scene depth. Uses normalised depth
+		// Decreases the packing radius according to scene depth. Uses normalised depth
 		// Normalised depth is always with respect to whole (master) scene data, not the ROI. 
 		// Set the farMultiplier > 1 to get thinning to happen in the distance
 		// Thinning occurs between the nearThreshold (no thinning) and the far depth (full thinning)
@@ -65,7 +65,7 @@ public class SpriteBatchHelper_Scene3D {
 		pointGenerator.setMaxNumPointsLimit(n);
 	}
 	
-	public void setRandomStreamSeed(int rk) {
+	public void setPointGeneratorRandomSeed(int rk) {
 		pointGenerator.setRandomStreamSeed(rk);
 		
 	}
@@ -86,7 +86,7 @@ public class SpriteBatchHelper_Scene3D {
 	// returns a sprite batch, using a Packing Interpolation Scheme based on an image
 	//
 	//
-	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int seedRandomKey, int maxNumPoints) {
+	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int spriteRandomKeyStart, int maxNumPoints) {
 			
 			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP); 
 			
@@ -96,8 +96,8 @@ public class SpriteBatchHelper_Scene3D {
 			
 			//SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
 			currentSpriteBatchName = name;
-			
-			pointGenerator.setRandomStreamSeed(seedRandomKey);
+			spriteRandomKey = spriteRandomKeyStart;
+			pointGenerator.setRandomStreamSeed(pointPackingRanSeed);
 			pointGenerator.setPackingImage(packingImage);
 			pointGenerator.setPackingInterpolationScheme(interpolationScheme);
 	

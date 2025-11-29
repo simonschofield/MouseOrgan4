@@ -3,7 +3,6 @@ package MONetwork;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import MOAppSessionHelpers.NNetworkEdgeDrawHelper;
 import MOImage.KeyImageSampler;
 import MOMaths.Line2;
 import MOMaths.MOMaths;

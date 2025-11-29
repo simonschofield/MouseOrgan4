@@ -82,6 +82,10 @@ public class PointGenerator_SurfacePack3D {
 	float farDistanceMultiplier = 1;
 	float nearDistanceThreshold = 0.5f;
 	
+	// 
+	
+	
+	
 	Progress progress;
 	
 	public PointGenerator_SurfacePack3D(SceneData3D sd, float maxRadius) {

@@ -13,40 +13,41 @@ import MOCompositing.RenderTargetInterface;
 import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 
-//////////////////////////////////////////////////////////////////////////////////
-// Helps manage the saving process for renders, either directly to the userSession directory, or in a specially created sub-directory within the userSession directory.
-// The user decides if images and directories from subsequent sessions are overwritten, or saved as new (automatically enumerated) files/directories by
-// setting the mode to either RenderSaver.FILENAME_OVERWRITE or RenderSaver.FILENAME_INCREMENT
-//
-// If using FILENAME_INCREMENT, each session is saved with an incremented number in the name in the form "_sessionXXXX" (where XXXX is always a 4-character leading-zero-padded integer).
-// The process is based on scanning the userSessionPath for files/folders containing such a string. The highest previously saved session number in the userSessionPath is identified and  the new incremented number is found.
-//
-// If using FILENAME_OVERWRITE, this will overwrite previously saved files/directories saved. The action is sensitive to previously saved SESSION_DIFFERENTIATOR_INCREMENT sessions, and will target the highest 
-// numerical session files/directories it finds on the UserSessionPath. If no previous SESSION_DIFFERENTIATOR_NUMERICAL is found, then the differentiating file string is 0000
-//
-// calling saveDocumentImages() causes the main render target and all supplementary render targets to be saved with the following naming conventions.
-//
-// NOT USING A SUB DIRECTORY
-// Files are saved to the userSessionDirectory with the following convention
-//		GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + enumerator + fileExtension
-//
-// USING A SUB DIRECTORY
-// The naming convention for the directory is 
-// userSessionPath/ GlobalSettings.mainSessionName + enumerator
-// Within this renders are files saved with the following convention 
-// 		GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + fileExtension
-//
-// SAVING LAYERS
-// Layers are always saved in an assigned sub-directory.
-// Layers can be generated from the Document's Main() render and by the supplementary renders (if any) if asked to do so using  saveLayer(boolean finalLayer, boolean saveSupplementaryImagesAtEachLayer) 
-// If saveSupplementaryImagesAtEachLayer==TRUE, the sup layer is cleared on each render. If saveSupplementaryImagesAtEachLayer==FALSE the supp layer is only saved at the end of the session. 
-// The finalLayerBoolean causes the final layer to be NOT deleted, so the user can see the result.
-// 
-// the Layer filename follows the convention 
-// GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + "_Layer_" + (num increasing or decreasing) + ".png"
-// 
-// Use num-decreasing if you want to use Photoshop's File->Scripts->Load Files into Stack for layers sorted first-layers topmost, use num-increasing is you want first-layer bottom-most
-//
+
+/**
+    * The Render Saver Class. Helps manage the saving process for renders, either directly to the userSession directory, or in a specially created sub-directory within the userSession directory.
+	* The user decides if images and directories from subsequent sessions are overwritten, or saved as new (automatically enumerated) files/directories by
+	* setting the mode to either RenderSaver.FILENAME_OVERWRITE or RenderSaver.FILENAME_INCREMENT
+	*
+	* If using FILENAME_INCREMENT, each session is saved with an incremented number in the name in the form "_sessionXXXX" (where XXXX is always a 4-character leading-zero-padded integer).
+	* The process is based on scanning the userSessionPath for files/folders containing such a string. The highest previously saved session number in the userSessionPath is identified and  the new incremented number is found.
+	*
+	* If using FILENAME_OVERWRITE, this will overwrite previously saved files/directories saved. The action is sensitive to previously saved SESSION_DIFFERENTIATOR_INCREMENT sessions, and will target the highest 
+	* numerical session files/directories it finds on the UserSessionPath. If no previous SESSION_DIFFERENTIATOR_NUMERICAL is found, then the differentiating file string is 0000
+	*
+	* calling saveDocumentImages() causes the main render target and all supplementary render targets to be saved with the following naming conventions.
+	*
+	* NOT USING A SUB DIRECTORY
+	* Files are saved to the userSessionDirectory with the following convention
+	*		GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + enumerator + fileExtension
+	*
+	* USING A SUB DIRECTORY
+	* The naming convention for the directory is 
+	* userSessionPath/ GlobalSettings.mainSessionName + enumerator
+	* Within this renders are files saved with the following convention 
+	* 		GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + fileExtension
+	*
+	* SAVING LAYERS
+	* Layers are always saved in an assigned sub-directory.
+	* Layers can be generated from the Document's Main() render and by the supplementary renders (if any) if asked to do so using  saveLayer(boolean finalLayer, boolean saveSupplementaryImagesAtEachLayer) 
+	* If saveSupplementaryImagesAtEachLayer==TRUE, the sup layer is cleared on each render. If saveSupplementaryImagesAtEachLayer==FALSE the supp layer is only saved at the end of the session. 
+	* The finalLayerBoolean causes the final layer to be NOT deleted, so the user can see the result.
+	* 
+	* the Layer filename follows the convention 
+	* GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + "_Layer_" + (num increasing or decreasing) + ".png"
+	* 
+	* Use num-decreasing if you want to use Photoshop's File->Scripts->Load Files into Stack for layers sorted first-layers topmost, use num-increasing is you want first-layer bottom-most 
+*/
 public class RenderSaver {
 	
 	
@@ -116,12 +117,11 @@ public class RenderSaver {
 	}
 	
 	
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-	// saveDocumentImages This is called by the user, probably in UserSession.finaliseUserSession
-	// 
-	// 
-	// 
-	// 
+	
+	/**
+	 * saveDocumentImages is called by the user when the renders are required to be saved, probably in UserSession.finaliseUserSession
+	 * 
+	 */
 	public void saveDocumentImages() {
 		
 		if( isActive() == false) {
@@ -163,17 +163,27 @@ public class RenderSaver {
 	}
 	
 	
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-	// Saving layers assumes this: The layers saved are derived from the main Document Render
-	// and these are cleared after each save.
-	// The final layer is not cleared, and when the final layer is saved, any supplementary Document RenderTarget
-	// images are also saved to the directory.
-	// The calling of saveLayer is going to be managed by the user
-	//
-	// sometimes the user will want to save the supplementary images intact between layers (such as in making a selection mask for the whole image)
-	// sometimes they want the supp images saved and deleted per layer - as in multiple sequenced images, hence saveSupplementaryImagesAtEachLayer
 	
-	//
+	 
+	
+	
+	/**
+	 * @param finalLayer
+	 * @param saveSupplementaryImagesAtEachLayer
+	 * 
+	 * Saving layers assumes this: The layers saved are derived from the main Document Render
+	 * and these are cleared after each save.
+	 * The final layer is not cleared, and when the final layer is saved, any supplementary Document RenderTarget
+	 * images are also saved to the directory.
+	 * The calling of saveLayer is going to be managed by the user
+	 * 
+	 * sometimes the user will want to save the supplementary images intact between layers (such as in making a selection mask for the whole image)
+	 * sometimes they want the supp images saved and deleted per layer - as in multiple sequenced images, hence saveSupplementaryImagesAtEachLayer 
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
 	public void saveLayer(boolean finalLayer, boolean saveSupplementaryImagesAtEachLayer) {
 		if(useSubDirectory==false) {
 			System.out.println("RenderSaver: saveLayer - cannot save layers without setting a sub directory first - set third argument of constructor to true");

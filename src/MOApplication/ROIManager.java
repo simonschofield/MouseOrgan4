@@ -18,21 +18,19 @@ import MOSprite.SpriteBatch;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Defines the relationship between the Master Render (the whole render) and SubROIs (sub rectangles of the master render, rendered separately)
-// The Master Render rect is stored as a document space rect. I.e. docwidth = bufferWidth/longestEdge, docheight = bufferHeight/longestEdge
-// The SubROIs are stored in master rect doc space, as sub rectanges contained within the master rect.
-// This should make conversion between the Sub ROI document space -> master rect doc space easy, and vice versa
-// The ROIManager needs to be initialised before the document initialisation, as the ROI manager calculates the render dimensions, depending on which ROI is being used. 
-// The Master Render has a fixed render size, irrespective of session scale, so that Sub ROIs can be found within a reliable fixed dimension render using Photoshop.
-// 
-//
-//
-//
-
-
-
-
+/**
+* Defines the relationship between the Master Render (the whole render) and SubROIs (sub rectangles of the master render, rendered separately once the maste render has been finalised)<p>
+* A Master render is set up as a  fixed-dimension image, which is invariant with sessionScale.<p>
+* The Master Render is given the name "Master", and the ROIs are given user-defined names, along with the rects that define their extents within the master render.<p>
+* The Master Render rect is stored as a document space rect. I.e. docwidth = bufferWidth/longestEdge, docheight = bufferHeight/longestEdge<p>
+* The SubROIs are stored in master rect doc space, as sub rectanges contained within the master rect.<p>
+* This should make conversion between the Sub ROI document space -> master rect doc space easy, and vice versa<p>
+* The ROIManager needs to be initialised before the document initialisation, as the ROI manager calculates the render dimensions, depending on which ROI is being used. <p>
+* The Master Render has a fixed render size, irrespective of session scale, so that Sub ROIs can be found within a reliable fixed dimension render using Photoshop.<p>
+* 
+*
+*
+*/
 public class ROIManager {
 	
 	
@@ -54,11 +52,18 @@ public class ROIManager {
 	public Rect TopHalfRect; 
 	public Rect CentreRect; 
 
-	public ROIManager(int masterWidth, int masterHeight){
-		init(masterWidth, masterHeight);
-	}
 	
-	private void init(int masterWidth, int masterHeight){
+	/**
+	 * @param masterWidth
+	 * @param masterHeight
+	 * ROI means Region Of Interest, and this class enables the user to specify regions of a Master render to be rendered separately at any size and session scale.
+	 * The class ins initialised with a full-scene Master render of set height and width. The diemsions of this Master will not change with the render-session scale.
+	 * When using a SceneData3D, the scenedata3d object initialises this class using the SceneData3D.createROIManager(int width) method, to ensure the same aspect ratio
+	 * is maintained between the SceneData3D scene, and the ROI Master image.
+	 * A number of pre-defined ROIs are automatically created, including one for the whole master render called "WholeRect".
+	 */
+	public ROIManager(int masterWidth, int masterHeight){
+		
 		// This is established before the render document is initialised in initialiseSession()
 		// initialised with the saved-out render size of the master image, rendered at scale rscale
 		// this then can return the full-size width and height of the master render if needed.
@@ -67,24 +72,230 @@ public class ROIManager {
 		//System.out.println("ROI Manager init master width: " + masterWidth + " master height " + masterHeight);
 		System.out.println("master doc rect = " + masterPixelExtents.toStr());
 		masterDimensions = new ImageDimensions(masterWidth,  masterHeight); //masterCoordinateSystem.getBufferDimensions();
-		
-		
-		
+
 		addROI("master", masterPixelExtents, masterWidth);
-		setCurrentROIName("master");
+		setCurrentROI("master");
 		
 		// adds some predefined rois, for testing,
 		// with a pre-defined width equivalent to a 24-inch wide print
 		addPredefinedROIs(24*300);
 	}
 
-	
+	/**
+	 * @return an ImageCoordinateSystem which is that of the master render. This will remain the same regardless of session scale.
+	 * 
+	 */
 	public ImageCoordinateSystem getMasterImageCoordinateSystem() {
-		
 		return masterCoordinateSystem;
 	}
 	
-	public void addPredefinedROIs(int fullSizeRenderWidth) {
+	
+	/**
+	 * @return an ImageCoordinateSystem which is initialised to have the same BufferSpace as the current ROI
+	 * NOT called by the user, but called by the MainDocument object at initialisation, in order to have the correct
+	 * ImageCoordinateSystem in play for ROIs.
+	 * this should be the ONLY method used to calculate and return the render dimensions from the session scale
+	 */
+	public ImageCoordinateSystem getCurrentROIImageCoordinateSystem_SessionScaled() {
+		SubROI roi =  getCurrentROIInfo();
+		
+		int ROIEXtentsFullRenderWidth = roi.extentsFullPixelWidth;
+		int ROIEXtentsFullRenderHeight = roi.extentsFullPixelHeight;
+		
+		if(isUsingMaster()==false) {
+			float scl = GlobalSettings.getSessionScale();
+			ROIEXtentsFullRenderWidth = (int)Math.round(ROIEXtentsFullRenderWidth*scl); // session scaling of the document happens here
+			return new ImageCoordinateSystem(ROIEXtentsFullRenderWidth, roi.ROIRect);
+		}
+		
+		
+		return new ImageCoordinateSystem(ROIEXtentsFullRenderWidth, ROIEXtentsFullRenderHeight);
+	}
+	
+
+	/**
+	 * Sets the current ROI being used by the current UserSession. This must be called in the initialiseUserSession phase of the UserSession set up.
+	 * @param roiName - the user defined ROI name, or "Master", or one of the pre-defiend ROIs e.g. "WholeRect"
+	 */
+	public void setCurrentROI(String roiName) {
+		if(roiName.contains("master" ) || roiName.contains("Master" )) {
+			currentROIName = "master";
+		} else {
+			currentROIName = roiName;
+		}
+
+	}
+
+	
+	/**
+	 * @return  the string name of the current ROI being rendered.
+	 */
+	public String getCurrentROIName() {
+		return currentROIName;
+	}
+	
+	
+	/**
+	 * @return the document-space rectangle of the Master ROI
+	 */
+	public Rect getMasterDocumentRect() {
+		return getMasterImageCoordinateSystem().getDocumentRect();
+	}
+
+	/**
+	 * @return the document-space rectangle of the current ROI being rendered
+	 */
+	public Rect getCurrentROIRect() {
+		return getCurrentROIInfo().ROIRect;
+	}
+
+	
+	/**
+	 * Adds a new ROI to the list of available ROIs contained within the Master render.
+	 * To make this user-freindly, extents are user-defined in the ROIRectInMasterPixels in Master Image Buffer Space coordinates/dimensions. 
+ 	 * Viewing the master image in photoshop, ROIs can be found/defined using either the selection tool
+	 * or a vector shape rectangle, and the coordinates read from this. These values are then converted inot Document Space for internal use.
+	 * @param name - the name of the new ROI being added
+	 * @param ROIRectInMasterPixels - The buffer-space extents of the ROI within the Master.
+	 * @param fullROIRenderWidth - The desired size of the output image at scale 1 (100%)
+	 *  
+	 */
+	public void addROI(String name, Rect ROIRectInMasterPixels,  int fullROIRenderWidth) {
+		// convert to points within the
+		Rect ROIInMasterDocSpace = masterCoordinateSystem.bufferSpaceToDocSpace(ROIRectInMasterPixels);
+		
+		//System.out.println("ROIInMasterDocSpace = " + ROIInMasterDocSpace.toStr());
+		
+		
+		SubROI subroi = new SubROI(name,  ROIInMasterDocSpace, fullROIRenderWidth);
+		SubROIList.add(subroi);
+	}
+	
+
+	/**
+	 * Generally used for de-bugging and for convenience to see the ROI as super-imposed over the master render. 
+	 * @param roiName - the roi to be drawn
+	 * @param c - the color of the border
+	 * @param lineWEightPixels
+	 * @param renderTagetName
+	 */
+	public void drawROI(String roiName, Color c, float lineWEightPixels, String renderTagetName) {
+		if(isUsingMaster()) {
+			Rect roiRect = getROIDocRect(roiName);
+			//System.out.println(" Drawing ROI REct rect  " + name + " " + roiRect.toStr());
+			//GlobalSettings.getDocument().getMain().drawRect_DocSpace(roiRect, new Color(0,0,0,0), c, 10);
+			
+			GlobalSettings.getDocument().getBufferedImageRenderTarget(renderTagetName).drawRect_DocSpace(roiRect, new Color(0,0,0,0), c, lineWEightPixels);
+		}
+	}
+	
+
+	
+	
+	
+	
+
+	/**
+	 * @return true is NOT using the master i.e. using a user-defined, or preset ROI
+	 */
+	public boolean isUsingROI() {
+		return !isUsingMaster();
+	}
+
+	/**
+	 * @return true is currently using the master render
+	 */
+	public boolean isUsingMaster() {
+		if(currentROIName.contains("master") || currentROIName.contains("Master")) return true;
+		return false;
+	}
+
+	/**
+	 * @param currentROI
+	 * @return true if currentROI matches the current ROI name
+	 */
+	public boolean isCurrentROI(String currentROI) {
+		if(currentROIName.equals(currentROI)) return true;
+		return false;
+	}
+
+	/**
+	 * Used for debugging
+	 */
+	public void printCurrentROIInfo() {
+		SubROI ri = getCurrentROIInfo();
+		System.out.println("_____ROI______");
+		System.out.println("ROI Name " + ri.name);
+
+		System.out.println("ROI ROIExtents " + ri.ROIRect.toStr());
+		//System.out.println("ROI ppaExtents " + ri.ppaExtents.toStr());
+
+		System.out.println("ROI pixel width " + ri.extentsFullPixelWidth);
+		System.out.println("ROI pixel height " + ri.extentsFullPixelHeight);
+		System.out.println("_________________");
+
+	}
+	
+	
+	
+	/**
+	 * Returns an array of all ROI names, used by the app to automatically delete all ROI spritebatches when the master is updated.
+	 * @return an array list of all ROI names 
+	 */
+	public ArrayList<String> getROINames(){
+		// does not return the "master" name, only the other ROIs
+		// used in deleting old ROI sprite batch files
+		ArrayList<String> namesOut = new ArrayList<String>();
+		for(SubROI ri: SubROIList) {
+			if(ri.name.equals("master") || ri.name.equals("Master")) continue;
+			namesOut.add(ri.name);
+			//System.out.println("getROINames " + ri.name);
+		}
+		return namesOut;
+	}
+
+	
+    
+    /**
+     * @return
+     */
+    public Rect getCurrentROIDocRect() {
+    	return getCurrentROIInfo().ROIRect;
+    }
+    
+    /**
+     * @param name
+     * @return
+     */
+    public Rect getROIDocRect(String name) {
+		SubROI info =  getROIInfo(name);
+		return info.ROIRect;
+	}
+
+
+	/**
+	 * @return
+	 */
+	public SubROI getCurrentROIInfo() {
+
+		return getROIInfo(currentROIName);
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// private
+	//
+	//
+	SubROI getROIInfo(String name) {
+
+		for(SubROI ri: SubROIList) {
+			if(ri.name.equals(name)) return ri;
+		}
+		System.out.println("ROIManager::getROIInfo(String name) - cannot find ROI of name " + name );
+		return null;
+
+	}
+	
+	private void addPredefinedROIs(int fullSizeRenderWidth) {
 		int masterWidth = masterCoordinateSystem.getBufferWidth();
 		int masterHeight = masterCoordinateSystem.getBufferHeight();
 		
@@ -127,158 +338,13 @@ public class ROIManager {
 		
 		
 	}
-	
-	///////////////////////////////////////////////////////////////////////////////////////////
-	// when getting the current render dimensions using a ROIManager session, this should be the ONLY place
-	// to calculate the render dimensions from the session scale
-	//
-	public ImageCoordinateSystem getCurrentROIImageCoordinateSystem_SessionScaled() {
-		SubROI roi =  getCurrentROIInfo();
-		
-		int ROIEXtentsFullRenderWidth = roi.extentsFullPixelWidth;
-		int ROIEXtentsFullRenderHeight = roi.extentsFullPixelHeight;
-		
-		if(isUsingMaster()==false) {
-			float scl = GlobalSettings.getSessionScale();
-			ROIEXtentsFullRenderWidth = (int)Math.round(ROIEXtentsFullRenderWidth*scl); // session scaling of the document happens here
-			return new ImageCoordinateSystem(ROIEXtentsFullRenderWidth, roi.ROIRect);
-		}
-		
-		
-		return new ImageCoordinateSystem(ROIEXtentsFullRenderWidth, ROIEXtentsFullRenderHeight);
-	}
-	
-
-	public void setCurrentROIName(String s) {
-		if(s.contains("master" ) || s.contains("Master" )) {
-			currentROIName = "master";
-		} else {
-			currentROIName = s;
-		}
-
-	}
-
-	public String getCurrentROIName() {
-		return currentROIName;
-	}
-	
-	public Rect getMasterDocumentRect() {
-		return getMasterImageCoordinateSystem().getDocumentRect();
-	}
-	
-	
-	
-
-	public Rect getCurrentROIRect() {
-		return getCurrentROIInfo().ROIRect;
-	}
-
-	public void addROI(String name, Rect ROIRectInMasterPixels,  int fullROIRenderWidth) {
-		// extents passed in as ROIRectInMasterPixels are in Master Rect Buffer Space
-		// in order to facilitate the process of defining ROIs using a Photoshop image of the master, and 
-		// using the pixel location values of the roi defined (e.g. by using the vector rect tool).
-		// Extents are then calculated and stored internally in Master Rect doc space
-		
-		// convert to points within the
-		Rect ROIInMasterDocSpace = masterCoordinateSystem.bufferSpaceToDocSpace(ROIRectInMasterPixels);
-		
-		//System.out.println("ROIInMasterDocSpace = " + ROIInMasterDocSpace.toStr());
-		
-		
-		SubROI subroi = new SubROI(name,  ROIInMasterDocSpace, fullROIRenderWidth);
-		SubROIList.add(subroi);
-	}
-	
-
-	public void drawROI(String roiName, Color c, float lineWEightPixels, String renderTagetName) {
-		if(isUsingMaster()) {
-			Rect roiRect = getROIDocRect(roiName);
-			//System.out.println(" Drawing ROI REct rect  " + name + " " + roiRect.toStr());
-			//GlobalSettings.getDocument().getMain().drawRect_DocSpace(roiRect, new Color(0,0,0,0), c, 10);
-			
-			GlobalSettings.getDocument().getBufferedImageRenderTarget(renderTagetName).drawRect_DocSpace(roiRect, new Color(0,0,0,0), c, lineWEightPixels);
-		}
-	}
-	
-
-	
-	
-	
-	
-
-	public boolean isUsingROI() {
-		return !isUsingMaster();
-	}
-
-	public boolean isUsingMaster() {
-		if(currentROIName.contains("master") || currentROIName.contains("Master")) return true;
-		return false;
-	}
-
-	public boolean isCurrentROI(String currentROI) {
-		if(currentROIName.equals(currentROI)) return true;
-		return false;
-	}
-
-	public void printCurrentROIInfo() {
-		SubROI ri = getCurrentROIInfo();
-		System.out.println("_____ROI______");
-		System.out.println("ROI Name " + ri.name);
-
-		System.out.println("ROI ROIExtents " + ri.ROIRect.toStr());
-		//System.out.println("ROI ppaExtents " + ri.ppaExtents.toStr());
-
-		System.out.println("ROI pixel width " + ri.extentsFullPixelWidth);
-		System.out.println("ROI pixel height " + ri.extentsFullPixelHeight);
-		System.out.println("_________________");
-
-	}
-	
-	
-	
-	public ArrayList<String> getROINames(){
-		// does not return the "master" name, only the other ROIs
-		// used in deleting old ROI sprite batch files
-		ArrayList<String> namesOut = new ArrayList<String>();
-		for(SubROI ri: SubROIList) {
-			if(ri.name.equals("master") || ri.name.equals("Master")) continue;
-			namesOut.add(ri.name);
-			//System.out.println("getROINames " + ri.name);
-		}
-		return namesOut;
-	}
-
-	
-    
-    public Rect getCurrentROIDocRect() {
-    	return getCurrentROIInfo().ROIRect;
-    }
-    
-    public Rect getROIDocRect(String name) {
-		SubROI info =  getROIInfo(name);
-		return info.ROIRect;
-	}
-
-
-	public SubROI getCurrentROIInfo() {
-
-		return getROIInfo(currentROIName);
-	}
-
-	// private
-	SubROI getROIInfo(String name) {
-
-		for(SubROI ri: SubROIList) {
-			if(ri.name.equals(name)) return ri;
-		}
-		System.out.println("ROIManager::getROIInfo(String name) - cannot find ROI of name " + name );
-		return null;
-
-	}
 
 
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+// private to the ROIManager (above)
+//
 class SubROI{
 
 	String name;

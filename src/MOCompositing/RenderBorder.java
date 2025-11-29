@@ -17,28 +17,38 @@ import MOMaths.Rect;
 import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// RenderBoarder determines what happens to sprites pasted on the boarder of an image
-//
-// It operates by culling/cropping/leaving-intact a sprite just before the final paste operations into the receiving output-image buffers
-//
-// The boarderRect is SET using Normalised coordinates (0..1 in both x and y) as this is human-readable, but STORED using docSpace coordinates
+/****************************************************************
+* RenderBoarder determines what happens to sprites pasted on the boarder of an image
+*
+* It operates by culling/cropping/leaving-intact a sprite just before the final paste operations into the receiving output-image buffers
+*
+* The boarderRect is SET using Normalised coordinates (0..1 in both x and y) as this is human-readable, but STORED using docSpace coordinates
 
-// If a sprite is completely within the boarder rect then it will be pasted as normal
-//
-// Each of the four edges of the boarder-rect can have a different boarder-action
-// the actions that can be done on an edge are
-// NONE : allow the paste in full, no cropping at all
-// EXCLUDE : do not paste any sprite overlapping this boarderRect edge
-// RECT : Crop to this hard edge of the boarderRect
-// BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
-//
-// Sometimes sprites will be cropped by two edges with different actions (or more) in which case a dominant action is decided
-// with the following precedence
-// (HIGH) EXCLUDED, BESPOKE_CROP, RECT_CROP, NONE (LOW)
-//
-// It also has a second purpose; to log which sprites (via their unique ID) contribute to the image (i.e. are not cropped out, rejected etc). This can then be saved between sessions
-// and used to speed-up subsequent renders
+* If a sprite is completely within the boarder rect then it will be pasted as normal
+*
+* Each of the four edges of the boarder-rect can have a different boarder-action
+* the actions that can be done on an edge are
+* NONE : allow the paste in full, no cropping at all
+* EXCLUDE : do not paste any sprite overlapping this boarderRect edge
+* RECT : Crop to this hard edge of the boarderRect
+* BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
+*
+* Sometimes sprites will be cropped by two edges with different actions (or more) in which case a dominant action is decided
+* with the following precedence
+* (HIGH) EXCLUDED, BESPOKE_CROP, RECT_CROP, NONE (LOW)
+*
+* It also has a second purpose; to help log which sprites (via their unique ID) contribute to the image (i.e. are not cropped out, rejected etc). This can then be saved between sessions
+* and used to speed-up subsequent renders 
+*/
+
+
+/**
+*
+* RenderBoarder determines what happens to sprites pasted on the boarder of an image
+*
+* It operates by culling/cropping/leaving-intact a sprite just before the final paste operations into the receiving output-image buffers
+*
+*/
 public class RenderBorder {
 	
 	//private ContributingSpritesList contributingSpritesList;
@@ -64,26 +74,57 @@ public class RenderBorder {
 	// this is for selecting the particular edge-mask
 	QRandomStream qRandomStream = new QRandomStream(1);
 	
-	private Rect documentRect;
 	
-	
+	/**
+	*
+	* RenderBoarder determines what happens to sprites pasted on the boarder of an image
+	*
+	* It operates by culling/cropping/leaving-intact a sprite just before the final paste operations into the receiving output-image buffers
+	*
+	*/
 	public RenderBorder(){
-		
-		//boarderRect = new Rect(0,0,GlobalSettings.getTheDocumentCoordSystem().getDocumentWidth(), GlobalSettings.getTheDocumentCoordSystem().getDocumentHeight());
 		boarderRect = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
-		documentRect = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
-		//contributingSpritesList = new ContributingSpritesList();
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////
-	// Setting up
-	// All rect edge arguments are in Normalised space, as working in DocSpace for humans is difficult.
-	//
+	
+	/**
+	 * @param left 
+	 * @param top
+	 * @param right
+	 * @param bottom
+	 * @param edgeAction edge Action applied to all edges. 
+	 * 
+	 * 
+	 * Setting up the border. The left,right,top, bottom are in Normalised space, as working in DocSpace for humans is difficult.
+	 * Edge actions are statics defined as
+	 * CROP_ACTION_NONE : allow the paste in full, no cropping at all
+	 * CROP_ACTION_EXCLUDE : do not paste any sprite overlapping this boarderRect edge
+	 * CROP_ACTION_RECT : Crop to this hard edge of the boarderRect
+	 * CROP_ACTION_BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
+	 *  
+	 */
 	public void setBoarders(float left, float top, float right, float bottom, int edgeAction) {
 		setBoarders( left,  top,  right,  bottom, edgeAction,edgeAction,edgeAction,edgeAction);
 	}
 	
 	
+	/**
+	 * @param left
+	 * @param top
+	 * @param right
+	 * @param bottom
+	 * @param leftAction
+	 * @param topAction
+	 * @param rightAction
+	 * @param bottomAction
+	 * 
+	 * Setting up the border. The left,right,top, bottom are in Normalised space, as working in DocSpace for humans is difficult.
+	 * Edge actions are statics defined as
+	 * CROP_ACTION_NONE : allow the paste in full, no cropping at all
+	 * CROP_ACTION_EXCLUDE : do not paste any sprite overlapping this boarderRect edge
+	 * CROP_ACTION_RECT : Crop to this hard edge of the boarderRect
+	 * CROP_ACTION_BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
+	 */
 	public void setBoarders(float left, float top, float right, float bottom, int leftAction, int topAction, int rightAction, int bottomAction){
 		setBoarderRectWithNomalisedCoords( left,  top,  right,  bottom);
 		leftEdgeAction = leftAction;
@@ -93,6 +134,17 @@ public class RenderBorder {
 		isActive = true;
 	}
 	
+	/**
+	 * @param pathandfilename - path to the bespoke crop image collection
+	 * @param unscaledWidth - The pixel width of the crop-image defined in pixels in the full scale output image
+	 * @param unscaledHeight  - The pixel height of the crop-image defined in pixels in the full scale output image
+	 * 
+	 * Loads a collection of images to define the bespoke cropping applied to each sprite. A crop image is a 32 bit png with alpha. The
+	 * solid part of the crop image is removed from the sprite within the border rect, along with anything outside the border rect. Crop images are rotated to deal with
+	 * each edge of the output image. The default (unrotated) form is for the left edge of the output image, so crop images must be produced in a vertical format
+	 * with the left-most side being the solid-pixels crop region, and the right most edge being transparent pixels.
+	 * 
+	 */
 	public void setBespokeCropImageSampleGroup(String pathandfilename, int unscaledWidth, int unscaledHeight) {
 		DirectoryFileNameScanner cropdfns = new DirectoryFileNameScanner(pathandfilename, "png");
 		bespokeCropImages = new ScaledImageAssetGroup("cropImages");
@@ -102,25 +154,35 @@ public class RenderBorder {
 		bespokeCropImages.resizeToAll((int)(unscaledWidth*sessionScale), (int)(unscaledHeight*sessionScale));
 	}
 	
+	/**
+	 * @param active - switches the cropping on and off
+	 */
 	public void setActive(boolean active) {
 		isActive = active;
 	}
 	
 	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// useful data access, may be used by the user to optimise the render
-	
+	/**
+	 * @return the rectangle wjihc is the boarder rect - useful data access, may be used by the user to optimise the render
+	 */
 	public Rect getBoarderRect() {
-		System.out.println(">>>>getBoarderRect " + boarderRect.toStr() );
+		//System.out.println(">>>>getBoarderRect " + boarderRect.toStr() );
 		return boarderRect.copy();
 	}
 	
 	
+	/**
+	 * @param docSpacePt 
+	 * @return -  true if docSpacePt is fully inside the border rect
+	 */
 	public boolean isPointInsideBoarderRect(PVector docSpacePt) {
-		
 		return boarderRect.isPointInside(docSpacePt);
 	}
 	
+	/**
+	 * @param r
+	 * @return true if r is fully inside the border rect
+	 */
 	public boolean isWhollyInsideBoarderRect(Rect r) {
 		// simple interface for any doc space rect, either in or out!
 		// if the renderBoarder is inactive, then all rects are within it.
@@ -129,15 +191,17 @@ public class RenderBorder {
 	}
 	
 
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// The main method used by the document class
-	// use this method to crop the sprite according to the conditions set (if it needs cropping to the boarder)
-	// If the sprite needs cropping then the sprite's image is altered in-place. This does not alter the dimensions of the sprite image, rather
-	// it makes cropped pixels blank (alpha of zero).
-	// The return value is whether or not to continue with the sprite after crop; if false, then the sprite has been completely excluded or
-	// obliterated by the crop action.
-	
+	/**
+	 * @param sprite - the sprite to be cropped. Crops the sprite's pixels to transparent but does not alter its uncropped image size
+	 * @return boolean - is this sprite completely cropped? Used in optimising ROI images
+	 * 
+	 * The main method used by the document class
+	 * use this method to crop the sprite according to the conditions set (if it needs cropping to the boarder)
+	 * If the sprite needs cropping then the sprite's image is altered in-place. This does not alter the dimensions of the sprite image, rather
+	 * it makes cropped pixels blank (alpha of zero).
+	 * The return value is whether or not to continue with the sprite after crop; if false, then the sprite has been completely excluded or
+	 * obliterated by the crop action.
+	 */
 	public boolean cropSprite(Sprite sprite) {
 		// has to deal with the main sprite image, and then possibly overlay images, which must be
 		// cropped the same.The same bespoke cropping is guaranteed by the sprite's ran seed number
@@ -151,7 +215,17 @@ public class RenderBorder {
 		return true;
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// private methods
+	//
 	
+	
+	/**
+	 * @param sprite
+	 * @param enumeratedImageNum
+	 * @return
+	 */
 	private boolean cropSpriteImage(Sprite sprite, int enumeratedImageNum) {
 		int numImage = sprite.getNumImages();
 		
@@ -238,10 +312,7 @@ public class RenderBorder {
 	}
 	
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// private methods
-	//
+	
 	private boolean checkBespokeCropOK() {
 		boolean bespokeCropCalledFor = (leftEdgeAction == CROP_ACTION_BESPOKE  || topEdgeAction == CROP_ACTION_BESPOKE ||
 				 						rightEdgeAction == CROP_ACTION_BESPOKE || bottomEdgeAction == CROP_ACTION_BESPOKE );

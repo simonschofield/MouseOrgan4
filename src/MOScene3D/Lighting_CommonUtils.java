@@ -160,7 +160,7 @@ public class Lighting_CommonUtils {
 		GlobalSettings.getDocument().getMain().drawRectBufferSpace(spriteBufferRect, new Color(0,0,0,0), rc, 10f);
 	}
 
-
+	
 
 
 }

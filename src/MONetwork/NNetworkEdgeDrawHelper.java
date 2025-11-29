@@ -1,4 +1,4 @@
-package MOAppSessionHelpers;
+package MONetwork;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -16,16 +16,6 @@ import MOMaths.QRandomStream;
 import MOMaths.RandomStream;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
-import MONetwork.EdgeRunVerticesCrawler;
-import MONetwork.NEdge;
-import MONetwork.NNetwork;
-import MONetwork.NNetworkAddBoundaryEdges;
-import MONetwork.NNetworkAddEdgeDetail;
-import MONetwork.NNetworkEdgeRunFinder;
-import MONetwork.NPoint;
-import MONetwork.NRegion;
-import MONetwork.RibbonLetter;
-import MONetwork.TextRibbonManager;
 import MOSprite.Sprite;
 import MOSprite.SpriteFont;
 //import MOSprite.SpriteSourceInterface;

@@ -10,6 +10,9 @@ import MOUtils.KeyValuePairList;
 //
 //
 //class NPoint extends NAttributes implements SpatialIndexItem {
+/**
+ * 
+ */
 public class NPoint extends NAttributes {
 
 	PVector coordinates;

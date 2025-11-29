@@ -19,9 +19,10 @@ import MOUtils.Progress;
 
 public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 
-	PVector lightDirection, negativeLightDirection;
 	
-
+	
+	 int printLimit = 100;
+	 int printCount = 0;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// radialInterShadowing darkens nearby existing substance within a set 3d distance from the new sprite to create a soft "inter-shadowing" effect.
@@ -50,7 +51,7 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 		System.out.println("worldY extrama " + worldY.toStr() );
 		float sceneYMin = sceneData3D.depthBuffer3d.worldYExtrema.getUpper();
 
-		initialiseDepthRender( nameOfDepthRender,  addSceneSurfaceToDepth, lightDirection) ;
+		initialiseDepthRender( nameOfDepthRender,  addSceneSurfaceToDepth, lightDir) ;
 
 		progress = new Progress("Shadows: ");
 	}
@@ -59,20 +60,16 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 	public boolean radialInterShadowing(Sprite sprite, float maxShadowContribution, float shadowLineHeightProportion, float radius, float dropOffGamma, boolean useLightDirection) {
 		debugFlag=false;
 		
-
 		
+		// calculate the shadow-line
+		//
+		//
 		float depth = sprite.getDepth();
-		float spriteSize3D = sprite.getSizeInScene();
-		
-		
-		
-		// get the document space sprite top and bottom points, mapped into the scene
-		
+	
+		// get the document space sprite top and bottom points, mapped into the scene, using the sprite's image quad
 		PVector mappedSpriteBasePointDocSpace = sprite.mapNormalisedLocalSpritePointToDocSpace( 0.5f, 1.0f);
 		PVector mappedSpriteTopPointDocSpace = sprite.mapNormalisedLocalSpritePointToDocSpace( 0.5f, 0);
-
-		
-		
+	
 		PVector shadowLineBasePoint3D = sceneData3D.get3DVolumePoint(mappedSpriteBasePointDocSpace, depth);
 		PVector mappedSpriteTopPoint3D = sceneData3D.get3DVolumePoint(mappedSpriteTopPointDocSpace, depth);
 
@@ -84,10 +81,11 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 		
 		
 
-		//System.out.println("shadowLine " + shadowLine.toStr());
+		
 
 		// establish screen-bounds of region to process
 		// 
+		//
 		float r = radius;
 		PVector lineBase = shadowLine.p1.copy();
 		PVector lineBasePlusRX = new PVector(lineBase.x+r, lineBase.y, lineBase.z);
@@ -111,28 +109,22 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 		
 		// check to see if this contributes to the image at all
 		if( shadowRectDocSpaceExtents.intersects(theDoumentDocSpaceRect) == false ) return false;
-		
-		
-		
-		
-		
-		
+
 		Rect boundingRectBufferSpace = DStoBS(shadowRectDocSpaceExtents);
 		
-		//if(debugFlag && sprite.getRandomStream().probabilityEvent(0.01f)) {
+		
 		if(debugFlag) {
-
-			
+			// draw the shadow extents rect and shadow line
 			Color c = MOColor.getRandomRGB(255);
-			//Color c = Color.darkGray;
 			Util3D.drawLineWorldSpace(lineBase, lineTop, c, 3);
 			GlobalSettings.getDocument().getMain().drawRect_DocSpace(shadowRectDocSpaceExtents, new Color(0,0,0,0), c, 3f);
-			shadowRenderTarget.drawRect_DocSpace(shadowRectDocSpaceExtents, new Color(0,0,0,0), c, 3f);
 		}
 
 		float radiusSquared = radius*radius;
 		PVector lightDirectioProjected = new PVector(lightDirection.x, 0, lightDirection.z).normalize();
 		
+		// iterate over the shadow extents rect in Buffer Space
+		//
 		for (int y = (int) boundingRectBufferSpace.top; y <= boundingRectBufferSpace.bottom; y++) {
 
 			for (int x = (int) boundingRectBufferSpace.left; x <= boundingRectBufferSpace.right; x++) {
@@ -165,9 +157,8 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 				float shadowAmount01 = MOMaths.map(distanceFromShadowLine, 0, radius, maxShadowContribution, 0);
 				shadowAmount01 = MOMaths.constrain(shadowAmount01,0,1);
 				
-				// if the shadow intensity is very low, ignore
-				if(shadowAmount01 < 0.0078f) continue;
-				shadowAmount01 = MOMaths.constrain(shadowAmount01, 0.0078f,1);
+				// if the shadow intensity is < 1/255  ignore
+				
 				
 				
 				// add in the lightDirection here
@@ -181,9 +172,14 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 					shadowAmount01 *= amountOfBias;
 				}
 				
-				
+				if(shadowAmount01 < 0.0078f) continue;
+				shadowAmount01 = MOMaths.constrain(shadowAmount01, 0.0078f,1);
 
-				float shadowAmount01WithGamma =  shadowAmount01; //Math.pow((double)shadowAmount01, 1d);
+				float shadowAmount01WithGamma =  (float) Math.pow(shadowAmount01, dropOffGamma);
+				//if( printCount < printLimit) {
+				//	System.out.println(" shadowAmount01 in " + shadowAmount01 + " shadowAmount01WithGamma " + shadowAmount01WithGamma);
+				//	printCount++;
+				//}
 				contributeShadowToImage( x, y, shadowAmount01WithGamma);
 
 			}
@@ -206,11 +202,16 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 		// the shadowAmout01 is between 0 and 1, where 1 would result in total shadow (black).
 		// Shadow is added cumulatively to the image, in that it is "added" to the previous amount of shadow already there.
 		//
+		
 		int existingPixelValue = shadowImageGetSet.getPixel(x, y);
 		float existingShadowValue01 = 1-existingPixelValue*0.003922f;
 		
 		int newPixelValue = (int)  ((1-(existingShadowValue01 + shadowAmount01) ) * 255);
 		newPixelValue = (int)MOMaths.constrain(newPixelValue,0,255);
+		//if( printCount < printLimit) {
+		//	System.out.println(" shadowAmount01 in " + shadowAmount01 + " pixelvalue " + newPixelValue);
+		//	printCount++;
+		//}
 		shadowImageGetSet.setPixel(x, y, newPixelValue);
 	}
 	

@@ -22,3 +22,5 @@
 /RibbonLetter.class
 /NNetworkAddEdgeDetail.class
 /NNetworkSimplify.class
+/NNetworkEdgeDrawHelper.class
+/NNetworkRegionDrawHelper.class

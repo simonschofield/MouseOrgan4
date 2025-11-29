@@ -1,4 +1,4 @@
-package MOAppSessionHelpers;
+package MONetwork;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -14,8 +14,6 @@ import MOImage.MOColorImagePalette;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Vertices2;
-import MONetwork.NNetwork;
-import MONetwork.NRegion;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
