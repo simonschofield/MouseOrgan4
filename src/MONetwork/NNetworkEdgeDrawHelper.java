@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.TextRenderer;
 import MOImage.ImageProcessing;
-import MOImage.KeyImageSampler;
 import MOImage.MOColor;
 import MOMaths.Line2;
 import MOMaths.PVector;
@@ -22,9 +21,7 @@ import MOSprite.SpriteFont;
 import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
-import MOUtils.MOStringUtils;
 import MOUtils.TextBank;
-import MOZZZ_Depricated.ObjectWithValueList;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // common network operations
@@ -50,7 +47,7 @@ public class NNetworkEdgeDrawHelper {
 	 */
 	public static NNetwork  loadNetwork(String pathAndFilename, Rect roi) {
 		NNetwork theNetwork = new NNetwork();
-		theNetwork.load(pathAndFilename);	
+		theNetwork.load(pathAndFilename);
 		if(roi != null) {
 			theNetwork.applyROI(roi);
 		}
@@ -67,7 +64,7 @@ public class NNetworkEdgeDrawHelper {
 	public static NNetwork addBoundaryRect(NNetwork networkIn, float boarderAmt, Rect returnedBoundaryRect) {
 		// boarder amt is in docSpace, so example would be 0.01f
 		returnedBoundaryRect = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
-		returnedBoundaryRect.dilate(-boarderAmt,-boarderAmt);		
+		returnedBoundaryRect.dilate(-boarderAmt,-boarderAmt);
 		NNetworkAddBoundaryEdges addEdges = new NNetworkAddBoundaryEdges(networkIn);
 		addEdges.addOuterBoundaryEdges(returnedBoundaryRect, true);
 		NNetwork networkOut = addEdges.getNetworkWithAddedBoundary();
@@ -99,42 +96,44 @@ public class NNetworkEdgeDrawHelper {
 
 		///////////////////////////////////////////////////////////////////////////
 		// 2b/ add in new points on edges and displace
-		if(newSectionLength == 0 || newPointDisplacement==0) return addEdgeDetail.getNetworkWithAddedEdgeDetail(); 
+		if(newSectionLength == 0 || newPointDisplacement==0) {
+			return addEdgeDetail.getNetworkWithAddedEdgeDetail();
+		}
 
 
 		if(displaceBoarder) {
 			addEdgeDetail.addEdgeDetail(newSectionLength, newPointDisplacement, null); //was 0.0005f, 0.0020f..... use internalEdgesKVPL instead of null
 		}else {
 
-			addEdgeDetail.addEdgeDetail(newSectionLength, newPointDisplacement, internalEdgesKVPL); //was 0.0005f, 0.0020f..... use internalEdgesKVPL instead of null	
+			addEdgeDetail.addEdgeDetail(newSectionLength, newPointDisplacement, internalEdgesKVPL); //was 0.0005f, 0.0020f..... use internalEdgesKVPL instead of null
 		}
 
-		return addEdgeDetail.getNetworkWithAddedEdgeDetail(); 
+		return addEdgeDetail.getNetworkWithAddedEdgeDetail();
 
 		///////////////////////////////////////////////////////////////////////////
 		// 2a/ crap from user session implementation
 		/*
 		System.out.println("adding edge detail; displacing points... ");
-		
-		
+
+
 		NNetworkAddEdgeDetail addEdgeDetail = new NNetworkAddEdgeDetail(theNetwork, fractalImage);
-		
-		
+
+
 		KeyValuePairList internalEdgesKVPL = NNetworkEdgeDrawHelper.getDocumentEdgesKVPList(false);
 		KeyValuePairList documentEdgesKVPL = NNetworkEdgeDrawHelper.getDocumentEdgesKVPList(true);
-		
-		
+
+
 		addEdgeDetail.displacePoints(0.001f);
-		
+
 		theNetwork = addEdgeDetail.getNetworkWithAddedEdgeDetail();
-		
+
 		///////////////////////////////////////////////////////////////////////////
 		// 2b/ add in new points on edges and displace
 		System.out.println("adding edge detail; adding extra points... ");
 		if(GlobalSettings.sessionNameContains("InnerLondon")) addEdgeDetail.addEdgeDetail(0.0005f, 0.0020f, null); // use internalEdgesKVPL instead of null
 		if(GlobalSettings.sessionNameContains("CityOfLondon")) addEdgeDetail.addEdgeDetail(0.0016f, 0.0040f,null);
 		if(GlobalSettings.sessionNameContains("SohoLondon")) addEdgeDetail.addEdgeDetail(0.0004f, 0.0040f,null);
-		theNetwork = addEdgeDetail.getNetworkWithAddedEdgeDetail(); 
+		theNetwork = addEdgeDetail.getNetworkWithAddedEdgeDetail();
 		 */
 	}
 
@@ -199,7 +198,7 @@ public class NNetworkEdgeDrawHelper {
 	}
 
 	public static void drawEdgeRandomColorWithPoints(NEdge e, float w, BufferedImageRenderTarget rt) {
-		Color c = MOColor.getRandomRGB(255);		
+		Color c = MOColor.getRandomRGB(255);
 		drawEdge(e, c, w, rt);
 
 		drawPoint(e.p1, Color.RED, 0.001f, rt);
@@ -218,7 +217,7 @@ public class NNetworkEdgeDrawHelper {
 	 * @param saveRender -if set to true, saves the render to file with a useful naming convention describing the road widths. (sessName+ "_edges_" + edgeWidths + "_.png")
 	 */
 	public static void renderEdgesAndSave(NNetwork theNetwork, float Awidth, float Bwidth, float Cwidth, float regionEdgesWidth, float boundaryWidth, Rect boundaryRect, boolean saveRender) {
-		// very high-level method for rendering out the whole 
+		// very high-level method for rendering out the whole
 		// of the edges in a network
 		//
 		String sessPth = GlobalSettings.getUserSessionPath();
@@ -228,18 +227,18 @@ public class NNetworkEdgeDrawHelper {
 		int AwidthI = (int)Awidth;
 		int otherWidthI = (int)regionEdgesWidth;
 		String edgeWidths = AwidthI + "_" + BwidthI + "_" + CwidthI + "_" + otherWidthI;
-		//String directoryname = sessPth + "Edges_" + edgeWidths; 
+		//String directoryname = sessPth + "Edges_" + edgeWidths;
 
 		//boolean res = MOStringUtils.createDirectory(directoryname);
 
 		//String directoryPath = directoryname + "\\";
 
-		KeyValuePair descriptorC = NNetworkEdgeDrawHelper.getKVP("ROAD", "C");  
+		KeyValuePair descriptorC = NNetworkEdgeDrawHelper.getKVP("ROAD", "C");
 		drawEdges(theNetwork, descriptorC, Color.BLACK, Cwidth);
 
 
 
-		KeyValuePair descriptoB = NNetworkEdgeDrawHelper.getKVP("ROAD", "B");  
+		KeyValuePair descriptoB = NNetworkEdgeDrawHelper.getKVP("ROAD", "B");
 		drawEdges(theNetwork, descriptoB, Color.BLACK, Bwidth);
 
 
@@ -250,16 +249,16 @@ public class NNetworkEdgeDrawHelper {
 
 
 		KeyValuePair seaDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "SEA");
-		drawEdges(theNetwork, seaDescriptor, Color.BLACK, regionEdgesWidth); 
+		drawEdges(theNetwork, seaDescriptor, Color.BLACK, regionEdgesWidth);
 		KeyValuePair riverDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "RIVER");
-		drawEdges(theNetwork, riverDescriptor, Color.BLACK, regionEdgesWidth); 
+		drawEdges(theNetwork, riverDescriptor, Color.BLACK, regionEdgesWidth);
 		KeyValuePair parksDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "PARK");
-		drawEdges(theNetwork, parksDescriptor, Color.BLACK, regionEdgesWidth); 
+		drawEdges(theNetwork, parksDescriptor, Color.BLACK, regionEdgesWidth);
 		KeyValuePair lakeDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "LAKE");
-		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, regionEdgesWidth); 
+		drawEdges(theNetwork, lakeDescriptor, Color.BLACK, regionEdgesWidth);
 
 		KeyValuePair undefinedDescriptor = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "UNDEFINED");
-		drawEdges(theNetwork, undefinedDescriptor, Color.BLACK, regionEdgesWidth); 
+		drawEdges(theNetwork, undefinedDescriptor, Color.BLACK, regionEdgesWidth);
 
 
 		GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
@@ -270,7 +269,7 @@ public class NNetworkEdgeDrawHelper {
 		}
 
 		KeyValuePair docEdge = NNetworkEdgeDrawHelper.getKVP("REGIONEDGE", "document");
-		drawEdges(theNetwork, docEdge, Color.BLACK, boundaryWidth); 
+		drawEdges(theNetwork, docEdge, Color.BLACK, boundaryWidth);
 
 		if(saveRender) {
 			GlobalSettings.getDocument().getMain().saveRenderToFile(sessPth + sessName+ "_edges_" + edgeWidths + "_.png");
@@ -375,7 +374,9 @@ public class NNetworkEdgeDrawHelper {
 		//GlobalSettings.getTheApplicationSurface().forceRefreshDisplay();
 
 
-		if(saveImage) GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + "dashed edges white background.png");
+		if(saveImage) {
+			GlobalSettings.getDocument().getMain().saveRenderToFile(GlobalSettings.getUserSessionPath() + "dashed edges white background.png");
+		}
 
 
 	}
@@ -401,12 +402,12 @@ public class NNetworkEdgeDrawHelper {
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Doing text ribbons
-	// 
+	//
 	public static void drawTextRibbons(NNetwork theNetwork, KeyValuePairList searchCriteria, String textPath, float fontheight, float minimumRibbonLength, boolean updateGraphicsDuring) {
 		TextBank textbank = new TextBank();
 		String textPathAndName = GlobalSettings.getDataAssetsPath(null) + "text documents\\Heart of darkness.txt";
 
-		System.out.println("Drawing text ribbons ");	 
+		System.out.println("Drawing text ribbons ");
 
 		textbank.load(textPathAndName);
 		textbank.setIterator(0);
@@ -444,7 +445,9 @@ public class NNetworkEdgeDrawHelper {
 		while(true) {
 
 			RibbonLetter ribbonLetter = theTextRibbonManager.getNextRibbonLetter();
-			if(ribbonLetter==null) return;
+			if(ribbonLetter==null) {
+				return;
+			}
 
 			float len = ribbonLetter.theOwningTextRibbon.getTheVertices().getTotalLength();
 
@@ -452,7 +455,9 @@ public class NNetworkEdgeDrawHelper {
 			GlobalSettings.getDocument().getMain().pasteSprite(sprite);
 
 
-			if(len < minimumRibbonLength) return;
+			if(len < minimumRibbonLength) {
+				return;
+			}
 
 			int progress = (int)(theTextRibbonManager.getRibbonLetterIterationProgress()*20);
 			if(progress!=lastProgress) {
@@ -469,7 +474,7 @@ public class NNetworkEdgeDrawHelper {
 
 
 
-	
+
 
 	public static void drawVertices2ListNoFill(ArrayList<Vertices2> verts, float width, Color c, float[] dashPattern) {
 		// if dashPattern is nulled, then uses default line
@@ -494,7 +499,9 @@ public class NNetworkEdgeDrawHelper {
 		// if dashPattern is nulled, then uses default line
 		BufferedImageRenderTarget rt = GlobalSettings.getDocument().getMain();
 
-		if(c==null) c = MOColor.getRandomRGB(100);
+		if(c==null) {
+			c = MOColor.getRandomRGB(100);
+		}
 
 
 		rt.drawVertices2NoFill(verts, c, width, dashPattern);
@@ -505,16 +512,16 @@ public class NNetworkEdgeDrawHelper {
 	// Utilities to do with converting NEdge to Lines
 	//
 	public static ArrayList<Line2> getEdgesAsLines(ArrayList<NEdge> edges){
-		ArrayList<Line2> lines = new ArrayList<Line2>();
+		ArrayList<Line2> lines = new ArrayList<>();
 		for(NEdge e: edges) {
 			lines.add(e.getLine2());
 		}
 		return lines;
 	}
-	
 
 
-	
+
+
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -528,9 +535,9 @@ public class NNetworkEdgeDrawHelper {
 	public static KeyValuePairList getDocumentEdgesKVPList(boolean getDocEdges) {
 		KeyValuePairList kvpl = new KeyValuePairList();
 
-		if(getDocEdges==false) {
-			kvpl.addKeyValue("ROAD", "C");  
-			kvpl.addKeyValue("ROAD", "B");  
+		if(!getDocEdges) {
+			kvpl.addKeyValue("ROAD", "C");
+			kvpl.addKeyValue("ROAD", "B");
 			kvpl.addKeyValue("ROAD", "A");
 			kvpl.addKeyValue("REGIONEDGE", "SEA");
 			kvpl.addKeyValue("REGIONEDGE", "RIVER");
@@ -553,10 +560,10 @@ public class NNetworkEdgeDrawHelper {
 		regType.addKeyValue("REGIONEDGE", "SEA");
 		return regType;
 	}
-	
+
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Methods using edge crawler. 
+	// Methods using edge crawler.
 	//
 
 
@@ -577,12 +584,16 @@ public class NNetworkEdgeDrawHelper {
 
 		Sprite sprite =  spriteFont.getSpriteInstance(true);
 
-		if(randomStream.probabilityEvent(0.5f)) sprite.mirror(true);
+		if(randomStream.probabilityEvent(0.5f)) {
+			sprite.mirror(true);
+		}
 
 		sprite.mapToLine2(line,  overlap1, overlap2, 0.005f);
 
 
-		if( GlobalSettings.getDocument().cropSpriteToBorder(sprite) ) GlobalSettings.getDocument().getMain().pasteSprite(sprite);
+		if( GlobalSettings.getDocument().cropSpriteToBorder(sprite) ) {
+			GlobalSettings.getDocument().getMain().pasteSprite(sprite);
+		}
 
 		return true;
 		//theDocument.getMain().drawLine(line.p1, line.p2, Color.RED, 5);
@@ -621,12 +632,14 @@ public class NNetworkEdgeDrawHelper {
 
 
 		if(randomStream.probabilityEvent(probability)) {
-			float rot = line.getRotation();  
+			float rot = line.getRotation();
 			rot += randomStream.randRangeF(rotationLo, rotationHi);
 			sprite.rotate(rot);
 			sprite.setDocPoint(line.p1);
 			//SceneHelper.addRandomHSV( sprite,  0.1f,  0.2f,  0.0f);
-			if( GlobalSettings.getDocument().cropSpriteToBorder(sprite) ) GlobalSettings.getDocument().getMain().pasteSprite(sprite);
+			if( GlobalSettings.getDocument().cropSpriteToBorder(sprite) ) {
+				GlobalSettings.getDocument().getMain().pasteSprite(sprite);
+			}
 
 		}
 

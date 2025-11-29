@@ -14,17 +14,17 @@ public class UniqueID{
 		idList = new boolean[1000000];
 		grabID(0);
 	}
-	
+
 	UniqueID(int maxNumIDs){
 		idList = new boolean[maxNumIDs];
 		grabID(0);
 	}
-	
-	
+
+
 	public int getUniqueID(){
 		for(int n = 0; n < idList.length; n++) {
 			boolean b = idList[n];
-			if(b == false) {
+			if(!b) {
 				idList[n]=true;
 				return n;
 			}
@@ -39,8 +39,8 @@ public class UniqueID{
 		}
 		grabID(0);
 	}
-	
-	
+
+
 	public boolean isGrabbed(int i) {
 		return  idList[i];
 	}
@@ -51,7 +51,7 @@ public class UniqueID{
 	// otherwise, the ID you are grabbing from file may have already been assigned
 	public void grabID(int n){
 		boolean b = idList[n];
-		if(b==true) {
+		if(b) {
 			System.out.println("UniqueID::grabID - grabbing an already taken ID " + n);
 		}
 		idList[n] = true;

@@ -57,17 +57,17 @@ public class UIEventData {
 	}
 
 	public boolean eventIsFromWidget(String lab) {
-		if (uiLabel.equals(lab))
+		if (uiLabel.equals(lab)) {
 			return true;
+		}
 		return false;
 
 	}
 
 	public void print(int verbosity) {
-		if (verbosity != 3 && this.mouseEventType.equals("mouseMoved"))
+		if ((verbosity != 3 && this.mouseEventType.equals("mouseMoved")) || (verbosity == 0)) {
 			return;
-		if (verbosity == 0)
-			return;
+		}
 
 		if (verbosity >= 1) {
 			System.out.println("UIEventData:" + this.uiComponentType + " " + this.uiLabel);

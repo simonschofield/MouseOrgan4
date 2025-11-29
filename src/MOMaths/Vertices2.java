@@ -1,13 +1,11 @@
 package MOMaths;
 
-import java.util.Collections;
-
-import MOUtils.GlobalSettings;
-
-import java.awt.Shape;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+
+import MOUtils.GlobalSettings;
 
 
 
@@ -20,7 +18,7 @@ import java.util.Arrays;
 // Once closed you can re-open it.
 // Needs to be closed to use the isPointInside() method
 public class Vertices2 {
-	
+
 	// for determinig the preseference of direction
 	public static final int LEFTRIGHT = 0;
 	public static final int RIGHTLEFT = 1;
@@ -28,12 +26,12 @@ public class Vertices2 {
 	public static final int UPWARDS = 3;
 	public static final int CLOCKWISE = 4;
 	public static final int ANTICLOCKWISE = 5;
-	
-	
+
+
 	ArrayList<PVector> vertices;
 
 	public Vertices2(){
-		vertices = new ArrayList<PVector>();
+		vertices = new ArrayList<>();
 	}
 
 	public Vertices2( ArrayList<PVector> verts) {
@@ -47,19 +45,20 @@ public class Vertices2 {
 	}
 
 	boolean isValid() {
-		if(vertices==null) return false;
-		if(vertices.size() < 2) return false;
+		if((vertices==null) || (vertices.size() < 2)) {
+			return false;
+		}
 		return true;
 	}
 
 	public boolean setWithLine2List(ArrayList<Line2> lines) {
 		// assumes lines are connected
-		vertices = new ArrayList<PVector>();
+		vertices = new ArrayList<>();
 		PVector lastLineEndPoint = lines.get(0).p1;
 		for(int n = 0; n < lines.size(); n++) {
 			Line2 line = lines.get(n);
 			if(n > 0) {
-				if( lastLineEndPoint.equals(line.p1) ==  false) {
+				if( !lastLineEndPoint.equals(line.p1)) {
 					System.out.println(" Vertices2: setWithLine2List -  line " + (n-1) + " and " + n + " are not contiguous");
 					return false;
 				}
@@ -68,7 +67,7 @@ public class Vertices2 {
 			vertices.add(line.p1);
 
 			if(n == lines.size()-1) {
-				vertices.add(line.p2); 
+				vertices.add(line.p2);
 			}
 
 			lastLineEndPoint = line.p2;
@@ -79,7 +78,7 @@ public class Vertices2 {
 
 
 	public ArrayList<Line2> getAsLine2List(){
-		ArrayList<Line2> linesOut = new ArrayList<Line2>();
+		ArrayList<Line2> linesOut = new ArrayList<>();
 		int numLines = getNumLines();
 		for(int n = 0; n < numLines; n++) {
 
@@ -90,9 +89,9 @@ public class Vertices2 {
 
 
 
-	
 
-	public int getNumVertices(){ 
+
+	public int getNumVertices(){
 		// if the Vertices is closed there will be a duplicate point start and end
 		return vertices.size();
 		}
@@ -129,7 +128,7 @@ public class Vertices2 {
 
 	public void clear(){ vertices.clear(); }
 
-	public void set(ArrayList<PVector> points){ 
+	public void set(ArrayList<PVector> points){
 		for(PVector p:points){
 			this.add(p);
 		}
@@ -150,13 +149,17 @@ public class Vertices2 {
 	// Therefore closing a vertices adds a new point onto the end which is equal to the start point. Opening a closed vertices, removes the co-incident end point.
 	//
 	public void open() {
-		if(isClosed()==false) return;
+		if(!isClosed()) {
+			return;
+		}
 		int lastElement = vertices.size()-1;
 		vertices.remove( lastElement );
 	}
 
 	public void close() {
-		if(isClosed()) return;
+		if(isClosed()) {
+			return;
+		}
 		PVector startP = getStartPoint().copy();
 		vertices.add(startP);
 	}
@@ -165,7 +168,9 @@ public class Vertices2 {
 		PVector startP = getStartPoint();
 		PVector endP = getEndPoint();
 
-		if(startP.equals(endP)) return true;
+		if(startP.equals(endP)) {
+			return true;
+		}
 		return false;
 	}
 
@@ -177,7 +182,9 @@ public class Vertices2 {
 	}
 
 	public PVector getEndPoint(){
-		if( vertices.size() == 0) return null;
+		if( vertices.size() == 0) {
+			return null;
+		}
 		return vertices.get( vertices.size()-1 );
 	}
 
@@ -189,7 +196,7 @@ public class Vertices2 {
 
 	public boolean isPointInside(PVector p) {
 		//using the winding method
-		if(isClosed()==false) {
+		if(!isClosed()) {
 			System.out.println("Vertices2: isPointInside shape is not closed");
 			return false;
 		}
@@ -205,8 +212,11 @@ public class Vertices2 {
 		a += vAtan2cent180(p, v1, v2);
 		//  if (a < 0.001) println(degrees(a));
 
-		if (Math.abs(Math.abs(a) - Math.PI*2) < 0.001) return true;
-		else return false;
+		if (Math.abs(Math.abs(a) - Math.PI*2) < 0.001) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	private float vAtan2cent180(PVector cent, PVector v2, PVector v1) {
@@ -216,14 +226,16 @@ public class Vertices2 {
 		vB.sub(cent);
 		vB.mult(-1);
 		float ang = (float)(Math.atan2(vB.x, vB.y) - Math.atan2(vA.x, vA.y));
-		if (ang < 0) ang = (float) Math.PI*2 + ang;
+		if (ang < 0) {
+			ang = (float) Math.PI*2 + ang;
+		}
 		ang-=Math.PI;
 		return ang;
 	}
 	// end point inside
 
-	
-	
+
+
 	public Rect getExtents() {
 		float minx = Float.MAX_VALUE;
 		float miny = Float.MAX_VALUE;
@@ -231,17 +243,25 @@ public class Vertices2 {
 		float maxy = -Float.MAX_VALUE;
 
 		for (PVector p : vertices) {
-			if (p.x < minx) minx = p.x;
-			if (p.y < miny) miny = p.y;
+			if (p.x < minx) {
+				minx = p.x;
+			}
+			if (p.y < miny) {
+				miny = p.y;
+			}
 
-			if (p.x > maxx) maxx = p.x;
-			if (p.y > maxy) maxy = p.y;
+			if (p.x > maxx) {
+				maxx = p.x;
+			}
+			if (p.y > maxy) {
+				maxy = p.y;
+			}
 		}
 		PVector minExtents = new PVector(minx, miny);
 		PVector maxExtents = new PVector(maxx, maxy);
 		return new Rect(minExtents, maxExtents);
 	}
-	
+
 	public float getArea() {
 		return Math.abs(getAreaSigned());
 	}
@@ -250,10 +270,10 @@ public class Vertices2 {
 		// using Gauss's area formula
 		// most cogent explanation here https://www.mathsisfun.com/geometry/area-irregular-polygons.html
 		// returns the area as a float (units sqd)
-		// The method returns a positive area for an ANTI clockwise polygon, and a negative area for 
+		// The method returns a positive area for an ANTI clockwise polygon, and a negative area for
 		// a CLOCKWISE polygon, so is useful for determining winding.
-		
-		if(isClosed()==false) {
+
+		if(!isClosed()) {
 			System.out.println("Vertices2: getArea() shape is not closed");
 			return 0;
 		}
@@ -272,59 +292,61 @@ public class Vertices2 {
 		}
 		return a/2f;
 	}
-	
-	
+
+
 	public Vertices2 getClipped_Length(float startLengthRemoved, float endLengthRemoved) {
 		float totalLen = this.getTotalLength();
-		
-		if(totalLen < startLengthRemoved+endLengthRemoved ) return this.copy();
-		
-		
+
+		if(totalLen < startLengthRemoved+endLengthRemoved ) {
+			return this.copy();
+		}
+
+
 		float startParametric = startLengthRemoved/totalLen;
 		float endParametric = 1 - (endLengthRemoved/totalLen);
-		
-		
-		
-		
+
+
+
+
 		//System.out.println("params " + startParametric + " " + endParametric);
-		
+
 		return getClipped_Lerp( startParametric,  endParametric);
 	}
-	
+
 	public Vertices2 getClipped_Lerp(float startParametric, float endParametric) {
-		
+
 		Vertices2 vcopy = this.copy();
 		int startLineIndex = 0;
 		int endLineIndex = vcopy.getNumLines();
-		
+
 		// start point
 		if(startParametric > 0) {
 			PVector newStartPoint =  vcopy.lerp(startParametric);
 			startLineIndex = vcopy.getLineNumber(startParametric);
 			vcopy.addAt(startLineIndex+1,newStartPoint);
 		}
-		
+
 		if(endParametric < 1) {
 			PVector newEndPoint =  vcopy.lerp(endParametric);
 			endLineIndex = vcopy.getLineNumber(endParametric);
 			vcopy.addAt(endLineIndex,newEndPoint);
 		}
-		
+
 		// now remove all points before startLineIndex and after endLineIndex
-		
+
 		Vertices2 clipped = new Vertices2();
-		
+
 		for(int n = startLineIndex+1; n <= endLineIndex; n++) {
 			PVector p = vcopy.get(n).copy();
 			clipped.add(p);
 		}
-		
+
 		return clipped;
 	}
-	
-	
-	
-	
+
+
+
+
 	/////////////////////////////////////////////////////////////////////////////////////
 	// run direction preferences
 	//
@@ -339,56 +361,62 @@ public class Vertices2 {
 		float endX = getEndPoint().x;
 		float endY = getEndPoint().y;
 		if(preference == LEFTRIGHT) {
-			if(startX > endX) reverse();
+			if(startX > endX) {
+				reverse();
+			}
 			return;
 		}
-		
+
 		if(preference == RIGHTLEFT) {
-			if(startX < endX) reverse();
+			if(startX < endX) {
+				reverse();
+			}
 			return;
 		}
-		
+
 		if(preference == DOWNWARDS) {
-			if(startY > endY) reverse();
+			if(startY > endY) {
+				reverse();
+			}
 			return;
 		}
-		
+
 		if(preference == UPWARDS) {
-			if(startX < endX) reverse();
+			if(startX < endX) {
+				reverse();
+			}
 			return;
 		}
-		
-		
-		
+
+
+
 	}
-	
-	
+
+
 	public void setPolygonWindingDirection(int direction) {
 		// makes the oder of the points clockwise if anti==false, of (if anti==true) anti-clockwise.
-		if(isClosed()==false) {
+		if(!isClosed()) {
 			System.out.println("Vertices2: setPolygonWindingDirection() shape is not closed");
 			return;
 		}
-		if(direction==ANTICLOCKWISE && isClockwisePolygon()) {
+		if((direction==ANTICLOCKWISE && isClockwisePolygon()) || (direction==CLOCKWISE && !isClockwisePolygon())) {
 			reverse();
 			return;
 		}
-		if(direction==CLOCKWISE && isClockwisePolygon()==false) {
-			reverse();
-			return;
-		}
-		
+
 	}
-	
-	
-	
+
+
+
 	public boolean isClockwisePolygon() {
-		if(isClosed()==false) {
+		if(!isClosed()) {
 			System.out.println("Vertices2: isClockwisePolygon() shape is not closed");
 			return false;
 		}
 		float a = getAreaSigned();
-		if(a <= 0) return true;
+		if(a <= 0) {
+			return true;
+		}
 		return false;
 	}
 
@@ -448,7 +476,7 @@ public class Vertices2 {
 		}
 		return getEndPoint();
 	}
-	
+
 	public int getLineNumber(float param) {
 		// returns the line segment number on which the interpolating parameter lies
 		float totalLength =  getTotalLength();
@@ -486,7 +514,9 @@ public class Vertices2 {
 
 		PVector topleft = getExtents().getTopLeft();
 
-		if(isValid()==false) return null;
+		if(!isValid()) {
+			return null;
+		}
 
 		PVector p = vertices.get(0).copy();
 
@@ -529,50 +559,54 @@ public class Vertices2 {
 
 			path.lineTo(p.x, p.y);
 		}
-		if(isClosed()) path.closePath();
+		if(isClosed()) {
+			path.closePath();
+		}
 		return path;
 
 	}
-	
-	
+
+
 	/////////////////////////////////////////////////////////////////////////////////////
 	// expand/contract polygon
 	// only works with closed Vertices2
 	// expandAmount is in the same units as the vertices e.g. document space
 	// A +ve expand makes the polygon bigger by displacing the vertices along the bisector line by that distance
 	// hence a -ve displacement shrinks the poly
-	// 
-	
+	//
+
 	////////////////////////////////////////////////////////////////////////
-	// Dilate Vertices work by moving the vertices along the bisector of the adjacent edges 
-	// 
+	// Dilate Vertices work by moving the vertices along the bisector of the adjacent edges
+	//
 	//
 	public Vertices2 getDilatedVertices(float displacement) {
-		
-		
+
+
 		int n = this.getNumVertices();
 	    float[] displacements = new float[n];
 	    Arrays.fill(displacements, displacement);
 	    return getDilatedVertices(displacements);
 	}
-	
+
 	public Vertices2 getDilatedVertices(float[] displacements) {
-		if(isClosed()==false) return null;
-		
-		
+		if(!isClosed()) {
+			return null;
+		}
+
+
 		Vertices2 copyOfThis = this.copy();
 		copyOfThis.setPolygonWindingDirection(CLOCKWISE);
-		
-		
+
+
 		if(displacements.length != copyOfThis.getNumVertices()) {
 			System.out.println("Vertices2::getDilatedVertices the displacements array is the wrong size");
 			return null;
 		}
-		
-		ArrayList<PVector> displacedPoints = new ArrayList<PVector>();
-		
-		
-		
+
+		ArrayList<PVector> displacedPoints = new ArrayList<>();
+
+
+
 		for(int n = 0; n < getNumVertices()-1; n++) {
 			PVector dp = getBiscectorDisplacedPoint(copyOfThis, n, displacements[n]*-1f);
 			displacedPoints.add(dp);
@@ -581,7 +615,7 @@ public class Vertices2 {
 		v.close();
 		return v;
 	}
-	
+
 	private PVector getBiscectorDisplacedPoint(Vertices2 cpy, int n, float dist) {
 		// returns a point that is moved along the bisector of the lines connecting
 		PVector vA = new PVector();
@@ -590,18 +624,18 @@ public class Vertices2 {
 			// find the first and previous (i.e.) last line
 			vA = cpy.getLine(getNumLines()-1).getNormalisedVector();
 			vB = cpy.getLine(0).getNormalisedVector();
-		} 
+		}
 
 		if(n >0 && n < getNumLines()) {
 			vA =  cpy.getLine(n-1).getNormalisedVector();
 			vB =  cpy.getLine(n).getNormalisedVector();
 		}
-		
+
 		if(n < 0 || n > cpy.getNumLines()) {
 			// error
 			return null;
 		}
-		
+
 		PVector orthogVector =  MOMaths.bisector(vA, vB);
 		orthogVector.normalize();
 		PVector displacement = PVector.mult(orthogVector, dist);
@@ -609,7 +643,7 @@ public class Vertices2 {
 		return PVector.add(p, displacement);
 	}
 
-	
+
 	////////////////////////////////////////////////////////////////////////
 	// Dilate edges work by moving the edge in an out and recalculating the intersection
 	// with the previous (dilated) edge
@@ -621,37 +655,39 @@ public class Vertices2 {
 	    Arrays.fill(displacements, displacement);
 	    return getDilatedEdges(displacements);
 	}
-	
+
 	public Vertices2 getDilatedEdges(float[] displacements) {
-		// this method uses an array of displacements - one for each edge line - 
+		// this method uses an array of displacements - one for each edge line -
 		// has to be same size as the numVertices
-		if(isClosed()==false) return null;
-		
+		if(!isClosed()) {
+			return null;
+		}
+
 		Vertices2 copyOfThis = this.copy();
 		copyOfThis.setPolygonWindingDirection(CLOCKWISE);
-		
+
 		ArrayList<Line2> polygonEdges = copyOfThis.getAsLine2List();
 		if(displacements.length != polygonEdges.size()) {
 			System.out.println("Vertices2::getDilatedEdges the displacements array is the wrong size");
 			return null;
 		}
-		
-		ArrayList<Line2> displacedLines = new ArrayList<Line2>();
+
+		ArrayList<Line2> displacedLines = new ArrayList<>();
 		for(int n = 0; n < polygonEdges.size(); n++) {
-			
+
 			Line2 thisPolyLine = polygonEdges.get(n).copy();
 			PVector nv = thisPolyLine.getNormalisedVector(); // the vector along the line start->end
 			PVector orth = MOMaths.orthogonal(nv); // the clockwise-rotated normal to nv
 			PVector thisDisplacement = PVector.mult(orth, displacements[n]); // the displacement in direction orth
-			
+
 			PVector newP1 = PVector.add(thisPolyLine.p1, thisDisplacement); // the new displaced points;
 			PVector newP2 = PVector.add(thisPolyLine.p2, thisDisplacement);
-			
+
 			Line2 displacedLine = new Line2(newP1, newP2);
 			displacedLines.add(displacedLine);
 		}
-		
-		ArrayList<PVector> intersectionPoints = new ArrayList<PVector>();
+
+		ArrayList<PVector> intersectionPoints = new ArrayList<>();
 		for(int n = 0; n < displacedLines.size(); n++) {
 			Line2 trailingLine = displacedLines.get(n);
 			Line2 leadingLine;
@@ -660,8 +696,8 @@ public class Vertices2 {
 			}else {
 				leadingLine = displacedLines.get(n+1);
 			}
-			
-			
+
+
 			if(trailingLine.isParallel(leadingLine)) {
 				// if are co-linear then just use the joining point
 				intersectionPoints.add(trailingLine.p2.copy());
@@ -671,17 +707,17 @@ public class Vertices2 {
 				intersectionPoints.add(trailingLine.intersection_point);
 			}
 		}
-		
+
 		Vertices2 v = new Vertices2(intersectionPoints);
 		v.close();
 		return v;
 	}
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -699,10 +735,10 @@ public class Vertices2 {
 			orthogVector =  MOMaths.bisector(vbefore, vafter);
 		}
 		if(n == 0 ) {
-			// find the vector orthogonal to the start 
+			// find the vector orthogonal to the start
 			PVector lineVector = getLine(0).getNormalisedVector();
 			orthogVector = MOMaths.orthogonal(lineVector);
-		} 
+		}
 		if(n == getNumVertices()-1) {
 			// find the vector orthogonal to the end line
 			PVector lineVector = getLine(n-1).getNormalisedVector();
@@ -715,7 +751,9 @@ public class Vertices2 {
 
 
 	public void doubleVertices(int octaves) {
-		if(octaves == 0) return;
+		if(octaves == 0) {
+			return;
+		}
 		for(int n = 0; n < octaves; n++) {
 			addHalwayVertices();
 		}
@@ -725,7 +763,7 @@ public class Vertices2 {
 
 	public void addHalwayVertices() {
 		// effectively breaks every connecting line into two and then displaces each point. Keeps end points un-moved.
-		ArrayList<PVector> verticesOut = new ArrayList<PVector> ();
+		ArrayList<PVector> verticesOut = new ArrayList<> ();
 
 		int numLines = getNumLines();
 
@@ -747,7 +785,7 @@ public class Vertices2 {
 		vertices = verticesOut;
 
 	}
-	
+
 	public String getStats() {
 		int nv = getNumVertices();
 		float l = getTotalLength();

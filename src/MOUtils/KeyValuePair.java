@@ -15,7 +15,7 @@ public class KeyValuePair {
 	public static final int FLOAT = 3;
 	public static final int STRING = 4;
 	public static final int VECTOR = 5;
-	
+
 	String theKey;
 
 	// the type of data set
@@ -27,7 +27,7 @@ public class KeyValuePair {
 	float fval = 0;
 	String sval = "";
 	float[] vval;
-	
+
 	public KeyValuePair() {
 	}
 
@@ -46,7 +46,7 @@ public class KeyValuePair {
 	public KeyValuePair(String k, String v) {
 		set(k, v);
 	}
-	
+
 	public KeyValuePair(String k, float[] v) {
 		set(k, v);
 	}
@@ -59,61 +59,70 @@ public class KeyValuePair {
 		kvpcopy.ival = this.ival;
 		kvpcopy.fval = this.fval;
 		kvpcopy.sval = new String(this.sval);
-		if(vval!=null) kvpcopy.vval = vval.clone();
+		if(vval!=null) {
+			kvpcopy.vval = vval.clone();
+		}
 		return kvpcopy;
 
 	}
 
 	public String getStr() {
 		String s = "Key " + theKey;
-		if (getTYPE() == BOOLEAN)
+		if (getTYPE() == BOOLEAN) {
 			s = s + " Value : Boolean : " + this.bval;
-		if (getTYPE() == INTEGER)
+		}
+		if (getTYPE() == INTEGER) {
 			s = s + " Value : Int : " + this.ival;
-		if (getTYPE() == FLOAT)
+		}
+		if (getTYPE() == FLOAT) {
 			s = s + " Value : Float : " + this.fval;
-		if (getTYPE() == STRING)
+		}
+		if (getTYPE() == STRING) {
 			s = s + " Value : String : " + this.sval;
-		if (getTYPE() == VECTOR)
+		}
+		if (getTYPE() == VECTOR) {
 			s = s + " Value : Vector : " + getVectorValueString();
-		
+		}
+
 		return s;
 	}
-	
-	
+
+
 
 	boolean equals(KeyValuePair other) {
-		if (this.theKey.equals(other.theKey) == false)
+		if (!this.theKey.equals(other.theKey)) {
 			return false;
-		if (getTYPE() == BOOLEAN && this.bval == other.bval)
+		}
+		if ((getTYPE() == BOOLEAN && this.bval == other.bval) || (getTYPE() == INTEGER && this.ival == other.ival)) {
 			return true;
-		if (getTYPE() == INTEGER && this.ival == other.ival)
+		}
+		if (getTYPE() == FLOAT && this.fval == other.fval) {
 			return true;
-		if (getTYPE() == FLOAT && this.fval == other.fval)
+		}
+		if (getTYPE() == STRING && stringValueEquals(other.sval)) {
 			return true;
-		if (getTYPE() == STRING && stringValueEquals(other.sval))
+		}
+		if (getTYPE() == VECTOR && Arrays.equals(vval, other.vval)) {
 			return true;
-		if (getTYPE() == VECTOR && Arrays.equals(vval, other.vval))
-			return true;
+		}
 		return false;
 	}
 
 	boolean stringValueEquals(String otherString) {
 		// we need this more complex expression for strings because they can support a wild-card "*"
-		// if either of the strings is a wild card, then the test returns true. 
-		if (sval.equals(otherString))
+		// if either of the strings is a wild card, then the test returns true.
+		if (sval.equals(otherString) || sval.equals("*") || otherString.equals("*")) {
 			return true;
-		if (sval.equals("*"))
-			return true;
-		if (otherString.equals("*"))
-			return true;
+		}
 		return false;
 	}
-	
+
 	public boolean isSameVariable(KeyValuePair other) {
 		// returns true if the key is the same as other ,and they are of the same type.
 		// Used in replacing existing values in KVPLists
-		if(other.theKey.equals(this.theKey)  && other.getTYPE() == this.getTYPE() ) return true;
+		if(other.theKey.equals(this.theKey)  && other.getTYPE() == this.getTYPE() ) {
+			return true;
+		}
 		return false;
 	}
 
@@ -154,14 +163,15 @@ public class KeyValuePair {
 					"KeyValuePair:setString - cannot set a using the *%* symbol, as these are reserved for seperating vector values");
 			return;
 		}
-		if (v.contentEquals(""))
+		if (v.contentEquals("")) {
 			v = " ";
+		}
 
 		theKey = k;
 		sval = v;
 
 	}
-	
+
 	void set(String k, float[] f) {
 		TYPE = VECTOR;
 		theKey = k;
@@ -205,11 +215,11 @@ public class KeyValuePair {
 	public String getString() {
 		return sval;
 	}
-	
+
 	public float[] getVector() {
 		return vval;
 	}
-	
+
 ///////////////////////////////////////////////////
 //private methods
 
@@ -230,19 +240,21 @@ public class KeyValuePair {
 			return theKey + ":" + sval;
 		}
 		if (getTYPE() == VECTOR) {
-			
+
 			return theKey + ":" + getVectorValueString();
 		}
 		return "";
 	}
-	
-	
+
+
 	String getVectorValueString() {
 		String fstring = "";
 		for(int n = 0; n < vval.length; n++) {
 			float thisFloat = vval[n];
 			fstring += thisFloat;
-			if(n < vval.length - 1) fstring += "%";
+			if(n < vval.length - 1) {
+				fstring += "%";
+			}
 		}
 		return fstring;
 	}
@@ -282,8 +294,9 @@ public class KeyValuePair {
 	}
 
 	boolean isBooleanDataType(String str) {
-		if (str.equals("true") || str.equals("false"))
+		if (str.equals("true") || str.equals("false")) {
 			return true;
+		}
 		return false;
 	}
 
@@ -306,13 +319,13 @@ public class KeyValuePair {
 		}
 		return false;
 	}
-	
+
 	boolean isVectorDataType(String str) {
 		// Vectors are stored thus, using the percent symbol to separate the numbers
 		// "KeyName:3.141%1245.6%5678.234"
 		 return str.contains("%");
 	}
-	
+
 	float[] parseVectorData(String vstring) {
 		String[] floatstrings = vstring.split("%");
 		int num = floatstrings.length;
@@ -326,15 +339,17 @@ public class KeyValuePair {
 	String[] splitPairIntoKeyValue(String pair) {
 		// because some strings may contain ':' char, especially paths, we need to catch these.
 		String[] initialSplits = pair.split(":");
-		if(initialSplits.length==2) return initialSplits;
-		
+		if(initialSplits.length==2) {
+			return initialSplits;
+		}
+
 		// if you get here, there is a value string containing ':'
 		String[] split2 = new String[2];
 		split2[0] = initialSplits[0];
 		int chlen = split2[0].length() + 1;// need to remove the key and the first ':' in the pair string
 		split2[1] = pair.substring(chlen);
 		return split2;
-		
+
 	}
 	public void setType(int t) {
 		TYPE = t;

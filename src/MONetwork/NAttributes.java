@@ -18,7 +18,7 @@ public class NAttributes {
 	NNetwork theNetwork;
 	//UniqueID uniqueID;
 
-	private int thingInt = TYPE_UNDEFINED; 
+	private int thingInt = TYPE_UNDEFINED;
 	String thingString = "UNDEFINED";
 
 	protected KeyValuePairList attributes = new KeyValuePairList();
@@ -30,9 +30,15 @@ public class NAttributes {
 		thingInt = thng;
 		//uniqueID = theNetwork.getUniqueIDGenerator();
 		theNetwork = networkref;
-		if (thingInt == TYPE_NPOINT) thingString = "NPOINT";
-		if (thingInt == TYPE_NEDGE) thingString = "NEDGE";
-		if (thingInt == TYPE_NREGION) thingString = "NREGION";
+		if (thingInt == TYPE_NPOINT) {
+			thingString = "NPOINT";
+		}
+		if (thingInt == TYPE_NEDGE) {
+			thingString = "NEDGE";
+		}
+		if (thingInt == TYPE_NREGION) {
+			thingString = "NREGION";
+		}
 		setID();
 	}
 
@@ -47,7 +53,7 @@ public class NAttributes {
 
 
 	void setID() {
-		// you can only set the id automatically with this 
+		// you can only set the id automatically with this
 		// method, which uses the auto-incremented number
 		id = theNetwork.getUniqueID();
 		// System.out.println(" setting id " + id);
@@ -88,23 +94,23 @@ public class NAttributes {
 	KeyValuePair getAttribute(String k) {
 		return attributes.findKeyValue(k);
 	}
-	
-	
+
+
 	int getAttributeInttVal(String k) {
 		KeyValuePair kvp =  attributes.findKeyValue(k);
 		return kvp.getInt();
 	}
-	
+
 	float getAttributeFloatVal(String k) {
 		KeyValuePair kvp =  attributes.findKeyValue(k);
 		return kvp.getFloat();
 	}
-	
+
 	boolean getAttributeBooleanVal(String k) {
 		KeyValuePair kvp =  attributes.findKeyValue(k);
 		return kvp.getBoolean();
 	}
-	
+
 	public String getAttributeStringVal(String k) {
 		KeyValuePair kvp =  attributes.findKeyValue(k);
 		return kvp.getString();
@@ -113,7 +119,7 @@ public class NAttributes {
 	int getNumAttributes() {
 		return attributes.getNumItems();
 	}
-	
+
 	public boolean thisItemContainsMatch( KeyValuePair query ) {
 		// returns true if this item contains a KVP matching query
 		return attributes.containsEqual(query);

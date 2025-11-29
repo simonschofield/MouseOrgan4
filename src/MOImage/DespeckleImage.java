@@ -7,10 +7,10 @@ public class DespeckleImage{
     float[][] neighbor_matrix = { { 1,  1,  1 },
                               	  { 1,  0,  1 },
                               	  { 1,  1,  1 } };
-                              
-  
-   
-   
+
+
+
+
 	public BufferedImage despeckleImage(BufferedImage sourceImage, int neighboursToSurvive, int removeBlackOrWhite) {
 		int w = sourceImage.getWidth();
 		int h = sourceImage.getHeight();
@@ -40,8 +40,9 @@ public class DespeckleImage{
 		int black = MOPackedColor.packARGB(255, 0, 0, 0);
 		int neighbors = 0;
 		int pixelCol = sourceImage.getRGB(Xcen, Ycen);
-		if (MOPackedColor.getRed(pixelCol) < 127)
+		if (MOPackedColor.getRed(pixelCol) < 127) {
 			return black;
+		}
 		// this is where we sample every pixel around the centre pixel
 		// according to the sample-matrix size
 		for (int i = 0; i < 3; i++) {
@@ -53,22 +54,23 @@ public class DespeckleImage{
 				int yloc = Ycen + j - 1;
 
 				// Make sure we haven't walked off our image
-				if (xloc < 0 || xloc >= sourceImage.getWidth())
+				if (xloc < 0 || xloc >= sourceImage.getWidth() || yloc < 0 || yloc >= sourceImage.getHeight()) {
 					continue;
-				if (yloc < 0 || yloc >= sourceImage.getHeight())
-					continue;
+				}
 
 				// Calculate the convolution
 				col = sourceImage.getRGB(xloc, yloc);
 
-				if (MOPackedColor.getRed(col) > 127 && neighbor_matrix[i][j] == 1)
+				if (MOPackedColor.getRed(col) > 127 && neighbor_matrix[i][j] == 1) {
 					neighbors++;
+				}
 
 			}
 		}
 
-		if (neighbors >= neighboursToSurvive)
+		if (neighbors >= neighboursToSurvive) {
 			return pixelCol;
+		}
 		return black;
 	}
 
@@ -79,8 +81,9 @@ public class DespeckleImage{
 		int white = MOPackedColor.packARGB(255, 255, 255, 255);
 		int neighbors = 0;
 		int pixelCol = sourceImage.getRGB(Xcen, Ycen);
-		if (MOPackedColor.getRed(pixelCol) > 127)
+		if (MOPackedColor.getRed(pixelCol) > 127) {
 			return white;
+		}
 		// this is where we sample every pixel around the centre pixel
 		// according to the sample-matrix size
 		for (int i = 0; i < 3; i++) {
@@ -92,22 +95,23 @@ public class DespeckleImage{
 				int yloc = Ycen + j - 1;
 
 				// Make sure we haven't walked off our image
-				if (xloc < 0 || xloc >= sourceImage.getWidth())
+				if (xloc < 0 || xloc >= sourceImage.getWidth() || yloc < 0 || yloc >= sourceImage.getHeight()) {
 					continue;
-				if (yloc < 0 || yloc >= sourceImage.getHeight())
-					continue;
+				}
 
 				// Calculate the convolution
 				col = sourceImage.getRGB(xloc, yloc);
 
-				if (MOPackedColor.getRed(col) < 127 && neighbor_matrix[i][j] == 1)
+				if (MOPackedColor.getRed(col) < 127 && neighbor_matrix[i][j] == 1) {
 					neighbors++;
+				}
 
 			}
 		}
 
-		if (neighbors >= neighboursToSurvive)
+		if (neighbors >= neighboursToSurvive) {
 			return pixelCol;
+		}
 		return white;
 	}
 

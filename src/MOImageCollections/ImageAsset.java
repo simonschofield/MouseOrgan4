@@ -1,8 +1,6 @@
 package MOImageCollections;
 
 import java.awt.image.BufferedImage;
-
-import MOMaths.PVector;
 ///////////////////////////////////////////////////////////////////////////
 // This is the basic wrapper around any bitmap item that is loaded as part of a Mouse Organ session.
 // Mainly used for the content of an image.
@@ -14,35 +12,35 @@ public class ImageAsset{
 
 	// the buffered image
 	public BufferedImage image;
-	
+
 	// the user-set name, which may also be the short file name
 	public String name = "";
 
 	// the path to the asset on file
 	public String fullPath;
-	
+
 	// image stats
 	public ImageStats stats;
-	
+
 	public ImageAsset() {}
-	
+
 	public ImageAsset(BufferedImage img, String nm) {
 		image = img;
 		name = nm;
 	}
-	
-	
+
+
 	public void calculateStats() {
 		if(image==null) {
-			
+
 		System.out.println("calculateStats: image not initialised");
 		}
 		stats = new ImageStats(image);
 		stats.printStats(name);
 	}
-	
-	
-	
-	
+
+
+
+
 }
 

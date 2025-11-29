@@ -29,6 +29,7 @@ public class Slider extends Widget {
 		UIComponentType = "Slider";
 	}
 
+	@Override
 	public void handleMouseEvent(String mouseEventType, int x, int y) {
 		PVector p = new PVector(x, y);
 
@@ -39,7 +40,7 @@ public class Slider extends Widget {
 			// println("mouse left sider");
 		}
 
-		if (bounds.isPointInside(p) == false) {
+		if (!bounds.isPointInside(p)) {
 			mouseEntered = false;
 			return;
 		}
@@ -78,7 +79,7 @@ public class Slider extends Widget {
 
 	boolean mouseLeave(PVector p) {
 		// is only true, if the mouse has been in the widget, has been depressed
-		if (mouseEntered && bounds.isPointInside(p) == false) {
+		if (mouseEntered && !bounds.isPointInside(p)) {
 			mouseEntered = false;
 			return true;
 		}
@@ -86,6 +87,7 @@ public class Slider extends Widget {
 		return false;
 	}
 
+	@Override
 	public void drawMe(VectorShapeDrawer drawer) {
 		if (rollover) {
 			drawer.setDrawingStyle(SimpleUIWidgetRolloverColor, new Color(0, 0, 0, 255), 1);

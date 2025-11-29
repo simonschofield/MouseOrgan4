@@ -1,36 +1,34 @@
 package MOUtils;
 
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.io.File;
 import java.io.IOException;
 import java.math.RoundingMode;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
 
-import MOCompositing.RenderTargetInterface;
-
 public class MOStringUtils {
 
 
-	
-	
+
+
 	public static String getDateStamp() {
 		String datestamp = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 		return datestamp;
 	}
-	
-	
+
+
 	public static String getDateStampedImageFileName(String baseName) {
 		String dateStamp = getDateStamp();
 		String wholeFileName = baseName + "_" + dateStamp + ".png";
 		return wholeFileName;
 	}
-	
+
 	public static String getFileExtension(String filename) {
 		// filename can be with or without path
 		File file = new File(filename);
@@ -41,7 +39,7 @@ public class MOStringUtils {
 	    }
 	    return name.substring(lastIndexOf);
 	}
-	
+
 	public static String getFileNameWithoutExtension(String filename) {
 		// filename can be with or without path
 		//File file = new File(filename);
@@ -52,44 +50,49 @@ public class MOStringUtils {
 	    }
 	    return filename.substring(0,lastIndexOf);
 	}
-	
+
 	public static String getShortFileNameFromFullPathAndFileName(String fullPathAndFileName) {
 		// returns the file name without path or extension
-		File f = new File(fullPathAndFileName); 
+		File f = new File(fullPathAndFileName);
 		String shortFileNameWithExtension = f.getName();
 		int strlen = shortFileNameWithExtension.length();
 		String fileNameOnly = shortFileNameWithExtension.substring(0, strlen - 4);
 		return fileNameOnly;
 	}
-	
+
 	public static boolean checkDirectoryExist(String foldername) {
 		File targetFolder = new File(foldername);
-		if (targetFolder.exists())
+		if (targetFolder.exists()) {
 			return true;
+		}
 		return false;
 	}
-	
+
 	public static boolean checkFileExists(String fullPathAndFileName) {
 		File f = new File(fullPathAndFileName);
 		return f.exists();
-		
+
 	}
-	
-	
+
+
 	public static int getDirectoryContentFileCount(String foldername) {
 	    File f = new File(foldername);
 	    File[] files = f.listFiles();
 
-	    if (files == null) return 0;
-	    return files.length; 
+	    if (files == null) {
+			return 0;
+		}
+	    return files.length;
 	}
-	
+
 	public static boolean createDirectory(String foldername) {
 		File targetFolder = new File(foldername);
-		if (targetFolder.exists()) return true;
+		if (targetFolder.exists()) {
+			return true;
+		}
 		return targetFolder.mkdirs();
 	}
-	
+
 	public static String createDirectory(String path, String name, boolean timeStamped) {
 		String directory = path + name;
 		if(timeStamped) {
@@ -99,18 +102,18 @@ public class MOStringUtils {
 		System.out.println("created directory " + directory + "  " + result);
 		return directory;
 	}
-	
+
 	public static void deleteFile(String pathAndName) {
 
-		File myObj = new File(pathAndName); 
-	    if (myObj.delete()) { 
+		File myObj = new File(pathAndName);
+	    if (myObj.delete()) {
 	      System.out.println("Deleted the file: " + myObj.getName());
 	    } else {
 	      System.out.println("Failed to delete the file.");
-	    } 
-		
+	    }
+
 	}
-	
+
 	public static String getPaddedNumberString(Integer num, int lengthOfString) {
 		String  inputString =  num.toString();
 	    if (inputString.length() >= lengthOfString) {
@@ -121,15 +124,15 @@ public class MOStringUtils {
 	        sb.append('0');
 	    }
 	    sb.append(inputString);
-	 
+
 	    return sb.toString();
-		
-		
+
+
 	}
-	
+
 	public static String roundNumber(float f, int dps) {
 		String hash = "#.";
-		
+
 		for(int n = 0; n<dps; n++) {
 			hash += "#";
 		}
@@ -138,7 +141,7 @@ public class MOStringUtils {
 		df.setRoundingMode(RoundingMode.CEILING);
 		return df.format(f);
 	}
-	
+
 	public static String addCommaSeparatedString(String exisitingString, String toAdd) {
 		if(exisitingString.contentEquals("")) {
 			exisitingString += toAdd;
@@ -148,24 +151,24 @@ public class MOStringUtils {
 		exisitingString += toAdd;
 		return exisitingString;
 	}
-	
-	
+
+
 	public static String getCWD() {
-		
+
 		Path path = FileSystems.getDefault().getPath("").toAbsolutePath();
-		
+
 		return path.toString();
 	}
-	
+
 	public static String filePathGetParent(String filePath) {
 		File f = new File(filePath);
 		return f.getParent();
 	}
-	
-	
-	
+
+
+
 	public static ArrayList<String> readTextFile(String pathAndName) {
-		ArrayList<String> stListOut = new ArrayList<String>();
+		ArrayList<String> stListOut = new ArrayList<>();
 		File myObj = new File(pathAndName);
 		try{
 	      Scanner myReader = new Scanner(myObj);
@@ -183,13 +186,15 @@ public class MOStringUtils {
 	public static void deleteDirectory(String foldername) {
 		// TODO Auto-generated method stub
 		File targetFolder = new File(foldername);
-		if (targetFolder.exists()) targetFolder.delete();
+		if (targetFolder.exists()) {
+			targetFolder.delete();
+		}
 	}
-	
-	
-	
+
+
+
 	public static boolean stringListContains(String[] stringList, String thisString) {
-		
+
 		for (String s : stringList) {
 		    if (s.equals(thisString)) {
 		        return true;
@@ -197,9 +202,9 @@ public class MOStringUtils {
 		}
 		return false;
 	}
-	
+
 	public static boolean stringArrayListContains(ArrayList<String> stringList, String thisString) {
-		
+
 		for (String s : stringList) {
 		    if (s.equals(thisString)) {
 		        return true;
@@ -207,7 +212,7 @@ public class MOStringUtils {
 		}
 		return false;
 	}
-	
+
     public static int getIndexOfThisString(ArrayList<String> stringList, String thisString) {
 		// return -1 if not found
     	int count = 0;
@@ -219,45 +224,45 @@ public class MOStringUtils {
 		}
 		return -1;
 	}
-	
+
 	public static String[] addToStringList(String[] oldArray, String newString)
 	{
 	    String[] newArray = Arrays.copyOf(oldArray, oldArray.length+1);
 	    newArray[oldArray.length] = newString;
 	    return newArray;
 	}
-	
+
 	public static String[] toArray(ArrayList<String> arryList) {
-		
-		ArrayList<String> strList = new ArrayList<String> ();
+
+		ArrayList<String> strList = new ArrayList<> ();
 		int n = arryList.size();
 		String[] arrayOut = new String[ n ];
-		
+
 		int i = 0;
 		for(String s: arryList) {
 			arrayOut[i] = s;
 			i++;
 		}
 		return arrayOut;
-		
+
 	}
-	
-	
+
+
 	public static ArrayList<String> toArrayList(String[] array) {
-		
-		ArrayList<String> arrayListOut = new ArrayList<String> ();
+
+		ArrayList<String> arrayListOut = new ArrayList<> ();
 
 		int i = 0;
 		for(String s: array) {
 			arrayListOut.add(s);
-			
+
 		}
 		return arrayListOut;
-		
+
 	}
-	
-	
-	
+
+
+
 }
 
 

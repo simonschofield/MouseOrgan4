@@ -33,13 +33,13 @@ public class Line3D {
 	float length() {
 		return p1.dist(p2);
 	}
-	
+
 	public PVector getMidPoint() {
 		return PVector.lerp(p2, p1, 0.5f);
 	}
-	
+
 	public String toStr() {
-		
+
 		return "Line3D: p1: " + p1.toStr() + ", p2: " + p2.toStr();
 	}
 
@@ -116,5 +116,5 @@ public class Line3D {
 
 		return new Line3D(pointOnA, pointOnB);
 	}
-	
+
 }// end of class

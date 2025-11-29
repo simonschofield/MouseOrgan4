@@ -1,37 +1,23 @@
 package MOScene3D;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.util.ArrayList;
 
-import MOApplication.ROIManager;
-import MOCompositing.BufferedImageRenderTarget;
-import MOCompositing.FloatImageRenderTarget;
 import MOImage.BilinearBufferedImageSampler;
-import MOImage.ByteImageGetterSetter;
-import MOImage.ImageCoordinate;
-import MOImage.ImageDimensions;
-import MOImage.ImageProcessing;
 import MOImage.MOColor;
-import MOImage.MOPackedColor;
-import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
 import MOSprite.Sprite;
-import MOUtils.GlobalSettings;
-import MOUtils.ImageCoordinateSystem;
 import MOUtils.Progress;
 
 public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 
 
-	
-	PVector lightDirection, negativeLightDirection;
-	
 
-	
+	PVector lightDirection, negativeLightDirection;
+
+
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// The shadow render is the primary output of this class, and will be saved automatically by the render saver at the
 	// end of the session. When adding render targets, you can either have a pre-created target, which may be re-used
@@ -40,20 +26,20 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 	//
 	// To create any mask, all sprites in the render must be passed and added to the mask, even if they are not shadow-processed, they need to contribute to the mask
 	// with a non-contributing sprite colour (usually white or black).
-	// 
-	// The nature of the output shadow image is in development. They could be .. 
+	//
+	// The nature of the output shadow image is in development. They could be ..
 	// For radialIntershading the output is the amount of shade per pixel and could be represented in two ways
 	// 1/ A greyscale image, initially white, where the shading is subtracted from the current value in the image. sprites are added as white stencils once the shading has occurred. THis can then be viewed
 	//    quickly for ease while rendering, and could form the basis for an underlying image for top-image multiplication, inverted could form a separate shadow mask.
-	// 2/ An ARGB image, black with alpha of zero set everywhere. As the shadow is added, the alpha is set with higher values, so the black becomes "revealed". Sprites are added with alpha zero 
-	//   and black in-fill after shading has occurred, so are "revealed " by subsequent shadowing. 
+	// 2/ An ARGB image, black with alpha of zero set everywhere. As the shadow is added, the alpha is set with higher values, so the black becomes "revealed". Sprites are added with alpha zero
+	//   and black in-fill after shading has occurred, so are "revealed " by subsequent shadowing.
 	// For BasePointLighting, the output is the amount of light per pixel
-	// 2/ 
+	// 2/
 	//
 	//
 	public Lighting_HardShadow3D(SceneData3D scene3D, String nameOfShadowRender, String nameOfDepthRender,  PVector lightDir,   boolean addSceneSurfaceToDepth){
 		super(scene3D, nameOfShadowRender);
-		
+
 		Range worldY = sceneData3D.depthBuffer3d.worldYExtrema;
 		System.out.println("worldY extrama " + worldY.toStr() );
 		float sceneYMin = sceneData3D.depthBuffer3d.worldYExtrema.getUpper();
@@ -62,9 +48,9 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 
 		progress = new Progress("Lighting_HardShadow3D: ");
 	}
-	
 
-	
+
+
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// casts a hard shadow of THIS sprite onto previously pasted sprites by using the depthTexture to
 	// calculated which pixels in the previous sprites are in shadow from the light source from THIS sprite.
@@ -85,7 +71,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 	// castHardShadow is called immediately after a sprite is pasted. In order to use this class, you first need to add a
 	// FloatRendertarget and a greyscale render target . It works out the shadow cast by that sprite on all sprites previously pasted
 	// using a kind of ray tracing. It iterates over the scene already pasted, and added to the depthRender, and for each pixel works out
-	// if a ray cast from that pixel towards the light is obscured by the new sprite being pasted. If so then shadow is contributed to the shadow REnder buffer at that point. 
+	// if a ray cast from that pixel towards the light is obscured by the new sprite being pasted. If so then shadow is contributed to the shadow REnder buffer at that point.
 	// The light is assumed to be a parallel source.
 	// There are a lot of optimisations used.
 
@@ -174,20 +160,23 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 				// while we are iterating over the image in buffer space, it may be best to do all the calculations in doc space
 				// so convert back to docSpace
 
-				if( shadowRenderTarget.getCoordinateSystem().isInsideBufferSpace(x, y)==false) continue;
+				if( !shadowRenderTarget.getCoordinateSystem().isInsideBufferSpace(x, y)) {
+					continue;
+				}
 
 				PVector shadowPixelDocSpace = BStoDS(x, y);
 
-				// get the current depth render depth at that point. 
+				// get the current depth render depth at that point.
 				float shadowRenderDepth = depthRenderTarget.getPixel(shadowPixelDocSpace);
 				PVector shadowRenderPoint3D = sceneData3D.get3DVolumePoint(shadowPixelDocSpace, shadowRenderDepth);
 
 				// check to see if there is something there to receive a shadow. Copy the surface z values in
 				// first if you want the surface to receive shadows.
-				if (shadowRenderDepth == 0) continue; 
 				//debug("here1");
 				// check to see if you are trying to shade the new sprite
-				if (shadowRenderDepth == shadowCastingSpriteDepth) continue; 
+				if ((shadowRenderDepth == 0) || (shadowRenderDepth == shadowCastingSpriteDepth)) {
+					continue;
+				}
 				//debug("here2");
 				// if the pixel already in shade?? If so, then continue. Previously shadowed pixel cannot be re-lit.
 				int shadowval = shadowImageGetSet.getPixel(x, y);
@@ -215,7 +204,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 						int newValue =   ((255-alpha));
 						if(newValue < existingValue) {
 							shadowImageGetSet.setPixel(x, y,newValue);
-						} 
+						}
 					}
 
 				}// end if
@@ -227,7 +216,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 	}// end method
 
 
-	
-	
-	
+
+
+
 }

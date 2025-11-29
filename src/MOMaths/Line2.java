@@ -9,7 +9,7 @@ public class Line2 {
 	public static final int DIRECTION_LEFT=1;
 	public static final int DIRECTION_DOWN=2;
 	public static final int DIRECTION_RIGHT=3;
-	
+
 	// the end points
 	public PVector p1;
 	public PVector p2;
@@ -18,7 +18,7 @@ public class Line2 {
 	public boolean intersection_segmentsIntersect;
 	public PVector intersection_point;
 	float intersection_t1 = -1;
-	float intersection_t2 = -1; 
+	float intersection_t2 = -1;
 
 	public Line2() {
 		p1 = new PVector(0, 0);
@@ -34,20 +34,20 @@ public class Line2 {
 		this.p1 = new PVector(startX, startY);
 		this.p2 = new PVector(endX, endY);
 	}
-	
+
 	public Line2 copy() {
-		
+
 		return new Line2(p1,p2);
 	}
-	
+
 	public String toStr() {
 		return p1.toStr() + "," + p2.toStr();
 	}
 
-	
+
 	/**
 	 * @param direction - this is DIRECTION_UP,DIRECTION_LEFT,DIRECTION_DOWN,DIRECTION_RIGHT and represents the general running direction
-	 * p1->p2. 
+	 * p1->p2.
 	 * It will swap the points in-place to meet the criteria
 	 */
 	public void enforceDirection(int direction) {
@@ -57,32 +57,32 @@ public class Line2 {
 				return;
 			}
 		}
-		
+
 		if(direction==DIRECTION_LEFT) {
 			if(p1.x < p2.x) {
 				swapEndPoints();
 				return;
 			}
 		}
-		
+
 		if(direction==DIRECTION_DOWN) {
 			if(p1.y > p2.y) {
 				swapEndPoints();
 				return;
 			}
 		}
-		
+
 		if(direction==DIRECTION_RIGHT) {
 			if(p1.x > p2.x) {
 				swapEndPoints();
 				return;
 			}
 		}
-		
+
 	}
-	
-	
-	
+
+
+
 	public void swapEndPoints() {
 		PVector tp1 = p1.copy();
 		PVector tp2 = p2.copy();
@@ -122,10 +122,12 @@ public class Line2 {
 
 		return new PVector(x, y);
 	}
-	
+
 	public PVector getIntersectionPoint(Line2 l) {
 		// returns null if no intersection, otherwise returns the point
-		if( calculateIntersection(l) ) return intersection_point;
+		if( calculateIntersection(l) ) {
+			return intersection_point;
+		}
 		return null;
 	}
 
@@ -139,8 +141,8 @@ public class Line2 {
 		// intersection_point is set to null
 		//
 		//if(isConnected(l)) return false;
-		
-		
+
+
 		intersection_segmentsIntersect = false;
 
 		PVector p3 = l.p1.copy();
@@ -153,7 +155,7 @@ public class Line2 {
 		float dy34 = p4.y - p3.y;
 
 		intersection_t1 = -1;
-		intersection_t2 = -1; 
+		intersection_t2 = -1;
 
 		// Solve for t1 and t2
 		float denominator = (dy12 * dx34 - dx12 * dy34);
@@ -177,9 +179,9 @@ public class Line2 {
 		intersection_segmentsIntersect = ((intersection_t1 >= 0) && (intersection_t1 <= 1) && (intersection_t2 >= 0) && (intersection_t2 <= 1));
 		return intersection_segmentsIntersect;
 	}
-	
+
 	boolean isParallel(Line2 otherLine) {
-		
+
 
 		PVector p3 = otherLine.p1.copy();
 		PVector p4 = otherLine.p2.copy();
@@ -197,18 +199,20 @@ public class Line2 {
 		{
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	boolean isJustTouching() {
 		// you can call this after a successful intersection calculation with the other line to determine if the lines were
 		// justTouching (returns true) or properly crossing (returns false)
 		float tol = Float.MIN_VALUE * 2; // just to give the calculations some headroom
 		if( MOMaths.isClose(intersection_t1, 0, tol) ||
-			MOMaths.isClose(intersection_t1, 1, tol) ||	
+			MOMaths.isClose(intersection_t1, 1, tol) ||
 			MOMaths.isClose(intersection_t2, 0, tol) ||
-			MOMaths.isClose(intersection_t2, 1, tol)) return true;
+			MOMaths.isClose(intersection_t2, 1, tol)) {
+			return true;
+		}
 		return false;
 	}
 
@@ -218,42 +222,56 @@ public class Line2 {
 		float thisMaxX = Math.max(p1.x, p2.x);
 		float otherMinX = Math.min(otherLine.p1.x, otherLine.p2.x);
 		float otherMaxX = Math.max(otherLine.p1.x, otherLine.p2.x);
-		
+
 		float thisMinY = Math.min(p1.y, p2.y);
 		float thisMaxY = Math.max(p1.y, p2.y);
 		float otherMinY = Math.min(otherLine.p1.y, otherLine.p2.y);
 		float otherMaxY = Math.max(otherLine.p1.y, otherLine.p2.y);
-		
-		
+
+
 	    if((otherMaxX < thisMinX) || // other is wholly left of this
 	       (otherMinX > thisMaxX) || // other is wholly right of this
 	       (otherMaxY < thisMinY) || // other is wholly above of this
 	       (otherMinY > thisMaxY)    // other is wholly below of this
-	       ) return false;
-	    
+	       ) {
+			return false;
+		}
+
 	       return true;
 	}
 
 	boolean equals(Line2 otherLine) {
-		if ( p1.equals(otherLine.p1) && p2.equals(otherLine.p2)) return true;
+		if ( p1.equals(otherLine.p1) && p2.equals(otherLine.p2)) {
+			return true;
+		}
 		return false;
 	}
 
 	boolean isCoincident(Line2 otherLine) {
 		// will return true for a line with same end points
-		if ( equals(otherLine) || (  p1.equals(otherLine.p2) && p2.equals(otherLine.p1)  )  ) return true;
+		if ( equals(otherLine) || (  p1.equals(otherLine.p2) && p2.equals(otherLine.p1)  )  ) {
+			return true;
+		}
 		return false;
 	}
-	
+
 	public boolean isConnected(Line2 otherLine) {
-		if( isCoincident(otherLine) ) return true;
-		if( p1.equals(otherLine.p1) || p1.equals(otherLine.p2) || p2.equals(otherLine.p1) || p2.equals(otherLine.p2)) return true;
+		if( isCoincident(otherLine) ) {
+			return true;
+		}
+		if( p1.equals(otherLine.p1) || p1.equals(otherLine.p2) || p2.equals(otherLine.p1) || p2.equals(otherLine.p2)) {
+			return true;
+		}
 		return false;
 	}
 
 	PVector getOtherPoint(PVector thisPoint) {
-		if (this.p1.equals(thisPoint)) return this.p2;
-		if (this.p2.equals(thisPoint)) return this.p1;
+		if (this.p1.equals(thisPoint)) {
+			return this.p2;
+		}
+		if (this.p2.equals(thisPoint)) {
+			return this.p1;
+		}
 		return null;
 	}
 
@@ -284,10 +302,10 @@ public class Line2 {
 		float degrees = (float) (Math.atan2(v.y,v.x)*180/Math.PI) + 90;
 		return degrees;
 	}
-	
-	
-	
-	
+
+
+
+
 
 	public float getAngleBetween(Line2 otherLine) {
 		// returns the radians between the two lines.
@@ -297,26 +315,26 @@ public class Line2 {
 		PVector vOther = otherLine.getAsPVector();
 		return PVector.angleBetween(vThis, vOther);
 	}
-	
-	
+
+
 	public float getHingedAngleBetween(Line2 otherLine) {
 		// if the two vectors are "hinged" around the end point of this line, and the start point of the other line
 		// the the angle returned (in radians) is the angle between the two lines, where a n acute angle is a low number < PI and
 		// an obtuse angle is a high number > PI. Two lines forming one straight line would be == PI.
-		// Two lines -- would be 180 degrees, two lines _| would be 90, and two lines /| would be 45 
-		
-		if( p2.equals(otherLine.p1)==false ) {
+		// Two lines -- would be 180 degrees, two lines _| would be 90, and two lines /| would be 45
+
+		if( !p2.equals(otherLine.p1) ) {
 			System.out.println("Line2:: hingedAngleBetween lines are not joined at this.p2-other.p1");
 			return 0;
 		}
 		PVector p1 = this.p1;
 		PVector join = this.p2;
 		PVector p2 = otherLine.p2;
-		
+
 		return MOMaths.getHingedAngleBetween(p1,join, p2);
-		
+
 	}
-	
+
 
 	public PVector getAsPVector() {
 		return PVector.sub(p2, p1);

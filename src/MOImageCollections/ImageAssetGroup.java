@@ -14,8 +14,8 @@ import MOUtils.MOStringUtils;
 // Contains a list of ImageAssets where only the image and name is used. Each name is unique.
 // While the class uses the ImageAsset type to bind names to BufferedImages, this should be used to store collections of
 // regular images, such as in the SceneData3D class, where collections of texture images are collected.
-// 
-// 
+//
+//
 // Images can be added en-mass from a target director using a DirectoryFileNameScanner. This method can be repeated
 // by repeatedly setting the DirectoryFileNameScanner and calling loadImages()
 // or one at a time using addImage() method
@@ -26,7 +26,7 @@ public class ImageAssetGroup {
 
 	protected DirectoryFileNameScanner directoryFileNameScanner;
 
-	protected ArrayList<ImageAsset> theImageAssetList = new ArrayList<ImageAsset>();
+	protected ArrayList<ImageAsset> theImageAssetList = new ArrayList<>();
 
 
 	protected Range widthExtrema = new Range();
@@ -49,7 +49,7 @@ public class ImageAssetGroup {
 
 
 	void clearImageAssets() {
-		theImageAssetList = new ArrayList<ImageAsset>();
+		theImageAssetList = new ArrayList<>();
 	}
 
 
@@ -86,7 +86,7 @@ public class ImageAssetGroup {
 	//////////////////////////////////////////////////////////////////////////////////////
 	// Adding A list of iages Image
 	// The reason this needs to be a seperate method is that it is called by the subclass when loading from the cache
-	// 
+	//
 	protected void loadImages(ArrayList<String> allPathAndNames) {
 		for(String thisFilePathAndName: allPathAndNames) {
 			//System.out.println("loading " + thisFilePathAndName);
@@ -98,7 +98,7 @@ public class ImageAssetGroup {
 	//////////////////////////////////////////////////////////////////////////////////////
 	// Adding Single Image
 	// Load a single image using a a file path and name
-	// 
+	//
 	protected void loadImage(String pathAndName) {
 		BufferedImage img = ImageProcessing.loadImage(pathAndName);
 		String thisShortFileName = MOStringUtils.getShortFileNameFromFullPathAndFileName(pathAndName);
@@ -117,7 +117,9 @@ public class ImageAssetGroup {
 	//
 	public void addImageAsset(BufferedImage img, String shortName) {
 
-		if(checkUniqueName(shortName)==false) return;
+		if(!checkUniqueName(shortName)) {
+			return;
+		}
 
 		ImageAsset namedImage = new ImageAsset();
 		namedImage.image = img;
@@ -163,14 +165,16 @@ public class ImageAssetGroup {
 	//content manipulation methods - affect all members of the group
 	//
 	public void scaleAll(float s) {
-		if(s==1) return;
-		if(MOMaths.MOMaths.isClose(s, 1, 0.0099f)) return; // i.e within 1 percentile
+		if((s==1) || MOMaths.MOMaths.isClose(s, 1, 0.0099f))
+		 {
+			return; // i.e within 1 percentile
+		}
 		for (ImageAsset moImage: theImageAssetList) {
 			moImage.image = ImageProcessing.scaleImage(moImage.image, s, s);
 		}
 	}
-	
-	
+
+
 	public void scaleAll(float x, float y) {
 
 		for (ImageAsset moImage: theImageAssetList) {
@@ -193,7 +197,9 @@ public class ImageAssetGroup {
 	}
 
 	public void cropAll(Rect cropRect) {
-		if (cropRect.equals(new Rect())) return;
+		if (cropRect.equals(new Rect())) {
+			return;
+		}
 
 		for (ImageAsset moImage: theImageAssetList) {
 			moImage.image = ImageProcessing.cropImageWithNormalisedRect(moImage.image, cropRect);
@@ -235,12 +241,16 @@ public class ImageAssetGroup {
 	}
 
 	public ImageAsset getImageAsset(int n) {
-		if( checkLegalIndex(n)==false) return null;
+		if( !checkLegalIndex(n)) {
+			return null;
+		}
 		return theImageAssetList.get(n);
 	}
 
 	public BufferedImage getImage(int n) {
-		if( checkLegalIndex(n)==false) return null;
+		if( !checkLegalIndex(n)) {
+			return null;
+		}
 		if (getNumImageAssets() == 0) {
 			System.out.println("getImage:: ImageGroup has no images ");
 			return null;
@@ -254,8 +264,9 @@ public class ImageAssetGroup {
 	public BufferedImage getImage(String shortName) {
 		int n = 0;
 		for (ImageAsset thisImage : theImageAssetList) {
-			if (thisImage.name.contentEquals(shortName))
+			if (thisImage.name.contentEquals(shortName)) {
 				return thisImage.image;
+			}
 			n++;
 		}
 		System.out.println("ImageGroup:getImage - cannot find image called " + shortName);
@@ -264,7 +275,9 @@ public class ImageAssetGroup {
 
 
 	public String getImageAssetName(int n) {
-		if( checkLegalIndex(n)==false) return null;
+		if( !checkLegalIndex(n)) {
+			return null;
+		}
 		return theImageAssetList.get(n).name;
 
 	}
@@ -272,8 +285,9 @@ public class ImageAssetGroup {
 	public int getIndexOfImageAsset(String shortName) {
 		int n = 0;
 		for (ImageAsset thisImage : theImageAssetList) {
-			if (thisImage.name.contentEquals(shortName))
+			if (thisImage.name.contentEquals(shortName)) {
 				return n;
+			}
 			n++;
 		}
 		System.out.println("ImageGroup:getIndexOfImageShortName - cannot find image called " + shortName);
@@ -281,7 +295,7 @@ public class ImageAssetGroup {
 	}
 
 	public ArrayList<String> getImageAssetNamesList() {
-		ArrayList<String> imageNames = new ArrayList<String>();
+		ArrayList<String> imageNames = new ArrayList<>();
 		for (ImageAsset thisImage : theImageAssetList) {
 			imageNames.add(thisImage.name);
 		}
@@ -291,7 +305,9 @@ public class ImageAssetGroup {
 	public void  replaceImage(BufferedImage newImage, String newName, int n) {
 		// replaces an image within an existing image asset
 		// identified by index n
-		if( checkLegalIndex(n)==false) return;
+		if( !checkLegalIndex(n)) {
+			return;
+		}
 
 		ImageAsset moImg = theImageAssetList.get(n);
 		moImg.image = newImage;
@@ -306,7 +322,9 @@ public class ImageAssetGroup {
 
 	protected boolean checkLegalIndex(int i) {
 		int n = getNumImageAssets();
-		if(i >= 0 && i < n) return true;
+		if(i >= 0 && i < n) {
+			return true;
+		}
 		System.out.println("ImageAssetsGroup:checkLegalIndex - index out of range " + i + "from a group of " + n + " images");
 		return false;
 	}
@@ -338,11 +356,11 @@ public class ImageAssetGroup {
 
 	protected void setAllImageaTo_TYPE_INT_ARGB() {
 		// all image content items should be of type INT_ARGB for all the
-		// operations to work OK. This makes sure they are.		
+		// operations to work OK. This makes sure they are.
 		for (ImageAsset moImage : theImageAssetList) {
 			moImage.image = ImageProcessing.assertImageTYPE_INT_ARGB(moImage.image);
 			}
-		
+
 	}
 
 

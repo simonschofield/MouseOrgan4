@@ -22,11 +22,11 @@ public class Menu extends Widget {
 	int numItems = 0;
 	SimpleUI parentManager;
 	public boolean visible = false;
-    
+
 	boolean showLastSelection = false;
-	String lastSelection = ""; 
-	
-	ArrayList<String> itemList = new ArrayList<String>();
+	String lastSelection = "";
+
+	ArrayList<String> itemList = new ArrayList<>();
 
 	public Menu(String uiname, String uilabel, int x, int y, String[] menuItems, SimpleUI manager) {
 		super(uiname, uilabel, x, y, 60, 20);
@@ -35,7 +35,7 @@ public class Menu extends Widget {
 
 		setItems(menuItems);
 	}
-	
+
 	public void setItems(String[] menuItems) {
 		itemList.clear();
 		numItems = 0;
@@ -44,30 +44,31 @@ public class Menu extends Widget {
 			numItems++;
 		}
 	}
-	
+
 	public void showLastSelected() {
 		showLastSelection = true;
 		lastSelection = itemList.get(0);
 	}
-	
-	
+
+
 	public void setLastSelected(String s) {
-		
+
 		for(String item: itemList) {
-			
+
 			if(item.equals(s)) {
 				lastSelection = item;
 				System.out.println("found grid as a menu item");
 			}
 		}
 	}
-	
+
 	public String getLastSelected() {
 		return lastSelection;
 	}
-	
-	
-	
+
+
+
+	@Override
 	public void drawMe(VectorShapeDrawer drawer) {
 		// println("drawing menu " + title);
 		drawTitle(drawer);
@@ -89,10 +90,10 @@ public class Menu extends Widget {
 		drawer.setFillColor(SimpleUITextColor);
 		drawer.setTextStyle(6);
 
-		
 
-		
-		if (showLastSelection == false) {
+
+
+		if (!showLastSelection) {
 				drawer.drawText(this.UILabel, locX + textPad, locY + textPad + textSize);
 		    }else {
 		    	drawer.drawText(lastSelection, locX + textPad, locY + textPad + textSize);
@@ -143,12 +144,13 @@ public class Menu extends Widget {
 		drawer.setFillColor(cc);
 	}
 
+	@Override
 	public void handleMouseEvent(String mouseEventType, int x, int y) {
 		rollover = false;
 		mouseX = x;
 		mouseY = y;
 		// println("here1 " + mouseEventType);
-		if (isInMe(x, y) == false) {
+		if (!isInMe(x, y)) {
 			visible = false;
 			return;
 		}
@@ -157,7 +159,7 @@ public class Menu extends Widget {
 		}
 
 
-		if (mouseEventType.equals("mousePressed") && visible == false) {
+		if (mouseEventType.equals("mousePressed") && !visible) {
 
 			parentManager.setMenusOff();
 			visible = true;
@@ -185,13 +187,9 @@ public class Menu extends Widget {
 		return itemList.get(itemNum);
 	}
 
+	@Override
 	public boolean isInMe(int x, int y) {
-		if (isInTitle(x, y)) {
-			// println("mouse in title of " + title);
-
-			return true;
-		}
-		if (isInItems(x, y)) {
+		if (isInTitle(x, y) || isInItems(x, y)) {
 
 			return true;
 		}
@@ -200,18 +198,21 @@ public class Menu extends Widget {
 	}
 
 	boolean isInTitle(int x, int y) {
-		if (x >= this.locX && x < this.locX + this.widgetWidth && y >= this.locY && y < this.locY + this.widgetHeight)
+		if (x >= this.locX && x < this.locX + this.widgetWidth && y >= this.locY && y < this.locY + this.widgetHeight) {
 			return true;
+		}
 		return false;
 
 	}
 
 	boolean isInItems(int x, int y) {
-		if (visible == false)
+		if (!visible) {
 			return false;
+		}
 		if (x >= this.locX && x < this.locX + this.widgetWidth && y >= this.locY + this.widgetHeight
-				&& y < this.locY + (this.widgetHeight * (this.numItems + 1)))
+				&& y < this.locY + (this.widgetHeight * (this.numItems + 1))) {
 			return true;
+		}
 
 		return false;
 	}

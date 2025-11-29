@@ -11,7 +11,7 @@ import MOUtils.KeyValuePairList;
 //
 //class NPoint extends NAttributes implements SpatialIndexItem {
 /**
- * 
+ *
  */
 public class NPoint extends NAttributes {
 
@@ -21,7 +21,7 @@ public class NPoint extends NAttributes {
 	// Maybe placename
 	// The network types belong to the connecting edges
 
-	ArrayList<NEdge> connectedEdges = new ArrayList<NEdge>();
+	ArrayList<NEdge> connectedEdges = new ArrayList<>();
 
 	public NPoint( KeyValuePairList kvp, NNetwork ntwk ) {
 		super(TYPE_NPOINT, ntwk);
@@ -94,7 +94,7 @@ public class NPoint extends NAttributes {
 	void setWithKeyValuePairList(KeyValuePairList kvp) {
 		float x = kvp.getFloat("XLOC");
 		float y = kvp.getFloat("YLOC");
-		setID_Override( kvp.getInt("ID") ); 
+		setID_Override( kvp.getInt("ID") );
 		theNetwork.uniqueIDGenerator.grabID(getID());
 		coordinates = new PVector(x, y);
 		attributes = kvp;

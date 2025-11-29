@@ -19,7 +19,9 @@ public class Counter{
 	public int next(){
 		int thisNum = num;
 		num++;
-		if(num >= maxNum) num = 0;
+		if(num >= maxNum) {
+			num = 0;
+		}
 		return thisNum;
 	}
 

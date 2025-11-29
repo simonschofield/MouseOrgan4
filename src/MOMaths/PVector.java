@@ -26,7 +26,7 @@ import java.util.ArrayList;
 
 
 public class PVector implements Serializable{
-	
+
 
 	/**
 	 * ( begin auto-generated from PVector_x.xml )
@@ -144,7 +144,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Set the x, y (and maybe z) coordinates using a float[] array as the source.
-	 * 
+	 *
 	 * @param source array to copy from
 	 */
 	public PVector set(float[] source) {
@@ -288,7 +288,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Add two vectors
-	 * 
+	 *
 	 * @param v1 a vector
 	 * @param v2 another vector
 	 */
@@ -298,7 +298,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Add two vectors into a target vector
-	 * 
+	 *
 	 * @param target the target vector (if null, a new vector will be created)
 	 */
 	static public PVector add(PVector v1, PVector v2, PVector target) {
@@ -356,7 +356,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Subtract one vector from another
-	 * 
+	 *
 	 * @param v1 the x, y, and z components of a PVector object
 	 * @param v2 the x, y, and z components of a PVector object
 	 */
@@ -366,7 +366,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Subtract one vector from another and store in another vector
-	 * 
+	 *
 	 * @param target PVector in which to store the result
 	 */
 	static public PVector sub(PVector v1, PVector v2, PVector target) {
@@ -406,7 +406,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Multiply a vector by a scalar, and write the result into a target PVector.
-	 * 
+	 *
 	 * @param target PVector in which to store the result
 	 */
 	static public PVector mult(PVector v, float n, PVector target) {
@@ -439,7 +439,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Divide a vector by a scalar and return the result in a new vector.
-	 * 
+	 *
 	 * @param v the vector to divide by the scalar
 	 * @return a new vector that is v1 / n
 	 */
@@ -449,7 +449,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Divide a vector by a scalar and store the result in another vector.
-	 * 
+	 *
 	 * @param target PVector in which to store the result
 	 */
 	static public PVector div(PVector v, float n, PVector target) {
@@ -480,12 +480,12 @@ public class PVector implements Serializable{
 		float dz = z - v.z;
 		return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
 	}
-	
+
 	public float distSq(PVector v) {
 		float dx = x - v.x;
 		float dy = y - v.y;
 		float dz = z - v.z;
-		return (float) Math.abs(dx * dx + dy * dy + dz * dz);
+		return Math.abs(dx * dx + dy * dy + dz * dz);
 	}
 
 	public float distXY(PVector v) {
@@ -494,7 +494,7 @@ public class PVector implements Serializable{
 
 		return (float) Math.sqrt(dx * dx + dy * dy);
 	}
-	
+
 	public float distXZ(PVector v) {
 		float dx = x - v.x;
 		float dz = z - v.z;
@@ -677,7 +677,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Sets the magnitude of this vector, storing the result in another vector.
-	 * 
+	 *
 	 * @param target Set to null to create a new vector
 	 * @param len    the new length for the new vector
 	 * @return a new vector (if target was null), or target
@@ -705,7 +705,7 @@ public class PVector implements Serializable{
 		return angle;
 	}
 
-	
+
 
 	/**
 	 * ( begin auto-generated from PVector_rotate.xml )
@@ -752,7 +752,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Linear interpolate between two vectors (returns a new PVector object)
-	 * 
+	 *
 	 * @param v1 the vector to start from
 	 * @param v2 the vector to lerp to
 	 */
@@ -764,7 +764,7 @@ public class PVector implements Serializable{
 
 	/**
 	 * Linear interpolate the vector to x,y,z values
-	 * 
+	 *
 	 * @param x the x component to lerp to
 	 * @param y the y component to lerp to
 	 * @param z the z component to lerp to
@@ -775,12 +775,12 @@ public class PVector implements Serializable{
 		this.z = MOMaths.lerp(amt, this.z, z);
 		return this;
 	}
-	
-	
+
+
 	float pNorm(PVector p, PVector startPt, PVector endPt){
-	    // return the normalised value of the p as it journeys from startP, to endP, 
+	    // return the normalised value of the p as it journeys from startP, to endP,
 	    // based on distance between
-	    // so returns 0 when p == startPt, 
+	    // so returns 0 when p == startPt,
 	    // return 1 when p == endPt
 	    // but can return a value <0 easily
 	    float largestDist = startPt.dist(endPt);
@@ -801,19 +801,21 @@ public class PVector implements Serializable{
 	 * @param v2 the x, y, and z components of a PVector
 	 * @brief Calculate and return the angle between two vectors
 	 */
-	
-	
-	
-	
+
+
+
+
 	static public float angleBetween(PVector v1, PVector v2) {
 
 		// We get NaN if we pass in a zero vector which can cause problems
 		// Zero seems like a reasonable angle between a (0,0,0) vector and something
 		// else
-		if (v1.x == 0 && v1.y == 0 && v1.z == 0)
+		if (v1.x == 0 && v1.y == 0 && v1.z == 0) {
 			return 0.0f;
-		if (v2.x == 0 && v2.y == 0 && v2.z == 0)
+		}
+		if (v2.x == 0 && v2.y == 0 && v2.z == 0) {
 			return 0.0f;
+		}
 
 		double dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 		double v1mag = Math.sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
@@ -890,34 +892,34 @@ public class PVector implements Serializable{
 		result = 31 * result + Float.floatToIntBits(z);
 		return result;
 	}
-	
-	
+
+
 	public static PVector ZERO() {
 		return new PVector(0,0,0);
 	}
-	
+
 	public static PVector UP() {
 		return new PVector(0,1,0);
 	}
-	
+
 	public PVector scale(float sx, float sy) {
 		return scale(sx,sy,1);
 	}
-	
+
 	public PVector scale(float sx, float sy, float sz) {
 		return new PVector(x*sx,y*sy,z*sz);
 	}
-	
+
 	public float getZ() { return z; }
-	
+
 	public static ArrayList<PVector> deepCopy(ArrayList<PVector> in) {
-		ArrayList<PVector> deepCopy = new ArrayList<PVector>();
+		ArrayList<PVector> deepCopy = new ArrayList<>();
 		for(PVector p: in) {
 			deepCopy.add(p.copy());
 		}
 		return deepCopy;
 	}
-	
+
 	public static PVector[] deepCopy(PVector[] in) {
 		PVector[] deepCopy = new PVector[in.length];
 		for(int n = 0; n < in.length; n++) {
@@ -925,6 +927,6 @@ public class PVector implements Serializable{
 		}
 		return deepCopy;
 	}
-	
-	
+
+
 }

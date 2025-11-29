@@ -18,113 +18,113 @@ import MOMaths.Vertices2;
 //
 //
 public class VectorShapeDrawer{
-  
-  Graphics2D graphics2D; 
-  
+
+  Graphics2D graphics2D;
+
 
   // the current drawing filling status
   VectorDrawingStyle currentDrawingStyle = new VectorDrawingStyle();
   VectorDrawingStyle cachedDrawingStyle = new VectorDrawingStyle();
-  
 
-  
-  
+
+
+
   public VectorShapeDrawer(){
-   
-   
+
+
   }
-  
+
   public VectorShapeDrawer(Graphics2D g){
-	  setGraphicContext(g);   
+	  setGraphicContext(g);
   }
-  
+
   public void setGraphicContext(Graphics2D g){
     graphics2D = g;
     setTextStyle(8);
   }
-  
+
   public Color getFillColor() {
 	  return currentDrawingStyle.fillColor;
   }
-  
+
   public void setFillColor(Color fillC) {
 	  currentDrawingStyle.setFillColor( fillC);
   }
-  
+
   public void setStrokeColor(Color strokeC) {
 	  currentDrawingStyle.setStrokeColor( strokeC);
   }
-  
+
   public void setStrokeWeight(float lineWt) {
 	  currentDrawingStyle.setStrokeWeight( lineWt);
   }
-  
+
   public void setDrawingStyle(Color fillC, Color lineC, float lineWt){
-    
+
 	currentDrawingStyle.setStyle( fillC, lineC, lineWt);
     setStrokeStyle(currentDrawingStyle.strokeWeight);
-    
+
     //sets the processing drawing style to the settings of this shape
     //handles a bug in processing where an alpha of 0 results in a solid fill
   }
-  
+
   public void setDrawingStyle(Color fillC, Color lineC, float lineWt, float[] dashPattern){
-	    
+
 		currentDrawingStyle.setStyle( fillC, lineC, lineWt);
 	    setStrokeStyle(currentDrawingStyle.strokeWeight, dashPattern);
-	    
+
 	    //sets the processing drawing style to the settings of this shape
 	    //handles a bug in processing where an alpha of 0 results in a solid fill
 	  }
-  
+
   public void setTextStyle(int size) {
 	  currentDrawingStyle.textSize = size;
-	  
+
   }
-  
+
   public void cacheCurrentDrawingStyle() {
 	  cachedDrawingStyle =  currentDrawingStyle.copy();
   }
-  
+
   public void restoreCachedDrawingStyle() {
 	  currentDrawingStyle = cachedDrawingStyle.copy();
-	  
+
   }
-  
+
   public Color copyColor(Color c) {
 	  return new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
-	  
+
   }
-  
+
   public void setStrokeCapJoin(int cap, int join) {
 	  currentDrawingStyle.strokeCap = cap;
 	  currentDrawingStyle.strokeJoin = join;
-	  
+
   }
-  
+
   private void setStrokeStyle(float w){
 	  //currentDrawingStyle.strokeStyle = new BasicStroke(w);
 	  currentDrawingStyle.strokeStyle = new BasicStroke(w, currentDrawingStyle.strokeCap, currentDrawingStyle.strokeJoin, 1.0f, null, 0.0f);
 	  graphics2D.setStroke(currentDrawingStyle.strokeStyle);
 	  }
-  
- 
-  
-  
+
+
+
+
   private void setStrokeStyle(float w, float[] dashPattern){
 	  //currentDrawingStyle.strokeStyle = new BasicStroke(w);
 	  float weight =  currentDrawingStyle.strokeWeight;
-	    currentDrawingStyle.strokeStyle = new BasicStroke(weight, 
-	    	currentDrawingStyle.strokeCap, 
-	    	currentDrawingStyle.strokeJoin, 
-	        1.0f, 
+	    currentDrawingStyle.strokeStyle = new BasicStroke(weight,
+	    	currentDrawingStyle.strokeCap,
+	    	currentDrawingStyle.strokeJoin,
+	        1.0f,
 	        dashPattern,
 	        0f);
-	      
+
 	   graphics2D.setStroke(currentDrawingStyle.strokeStyle);
 	  }
-  
-  
+
+
   public void drawDrawnShape(VectorShape ds) {
 	  cacheCurrentDrawingStyle();
 	  currentDrawingStyle = ds.style.copy();
@@ -138,31 +138,31 @@ public class VectorShapeDrawer{
 	  }
 	  restoreCachedDrawingStyle();
   }
-  
-  
+
+
   public void drawEllipse( float x, float y, float w, float h){
     Shape el = new Ellipse2D.Float(x,y, w,h);
     drawShape(el);
   }
-  
+
   public void drawLine( float x1, float y1, float x2, float y2){
     Shape ln = new Line2D.Float(x1,y1,x2,y2);
     drawShape(ln);
   }
-  
-  
+
+
   public void drawRect(Rect r) {
-	  drawRect( r.left, r.top, r.getWidth(), r.getHeight()); 
+	  drawRect( r.left, r.top, r.getWidth(), r.getHeight());
   }
-  
+
   public void drawRect( float x1, float y1, float w, float h){
    Shape r = new Rectangle.Float(x1,y1,w,h);
    drawShape(r);
   }
-  
-  
-  
-  
+
+
+
+
   public void drawText(String str, int x, int y) {
 	  Font font = new Font("Arial", Font.PLAIN, currentDrawingStyle.textSize);
 	  graphics2D.setColor(currentDrawingStyle.fillColor);
@@ -171,20 +171,20 @@ public class VectorShapeDrawer{
   }
 
   public void drawVertices2(Vertices2 v){
-	  
+
 	  //System.out.println("drawVertices2 is closed " + v.isClosed());
-	  
-	  
+
+
        Path2D pth = makePath2D(v, v.isClosed());
        drawShape(pth);
   }
-  
+
   private Path2D makePath2D(Vertices2 v, boolean closed) {
     Path2D path = new Path2D.Float();
     int numPoints = v.getNumVertices();
     for (int i = 0; i < numPoints; i++) {
       PVector p = v.get(i);
-      
+
       if (i == 0) {
         path.moveTo(p.x, p.y);
       }
@@ -192,16 +192,18 @@ public class VectorShapeDrawer{
         path.lineTo(p.x, p.y);
       }
     }
-    if(closed) path.closePath();
+    if(closed) {
+		path.closePath();
+	}
     return path;
    }
-  
-  
+
+
   //////////////////////////////////////////////////////////
   //
   // setting the graphics2D drawing style
   //
-  
+
    private void drawShape(Shape s){
     if(currentDrawingStyle.fillVisible){
       graphics2D.setColor(currentDrawingStyle.fillColor);
@@ -212,8 +214,8 @@ public class VectorShapeDrawer{
       graphics2D.draw(s);
     }
   }
-  
- 
+
+
   /*
    void setLineStyleDefault() {
 	   // sets the line style to have no dashes, just the default
@@ -222,19 +224,19 @@ public class VectorShapeDrawer{
 	   graphics2D.setStroke(currentDrawingStyle.strokeStyle);
    }
 
-  
+
   void setLineStyleDash(float[] dashPattern, float offset){
-    
+
     float weight =  currentDrawingStyle.strokeWeight;
-    currentDrawingStyle.strokeStyle = new BasicStroke(weight, 
-        BasicStroke.CAP_BUTT, 
-        BasicStroke.JOIN_ROUND, 
-        1.0f, 
+    currentDrawingStyle.strokeStyle = new BasicStroke(weight,
+        BasicStroke.CAP_BUTT,
+        BasicStroke.JOIN_ROUND,
+        1.0f,
         dashPattern,
         offset);
-      
+
     graphics2D.setStroke(currentDrawingStyle.strokeStyle);
   }*/
-  
+
 
 }

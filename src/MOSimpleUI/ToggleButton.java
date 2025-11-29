@@ -15,6 +15,7 @@ public class ToggleButton extends ButtonBaseClass {
 		UIComponentType = "ToggleButton";
 	}
 
+	@Override
 	public void handleMouseEvent(String mouseEventType, int x, int y) {
 		if (isInMe(x, y) && (mouseEventType.equals("mouseMoved") || mouseEventType.equals("mousePressed"))) {
 			rollover = true;
@@ -35,6 +36,7 @@ public class ToggleButton extends ButtonBaseClass {
 		selected = !selected;
 	}
 
+	@Override
 	public void drawMe(VectorShapeDrawer drawer) {
 		if (rollover) {
 			drawer.setDrawingStyle(SimpleUIWidgetRolloverColor, new Color(0, 0, 0, 255), 1);

@@ -2,12 +2,10 @@ package MOImage;
 
 import java.awt.Color;
 
-import MOMaths.MOMaths;
-
 public class MOPackedColor {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// pixel transforms
-	//	
+	//
 
 	static int[] unpackARGB(int packedCol) {
 		int[] col = new int[4];
@@ -69,6 +67,6 @@ public class MOPackedColor {
 		return argb;
 	}
 
-	
+
 
 }

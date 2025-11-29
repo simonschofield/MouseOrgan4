@@ -53,10 +53,10 @@ public class Widget {
 	// needed by some widgets but not all
 	boolean selected = false;
 
-	
-	
-	
-	
+
+
+
+
 	public Widget(String uiname) {
 
 		UIManagerName = uiname;
@@ -84,8 +84,9 @@ public class Widget {
 	}
 
 	public boolean isInMe(int x, int y) {
-		if (bounds.isPointInside(x, y))
+		if (bounds.isPointInside(x, y)) {
 			return true;
+		}
 		return false;
 	}
 

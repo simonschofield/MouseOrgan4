@@ -9,7 +9,7 @@ import MOUtils.MOStringUtils;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //DirectoryFileNameScanner =  improved version of  DirectoryItemScanner
-//abstract DirectoryItemGroup class. 
+//abstract DirectoryItemGroup class.
 //deals with collecting the names of a type of item (.png, .svg etc.) within the specified directory
 public class DirectoryFileNameScanner  {
 
@@ -21,26 +21,26 @@ public class DirectoryFileNameScanner  {
 	private Integer cropFileNameListLow = 0;
 	private Integer cropFileNameListHigh = null;
 
-	private ArrayList<String> fullPathAndFileNamesList = new ArrayList<String>();
-	
+	private ArrayList<String> fullPathAndFileNamesList = new ArrayList<>();
 
-	
-	
+
+
+
 	public DirectoryFileNameScanner(String targetDirectory) {
 		setTargetDirectory( targetDirectory);
 	}
-	
-	
+
+
 	public DirectoryFileNameScanner(String targetDirectory, String fileTp) {
 		setTargetDirectory( targetDirectory);
 		setFileType(fileTp);
 	}
-	
+
 	public void setTargetDirectory(String targetDirectory) {
 		directoryPath = targetDirectory;
 		cacheFileNames();
 	}
-	
+
 	public void setFileType(String fileTp) {
 		fileType = fileTp;
 		cacheFileNames();
@@ -50,13 +50,15 @@ public class DirectoryFileNameScanner  {
 		fileNameContains = fileStrContains;
 		cacheFileNames();
 	}
-	
+
 	public void keep(String[] keepTheseShortFileNames) {
-		if(keepTheseShortFileNames == null) return;
-		
+		if(keepTheseShortFileNames == null) {
+			return;
+		}
+
 		ArrayList<String> shortNameList = getShortNameList();
-		ArrayList<String> keptFullPathAndFileNamesList  = new ArrayList<String>();
-		
+		ArrayList<String> keptFullPathAndFileNamesList  = new ArrayList<>();
+
 		for(int n = 0; n < shortNameList.size(); n++) {
 			String thisShortName = shortNameList.get(n);
 			if(MOStringUtils.stringListContains(keepTheseShortFileNames, thisShortName)) {
@@ -66,26 +68,28 @@ public class DirectoryFileNameScanner  {
 		}
 		fullPathAndFileNamesList = keptFullPathAndFileNamesList;
 	}
-	
+
 	public void remove(String[] removeTheseShortFileNames) {
-		if(removeTheseShortFileNames == null) return;
-		
+		if(removeTheseShortFileNames == null) {
+			return;
+		}
+
 		ArrayList<String> shortNameList = getShortNameList();
-		ArrayList<String> keptFullPathAndFileNamesList  = new ArrayList<String>();
-		
+		ArrayList<String> keptFullPathAndFileNamesList  = new ArrayList<>();
+
 		for(int n = 0; n < shortNameList.size(); n++) {
 			String thisShortName = shortNameList.get(n);
-			if(MOStringUtils.stringListContains(removeTheseShortFileNames, thisShortName)==false) {
+			if(!MOStringUtils.stringListContains(removeTheseShortFileNames, thisShortName)) {
 				String keepFullPathAndFileName = fullPathAndFileNamesList.get(n);
 				keptFullPathAndFileNamesList.add(keepFullPathAndFileName);
 			}
 		}
 		fullPathAndFileNamesList = keptFullPathAndFileNamesList;
-		
-		
-		
+
+
+
 	}
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	// is applied to those already found by filters set so far
 	public void setFileListRange(Integer lo, Integer hi) {
@@ -93,34 +97,34 @@ public class DirectoryFileNameScanner  {
 		cropFileNameListHigh = hi;
 		cacheFileNames();
 	}
-	
-	
-	
+
+
+
 
 	public String getTargetDirectory() {
 		return directoryPath;
 	}
-	
-	
+
+
 
 	public ArrayList<String> getShortNameList() {
-		ArrayList<String> shortFileNamesList = new ArrayList<String>();
+		ArrayList<String> shortFileNamesList = new ArrayList<>();
 		for(String fullPathAndFileName: fullPathAndFileNamesList) {
-			
-			File f = new File(fullPathAndFileName); 
+
+			File f = new File(fullPathAndFileName);
 			String shortFileNameWithExtension = f.getName();
 			int strlen = shortFileNameWithExtension.length();
 			String fileNameOnly = shortFileNameWithExtension.substring(0, strlen - 4);
 			shortFileNamesList.add(fileNameOnly);
-			
+
 		}
 		return shortFileNamesList;
 	}
-	
-	
 
-	
-	
+
+
+
+
 	public void copyConstraints(DirectoryFileNameScanner otherScanner) {
 		this.fileType = otherScanner.fileType;
 		this.fileNameContains = otherScanner.fileNameContains;
@@ -136,7 +140,7 @@ public class DirectoryFileNameScanner  {
 	public int getNumFiles() {
 		return fullPathAndFileNamesList.size();
 	}
-	
+
 	boolean isFileNamesFound() {
 		if( fullPathAndFileNamesList.size()==0 ) {
 			System.out.println("DirectoryFileNameScanner:: no files matching criteria in directory " + directoryPath );
@@ -144,41 +148,41 @@ public class DirectoryFileNameScanner  {
 		}
 		return true;
 	}
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 
 	////////////////////////////////////////////////////////////////////////////
 	// Private methods
-	
-	
-	
+
+
+
 	private void cacheFileNames() {
 		collectFilesNamesWithFilters();
 		cropFileList();
 	}
-	
-	
+
+
 	private void cropFileList() {
 		int numExistingFiles = getNumFiles();
 		Integer low = cropFileNameListLow;
 		Integer high = cropFileNameListHigh;
-		
+
 		if(low == null) {
 			low = 0;
 		}
-		
+
 		if(high == null) {
 			high = numExistingFiles;
-		} 
-		
+		}
+
 		low = MOMaths.constrain(low, 0, numExistingFiles-1);
 		high = MOMaths.constrain(high, 1, numExistingFiles);
 
-		ArrayList<String> tempFullPathAndFileNamesList = new ArrayList<String>();
+		ArrayList<String> tempFullPathAndFileNamesList = new ArrayList<>();
 		//ArrayList<String> tempShortFileNamesList = new ArrayList<String>();
 
 		for(int n = low; n < high; n++) {
@@ -189,77 +193,79 @@ public class DirectoryFileNameScanner  {
 		}
 		fullPathAndFileNamesList = tempFullPathAndFileNamesList;
 		//shortFileNamesList = tempShortFileNamesList;
-		
-		
+
+
 		// will generate a warning if no files are resultant
 		isFileNamesFound();
 	}
-	
-	
-	
+
+
+
 
 	private void collectFilesNamesWithFilters() {
 		if(directoryPath.equals("")) {
 			System.out.println("DirectoryFileNameScanner:: target directory is not defined");
 			return;
 		}
-		
-		fullPathAndFileNamesList = new ArrayList<String>();
+
+		fullPathAndFileNamesList = new ArrayList<>();
 		//shortFileNamesList = new ArrayList<String>();
 		//System.out.println("cacheFileNames: dir path "+ directoryPath);
 		File folder = new File(directoryPath);
-		
-		if( folder.exists() == false ) {
+
+		if( !folder.exists() ) {
 			System.out.println("DirectoryFileNameScanner:: target directory does not exists" + directoryPath );
 			return;
 		}
-		
-		
+
+
 		File[] listOfFiles = folder.listFiles();
 
-		for (int i = 0; i < listOfFiles.length; i++) {
-			if (listOfFiles[i].isFile()) {
-				String fullPathAndName = listOfFiles[i].getAbsolutePath();
-				String shortFileNameWithExtension = listOfFiles[i].getName();
+		for (File listOfFile : listOfFiles) {
+			if (listOfFile.isFile()) {
+				String fullPathAndName = listOfFile.getAbsolutePath();
+				String shortFileNameWithExtension = listOfFile.getName();
 				//if (fileName.endsWith(fileEndsWith) || isWildCard(fileEndsWith) ) {
 				if (fileNameMeetsCriteria(shortFileNameWithExtension)) {
 					fullPathAndFileNamesList.add(fullPathAndName);
 				}
-			} else if (listOfFiles[i].isDirectory()) {
+			} else if (listOfFile.isDirectory()) {
 				// ignore
 			}
 		}
-		
+
 		// will generate a warning if no files are found
 		isFileNamesFound();
-		
+
 	}
-	
+
 
 	private boolean fileNameMeetsCriteria(String shortFileNameWithExtension) {
 
 		// test ending
-		if (isWildCard(fileType) == false) {
+		if (!isWildCard(fileType)) {
 			// if the extension is NOT  the upper OR lower case versions of the fileType string return false
-			if ( shortFileNameWithExtension.endsWith(fileType.toLowerCase())==false &&
-				 shortFileNameWithExtension.endsWith(fileType.toUpperCase())==false     ) return false;
+			if ( !shortFileNameWithExtension.endsWith(fileType.toLowerCase()) &&
+				 !shortFileNameWithExtension.endsWith(fileType.toUpperCase())     ) {
+				return false;
+			}
 		}
 		// test contains
-		if (isWildCard(fileNameContains) == false) {
-			if (shortFileNameWithExtension.contains(fileNameContains) == false)
+		if (!isWildCard(fileNameContains)) {
+			if (!shortFileNameWithExtension.contains(fileNameContains)) {
 				return false;
+			}
 		}
 		return true;
 	}
 
 	private boolean isWildCard(String s) {
-		if (s == null)
+		if ((s == null) || s.contentEquals("*") || s.contentEquals("")) {
 			return true;
-		if (s.contentEquals("*") || s.contentEquals(""))
-			return true;
+		}
 		return false;
 	}
-	
+
 	public void printToConsoleShortFileNames() {
 		// for debugging only
 		ArrayList<String> shortFileNamesList = this.getShortNameList();
@@ -268,6 +274,6 @@ public class DirectoryFileNameScanner  {
 		}
 		System.out.println();
 	}
-	
+
 
 }

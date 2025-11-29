@@ -23,15 +23,12 @@ import java.awt.image.ShortLookupTable;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-
 
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
-import MOUtils.Histogram;
 
 
 /**
@@ -56,13 +53,13 @@ public class ImageProcessing {
 	public static final int	INTERPOLATION_BILINEAR = 1;
 	public static final int	INTERPOLATION_BICUBIC = 2;
 
-	
+
 
 
 	static int interpolationQuality = INTERPOLATION_BICUBIC;
 	static int interpolationQualityRestore = interpolationQuality;
-	
-	
+
+
 	public static void setInterpolationQuality(int q) {
 		// this is set by the user
 		interpolationQualityRestore = interpolationQuality;
@@ -157,34 +154,36 @@ public class ImageProcessing {
 	    public static final int TYPE_BYTE_INDEXED = 13;
 		 */
 		int t = image.getType();
-		if(t==2 || t==3 || t==6 || t==7) return true;
+		if(t==2 || t==3 || t==6 || t==7) {
+			return true;
+		}
 		return false;
 	}
-	
+
 	public static BufferedImage createFloatBufferedImage(int w, int h)
 	{
 		ComponentSampleModel sm = new ComponentSampleModel(  DataBuffer.TYPE_FLOAT, w, h, 1, w, new int[] {0});
-		
+
 		DataBuffer db = new DataBufferFloat(w * h);
 		WritableRaster wr = Raster.createWritableRaster(sm, db, null);
 		ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
 		ComponentColorModel cm = new ComponentColorModel( cs, false, true, Transparency.OPAQUE, DataBuffer.TYPE_FLOAT);
 		return new BufferedImage(cm, wr, true, null);
-	} 
+	}
 
 	public static BufferedImage assertImageTYPE_INT_ARGB(BufferedImage source) {
 		// this is the preferred color model for the MouseOrgan system for output images and content items
 		if(source.getType() != BufferedImage.TYPE_INT_ARGB) {
 			return ImageProcessing.convertColorModel(source, BufferedImage.TYPE_INT_ARGB);
-		}		
+		}
 		return source;
 	}
-	
+
 	public static BufferedImage assertImageTYPE_BYTE_GRAY(BufferedImage source) {
 		// this is the preferred color model for the MouseOrgan system for output images and content items
 		if(source.getType() != BufferedImage.TYPE_BYTE_GRAY) {
 			return ImageProcessing.convertColorModel(source, BufferedImage.TYPE_BYTE_GRAY);
-		}		
+		}
 		return source;
 	}
 
@@ -197,7 +196,9 @@ public class ImageProcessing {
 	}
 
 	public static BufferedImage convertColorModel(BufferedImage src, int colorModel) {
-		if(src.getType() == colorModel) return src;
+		if(src.getType() == colorModel) {
+			return src;
+		}
 
 		BufferedImage img= new BufferedImage(src.getWidth(), src.getHeight(), colorModel);
 		Graphics2D g2d = img.createGraphics();
@@ -213,7 +214,7 @@ public class ImageProcessing {
 		int hig = Math.min(src.getHeight(), (int)r.getHeight());
 
 		BufferedImage subImg = src.getSubimage((int)r.left,(int)r.top, wid, hig);
-		return subImg;  
+		return subImg;
 	}
 
 
@@ -240,7 +241,7 @@ public class ImageProcessing {
 		compositeImage_ChangeTarget(img, imgOut, left, top, 1);
 		return imgOut;
 	}
-	
+
 	public static BufferedImage trimImage(BufferedImage img, int left, int top, int right, int bottom) {
 		// removes pixel border defined by trim amount in pixels
 		int newWidth = img.getWidth()- (left + right);
@@ -249,9 +250,9 @@ public class ImageProcessing {
 			System.out.println("ImageProcessing trim - illegal trim resulting in width and height of " + newWidth + " " + newHeight + ". Returning untrimmed image");
 			return img;
 		}
-		
+
 		Rect trimRect = new Rect(left, top, newWidth, newHeight);
-		
+
 		//System.out.println("ImageProcessing trim - new rect " + trimRect.toStr());
 		return deepCropImage(img, trimRect);
 	}
@@ -259,7 +260,7 @@ public class ImageProcessing {
 
 	public static BufferedImage clearImage(BufferedImage img) {
 		Color blank = new Color(0,0,0,0);
-		return fill(img,blank); 
+		return fill(img,blank);
 	}
 
 	public static BufferedImage fill(BufferedImage img, Color c) {
@@ -308,12 +309,12 @@ public class ImageProcessing {
 
 	/**
 	 * Used to "chop-out" bits of image (the source) using the alpha of another image (the mask), so the source image is eroded. Probably works best if both images are
-	 * already the same size, but can handle differently sized images.  
+	 * already the same size, but can handle differently sized images.
 	 * @param source - the image to be alpha-cropped. This remains unchanged by the method, a copy is returned
 	 * @param mask -  the image containing the alpha mask to be applied to the source image
 	 * @param x - an offset of the mask
 	 * @param y - an offset of the mask
-	 * @param compositeMode - 	AlphaComposite.DST_OUT preserves the parts of source which are overlaid by transparent alpha values in the mask, 
+	 * @param compositeMode - 	AlphaComposite.DST_OUT preserves the parts of source which are overlaid by transparent alpha values in the mask,
 	 * 							AlphaComposite.DST_IN preserves those parts under the solid parts of the mask
 	 * @return - a copy the alpha-cropped source image
 	 */
@@ -332,21 +333,21 @@ public class ImageProcessing {
 		g2d.dispose();
 		return source_copy;
 	}
-	
+
 	/**
 	 * Used to "chop-out" bits of image (the source) using the alpha of another image (the mask), so the source image is eroded. Size the mask to be the same size as the source
 	 * then applies AlphaComposite.DST_OUT, to erode those parts in the source which are solid in the mask
 	 * @param source - the image to be alpha-cropped. This remains unchanged by the method, a copy is returned
 	 * @param mask -  the image containing the alpha mask to be applied to the source image
 	 * @param extraOverlap -  to avoid edge pixels in the source remaining uncropped by a resize of the mask, we suggest using a border of around 4 pixels
-	 
+
 	 * @return - a copy the alpha-cropped source image
 	 */
 	public static BufferedImage getMaskedImage(BufferedImage source,  BufferedImage mask, int extraOverlap) {
-		
-		
-		int newMaskWidth = (int)source.getWidth()+extraOverlap*2;
-		int newMaskHeight = (int)source.getHeight()+extraOverlap*2;
+
+
+		int newMaskWidth = source.getWidth()+extraOverlap*2;
+		int newMaskHeight = source.getHeight()+extraOverlap*2;
 		BufferedImage resizedMask = resizeTo(mask, newMaskWidth, newMaskHeight);
 		return getMaskedImage(source,  resizedMask, -extraOverlap, -extraOverlap, AlphaComposite.DST_OUT);
 	}
@@ -362,8 +363,8 @@ public class ImageProcessing {
 	 */
 	public static BufferedImage replaceVisiblePixels(BufferedImage source,  BufferedImage toReplace) {
 
-		int newMaskWidth = (int)source.getWidth();
-		int newMaskHeight = (int)source.getHeight();
+		int newMaskWidth = source.getWidth();
+		int newMaskHeight = source.getHeight();
 		BufferedImage resizedMask = resizeTo(toReplace, newMaskWidth, newMaskHeight);
 
 		return getMaskedImage(source,  resizedMask, 0, 0, AlphaComposite.SRC_IN);
@@ -372,7 +373,7 @@ public class ImageProcessing {
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Used in masked effects
-	// The idea is that you have a greyscale mask that represents the parts of the 
+	// The idea is that you have a greyscale mask that represents the parts of the
 	// source image you want to affect.The greysale mask can be made any size, and is resized to match the source image.
 	// The mask can be any image format, as it is converted to TYPE_INT_ARGB before use. (The green channel is used)
 	// This method returns this masked image. You submit the masked-image to the effect, and
@@ -387,7 +388,7 @@ public class ImageProcessing {
 		int width = sourceImage.getWidth();
 		int height = sourceImage.getHeight();
 
-		if( isSameDimensions(sourceImage, mask) == false ) {
+		if( !isSameDimensions(sourceImage, mask) ) {
 			mask = resizeTo(mask, width, height);
 		}
 
@@ -406,7 +407,7 @@ public class ImageProcessing {
 		for (int i = 0; i < sourceImagePixels.length; i++) {
 
 			int[] exisitingCol = MOPackedColor.unpackARGB(sourceImagePixels[i]);
-			int maskAlpha = MOPackedColor.getGreen(maskPixels[i]); 
+			int maskAlpha = MOPackedColor.getGreen(maskPixels[i]);
 			int newAlpha = Math.min(exisitingCol[0], maskAlpha);
 			imageOutPixels[i] = MOPackedColor.packARGB(newAlpha, exisitingCol[1], exisitingCol[2], exisitingCol[3]);
 		}
@@ -427,9 +428,9 @@ public class ImageProcessing {
 
 	        Footnote: when the grayscale was converted to ARGB I expected the RGB
 	        bands to be identical. After some testing the bands were found to be
-		 *near* identical; it seems a color conversion from grayscale to 
-	        RGB is not as simple as a bulk memory copy. The differences are low 
-	        enough that no one would've noticed a difference had the either the 
+		 *near* identical; it seems a color conversion from grayscale to
+	        RGB is not as simple as a bulk memory copy. The differences are low
+	        enough that no one would've noticed a difference had the either the
 	        red or blue band been chosen over the green band.
 		 */
 		final float[][] matrix = new float[][] {
@@ -446,8 +447,8 @@ public class ImageProcessing {
 
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	// value get 
-	//	
+	// value get
+	//
 	public static float getValue01Clamped(BufferedImage src, int x, int y) {
 		x = MOMaths.constrain(x, 0, src.getWidth()-1);
 		y = MOMaths.constrain(y, 0, src.getHeight()-1);
@@ -460,12 +461,12 @@ public class ImageProcessing {
 	}
 
 
-	
+
 
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// Geometric transforms
-	//	
+	//
 	public static BufferedImage rotateImage(BufferedImage originalImage, float degree) {
 		int w = originalImage.getWidth();
 		int h = originalImage.getHeight();
@@ -497,11 +498,11 @@ public class ImageProcessing {
 		if(interpolationQuality>INTERPOLATION_NEARESTNEIGHBOR && inx==iny && inx < 1) {
 			return scaleImage_Progressive(originalImage, inx);
 		}
-		
+
 		if(interpolationQuality>INTERPOLATION_NEARESTNEIGHBOR && (inx <= 0.5f || iny <= 0.5)) {
 			return scaleImage_NonUniform_ProgressiveUniformPreScale(originalImage, inx, iny);
 		}
-		
+
 		return scaleImage_SinglePass(originalImage, inx, iny);
 	}
 
@@ -517,7 +518,7 @@ public class ImageProcessing {
 
 	}
 
-	
+
 
 	public static BufferedImage scaleImageToFitRect(BufferedImage img, Rect rect) {
 		// scales the image uniformly to fit the rect - so no distortion in x or y
@@ -546,7 +547,9 @@ public class ImageProcessing {
 	{
 		int w = originalImage.getWidth();
 		int h = originalImage.getHeight();
-		if(w==scaledWidth && h==scaledHeight) return originalImage;
+		if(w==scaledWidth && h==scaledHeight) {
+			return originalImage;
+		}
 
 		float scaleX = scaledWidth/(float)w;
 		float scaleY = scaledHeight/(float)h;
@@ -557,7 +560,7 @@ public class ImageProcessing {
 	public static BufferedImage scaleToTarget(BufferedImage originalImage, BufferedImage target) {
 		return resizeTo(originalImage, target.getWidth(),  target.getHeight());
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// private Scale image methods
 	//
@@ -568,23 +571,27 @@ public class ImageProcessing {
 	private static BufferedImage scaleImage_SinglePass(BufferedImage originalImage, float inx, float iny) {
 		// if inx != iny the you have to use this
 		//System.out.println("single pass scale");
-		
-		
-		
-		
+
+
+
+
 		int w = originalImage.getWidth();
 		int h = originalImage.getHeight();
 
 		int scaledWidth = (int) (w * inx);
 		int scaledHeight = (int) (h * iny);
 
-		if(scaledWidth <= 0) scaledWidth = 1;
-		if(scaledHeight <= 0) scaledHeight = 1;
+		if(scaledWidth <= 0) {
+			scaledWidth = 1;
+		}
+		if(scaledHeight <= 0) {
+			scaledHeight = 1;
+		}
 
-		
+
 		//BufferedImage scaledImage = (BufferedImage) originalImage.getScaledInstance(scaledWidth, scaledHeight, originalImage.getType());
-				
-				
+
+
 		BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, originalImage.getType());
 		Graphics2D g = scaledImage.createGraphics();
 		setInterpolationQuality(g);
@@ -592,12 +599,12 @@ public class ImageProcessing {
 		g.dispose(); // release used resources before g is garbage-collected
 		return scaledImage;
 	}
-	
+
 
 	private static BufferedImage scaleImage_Progressive(BufferedImage before, float scale ) {
 		// Multi-step rescale operation
-		// This technique is described in Chris Campbell’s blog The Perils of Image.getScaledInstance(). As Chris mentions, when 
-		// downscaling to something less than factor 0.5, you get the best result by doing multiple downscaling with a minimum factor of 0.5 
+		// This technique is described in Chris Campbell’s blog The Perils of Image.getScaledInstance(). As Chris mentions, when
+		// downscaling to something less than factor 0.5, you get the best result by doing multiple downscaling with a minimum factor of 0.5
 		// (in other words: each scaling operation should scale to maximum half the size).
 		// Currently can only work with uniform scaling
 		//System.out.println("progressive scale");
@@ -619,12 +626,12 @@ public class ImageProcessing {
 			ratio = h > w ? longestSideLength.doubleValue() / h : longestSideLength.doubleValue() / w;
 		}
 		BufferedImage after = scaleImage_SinglePass(before,ratio.floatValue(),ratio.floatValue());
-		
+
 		restoreInterpolationQuality();
 		return after;
 	}
-	
-	
+
+
 	private static BufferedImage scaleImage_NonUniform_ProgressiveUniformPreScale(BufferedImage originalImage, float inx, float iny) {
 		// This method uses a progressive scale to create a uniform scale based on the longest resultant edge,
 		// then scales along the shortest edge using a single pass to do the non-uniform bit
@@ -636,13 +643,12 @@ public class ImageProcessing {
 		}else {
 			residualXScale = inx/iny;
 		}
-		
+
 		BufferedImage tmp = scaleImage_Progressive( originalImage, uniformPrescale );
 
 		return scaleImage_SinglePass(tmp,residualXScale,residualYScale);
 	}
 
-	
 
 
 
@@ -654,7 +660,8 @@ public class ImageProcessing {
 
 
 
-	
+
+
 
 	public static BufferedImage mirrorImage(BufferedImage originalImage, boolean flipInX, boolean flipInY) {
 
@@ -732,7 +739,7 @@ public class ImageProcessing {
 
 
 
-	
+
 
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -745,7 +752,7 @@ public class ImageProcessing {
 		BufferedImage outImg = op.filter(image, null);
 		return outImg;
 	}
-	
+
 	public static BufferedImage pointFunction16BitGray(BufferedImage image, short[] lutArray) {
 		ShortLookupTable lut = new ShortLookupTable(0, lutArray);
 		BufferedImageOp op = new LookupOp(lut, null);
@@ -762,15 +769,15 @@ public class ImageProcessing {
 		int r = c.getRed();
 		int g = c.getGreen();
 		int b = c.getBlue();
-		
+
 		for (int n = 0; n < 256; n++) {
 			//data[0][n] = (byte) n;
 			float amt = n/255.0f;
-			
+
 			float blendR = MOMaths.lerp(amt, n, r);
 			float blendG = MOMaths.lerp(amt, n, g);
 			float blendB = MOMaths.lerp(amt, n, b);
-			
+
 			data[0][n] = (byte) Math.min(blendR, r);
 			data[1][n] = (byte) Math.min(blendG, g);
 			data[2][n] = (byte) Math.min(blendB, b);
@@ -816,12 +823,12 @@ public class ImageProcessing {
 	}
 
 	public static BufferedImage makeGreyscale(BufferedImage imageIn) {
-		
+
 		int[] pixelsIn = ((DataBufferInt) imageIn.getRaster().getDataBuffer()).getData();
 		BufferedImage imageOut = new BufferedImage(imageIn.getWidth(), imageIn.getHeight(), imageIn.getType());
 		int[] pixelsOut = ((DataBufferInt) imageOut.getRaster().getDataBuffer()).getData();
 
-		
+
 		for (int i = 0; i < pixelsIn.length; i++) {
 
 			int packed = pixelsIn[i];
@@ -829,14 +836,14 @@ public class ImageProcessing {
 			float green = MOPackedColor.getGreen(packed);
 			float blue =  MOPackedColor.getBlue(packed);
 			int alpha = MOPackedColor.getAlpha(packed);
-			
+
 			int gray = (int)((0.2989f * red) + (0.5870f * green) + (0.1140f * blue));
 			//int gray = (int)((0.3333f * red) + (0.66666f * green));// + (0.1140f * blue));
 			pixelsOut[i] = MOPackedColor.packARGB(alpha, gray, gray, gray);
 		}
-		
+
 		return imageOut;
-				
+
 		/*
 		// replaces existing rgb values with grey value
 		BufferedImage img = copyImage(image);
@@ -874,26 +881,26 @@ public class ImageProcessing {
 		}
 		return pointFunction(image, data);
 	}
-	
+
 	public static BufferedImage replace16BitGrayValue(BufferedImage image, Color c) {
 		// used in pasting a sprite depth value is 16 bit gray.
 		// replaces existing values with colour c, preserving alpha
-		
+
 		image = ImageProcessing.convertColorModel(image, BufferedImage.TYPE_USHORT_GRAY);
-		
+
 		short[] data = new short[256*256];
 
-		float rf = (float) c.getRed(); 
+		float rf = c.getRed();
 		// assuming the colour is in the range 0...1
 		short val = (short)(rf*(255*255));
-		
+
 		for (int n = 0; n < 256*256; n++) {
 			data[n] = val;
-			
+
 		}
 		return pointFunction16BitGray(image, data);
 	}
-	
+
 
 	public static BufferedImage adjustBrightness(BufferedImage image, float brightness) {
 		//System.out.println("in adjustBrightness image type = " + image.getType());
@@ -946,13 +953,15 @@ public class ImageProcessing {
 		return pointFunction(image, data);
 
 	}
-	
+
 	public static BufferedImage threshold(BufferedImage image, int threshPoint) {
 		byte[][] data = new byte[3][256];
 		for (int n = 0; n < 256; n++) {
 			byte newVal = (byte) 0;
-	
-			if(n>threshPoint) newVal = (byte) 255;
+
+			if(n>threshPoint) {
+				newVal = (byte) 255;
+			}
 			data[0][n] = newVal;
 			data[1][n] = newVal;
 			data[2][n] = newVal;
@@ -960,18 +969,18 @@ public class ImageProcessing {
 		return pointFunction(image, data);
 
 	}
-	
+
 	static byte castToUnsignedByte(int i) {
-		
+
 		byte b = (byte) i;
 		return (byte) (b & 0xFF);
-		
-		
+
+
 	}
-	
+
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
-	// point functions cont. 
+	// point functions cont.
 	// adjustLevels is an approximation to Photoshop's levels
 	// All inputs are in the range 0..255
 
@@ -980,23 +989,23 @@ public class ImageProcessing {
 	 * Simulates Photoshop's Levels interface.  input value ranges are all 0..255 except for midtoneGamma, which is 0.01...10 s
 	 * @param image - the input image (is unaltered)
 	 * @param shadowVal - output outShadowVal is mapped to this value in the input image
-	 * @param midGamma - in the range 0.001-10, where 1 is in the middle. It is the amount of "bend" between shadowVal and highlightVal - as per Photoshop's dialog 
+	 * @param midGamma - in the range 0.001-10, where 1 is in the middle. It is the amount of "bend" between shadowVal and highlightVal - as per Photoshop's dialog
 	 * @param highlightVal - output outHighlightVal is mapped to this value in the input image
 	 * @param outShadowVal -  The darkest colour output in the destination image
 	 * @param outHighlightVal -  The brightest colour output in the destination image
 	 * @return returns the processed BufferedImage
-	 * 
+	 *
 	 */
 	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneGamma, float highlightVal, float outShadowVal,  float outHighlightVal){
-		
+
 		int originalImageType = image.getType();
 		image = assertImageTYPE_INT_ARGB(image);
-		
-		
+
+
 		// work out gamma correction value
 		float gamma = midtoneGamma;
-		
-		
+
+
 		//System.out.println("gamma is " + gamma);
 		//System.out.println("adjustLevels input image type " + image.getType());
 		// create the LUT
@@ -1006,15 +1015,15 @@ public class ImageProcessing {
 			float midTone = ajustLevels_applyMidTones( inputLevel,  gamma);
 			float outPutLevel = ajustLevels_applyOutputLevels(midTone,  outShadowVal,   outHighlightVal);
 			//if(outPutLevel < 0 || outPutLevel > 255) System.out.println("n = " + n + ", inputLevel =  " + inputLevel + ", midTone  = " + midTone + ", final  outPutLevel = " + outPutLevel);
-			
-			
+
+
 			outPutLevel = MOMaths.constrain(outPutLevel, 0, 255);
-			
-			byte byteVal = (byte)((int)outPutLevel); 
-			
-			lut[0][n] = (byte) byteVal;
-			lut[1][n] = (byte) byteVal;
-			lut[2][n] = (byte) byteVal;
+
+			byte byteVal = (byte)((int)outPutLevel);
+
+			lut[0][n] = byteVal;
+			lut[1][n] = byteVal;
+			lut[2][n] = byteVal;
 			//System.out.println("LUT val " + byteVal + " lut set to " + lut[2][n]);
 		}
 		BufferedImage imageOut =   pointFunction(image, lut);
@@ -1136,8 +1145,9 @@ public class ImageProcessing {
 			MOPackedColor.unpackARGB(pixelsIn[i], unpacked);
 
 			// if alpha is 0 then we don't need to process this pixel
-			if (unpacked[0] == 0)
+			if (unpacked[0] == 0) {
 				continue;
+			}
 
 			// this converts the rgb into the array hsv
 			Color.RGBtoHSB(unpacked[1], unpacked[2], unpacked[3], hsv);
@@ -1180,13 +1190,14 @@ public class ImageProcessing {
 
 		float hueTotal = 0;
 		int numPixelsProcessed = 0;
-		for (int i = 0; i < pixelsIn.length; i++) {
+		for (int element : pixelsIn) {
 
-			MOPackedColor.unpackARGB(pixelsIn[i], unpacked);
+			MOPackedColor.unpackARGB(element, unpacked);
 
 			// if alpha is 0 then we don't need to process this pixel
-			if (unpacked[0] == 0)
+			if (unpacked[0] == 0) {
 				continue;
+			}
 
 			// this converts the rgb into the array hsv
 			Color.RGBtoHSB(unpacked[1], unpacked[2], unpacked[3], hsv);
@@ -1234,8 +1245,9 @@ public class ImageProcessing {
 			int[] unpacked2 = MOPackedColor.unpackARGB(pixelsIn2[i]);
 
 			// if both alphas are 0 then we don't need to process this pixel
-			if (unpacked1[0] == 0 && unpacked2[0] == 0)
+			if (unpacked1[0] == 0 && unpacked2[0] == 0) {
 				continue;
+			}
 			pixelsOut[i] = colorMultiply(unpacked1,unpacked2);
 		}
 

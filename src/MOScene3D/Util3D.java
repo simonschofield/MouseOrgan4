@@ -2,13 +2,11 @@ package MOScene3D;
 
 import java.awt.Color;
 
-import MOImage.MOColor;
 import MOMaths.PVector;
-import MOMaths.Rect;
 import MOUtils.GlobalSettings;
 
 public class Util3D {
-	
+
 	///////////////////////////////////////////////////////////////////////////////////////////
 	//shorthand PVector methods to make your geometry code more readable
 	//
@@ -42,44 +40,44 @@ public class Util3D {
 	static public PVector multV(PVector v, float f){
 		return PVector.mult(v,f);
 	}
-	
+
 	// shorthand converting world space point to doc space point
 	static public PVector W3ToDS(PVector p3) {
 		return GlobalSettings.getSceneData3D().world3DToDocSpace(p3);
 	}
-	
+
 	///////////////////////////////////////////////////////////////////////////////////////////
 	//handy drawing methods, more for debugging than anything else
 	//
 	static public void drawLineWorldSpace(PVector w1, PVector w2, Color c, float weight) {
 		drawLineDocSpace(W3ToDS(w1), W3ToDS(w2),  c,  weight);
 	}
-	
+
 	static public void drawLineDocSpace(PVector p1, PVector p2, Color c, float weight) {
 		GlobalSettings.getDocument().getMain().getVectorShapeDrawer().setDrawingStyle(c, c, weight);
-		
+
 		PVector bp1 = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(p1);
 		PVector bp2 = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(p2);
 		GlobalSettings.getDocument().getMain().getVectorShapeDrawer().drawLine(bp1.x, bp1.y, bp2.x, bp2.y);
 	}
-	
+
 	static public void drawRect3D(BillboardRect3D r3, Color c, float weight) {
-		
+
 		PVector[] corners = r3.getCorners();
-		
+
 		draw3DPoint(corners[0],  c,  weight*3);
 		drawLineWorldSpace(corners[0], corners[1],  c,  weight);
 		drawLineWorldSpace(corners[1], corners[2],  c,  weight);
 		drawLineWorldSpace(corners[2], corners[3],  c,  weight);
 		drawLineWorldSpace(corners[3], corners[0],  c,  weight);
-		
+
 	}
-	
+
 
 	public static void draw3DPoint(PVector p3, Color c, float weight) {
 		GlobalSettings.getDocument().getMain().getVectorShapeDrawer().setDrawingStyle(c, c, weight);
 		PVector p2 = GlobalSettings.getSceneData3D().world3DToDocSpace(p3);
-		
+
 		PVector bp = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(p2);
 		GlobalSettings.getDocument().getMain().getVectorShapeDrawer().drawEllipse(bp.x, bp.y, 15, 15);
 	}
@@ -97,10 +95,10 @@ public class Util3D {
 					var t = -(d + Vector3.Dot(rayP, planeN)) / Vector3.Dot(rayD, planeN);
 					return rayP + t * rayD;
 				}
-		 * 
+		 *
 		 */
-			
-			
+
+
 		 float d = dotV(pl.pointOnPlane, negV(pl.surfaceNormal) );
 		 float t = -(d + dotV(r.origin, pl.surfaceNormal)) / dotV(r.direction, pl.surfaceNormal);
 		 PVector intersectPoint = r.getPointAtDistance(t);
@@ -108,13 +106,13 @@ public class Util3D {
 		 r.intersectionNormal = pl.surfaceNormal.copy();
 		 return intersectPoint;
 	}
-	
-	
-	
+
+
+
 	// a very specific methods that works with axis aligned planes.
 	//
 	//
-	
+
 	static public PVector getPlaneInXIntersection(Ray3D ray, PVector pointOnPlane) {
 		if(ray.direction.x == 0) {
 			// the ray is parallel with the sprite plane, so will never intersect
@@ -125,9 +123,9 @@ public class Util3D {
 		ray.intersectionPoint = ip.copy();
 		ray.intersectionNormal = new PVector(1,0,0);
 		return ip;
-			
+
 	}
-	
+
 	static public PVector getPlaneInYIntersection(Ray3D ray, PVector pointOnPlane) {
 		if(ray.direction.y == 0) {
 			// the ray is parallel with the sprite plane, so will never intersect
@@ -138,10 +136,10 @@ public class Util3D {
 		ray.intersectionPoint = ip.copy();
 		ray.intersectionNormal = new PVector(0,1,0);
 		return ip;
-			
+
 	}
-	
-	
+
+
 	static public PVector getPlaneInZIntersection(Ray3D ray, PVector pointOnPlane) {
 		if(ray.direction.z == 0) {
 			// the ray is parallel with the sprite plane, so will never intersect
@@ -152,8 +150,8 @@ public class Util3D {
 		ray.intersectionPoint = ip.copy();
 		ray.intersectionNormal = new PVector(0,0,1);
 		return ip;
-			
+
 	}
-	
+
 
 }

@@ -37,29 +37,29 @@ public class VectorDrawingStyle{
 
 	public void setStyle(Color fillC, Color lineC, Float lineWt){
 		// values if nulled will result in no change
-		
-		
+
+
 		// set the fill colour
 		if(fillC!=null) {
 			fillColor = fillC;
 			if(fillC.getAlpha() == 0){
 				fillVisible = false;}
 			else{
-				fillVisible = true; 
+				fillVisible = true;
 				}
 		}
-		
+
 		// set the line colour
 		if(lineC!=null) {
 			strokeColor = lineC;
-			
-		}	
-		
+
+		}
+
 		// set the line weight
 		if(lineWt!=null) {
 			strokeWeight = lineWt;
 		}
-		
+
 
 		// have to wait til here to make this decision
 		// as BOTH alpha and weight need to be non-zero
@@ -69,16 +69,16 @@ public class VectorDrawingStyle{
 		} else {
 			strokeVisible=true;
 		}
-		
+
 	}
-		
+
 
 	void setStrokeCapJoin(int cap, int join) {
 		strokeCap = cap;
 		strokeJoin = join;
-		
+
 	}
-	
+
 	public void setFillColor(Color fillC) {
 		setStyle( fillC, strokeColor, strokeWeight);
 	}

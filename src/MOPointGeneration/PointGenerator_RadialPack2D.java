@@ -1,6 +1,7 @@
 package MOPointGeneration;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+
 import MOImage.KeyImageSampler;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
@@ -28,12 +29,12 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	// gives up
 	int attemptsCounter = 300;
 
-	
-	
+
+
 	public PointGenerator_RadialPack2D(int rseed) {
 		super(rseed);
 	}
-	
+
 
 	/////////////////////////////////////////////////////////////////////////////////
 	// Evenly distributed points with a spacing of radius
@@ -42,32 +43,35 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 	public void setPackingRadius(float r) {
 		fixedRadius = r;
 	}
-	
+
 	// default is 300 attempts, but you can alter it 0..1 -> 10...600, so 0.5 is about the default.
 	void setPackingSearchTenacity(float t) {
 		attemptsCounter = (int)	MOMaths.lerp(t, 10,600);
 	}
-	
+
 	public void setPackingInterpolationScheme(PackingInterpolationScheme is,  BufferedImage distImg) {
 		packingInterpolationScheme = is;
 		distributionKeyImageSampler = new KeyImageSampler(distImg);
 	}
-	
+
 	public void setMaxNumPointsLimit(int n) {
 		maxPointsPlacedLimit = n;
-		
+
 	}
-	
-	
+
+
+	@Override
 	public ArrayList<PVector> generatePoints() {
-		if(distributionKeyImageSampler == null) return generateUniformlyDistributedPoints();
+		if(distributionKeyImageSampler == null) {
+			return generateUniformlyDistributedPoints();
+		}
 		return generateImageResponsiveDistributedPoints();
 	}
-		
-		
-	public ArrayList<PVector> generateUniformlyDistributedPoints(){	
+
+
+	public ArrayList<PVector> generateUniformlyDistributedPoints(){
 		int attempts = 0;
-		
+
 		while (true) {
 			PVector thisPt = getRandomDocSpacePoint();
 			System.out.println("generateUniformlyDistributedPoints trying point " +  thisPt.toStr() + " fixedRadius " + fixedRadius);
@@ -86,72 +90,72 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 		return points;
 	}
 
-	
+
     public void fitDistributionImageToGenerationAreaRect(boolean fitToRect) {
     	fitDistributionImageToGenerationAreaRect = fitToRect;
     }
-	
+
 	ArrayList<PVector> generateImageResponsiveDistributedPoints() {
-		
+
 		int lastpercentdisplayed = 0;
-		
-		
+
+
 		int attempts = 0;
 		while (true) {
 			PVector thisPt = getRandomDocSpacePoint();
-			
-			
+
+
 			// check against the bitmap lowDistributionThreshold
 			boolean success;
 			float v;
-			
-			
+
+
 			// should be in own method.... float getDistributionImageValue(PVector p)
 			//
 			//
 			if(fitDistributionImageToGenerationAreaRect) {
 				// Then map the point normalised within the GenerationAreaRect to the image
 				PVector normalisedToGenerationRect = generationAreaRect.norm(thisPt);
-				
+
 				if(generationAreaRect.isPointInside(normalisedToGenerationRect)) {
 					v = distributionKeyImageSampler.getValue01NormalisedSpace(normalisedToGenerationRect);
 				} else {
 					v = 0;
 				}
-				
+
 			} else {
-			
-			
+
+
 			   v = distributionKeyImageSampler.getValue01DocSpace(thisPt);
 			}
 			//
 			//
 			//
-			
-			
+
+
 			if(  packingInterpolationScheme.isExcluded(v) ) {
 				success = false;
 			} else {
-				
+
 				float radius = packingInterpolationScheme.getRadius(v); // for 3D LOD, this needs to be packingInterpolationScheme.getRadiusWithLOD(v,z);
-				
+
 				success = tryAddDistributedPoint(thisPt, radius);
 				//System.out.println("generateImageResponsiveDistributedPoints trying point " +  thisPt.toStr() + " radius " + radius + " success = " + success);
 			}
-			
-			
+
+
 			if (!success) {
 				attempts++;
 			} else {
-				
+
 				if(points.size()==pointsCacheThreshold) {
 					clearPointsAndUPdatePointsCache();
 					//System.out.print(", updated points cache " + getNumItems());
 				}
-				
-				
+
+
 				int numPoints = getTotalNumberPointsFound();
-				
+
 				int percent = (int)( (numPoints/(float)maxPointsPlacedLimit) * 100);
 				if(percent%10==0 && percent>lastpercentdisplayed) {
 					lastpercentdisplayed = percent;
@@ -159,47 +163,48 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 				}
 				attempts = 0;
 			}
-			
+
 			if (attempts >= attemptsCounter) {
 				System.out.println("Bailed as too many attempts to find a new location: total placed " + getNumItems());
 				break;
 			}
-			
+
 			if( getTotalNumberPointsFound()>= maxPointsPlacedLimit) {
 				System.out.println("100%: total placed " + getNumItems());
 				break;
 			}
 		}
-		
+
 		addBackCachePoints();
 		return points;
 
 	}
-	
+
 	/*
-	 * 
+	 *
 	 void clearPointsAndUPdatePointsCache() {
 		pointsCache.addAll(points);
 		points.clear();
 	}
-	
-	
+
+
 	int getTotalNumberPointsFound() {
 		return pointsCache.size() + points.size();
 	}
-	
+
 	void addBackCachePoints() {
-		
+
 		points.addAll(pointsCache);
 	}
-	 * 
-	 * 
+	 *
+	 *
 	 */
 
 	boolean tryAddDistributedPoint(PVector thisPt, float radius) {
 		// just tries to add 1 point, returns true if added, false if not added
-		if (pointExistsWithinRadius(thisPt, radius))
-				return false;
+		if (pointExistsWithinRadius(thisPt, radius)) {
+			return false;
+		}
 		points.add(thisPt);
 		return true;
 
@@ -218,8 +223,7 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 
 		Rect rectUnderConsideration = new Rect(new PVector(x1, y1), new PVector(x2, y2));
 
-		for (int n = 0; n < points.size(); n++) {
-			PVector thisPoint = points.get(n);
+		for (PVector thisPoint : points) {
 			if (rectUnderConsideration.isPointInside(thisPoint)) {
 				float dist = p.distXY(thisPoint);
 				if (dist < radius) {
@@ -233,9 +237,9 @@ public class PointGenerator_RadialPack2D extends PointGenerator_Random {
 
 	}
 
-	
 
-	
+
+
 }// end of PointGenerator_RadialPack class
 
 

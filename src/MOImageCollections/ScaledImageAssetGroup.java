@@ -5,18 +5,16 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOAppSessionHelpers.ArtAssetPaths;
-import MOAppSessionHelpers.ArtAssetPaths;
 import MOImage.ImageProcessing;
-import MOMaths.Rect;
-import MOUtils.GlobalSettings;
 import MOUtils.GenericArrayListUtils;
+import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
 // ScaledImageAssetGroup
-// Inherits from ImageAssetGroup. 
+// Inherits from ImageAssetGroup.
 // but the images are scaled by the global SessionScale upon load.
 // The scaled items are cached for rapid reload next time.
 // The group is also named and accessible though the SpriteImageGroupManager
@@ -29,131 +27,132 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 	// it cannot be different between objects, so is a static
 
 	static float sessionScale = 1;
-	
+
 	private String groupName = "";
 
 	//boolean deferCache = true;
-	
-	
+
+
 	/////////////////////////////////////////////////////////////////////////
 	// CACHE MODES
-	// 
+	//
 	//
 	// LOADMODE_ADAPTIVE is the default mode, and should be used if no post processing is involved. It will
-	// load the cache if the cache is OK. Else it loads from the source-library, and then saves the result to the cache for 
-	// later use. It does not cache load or save 100% scaled assets, as it is quicker to just load the source-library files directly. You do not 
+	// load the cache if the cache is OK. Else it loads from the source-library, and then saves the result to the cache for
+	// later use. It does not cache load or save 100% scaled assets, as it is quicker to just load the source-library files directly. You do not
 	// have to call cacheImages() after loading with this mode; it is done automatically.
-	// 
+	//
 	// LOADMODE_FROM_ASSETLIB. Never loads or saves the cache. Used to simply load from the source-lib, in order to build the cache. Probably used with cacheImages() method later on after
 	// some post-load processing has happened that you want to commit to the cache. Once the cache has been properly created, use LOADMODE_FROM_CACHE
 	//
-	// LOADMODE_FROM_CACHE forces the load to be from the cache only. If the cache is NOT OK, the process will terminate. This should be used to 
+	// LOADMODE_FROM_CACHE forces the load to be from the cache only. If the cache is NOT OK, the process will terminate. This should be used to
 	// load post-load processed images, which have been previously committed to the cache through using a previous cacheImages().
 	//
 	//
-	public static final int	LOADMODE_ADAPTIVE = 0;  // 
+	public static final int	LOADMODE_ADAPTIVE = 0;  //
 	public static final int	LOADMODE_FROM_ASSETLIB = 1;
 	public static final int	LOADMODE_FROM_CACHE = 2;
-	
+
 	private int currentCacheMode = LOADMODE_ADAPTIVE;
-	
+
 	public ScaledImageAssetGroup(String name) {
 		sessionScale = GlobalSettings.getSessionScale();
 		groupName = name;
-		
+
 	}
-	
-	
-	
-	
+
+
+
+
 	public ScaledImageAssetGroup copy(String copyName) {
 		ScaledImageAssetGroup cpy = new ScaledImageAssetGroup(copyName);
-		
-		
+
+
 		cpy.widthExtrema = this.widthExtrema.copy();
 		cpy.heightExtrema = this.heightExtrema.copy();
 
 
 		cpy.copyImageAssetsFromOtherGroup(this);
-		
+
 		return cpy;
 	}
-	
+
 	public boolean isNamed(String name) {
-		if (groupName.contentEquals(name))
+		if (groupName.contentEquals(name)) {
 			return true;
+		}
 		return false;
 	}
-	
+
 	public String getGroupName() {
 		return groupName;
 	}
-	
+
 	public void setCacheMode(int cacheMode) {
 		currentCacheMode = cacheMode;
 	}
-	
+
 	public int getCacheMode() {
 		return currentCacheMode;
 	}
-	
-	
+
+
 	public float getRelativeImageHeight(int num) {
-		// this is used by the sprite to establish a particular 
+		// this is used by the sprite to establish a particular
 		// image's relative height to the others in the group
 		int imgHght = getImage(num).getHeight();
 		float heightMaxItem = heightExtrema.getUpper();
 		return  imgHght / heightMaxItem;
 	}
-	
+
 	public float getRelativeImageWidth(int num) {
-		// this is used by the sprite to establish a particular 
+		// this is used by the sprite to establish a particular
 		// image's relative width to the others in the group
 		int imgWdth = getImage(num).getWidth();
 		float widthMaxItem = widthExtrema.getUpper();
 		return  imgWdth / widthMaxItem;
 	}
-	
-	
-	
-	
+
+
+
+
 	public void loadSessionScaledImages() {
-		// loadSessionScaledImages is different to the superclass loadImages in that it applies the sessionScale to the image 
+		// loadSessionScaledImages is different to the superclass loadImages in that it applies the sessionScale to the image
 		// and deals with caching of sessionScaled versions of the images for subsequent uses, therefore speeding up the system.
-		// 
+		//
 
 		if(currentCacheMode == LOADMODE_ADAPTIVE) {
 			loadImages_ADAPTIVE();
 			return;
 		}
-		
+
 		if(currentCacheMode == LOADMODE_FROM_ASSETLIB) {
 			loadImages_FROM_ASSETLIB();
 			return;
 		}
-		
+
 		if(currentCacheMode == LOADMODE_FROM_CACHE) {
 			loadImages_FROM_CACHE();
 			return;
 		}
-		
-		
+
+
 		System.out.println("ScaledImageAssetGroup::loadSessionScaledImages ...the cache mode is set to an illegal value...  " + currentCacheMode + " fatal error");
 		System.exit(0);
-		
+
 	}
-	
+
 	public void cacheImages() {
-			
+
 			String cachedImagesFolderName = getCachedScaledImagesFolderName();
-			
+
 			boolean ok = MOStringUtils.createDirectory(cachedImagesFolderName);
 			if (!ok){
 				// cannot create required cache folder
 				System.out.println("problem creating cache folder ..." + cachedImagesFolderName);
 				return;
 			}
-			
+
 			// we need to ensure the cached images are saved with the best quality
 			for (ImageAsset moImage: theImageAssetList) {
 				String thisShortFileName = moImage.name;
@@ -162,45 +161,45 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 				ImageProcessing.saveImage(fullCachePathAndName, moImage.image);
 			}
 			System.out.println("cacheImages:: cached " + theImageAssetList.size() + " images");
-	
+
 		}
-			
+
 
 	public void overlayScaledImageAssetGroup(ScaledImageAssetGroup overlayGroup, float alpha) {
 		// Overlay the images in overlayGroup onto this group
 		// this assumes that the overlay is the same dimensions as the target image and there is the same number of images
 		// in the overlay group as in the target group.
-		// 
-		
+		//
+
 		if(this.getNumImageAssets() != overlayGroup.getNumImageAssets()) {
-			
+
 			// throw a wobble
 			System.out.println("ScaledImageAssetGroup::overlayScaledImageAssetGroup:: image collections not the same in number");
 		}
-		
+
 		for(int n = 0; n< this.getNumImageAssets(); n++) {
 			ImageAsset overlay = overlayGroup.getImageAsset(n);
 			ImageAsset target = this.getImageAsset(n);
-			
+
 			target.image = ImageProcessing.getCompositeImage(overlay.image, target.image, 0, 0, alpha);
-			
+
 		}
-		
-		
+
+
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////////
 	// Private methods cache-related methods
 	//
-	// 
+	//
 	private void loadImages_ADAPTIVE() {
 		// LOADMODE_ADAPTIVE is the default mode, and should be used if no post processing is involved. It will
-		// load the cache if the cache is OK. Else it loads from the source-library, and then saves the result to the cache for 
+		// load the cache if the cache is OK. Else it loads from the source-library, and then saves the result to the cache for
 		// later use. It does not cache load or save 100% scaled assets, as it is quicker to just load the source-library files directly
 		if (sessionScale > 0.99) {
 			// If no session scale is applied (i.e.) the render is a Full-Size
 			// just use the base-class load image to load the 100% assetLib images.
-			// 
+			//
 			super.loadImages();
 			setAllImageaTo_TYPE_INT_ARGB();
 			return;
@@ -212,30 +211,30 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		String cachedImagesFolderName = getCachedScaledImagesFolderName();
 
 		if (checkCacheOK(cachedImagesFolderName)) {
-			
+
 			// System.out.println("loading from cache folder ..." + cachedImagesFolderName);
 			loadCachedImages();
 			return;
 		}
-		
-		// If you get to here, you need to 
+
+		// If you get to here, you need to
 		// 1/ load the full size images
-		// 2/ apply theSessionScale, 
+		// 2/ apply theSessionScale,
 		// 3/ save the scaled version to the cache
 		loadFullSizeImagesAndSessionScale();
 		cacheImages();
 
 		isLoaded();
 	}
-	
+
 	private void loadImages_FROM_ASSETLIB() {
-		
+
 		loadFullSizeImagesAndSessionScale();
 		isLoaded();
 	}
-	
+
 	private void loadImages_FROM_CACHE() {
-		
+
 		String cachedImagesFolderName = getCachedScaledImagesFolderName();
 
 		if (checkCacheOK(cachedImagesFolderName)) {
@@ -245,43 +244,43 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 			 System.out.println("ScaledImageAssetGroup::loadImages_FROM_CACHE ...the cache " + cachedImagesFolderName + " is NOT OK fatal error");
 			 System.exit(0);
 		}
-		
+
 	}
-	
-	
-	
+
+
+
 	private void loadCachedImages() {
 		String cachedImagesFolderName = getCachedScaledImagesFolderName();
 		DirectoryFileNameScanner cacheFileNameScanner = new DirectoryFileNameScanner(cachedImagesFolderName);
 		cacheFileNameScanner.copyConstraints(directoryFileNameScanner);
 		ArrayList<String> filesInCache = cacheFileNameScanner.getFullPathAndFileNamesList();
 		super.loadImages(filesInCache);
-		
+
 		setAllImageaTo_TYPE_INT_ARGB();
-		
-		
+
+
 		//System.out.println("loadCachedImages:: loaded " + theImageAssetList.size() + " images");
 	}
-	
-	
+
+
 	private void loadFullSizeImagesAndSessionScale() {
 		// Loads and scales each image separately so as not to use a lot of memory
-		ArrayList<String> filesToLoad = directoryFileNameScanner.getFullPathAndFileNamesList();		
+		ArrayList<String> filesToLoad = directoryFileNameScanner.getFullPathAndFileNamesList();
 		for(String s: filesToLoad) {
 			loadFullSizeImage_SessionScale(s);
 		}
 		System.out.println("loadFullSizeImagesAndSessionScale:: loaded " + theImageAssetList.size() + " images");
 	}
-	
+
 	private void loadFullSizeImage_SessionScale(String fullSizeImagePathAndName) {
 		// called by the method above
-			
+
 		BufferedImage img = ImageProcessing.loadImage(fullSizeImagePathAndName);
 		if(img == null) {
 			System.out.println("loadFullSizeImage_SessionScale::image == null - could not be loaded");
-		
+
 		}
-	
+
 		int currentInterpolationQuality = ImageProcessing.getInterpolationQuality();
 		ImageProcessing.setInterpolationQuality(ImageProcessing.INTERPOLATION_BICUBIC);
 		if(sessionScale != 1) {
@@ -292,50 +291,51 @@ public class ScaledImageAssetGroup extends ImageAssetGroup{
 		String thisShortFileName = MOStringUtils.getShortFileNameFromFullPathAndFileName(fullSizeImagePathAndName);
 		img = ImageProcessing.assertImageTYPE_INT_ARGB(img);
 		addImageAsset( img, thisShortFileName);
-			
-		
+
+
 	}
-	
 
-	
-	
 
-	
-	
-	
-	
+
+
+
+
+
+
+
 	private String getCachedScaledImagesFolderName() {
 		// works on the premise that the groupName is the same as the baseName in the ArtAssetPaths
 		String cachedFolderName = ArtAssetPaths.getAssetCachePath(groupName);
 		return cachedFolderName;
 	}
-	
+
 	// this checks to see if the directory exists, and if it does then it checks to
 	// see if all the cached files exist also.
 	// if not then return false.
 	private boolean checkCacheOK(String cacheDirectory) {
-	
-		if (MOStringUtils.checkDirectoryExist(cacheDirectory) == false) return false;
-		
-		if (MOStringUtils.getDirectoryContentFileCount(cacheDirectory) == 0) return false;
-		
+
+		if (!MOStringUtils.checkDirectoryExist(cacheDirectory) || (MOStringUtils.getDirectoryContentFileCount(cacheDirectory) == 0)) {
+			return false;
+		}
+
 		ArrayList<String> expectedFiles = directoryFileNameScanner.getShortNameList();
 
 		DirectoryFileNameScanner cacheFileNameScanner = new DirectoryFileNameScanner(cacheDirectory);
 		ArrayList<String> filesInCache = cacheFileNameScanner.getShortNameList();
 
-		if (GenericArrayListUtils.listsAContainedInB(expectedFiles, filesInCache))
+		if (GenericArrayListUtils.listsAContainedInB(expectedFiles, filesInCache)) {
 			return true;
+		}
 
 		return false;
 
 	}
-	
-	
-	
+
+
+
 }// end of class
-	
-	
+
+
 
 
 

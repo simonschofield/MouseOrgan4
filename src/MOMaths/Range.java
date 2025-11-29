@@ -11,7 +11,7 @@ public class Range {
 	// for working out the mean
 	int numExtremaSamples = 0;
 	float sumExtremaSamples = 0;
-	
+
 	public Range() {
 		limit1 = 0.0f;
 		limit2 = 0.0f;
@@ -38,8 +38,9 @@ public class Range {
 	}
 
 	public boolean isBetweenInc(float v) {
-		if (v >= getLower() && v <= getUpper())
+		if (v >= getLower() && v <= getUpper()) {
 			return true;
+		}
 		return false;
 	}
 
@@ -54,29 +55,32 @@ public class Range {
 	public float getMidValue() {
 		return (getLower() + getUpper()) / 2.0f;
 	}
-	
+
 	public float getMeanExtremaValue() {
-		
+
 		return sumExtremaSamples/numExtremaSamples;
 	}
 
 	public void addExtremaCandidate(float v) {
 
-		if (v == -Float.MAX_VALUE || v == Float.MAX_VALUE)
+		if (v == -Float.MAX_VALUE || v == Float.MAX_VALUE) {
 			return;
+		}
 
 		numExtremaSamples ++;
 		sumExtremaSamples += v;
-		
+
 		if (limit1 == 0 && limit2 == 0) {
 			limit1 = v;
 			limit2 = v;
 			return;
 		}
-		if (v < limit1)
+		if (v < limit1) {
 			limit1 = v;
-		if (v > limit2)
+		}
+		if (v > limit2) {
 			limit2 = v;
+		}
 	}
 
 	public float norm(float v) {
@@ -95,8 +99,9 @@ public class Range {
 	}
 
 	float getMatch_Square(float f) {
-		if (this.isBetweenInc(f))
+		if (this.isBetweenInc(f)) {
 			return 1.0f;
+		}
 		return 0.0f;
 	}
 
@@ -125,8 +130,9 @@ public class Range {
 	float getMatch_RampedSquare(float f, float rampSize) {
 		// this sort of shape ... __/^^^\__
 		// rampsize is the size of the ramp in proportion to the difference min-max
-		if (this.isBetweenInc(f))
+		if (this.isBetweenInc(f)) {
 			return 1.0f;
+		}
 		float r = Math.abs(getDifference()) * rampSize;
 
 		if (f < getLower()) {

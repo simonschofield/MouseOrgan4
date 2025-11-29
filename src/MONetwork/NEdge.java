@@ -16,7 +16,7 @@ public class NEdge extends NAttributes {
 	public NPoint p2 = null;
 
 	private Line2 line2 = null;
-	
+
 	// associated regions. Only 2 supported in this system.
 	// used in automatically finding regions
 	NRegion region1;
@@ -34,7 +34,7 @@ public class NEdge extends NAttributes {
 		super(TYPE_NEDGE, ntwk);
 		setWithKeyValuePairList( kvp);
 	}
-	
+
 	public Line2 getLine2() {
 		return new Line2(p1.getPt(), p2.getPt());
 	}
@@ -42,26 +42,31 @@ public class NEdge extends NAttributes {
 	String toStr() {
 		return " NEdge ID" + getID() + " p1 " + p1.toStr() + " p2 " + p2.toStr();
 	}
-	
+
 	///////////////////////////////////////////////////////////////////////
 	//
 	// methods about THIS edge points
 	//
 	NPoint getEndNPoint(int n) {
-		if (n==0) return p1;
-		if (n==1) return p2;
+		if (n==0) {
+			return p1;
+		}
+		if (n==1) {
+			return p2;
+		}
 		return null;
 	}
 
 	public PVector getEndCoordinate(int n) {
 		return getEndNPoint(n).getPt();
 	}
-	
+
 	boolean isUsingIdenticalPoints(NEdge other) {
 		// returns true if the edge happens to be using the same points at either end
 		// but may be two separate, legitimate edges. Works with ID of points not the coordinates
-		if (p1.getID() == other.p1.getID() && p2.getID() == other.p2.getID()) return true;
-		if (p1.getID() == other.p2.getID() && p2.getID() == other.p1.getID()) return true;
+		if ((p1.getID() == other.p1.getID() && p2.getID() == other.p2.getID()) || (p1.getID() == other.p2.getID() && p2.getID() == other.p1.getID())) {
+			return true;
+		}
 		return false;
 	}
 
@@ -74,22 +79,29 @@ public class NEdge extends NAttributes {
 			p2 = p;
 			return;
 		}
-		if (p1 != null && p2 != null) addThisEdgeToPoints();
+		if (p1 != null && p2 != null) {
+			addThisEdgeToPoints();
+		}
 	}
-	
+
 	boolean containsPoint(NPoint p) {
 		//System.out.println("containsPoint: p " + p.toStr() +  " p1 + " + p1.toStr() + " p2 + " + p2.toStr());
-		if (p == p1) return true;
-		if (p == p2) return true;
+		if ((p == p1) || (p == p2)) {
+			return true;
+		}
 		return false;
 	}
-	
+
 	NPoint getOtherPoint(NPoint p) {
-		if (p == p1) return p2;
-		if (p == p2) return p1;
+		if (p == p1) {
+			return p2;
+		}
+		if (p == p2) {
+			return p1;
+		}
 		return null;
 	}
-	
+
 	void addThisEdgeToPoints() {
 		p1.addEdgeReference(this);
 		p2.addEdgeReference(this);
@@ -108,16 +120,16 @@ public class NEdge extends NAttributes {
 		// returns all edge references of end point, including THIS edge
 		return getEndNPoint(whichEnd).getEdgeReferences();
 	}
-	
+
 	ArrayList<NEdge> getConnectedEdges(int whichEnd) {
 		// returns edges references of end point, NOT including THIS edge
 		NPoint np = getEndNPoint(whichEnd);
 		return getConnectedEdges(np);
 	}
-	
+
 	ArrayList<NEdge> getConnectedEdges(NPoint thisPoint) {
 		// returns edges references of end point, NOT including THIS edge
-		if( containsPoint(thisPoint)==false){
+		if( !containsPoint(thisPoint)){
 			System.out.println("Error:: NEdge: getConnectedEdges(thisPoint)  is not in this edge!");
 			return null;
 		}
@@ -139,40 +151,50 @@ public class NEdge extends NAttributes {
 	// methods involving THIS edge and an OTHER edge
 	//
 	boolean connectsWith(NEdge other) {
-		if (p1 == other.p1) return true;
-		if (p2 == other.p2) return true;
-		if (p1 == other.p2) return true;
-		if (p2 == other.p1) return true;
+		if ((p1 == other.p1) || (p2 == other.p2) || (p1 == other.p2) || (p2 == other.p1)) {
+			return true;
+		}
 		return false;
 	}
 
 	boolean connectsWithEnd(NEdge other, int whichEnd) {
 		NPoint np = getEndNPoint(whichEnd);
-		if (np == other.p1) return true;
-		if (np == other.p2) return true;
+		if ((np == other.p1) || (np == other.p2)) {
+			return true;
+		}
 		return false;
 	}
 
-	
-	
+
+
 
 	NPoint getConnectingPoint(NEdge other){
 		// returns the point joining two edges, if there is one.
-		if(p1 == other.p1) return p1;
-		if(p2 == other.p2) return p2;
-		if(p1 == other.p2) return p1;
-		if(p2 == other.p1) return p2;
+		if(p1 == other.p1) {
+			return p1;
+		}
+		if(p2 == other.p2) {
+			return p2;
+		}
+		if(p1 == other.p2) {
+			return p1;
+		}
+		if(p2 == other.p1) {
+			return p2;
+		}
 		return null;
 	}
-	
+
 	NPoint getFarPointOtherEdge(NEdge other) {
 		NPoint joiningPoint =  getConnectingPoint(other);
-		if(joiningPoint==null) return null;
+		if(joiningPoint==null) {
+			return null;
+		}
 		return other.getOtherPoint(joiningPoint);
 	}
 
-	
-	
+
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// geometric methods - rotations and angles between edges, used in searching etc.
@@ -189,13 +211,13 @@ public class NEdge extends NAttributes {
 		return line2.nearestPointOnLine(p);
 	}
 
-	
+
 	float getRotation() {
 		PVector v =  line2.getAsPVector();
 		float rads = v.heading();
 		return rads*57.296f + 90;
 	}
-	
+
 	float getHingedAngleBetween(NEdge other) {
 		// returns the clockwise angle between the two edges at the join point.
 		// as if they were clock hands, then agle between the hour hand and the minute hand; if both at 12, then angle between is 0;
@@ -211,8 +233,8 @@ public class NEdge extends NAttributes {
 		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
 		return l1.getHingedAngleBetween(l2);
 	}
-	
-	
+
+
 	float getColiniarity(NEdge other) {
 		// returns a low number if the two edges are going in the same direction.
 		NPoint connectingPoint = this.getConnectingPoint(other);
@@ -224,11 +246,11 @@ public class NEdge extends NAttributes {
 		NPoint otherPointE2 = other.getOtherPoint(connectingPoint);
 		Line2 l1 = new Line2(otherPointE1.getPt(), connectingPoint.getPt());
 		Line2 l2 = new Line2(connectingPoint.getPt(), otherPointE2.getPt());
-		
+
 		return l1.getAngleBetween(l2);
 	}
-	
-	
+
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// used in file reading /saving
 	//
@@ -256,7 +278,7 @@ public class NEdge extends NAttributes {
 		p1 = theNetwork.points.get(p1ID);
 		p2 = theNetwork.points.get(p2ID);
 		line2 = new Line2(p1.getPt(), p2.getPt());
-		setID_Override( kvp.getInt("ID") ); 
+		setID_Override( kvp.getInt("ID") );
 		theNetwork.uniqueIDGenerator.grabID(getID());
 		attributes = kvp;
 
@@ -267,15 +289,15 @@ public class NEdge extends NAttributes {
 		attributes.removeKeyValue("ID");
 		addThisEdgeToPoints();
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// region stuff. Only used by automatic region finding/merging processes
 	//
-	
+
 	public void setAssociatedRegion(NRegion r) {
 		// TBD: called and already if full, the use the smaller of the regions.
-		
-		
+
+
 		if(region1==null) {
 			region1 = r;
 			return;
@@ -287,27 +309,28 @@ public class NEdge extends NAttributes {
 		// should not get to here, if it does choose the smaller region on the same side and ditch the larger one.
 		// System.out.println("NRegion::setRegion - already has both regions set ");
 	}
-	
+
 	public int getAssociatedRegionCount() {
 		int n = 0;
-		if(region1 != null) n++;
-		if(region2 != null) n++;
+		if(region1 != null) {
+			n++;
+		}
+		if(region2 != null) {
+			n++;
+		}
 		return n;
-		
+
 		//return regionAssociationCount;
 	}
-	
+
 	public boolean isPartOfRegion(NRegion r) {
-		if(region1==r) {
-			return true;
-		}
-		if(region2==r) {
+		if((region1==r) || (region2==r)) {
 			return true;
 		}
 		return false;
 	}
-	
-	
+
+
 }// end of class
 
 

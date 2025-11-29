@@ -18,46 +18,46 @@ public class Lighting_CommonUtils {
 
 	SceneData3D sceneData3D;
 	protected ImageCoordinateSystem coordinateSystem;
-	
+
 	BufferedImageRenderTarget shadowRenderTarget;
 	BufferedImage shadowRenderImage;
 	ByteImageGetterSetter  shadowImageGetSet;
-	
+
 	FloatImageRenderTarget depthRenderTarget;
 	PVector lightDirection;
 	PVector negativeLightDirection;
-	
+
 	public boolean debugFlag = false;
 	Progress progress;
-	
-	
+
+
 	// this is used to determine whether or not a particular sprite in a ROI session contributes to the image
 	// Because shadows extend beyond the sprite itself, sprites outside the ROI may contribute, so should be included in the
 	// roi session sprite batch file.
 	Rect theDoumentDocSpaceRect;
-	
-	
+
+
 	public Lighting_CommonUtils(SceneData3D sd3d, String nameOfShadowRender) {
-		
+
 		if(sd3d == null) {
 			System.out.println("Lighting_CommonUtils  SceneData3D == null, please initialse first ");
 
 		}
-		
+
 		sceneData3D = sd3d;
-		coordinateSystem = GlobalSettings.getDocument().getCoordinateSystem();		
+		coordinateSystem = GlobalSettings.getDocument().getCoordinateSystem();
 		theDoumentDocSpaceRect = coordinateSystem.getDocumentRect();
-		
-		
+
+
 		GlobalSettings.getDocument().addRenderTarget(nameOfShadowRender, BufferedImage.TYPE_BYTE_GRAY);
 		shadowRenderTarget = GlobalSettings.getDocument().getBufferedImageRenderTarget(nameOfShadowRender);
 		shadowRenderTarget.fillBackground(Color.WHITE);
 		shadowImageGetSet = new ByteImageGetterSetter(shadowRenderTarget.getBufferedImage());
 	}
-	
-	
+
+
 	protected void initialiseDepthRender(String nameOfDepthRender, boolean addSceneSurfaceToDepthRender, PVector lightDir) {
-		
+
 		GlobalSettings.getDocument().addFloatRenderTarget(nameOfDepthRender, true, 1);
 		depthRenderTarget = GlobalSettings.getDocument().getFloatImageRenderTarget(nameOfDepthRender);
 		lightDirection = lightDir.copy();
@@ -67,8 +67,8 @@ public class Lighting_CommonUtils {
 			addSceneSurfaceToDepth();
 		}
 	}
-	
-	
+
+
 	protected void addSceneSurfaceToDepth() {
 		int w = coordinateSystem.getBufferWidth();
 		int h = coordinateSystem.getBufferHeight();
@@ -89,14 +89,14 @@ public class Lighting_CommonUtils {
 			}
 		}
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	// useful shorthands, propose adding these to a new class
-	// which can be mixed in when needed	
+	// which can be mixed in when needed
 	PVector DStoBS(PVector docPt) {
 		return this.coordinateSystem.docSpaceToBufferSpace(docPt);
 	}
@@ -119,7 +119,7 @@ public class Lighting_CommonUtils {
 
 	}
 
-	
+
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// debugging methods below here
@@ -131,7 +131,9 @@ public class Lighting_CommonUtils {
 	}
 
 	public void println(String s) {
-		if(debugFlag==false) return;
+		if(!debugFlag) {
+			return;
+		}
 		System.out.println(s);
 	}
 
@@ -160,7 +162,7 @@ public class Lighting_CommonUtils {
 		GlobalSettings.getDocument().getMain().drawRectBufferSpace(spriteBufferRect, new Color(0,0,0,0), rc, 10f);
 	}
 
-	
+
 
 
 }

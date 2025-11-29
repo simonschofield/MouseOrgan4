@@ -26,6 +26,7 @@ public class TextInputBox extends Widget {
 
 	}
 
+	@Override
 	public void handleMouseEvent(String mouseEventType, int x, int y) {
 		// can only type into an input box if the mouse is hovering over
 		// this way we avoid sending text input to multiple widgets
@@ -34,11 +35,11 @@ public class TextInputBox extends Widget {
 
 	}
 
+	@Override
 	void handleKeyEvent(char k, int kcode, String keyEventType) {
-		if (keyEventType.equals("released"))
+		if (keyEventType.equals("released") || !rollover) {
 			return;
-		if (rollover == false)
-			return;
+		}
 
 		UIEventData uied = new UIEventData(UIManagerName, UIComponentType, UILabel, "textInputEvent", 0, 0);
 		uied.keyPress = k;
@@ -65,7 +66,9 @@ public class TextInputBox extends Widget {
 	void deleteCharacter() {
 		int l = contents.length();
 		if (l == 0)
+		 {
 			return; // string already empty
+		}
 		if (l == 1) {
 			contents = "";
 		} // delete the final character
@@ -89,6 +92,7 @@ public class TextInputBox extends Widget {
 		contents = s;
 	}
 
+	@Override
 	public void drawMe(VectorShapeDrawer drawer) {
 
 		if (rollover) {

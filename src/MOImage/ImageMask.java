@@ -1,6 +1,5 @@
 package MOImage;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ConvolveOp;
@@ -12,9 +11,9 @@ import java.awt.image.Kernel;
 //
 //
 public class ImageMask {
-	
+
 	BufferedImage mask;
-	int maskThreashold; 
+	int maskThreashold;
 	public ImageMask(BufferedImage sourceImage, int threashold) {
 		//relies on alpha being present to create the mask
 		sourceImage = ImageProcessing.assertImageTYPE_INT_ARGB(sourceImage);
@@ -25,7 +24,7 @@ public class ImageMask {
 		maskThreashold = threashold;
 		mask = createMask(sourceImage) ;
 	}
-	
+
 	BufferedImage createMask(BufferedImage sourceImage) {
 		int w = sourceImage.getWidth();
 		int h = sourceImage.getHeight();
@@ -40,13 +39,13 @@ public class ImageMask {
 				int sourcePix = sourceImage.getRGB(x, y);
 
 				int aVal = MOPackedColor.getAlpha(sourcePix);
-				
+
 				if(aVal < maskThreashold) {
 					outputImage.setRGB(x,y,BLACK);
 				}else {
 					outputImage.setRGB(x,y,WHITE);
 				}
-				
+
 			}
 		}
 
@@ -57,17 +56,17 @@ public class ImageMask {
 	    ConvolutionFilter edgeFilter = new ConvolutionFilter("edge");
 	    return edgeFilter.convolveBufferedImage(mask);
 	  }
-	
-	
+
+
 	BufferedImage getEdgeImage2() {
 		float[] matrix = {  0, -2, 0 ,  -2, 8, -2 , 0, -2, 0  };
 
-		
+
 		BufferedImage destImage = null ;
 		BufferedImageOp op = new ConvolveOp( new Kernel(3, 3, matrix), ConvolveOp.EDGE_ZERO_FILL, null );
 		return op.filter(mask, destImage);
-		
-		
-		
+
+
+
 	}
 }

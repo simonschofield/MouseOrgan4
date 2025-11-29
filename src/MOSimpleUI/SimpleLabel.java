@@ -22,14 +22,16 @@ class SimpleLabel extends Widget {
 
 	}
 
+	@Override
 	public void drawMe(VectorShapeDrawer drawer) {
 
 		drawer.setDrawingStyle(SimpleUIBackgroundRectColor, new Color(100, 100, 100, 255), 1);
 		drawer.drawRect(locX, locY, widgetWidth, widgetHeight);
 
 		String seperator = ":";
-		if (this.text.equals(""))
+		if (this.text.equals("")) {
 			seperator = " ";
+		}
 		String displayString;
 
 		if (displayLabel) {

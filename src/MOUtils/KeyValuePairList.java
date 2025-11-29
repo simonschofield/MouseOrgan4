@@ -7,7 +7,7 @@ import java.util.ArrayList;
 //
 public class KeyValuePairList{
 
-  ArrayList<KeyValuePair> keyValuePairs = new ArrayList<KeyValuePair>();
+  ArrayList<KeyValuePair> keyValuePairs = new ArrayList<>();
 
   public KeyValuePairList() {}
 
@@ -16,22 +16,22 @@ public class KeyValuePairList{
     KeyValuePairList kvplCopy = new KeyValuePairList();
     for(KeyValuePair kvp: keyValuePairs){
       kvplCopy.addKeyValuePair( kvp.copy() );
-      
+
     }
     return kvplCopy;
   }
-  
 
-  
+
+
   public void append(KeyValuePairList otherKVList){
-	  // adds in KVPs from another KVPList - "otherKVList" - this this KVPList. 
+	  // adds in KVPs from another KVPList - "otherKVList" - this this KVPList.
 	  // If any "same variables" are found, the new value is updated.uses deep copying
-	  
 
-	  // Make a copy of the otherKVList, and remove any in the exclude list 
+
+	  // Make a copy of the otherKVList, and remove any in the exclude list
 	  KeyValuePairList tempCopyOther = otherKVList.copy();
-	  
-	  
+
+
 	  // first update "same variables" in the list with new values
 	  for(KeyValuePair existingKVP: keyValuePairs) {
 
@@ -57,66 +57,78 @@ public class KeyValuePairList{
 
 
   }
-  
+
   public void removeKVPs(String[] keys) {
 	// removes all KVP's in the list of keys
 	// If the keys is set to NULL, then none are removed
-	  
-	  if(keys==null) return;
-	  
+
+	  if(keys==null) {
+		return;
+	}
+
 	  KeyValuePairList tempCopy = new KeyValuePairList();
 	   for(KeyValuePair thisKVP: keyValuePairs) {
-		   if( MOStringUtils.stringListContains(keys, thisKVP.getKey()) ) continue;
+		   if( MOStringUtils.stringListContains(keys, thisKVP.getKey()) ) {
+			continue;
+		}
 		   tempCopy.addKeyValuePair( thisKVP.copy() );
 	   }
-	   
+
 	   keyValuePairs = tempCopy.keyValuePairs;
-	  
+
   }
-  
+
   public void keepKVPs(String[] keys) {
 	  // removes all KVP's NOT in the list of keys
 	  // If the keys is set to NULL, then all are kept
-	  
-	  if(keys==null) return;
-	  
+
+	  if(keys==null) {
+		return;
+	}
+
 	  KeyValuePairList tempCopy = new KeyValuePairList();
 	   for(KeyValuePair thisKVP: keyValuePairs) {
 		   if( MOStringUtils.stringListContains(keys, thisKVP.getKey()) ) {
 			   tempCopy.addKeyValuePair( thisKVP.copy() );
 		   }
-		   
+
 	   }
-	   
+
 	   keyValuePairs = tempCopy.keyValuePairs;
-	  
+
   }
-   
-   
+
+
    private void removeNotSetKVPs() {
 	   KeyValuePairList tempCopy = new KeyValuePairList();
 	   for(KeyValuePair thisKVP: keyValuePairs) {
-		   if(thisKVP.TYPE != KeyValuePair.NOTSET)  tempCopy.addKeyValuePair(thisKVP);
+		   if(thisKVP.TYPE != KeyValuePair.NOTSET) {
+			tempCopy.addKeyValuePair(thisKVP);
+		}
 	   }
 	   keyValuePairs = tempCopy.keyValuePairs;
    }
 
-  
+
   // for comparing a KVPList against this one, to see if it contains an equal KVP - i.e. both K and V are the same
   public boolean containsEqual(KeyValuePairList otherKvpList) {
 	  for(KeyValuePair otherKvp: otherKvpList.keyValuePairs) {
-		  if(containsEqual(otherKvp)) return true;
+		  if(containsEqual(otherKvp)) {
+			return true;
+		}
 	  }
 	  return false;
   }
-  
+
   public boolean containsEqual(KeyValuePair otherKvp) {
 	  for(KeyValuePair thisKvp: keyValuePairs) {
-		  if(thisKvp.equals(otherKvp)) return true;
+		  if(thisKvp.equals(otherKvp)) {
+			return true;
+		}
 	  }
 	  return false;
   }
-  
+
   public void printMe(){
     for(KeyValuePair kvp: keyValuePairs){
      System.out.println(kvp.getStr());
@@ -148,8 +160,8 @@ public class KeyValuePairList{
     kv.set(k,v);
     addKeyValuePair(kv);
   }
-  
-  
+
+
   public void addKeyValue(String k, float[] f){
 	 KeyValuePair kv = new KeyValuePair();
 	 kv.set(k,f);
@@ -165,44 +177,52 @@ public class KeyValuePairList{
   }
 
   public void removeKeyValue(String kquery){
-    ArrayList<KeyValuePair> temp = new ArrayList<KeyValuePair>();
+    ArrayList<KeyValuePair> temp = new ArrayList<>();
     for(KeyValuePair kv: keyValuePairs){
-      if(kv.keyIs(kquery)==false) temp.add(kv);
+      if(!kv.keyIs(kquery)) {
+		temp.add(kv);
+	}
     }
     keyValuePairs = temp;
   }
-  
+
   public void removeAll(){
     //
-    keyValuePairs = new ArrayList<KeyValuePair>();
+    keyValuePairs = new ArrayList<>();
   }
-  
+
   //////////////////////////////////////////////////////
   // general information  methods
   public int getNumItems(){
     return keyValuePairs.size();
   }
-  
+
   public KeyValuePair getItem(int n){
     return keyValuePairs.get(n);
   }
 
   public boolean keyExists(String kquery){
     for(KeyValuePair kv: keyValuePairs){
-      if(kv.keyIs(kquery)) return true;
+      if(kv.keyIs(kquery)) {
+		return true;
+	}
     }
     return false;
   }
-  
-  
+
+
   boolean alreadyExists(KeyValuePair thisKvp) {
-	 // returns true if there is a KVP in the list that has the same key, and is the same type 
+	 // returns true if there is a KVP in the list that has the same key, and is the same type
 	  KeyValuePair found = this.findKeyValue(thisKvp.getKey());
-	  if(found == null) return false;
-	  
-	  if(thisKvp.getType() == found.getType()) return true;
+	  if(found == null) {
+		return false;
+	}
+
+	  if(thisKvp.getType() == found.getType()) {
+		return true;
+	}
 	  return false;
-	  
+
   }
 
   //////////////////////////////////////////////////////
@@ -242,8 +262,8 @@ public class KeyValuePairList{
     }
     return kv.getString();
   }
-  
-  
+
+
   public float[] getVector(String kquery) {
 	    KeyValuePair kv = findKeyValue(kquery);
 	    if(kv==null) {
@@ -257,11 +277,13 @@ public class KeyValuePairList{
 
   public KeyValuePair findKeyValue(String kquery){
     for(KeyValuePair kv: keyValuePairs){
-      if( kv.keyIs(kquery) ) return kv;
+      if( kv.keyIs(kquery) ) {
+		return kv;
+	}
     }
     return null;
   }
-  
+
   //////////////////////////////////////////////////////
   // array of strings getting and setting. Used in Processing for handy file saving
   //
@@ -281,9 +303,11 @@ public class KeyValuePairList{
 	  String compiled ="";
 	  for(int n=0; n < num; n++){
 		  String s = stringArray[n];
-		  
+
 		  compiled += s;
-		  if(n<num-1) compiled+=",";
+		  if(n<num-1) {
+			compiled+=",";
+		}
 	  }
 	  ingestCSVLine( compiled);
   }
@@ -299,17 +323,21 @@ public class KeyValuePairList{
       addKeyValuePair(kv);
     }
   }
-  
+
   public String getAsCSVString(boolean addEndComma){
     String outStr = "";
     for(KeyValuePair kv: keyValuePairs){
-      if(outStr.equals("")==false) outStr = outStr + ",";
+      if(!outStr.equals("")) {
+		outStr = outStr + ",";
+	}
       outStr = outStr + kv.getAsKeyValueString();
     }
-    if(addEndComma) outStr = outStr + ",";
+    if(addEndComma) {
+		outStr = outStr + ",";
+	}
     return outStr;
   }
-  
+
 
   public String getAsCSVLine(){
     String outStr = getAsCSVString(false);
@@ -317,7 +345,7 @@ public class KeyValuePairList{
     return outStr;
   }
 
-	
+
 }
 
 

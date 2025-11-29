@@ -9,7 +9,7 @@ import MOUtils.KeyValuePairList;
 
 //////////////////////////////////////////////////////////////////////////////////////
 //NRegion
-//To make a region, you submit a list of NEdges to it. 
+//To make a region, you submit a list of NEdges to it.
 //If the list is valid, in that it forms a closed loop (stored in edgeReferences) , then the region is "valid".
 //You can make in-valid regions, but these should be rejected by the NNetwork class, and not added to the regions list.
 //Any stray edges, not required to make the loop are not stored in the region.
@@ -19,7 +19,7 @@ import MOUtils.KeyValuePairList;
 //This is then be used to get the sequential vertices of the region stored in vertices.
 
 public class NRegion  extends NAttributes {
-	ArrayList<NEdge> edgeReferences = new ArrayList<NEdge>();
+	ArrayList<NEdge> edgeReferences = new ArrayList<>();
 	Vertices2 vertices;
 	Rect extents;
 
@@ -42,15 +42,15 @@ public class NRegion  extends NAttributes {
 	int getNumEdges() {
 		return edgeReferences.size();
 	}
-	
-	
-	
+
+
+
 
 	NEdge getEdge(int n) {
 		return edgeReferences.get(n);
 	}
-	
-	
+
+
 	ArrayList<NEdge> getEdges(){
 		// returns a copy. This will be used for the "smart polygon"
 		return (ArrayList)edgeReferences.clone();
@@ -59,19 +59,24 @@ public class NRegion  extends NAttributes {
 	boolean containsEdge(NEdge e){
 		return edgeReferences.contains(e);
 	}
-	
-	
+
+
 
 	public boolean isPointInside(PVector p){
-		if(vertices == null) return false;
-		if(extents.isPointInside(p)==false) return false;
-		if( vertices.isClosed()==false ) vertices.close();
+		if((vertices == null) || !extents.isPointInside(p)) {
+			return false;
+		}
+		if( !vertices.isClosed() ) {
+			vertices.close();
+		}
 		return vertices.isPointInside(p);
 	}
 
 	NPoint getNPointVertex(int n){
 		int rearEdgeIndex = n-1;
-		if(rearEdgeIndex == -1) rearEdgeIndex = edgeReferences.size()-1;
+		if(rearEdgeIndex == -1) {
+			rearEdgeIndex = edgeReferences.size()-1;
+		}
 		int frontEdgeIndex = n;
 		NEdge rearEdge = edgeReferences.get(rearEdgeIndex);
 		NEdge frontEdge = edgeReferences.get(frontEdgeIndex);
@@ -79,7 +84,7 @@ public class NRegion  extends NAttributes {
 	}
 
 	public Vertices2 getVertices(){
-		ArrayList<PVector> points = new ArrayList<PVector>();
+		ArrayList<PVector> points = new ArrayList<>();
 		for(int n = 0; n < getNumEdges(); n++){
 			NPoint np =  getNPointVertex(n);
 			points.add(np.getPt());
@@ -95,7 +100,9 @@ public class NRegion  extends NAttributes {
 
 
 	void splitEdge(NEdge oldEdge, NEdge newEdge1, NEdge newEdge2){
-		if( containsEdge(oldEdge) == false) return;
+		if( !containsEdge(oldEdge)) {
+			return;
+		}
 		ArrayList<NEdge> newEdges = (ArrayList)edgeReferences.clone();
 		int oldSize = newEdges.size();
 		newEdges.remove(oldEdge);
@@ -107,7 +114,7 @@ public class NRegion  extends NAttributes {
 		} else {
 			System.out.println("regions spilt edge Failed ");
 		}
-		
+
 	}
 
 	///////////////////////////////////////////////////////////////////
@@ -118,7 +125,7 @@ public class NRegion  extends NAttributes {
 		//System.out.println("building a loop from these....K ");
 		//printEdges(edgesIn);
 		//System.out.println();
-		ArrayList<NEdge> loopedEdges = new ArrayList<NEdge>();
+		ArrayList<NEdge> loopedEdges = new ArrayList<>();
 		//int startingEdge = 0;
 		int numEdgesIn = edgesIn.size();
 
@@ -144,9 +151,9 @@ public class NRegion  extends NAttributes {
 
 		return result;
 	}
-	
-	
-	
+
+
+
 
 	void printEdges(ArrayList<NEdge> edges) {
 		System.out.println("Num edges " + edges.size());
@@ -166,11 +173,15 @@ public class NRegion  extends NAttributes {
 		loopedEdges.add(currentEdge);
 		boolean loopFound = false;
 
-		while ( loopFound == false ) {
-			if ( unsortedEdges.size() <= 0) return false;
+		while ( !loopFound ) {
+			if ( unsortedEdges.size() <= 0) {
+				return false;
+			}
 			NEdge connectedToCurrent = popConnectedEdgeInList(currentEdge, unsortedEdges);
 			loopedEdges.add(connectedToCurrent);
-			if ( connectedToCurrent.connectsWith(startEdge)  && currentEdge != startEdge) break;
+			if ( connectedToCurrent.connectsWith(startEdge)  && currentEdge != startEdge) {
+				break;
+			}
 			currentEdge = connectedToCurrent;
 		}
 
@@ -189,8 +200,12 @@ public class NRegion  extends NAttributes {
 		NEdge thisEdge = null;
 		for (; n < edgeList.size(); n++) {
 			thisEdge= edgeList.get(n);
-			if (thisEdge == e) continue;
-			if ( e.connectsWith(thisEdge) ) break;
+			if (thisEdge == e) {
+				continue;
+			}
+			if ( e.connectsWith(thisEdge) ) {
+				break;
+			}
 		}
 		if ( thisEdge != null) {
 			edgeList.remove(thisEdge);
@@ -229,7 +244,7 @@ public class NRegion  extends NAttributes {
 
 	void setWithKeyValuePairList(KeyValuePairList kvp) {
 		int numEdges = kvp.getInt("NUMEDGES");
-		ArrayList<NEdge> edges = new ArrayList<NEdge>();
+		ArrayList<NEdge> edges = new ArrayList<>();
 
 		for (int n = 0; n < numEdges; n++) {
 			String EdgeKeyString = "EDGE_" + n;
@@ -238,7 +253,7 @@ public class NRegion  extends NAttributes {
 			edges.add(thisEdge);
 		}
 
-		setID_Override( kvp.getInt("ID") ); 
+		setID_Override( kvp.getInt("ID") );
 		theNetwork.uniqueIDGenerator.grabID(getID());
 		attributes = kvp;
 
@@ -253,17 +268,17 @@ public class NRegion  extends NAttributes {
 
 		isValid = tryToConstructFromEdges(edges);
 	}
-	
-	
-	
+
+
+
 	// region edge-reference stuff, used in automatic construction of regions
 	public void setEdgesAssociatedRegion() {
 		for(NEdge e: edgeReferences) {
 			e.setAssociatedRegion(this);
 		}
 	}
-	
-	
-	
-	
+
+
+
+
 }

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import MOCompositing.BufferedImageRenderTarget;
-import MOImage.ImageProcessing;
 import MOImage.MOColor;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
@@ -28,8 +27,8 @@ public class PointGenerator_Volume3D extends CollectionIterator {
 	EyeSpaceVolume3D eyeSpaceVolume;
 	AABox3D aaBox;
 
-	ArrayList<PVector> points3d = new ArrayList<PVector>();
-	ArrayList<PVector> points2d = new ArrayList<PVector>();
+	ArrayList<PVector> points3d = new ArrayList<>();
+	ArrayList<PVector> points2d = new ArrayList<>();
 	float nearDepth = 0;
 	float farDepth = 1;
 

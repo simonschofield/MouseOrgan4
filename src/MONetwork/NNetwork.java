@@ -1,15 +1,4 @@
 package MONetwork;
-import java.io.FileWriter;
-import java.util.ArrayList;
-
-
-import MOMaths.PVector;
-import MOMaths.Rect;
-import MOUtils.KeyValuePairList;
-import MOUtils.GlobalSettings;
-import MOUtils.KeyValuePair;
-import MOUtils.UniqueID;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 //////////////////////////////////////////////////////////////////////////////////////
@@ -20,6 +9,15 @@ import java.io.FileReader;
 // An NEdge has two NPoints that make it. These have no order (no "end" and "start", just two points)
 // An NRegion is (??) made of a number of NEdges that connect with shared NPoints
 ///////////////////////////////////////////////////////////////////////////////////////
+import java.io.FileWriter;
+import java.util.ArrayList;
+
+import MOMaths.PVector;
+import MOMaths.Rect;
+import MOUtils.GlobalSettings;
+import MOUtils.KeyValuePair;
+import MOUtils.KeyValuePairList;
+import MOUtils.UniqueID;
 
 
 
@@ -33,9 +31,9 @@ import java.io.FileReader;
 //
 public class NNetwork {
 
-	ArrayList<NPoint> points = new ArrayList<NPoint>();
-	ArrayList<NEdge> edges = new ArrayList<NEdge>();
-	ArrayList<NRegion> regions = new ArrayList<NRegion>();
+	ArrayList<NPoint> points = new ArrayList<>();
+	ArrayList<NEdge> edges = new ArrayList<>();
+	ArrayList<NRegion> regions = new ArrayList<>();
 	//SpatialIndex pointsSpatialIndex;
 
 	UniqueID uniqueIDGenerator;
@@ -48,7 +46,7 @@ public class NNetwork {
 		//setSpatialIndex( 1, 1, 10, 10);
 		uniqueIDGenerator = new UniqueID();
 	}
-	
+
 	public NNetwork copy() {
 		NNetwork networkcopy = new NNetwork();
 		networkcopy.mergeNetwork(this);
@@ -56,7 +54,9 @@ public class NNetwork {
 	}
 
 	boolean isInitialised() {
-		if (points.size() > 0) return true;
+		if (points.size() > 0) {
+			return true;
+		}
 		return false;
 	}
 
@@ -88,12 +88,12 @@ public class NNetwork {
 		}
 		refreshIDs();
 	}
-	
-	
+
+
 
 	void clearNetwork() {
-		points = new ArrayList<NPoint>();
-		edges = new ArrayList<NEdge>();
+		points = new ArrayList<>();
+		edges = new ArrayList<>();
 		uniqueIDGenerator.reset();
 	}
 
@@ -159,7 +159,7 @@ public class NNetwork {
 				addItemFromCSV_KVP(kvp);
 			}
 			csvReader.close();
-		} 
+		}
 		catch(Exception e) {
 			System.out.println("csv reader failed");
 		}
@@ -172,17 +172,21 @@ public class NNetwork {
 	// the attributes e contains a KVP list, so if currentSearchAttribute was also a list
 
 	public void setSearchAttribute(KeyValuePair kvp) {
-		if(kvp == null) return;
-		
-		
-		
-		
+		if(kvp == null) {
+			return;
+		}
+
+
+
+
 		currentSearchAttributes.addKeyValuePair(kvp.copy());
 		System.out.println("NNetworkProcessor: added to currentSearchAttribute = " + kvp.getKey());
 	}
 
 	public void setSearchAttribute(KeyValuePairList kvpl) {
-		if(kvpl == null) return;
+		if(kvpl == null) {
+			return;
+		}
 		currentSearchAttributes=kvpl.copy();
 		//System.out.println("NNetworkProcessor: added to currentSearchAttribute = " + kvp.theKey);
 	}
@@ -192,7 +196,9 @@ public class NNetwork {
 	}
 
 	public boolean isMatchingSearchAttribute(NAttributes e) {
-		if(currentSearchAttributes.getNumItems()==0) return true;
+		if(currentSearchAttributes.getNumItems()==0) {
+			return true;
+		}
 		boolean result = e.getAttributes().containsEqual(currentSearchAttributes);
 		return result;
 	}
@@ -200,20 +206,24 @@ public class NNetwork {
 	public ArrayList<NEdge> getEdgesMatchingSearchAttributes(boolean match){
 
 		ArrayList<NEdge> edgeList = this.getEdges();
-		ArrayList<NEdge> matchingEdges = new ArrayList<NEdge>();
+		ArrayList<NEdge> matchingEdges = new ArrayList<>();
 		for (int n = 0; n < edgeList.size(); n++) {
 			NEdge e = edgeList.get(n);
-			if(isMatchingSearchAttribute(e) == match) matchingEdges.add(e);
+			if(isMatchingSearchAttribute(e) == match) {
+				matchingEdges.add(e);
+			}
 		}
 		return matchingEdges;
 	}
-	
+
 	public ArrayList<NEdge> getEdgesMatchingQuery(KeyValuePair query) {
 		ArrayList<NEdge> edgeList = this.getEdges();
-		ArrayList<NEdge> matchingEdges = new ArrayList<NEdge>();
+		ArrayList<NEdge> matchingEdges = new ArrayList<>();
 		for (int n = 0; n < edgeList.size(); n++) {
 			NEdge e = edgeList.get(n);
-			if( e.thisItemContainsMatch(query) ) matchingEdges.add(e);
+			if( e.thisItemContainsMatch(query) ) {
+				matchingEdges.add(e);
+			}
 		}
 		return matchingEdges;
 	}
@@ -222,48 +232,56 @@ public class NNetwork {
 	public ArrayList<NPoint> getPointsMatchingSearchAttributes(boolean match){
 
 		ArrayList<NPoint> pointList = this.getPoints();
-		ArrayList<NPoint> matchingPoints = new ArrayList<NPoint>();
+		ArrayList<NPoint> matchingPoints = new ArrayList<>();
 		for (int n = 0; n < pointList.size(); n++) {
 			NPoint p = pointList.get(n);
-			if(isMatchingSearchAttribute(p) == match ) matchingPoints.add(p);
+			if(isMatchingSearchAttribute(p) == match ) {
+				matchingPoints.add(p);
+			}
 		}
 		return matchingPoints;
 	}
-	
-	
+
+
 	public ArrayList<NPoint> getPointsMatchingQuery(KeyValuePair query) {
 		ArrayList<NPoint> pointList = this.getPoints();
-		ArrayList<NPoint> matchingPoints = new ArrayList<NPoint>();
+		ArrayList<NPoint> matchingPoints = new ArrayList<>();
 		for (int n = 0; n < pointList.size(); n++) {
 			NPoint p = pointList.get(n);
-			if( p.thisItemContainsMatch(query) ) matchingPoints.add(p);
+			if( p.thisItemContainsMatch(query) ) {
+				matchingPoints.add(p);
+			}
 		}
 		return matchingPoints;
-		
+
 	}
 
 
 	public ArrayList<NRegion> getRegionsMatchingSearchAttributes(boolean match){
 
 		ArrayList<NRegion> regionList = this.getRegions();
-		
+
 		System.out.println("getRegionsMatchingSearchAttributes::regionList " + regionList.size() );
-		
-		
-		ArrayList<NRegion> matchingRegions = new ArrayList<NRegion>();
+
+
+		ArrayList<NRegion> matchingRegions = new ArrayList<>();
 		for (int n = 0; n < regionList.size(); n++) {
 			NRegion r = regionList.get(n);
-			if(isMatchingSearchAttribute(r) == match ) matchingRegions.add(r);
+			if(isMatchingSearchAttribute(r) == match ) {
+				matchingRegions.add(r);
+			}
 		}
 		return matchingRegions;
 	}
 
 	public ArrayList<NRegion> getRegionsMatchingQuery(KeyValuePair query) {
 		ArrayList<NRegion> regionList = this.getRegions();
-		ArrayList<NRegion> matchingRegions = new ArrayList<NRegion>();
+		ArrayList<NRegion> matchingRegions = new ArrayList<>();
 		for (int n = 0; n < regionList.size(); n++) {
 			NRegion r = regionList.get(n);
-			if( r.thisItemContainsMatch(query) ) matchingRegions.add(r);
+			if( r.thisItemContainsMatch(query) ) {
+				matchingRegions.add(r);
+			}
 		}
 		return matchingRegions;
 	}
@@ -271,18 +289,18 @@ public class NNetwork {
 
 	//////////////////////////////////////////////////////////////////////////////////
 	// applying a ROI to the network
-	// 
-	// 
+	//
+	//
 
 
 
 	public void applyROI(Rect roi) {
 		// remove edgs outside of roi
-		ArrayList<NEdge> toRemove  = new ArrayList<NEdge>();
+		ArrayList<NEdge> toRemove  = new ArrayList<>();
 		for(NEdge ne: edges) {
 			PVector p1 = ne.p1.coordinates;
 			PVector p2 = ne.p2.coordinates;
-			if(roi.canLineIntersect(p1,p2) == false) {
+			if(!roi.canLineIntersect(p1,p2)) {
 				toRemove.add(ne);
 			}
 
@@ -301,16 +319,18 @@ public class NNetwork {
 
 		// debug
 		//for (NEdge e : edges) {
-			
+
 		//	System.out.println("apply roi edge e " + e.toStr());
-			
+
 		//}
 	}
-	
+
 	public ArrayList<NPoint> getPointsWithEdges() {
-		ArrayList<NPoint> pointsWithEdges = new ArrayList<NPoint>();
+		ArrayList<NPoint> pointsWithEdges = new ArrayList<>();
 		for (NPoint np : points) {
-			if(np.getEdgeReferences().size()>0) pointsWithEdges.add(np);
+			if(np.getEdgeReferences().size()>0) {
+				pointsWithEdges.add(np);
+			}
 		}
 		return pointsWithEdges;
 	}
@@ -336,14 +356,19 @@ public class NNetwork {
 
 		if (kvpl.getString("THING").equals("NREGION")) {
 			NRegion nr = new NRegion( kvpl, this );
-			if (nr.isValid()) regions.add(nr);
+			if (nr.isValid()) {
+				regions.add(nr);
+			}
 		}
 	}
 
 	// points must only be added via this method
 	void addPoint(NPoint np) {
-		if(points.contains(np)==false) points.add(np);
-		//pointsSpatialIndex.addItem(np);
+		if(!points.contains(np))
+		 {
+			points.add(np);
+			//pointsSpatialIndex.addItem(np);
+		}
 	}
 
 	NPoint addPoint(PVector mapSpacePt) {
@@ -398,10 +423,12 @@ public class NNetwork {
 		int numRegions = regions.size();
 		for (int n = numRegions-1; n >= 0; n--) {
 			NRegion r = regions.get(n);
-			if( r.containsEdge(e) ) regions.remove(n);
+			if( r.containsEdge(e) ) {
+				regions.remove(n);
+			}
 		}
 	}
-	
+
 	void deleteRegion(NRegion r) {
 		// does not delete the points or edges contained in this region,
 		// but only removes the region from the region list
@@ -410,21 +437,25 @@ public class NNetwork {
 
 	NPoint findPointWithID(int searchID) {
 		for (NPoint np : points) {
-			if ( np.getID() == searchID) return np;
+			if ( np.getID() == searchID) {
+				return np;
+			}
 		}
 		return null;
 	}
 
 	NEdge findEdgeWithID(int searchID) {
 		for (NEdge e : edges) {
-			if ( e.getID() == searchID) return e;
+			if ( e.getID() == searchID) {
+				return e;
+			}
 		}
 		return null;
 	}
-	
-	
-	
-	
+
+
+
+
 
 	NPoint getNearestNPoint(PVector mapLoc) {
 		NPoint currentClosestNPoint = null;
@@ -461,7 +492,7 @@ public class NNetwork {
 	}
 
 	NRegion getNearestNRegion(PVector mapLoc){
-		// finds 
+		// finds
 		for (NRegion nr: regions) {
 			if( nr.isPointInside(mapLoc) ){
 				return nr;

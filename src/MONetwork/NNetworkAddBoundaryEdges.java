@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import MOMaths.Line2;
 import MOMaths.PVector;
 import MOMaths.Rect;
-import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 
@@ -14,10 +13,10 @@ public class NNetworkAddBoundaryEdges {
 
 	///////////////////////////////////////////////////////////////////////////////////////
 	// addOuterBoundaryEdges
-	// New edges are added to the NNetwork on the precise addOuterBoundaryEdges rect before the region search is undertaken. These are "welded" to the existing network 
+	// New edges are added to the NNetwork on the precise addOuterBoundaryEdges rect before the region search is undertaken. These are "welded" to the existing network
 	// edges with Attribute REGIONEDGE: "Document". One obvious use it to use the documentRect as the boundary.
 	// These are useful for finding the outer areas of the network that would not otherwise be complete regions, but composed of dangling edges, so left blank.
-	// Method - 
+	// Method -
 	//		add 4 new document edges to the NNetwork representing the sides of the boundary rect.
 	//	    find all the intersections of the exiting network with the new document edges - store them in allIntersectionsList
 	//      get the first edge in the allIntersectionsList - thisEdge
@@ -30,29 +29,29 @@ public class NNetworkAddBoundaryEdges {
 	//
 	//
 	//
-	
-	
+
+
 	NNetwork theNetwork;
 	KeyValuePair documentEdgeAttribute = new KeyValuePair("REGIONEDGE", "document");
-	
-	
+
+
 	Rect theBoundaryRect;
-	
+
 	public NNetworkAddBoundaryEdges(NNetwork ntwk) {
-		
+
 		theNetwork = ntwk.copy();
 	}
-	
+
 	public NNetwork getNetworkWithAddedBoundary() {
 		return theNetwork;
 	}
-	
+
 	public void addOuterBoundaryEdges(Rect boundaryRect, boolean removeEdgesOutsideBoundary) {
 
-		
+
 		theBoundaryRect = boundaryRect.copy();
-		
-		
+
+
 		// first create the new boundary edges
 		NPoint topLeft = new NPoint(theBoundaryRect.getTopLeft(),theNetwork);
 		theNetwork.addPoint(topLeft);
@@ -79,7 +78,7 @@ public class NNetworkAddBoundaryEdges {
 		//System.out.println("addOuterBoundaryEdges here1");
 
 		// get all the intersections of the network with these edges
-		ArrayList<NEdge> allIntersectionsList = new ArrayList<NEdge>();
+		ArrayList<NEdge> allIntersectionsList = new ArrayList<>();
 		allIntersectionsList.addAll(findIntersections(topEdge));
 		allIntersectionsList.addAll(findIntersections(rightEdge));
 		allIntersectionsList.addAll(findIntersections(bottomEdge));
@@ -100,13 +99,13 @@ public class NNetworkAddBoundaryEdges {
 
 
 		theNetwork.refreshIDs();
-		
+
 		if(removeEdgesOutsideBoundary) {
-			
+
 			removeEdgesOutsideBoundary();
 		}
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// private below here
 	//
@@ -116,39 +115,45 @@ public class NNetworkAddBoundaryEdges {
 			System.out.println("removeItemsOutsideBoundary::boundary rect has not been specified - action aborted");
 			return;
 		}
-		
-		
-		 
+
+
+
 		ArrayList<NEdge> allEdges  = theNetwork.getEdges();
-		
-		ArrayList<NEdge> toRemove  = new ArrayList<NEdge>();
+
+		ArrayList<NEdge> toRemove  = new ArrayList<>();
 		for(NEdge ne: allEdges) {
-			
-			if( ne.getAttributes().containsEqual(documentEdgeAttribute)) continue;
+
+			if( ne.getAttributes().containsEqual(documentEdgeAttribute)) {
+				continue;
+			}
 
 			PVector p1 = ne.p1.coordinates;
 			PVector p2 = ne.p2.coordinates;
-			if(theBoundaryRect.isPointInside(p1,0.0001f) == false || theBoundaryRect.isPointInside(p2,0.0001f) == false) {
+			if(!theBoundaryRect.isPointInside(p1,0.0001f) || !theBoundaryRect.isPointInside(p2,0.0001f)) {
 				toRemove.add(ne);
 			}
 
 		}
 
 		theNetwork.removeEdges(toRemove);
-		
-		
-		
+
+
+
 	}
 
-	
+
 	boolean edgesToWeld(ArrayList<NEdge> allIntersectionsList) {
 
-		if(allIntersectionsList.size()<1) return false;
+		if(allIntersectionsList.size()<1) {
+			return false;
+		}
 		NEdge thisEdge = allIntersectionsList.get(0);
 
 		ArrayList<NEdge> documentEdges = getAllDocumentEdges();
 		//System.out.println("edgesToWeld documentEdges " + documentEdges.size());
-		if(documentEdges.size() == 0) return false;
+		if(documentEdges.size() == 0) {
+			return false;
+		}
 		for(NEdge docEdge: documentEdges) {
 			if( isIntersection(thisEdge, docEdge) ) {
 				weldEdges(thisEdge, docEdge);
@@ -164,7 +169,7 @@ public class NNetworkAddBoundaryEdges {
 
 
 	ArrayList<NEdge> getAllDocumentEdges(){
-		ArrayList<NEdge> documentEdges = new ArrayList<NEdge>();
+		ArrayList<NEdge> documentEdges = new ArrayList<>();
 
 		ArrayList<NEdge> allEdges = theNetwork.getEdges();
 		// find all the possible lines intersecting
@@ -191,7 +196,7 @@ public class NNetworkAddBoundaryEdges {
 	ArrayList<NEdge> findIntersections(NEdge theEdge) {
 		// first find all the intersecting edges
 		ArrayList<NEdge> allEdges = getAllNonDocumentEdges();
-		ArrayList<NEdge> intersectingEdges = new ArrayList<NEdge>();
+		ArrayList<NEdge> intersectingEdges = new ArrayList<>();
 
 		// find all the possible lines intersecting
 		for(NEdge e: allEdges) {
@@ -212,7 +217,7 @@ public class NNetworkAddBoundaryEdges {
 		Line2 l1 = e1.getLine2();
 		Line2 l2 = e2.getLine2();
 		//if( l1.isIntersectionPossible(l2)== false) return false;
-		boolean result =  l1.calculateIntersection(l2);	
+		boolean result =  l1.calculateIntersection(l2);
 		//System.out.println("line1 " + l1.toStr() + " line2 " + l2.toStr() + " intersection = " + result);
 		return result;
 	}
@@ -220,7 +225,9 @@ public class NNetworkAddBoundaryEdges {
 	void weldEdges(NEdge e1, NEdge e2) {
 		// assumes that they have already been determined as intersecting
 		PVector intersectionPoint = e1.getLine2().getIntersectionPoint(e2.getLine2());
-		if(intersectionPoint == null) return;
+		if(intersectionPoint == null) {
+			return;
+		}
 
 		NPoint newSplitPoint = splitEdge(e1, intersectionPoint);
 		splitEdge(e2,  newSplitPoint);
@@ -228,14 +235,18 @@ public class NNetworkAddBoundaryEdges {
 	}
 
 	NPoint splitEdge(NEdge oldEdge, PVector splitPoint){
-		if( oldEdge == null || splitPoint == null) return null;
+		if( oldEdge == null || splitPoint == null) {
+			return null;
+		}
 		NPoint newSplitPoint = new NPoint(splitPoint, theNetwork);
 		splitEdge( oldEdge,  newSplitPoint);
 		return newSplitPoint;
 	}
 
-	void splitEdge(NEdge oldEdge, NPoint newSplitPoint) {  
-		if( oldEdge == null || newSplitPoint == null) return;
+	void splitEdge(NEdge oldEdge, NPoint newSplitPoint) {
+		if( oldEdge == null || newSplitPoint == null) {
+			return;
+		}
 		NPoint np1 = oldEdge.getEndNPoint(0);
 		NPoint np2 = oldEdge.getEndNPoint(1);
 

@@ -12,7 +12,7 @@ public class ConvolutionFilter {
 
 	float[][] sharpen_matrix = { { 0, -1, 0 }, { -1, 5, -1 }, { 0, -1, 0 } };
 
-	float[][] gaussianblur_matrix = { 
+	float[][] gaussianblur_matrix = {
 			{ 0.000f, 0.000f, 0.001f, 0.001f, 0.001f, 0.000f, 0.000f },
 			{ 0.000f, 0.002f, 0.012f, 0.020f, 0.012f, 0.002f, 0.000f },
 			{ 0.001f, 0.012f, 0.068f, 0.109f, 0.068f, 0.012f, 0.001f },
@@ -21,17 +21,17 @@ public class ConvolutionFilter {
 			{ 0.000f, 0.002f, 0.012f, 0.020f, 0.012f, 0.002f, 0.000f },
 			{ 0.000f, 0.000f, 0.001f, 0.001f, 0.001f, 0.000f, 0.000f } };
 
-	float[][] sobelX_matrix5 = { 
-			{ 2, 1, 0, -1, -2 }, 
-			{ 2, 1, 0, -1, -2 }, 
-			{ 4, 2, 0, -2, -4 }, 
+	float[][] sobelX_matrix5 = {
+			{ 2, 1, 0, -1, -2 },
+			{ 2, 1, 0, -1, -2 },
+			{ 4, 2, 0, -2, -4 },
 			{ 2, 1, 0, -1, -2 },
 			{ 2, 1, 0, -1, -2 } };
 
-	float[][] sobelY_matrix5 = { 
-			{  2,  2,  4,  2,  2 }, 
-			{  1,  1,  2,  1,  1 }, 
-			{  0,  0,  0,  0,  0 }, 
+	float[][] sobelY_matrix5 = {
+			{  2,  2,  4,  2,  2 },
+			{  1,  1,  2,  1,  1 },
+			{  0,  0,  0,  0,  0 },
 			{ -1, -1, -2, -1, -1 },
 			{ -2, -2, -4, -2, -2 } };
 
@@ -42,36 +42,36 @@ public class ConvolutionFilter {
 	int currentMatrixDim;
 
 	public ConvolutionFilter() {
-		
+
 		// should probably set the identity matrix
 	}
-	
-	
-	
+
+
+
 	public ConvolutionFilter(String type) {
 		setCurrentFilter(type);
 	}
-	
+
 	BufferedImage convolveBufferedImage(BufferedImage sourceImage) {
 	    int w = sourceImage.getWidth();
 	    int h = sourceImage.getHeight();
 	    BufferedImage outputImage = new BufferedImage(sourceImage.getWidth(), sourceImage.getHeight(), sourceImage.getType());
-	    
-	    
-	   
+
+
+
 	      for(int y = 0; y < h; y++){
 	        for(int x = 0; x < w; x++){
-	        
+
 	        int c = convolvePixel(x, y, sourceImage);
-	        
+
 	        outputImage.setRGB(x,y,c);
-	        
+
 	        }
 	      }
-	    
+
 	    return outputImage;
 	  }
-	  
+
 
 	void setCurrentFilter(String type) {
 		if (type.toLowerCase() == "edge") {
@@ -152,8 +152,8 @@ public class ConvolutionFilter {
 		// Return the resulting color
 		return total;
 	}
-	
-	
+
+
 	int convolvePixel(int x, int y, BufferedImage img) {
 		// Ignores the alpha channel if there is one, and returns a solid image (no transparency)
 		// x,y is the central pixel of the floatimage in the convolution
@@ -171,29 +171,29 @@ public class ConvolutionFilter {
 				xloc = MOMaths.constrain(xloc, 0,img.getWidth()-1);
 				yloc = MOMaths.constrain(yloc, 0,img.getHeight()-1);
 				int sourcePix = img.getRGB(xloc, yloc);
-				
+
 				float rVal = MOPackedColor.getRed(sourcePix);
 				float gVal = MOPackedColor.getGreen(sourcePix);
 				float bVal = MOPackedColor.getBlue(sourcePix);
-				
+
 				totalR += (rVal * currentMatrix[i][j]);
 				totalG += (gVal * currentMatrix[i][j]);
 				totalB += (bVal * currentMatrix[i][j]);
-				
+
 				// println("loc total",loc,total);
 			}
 		}
 		totalR = MOMaths.constrain(totalR, 0, 255);
 		totalG = MOMaths.constrain(totalG, 0, 255);
 		totalB = MOMaths.constrain(totalB, 0, 255);
-		
-		
-		
+
+
+
 		// Return the resulting color
 		return MOPackedColor.packARGB(255, (int)totalR,(int)totalG,(int)totalB);
 	}
-	
-	
+
+
 	public PVector getGradient(PVector docSpace, BufferedImage img) {
 		// uses a 5x5 Sobel filet.
 		// returns the direction and magnitude from dark to light
@@ -203,23 +203,23 @@ public class ConvolutionFilter {
 		PVector bufferXY =  kimg.docSpaceToBufferSpace( docSpace);
 		return getGradient((int)bufferXY.x, (int)bufferXY.y, kimg.getBufferedImage() );
 	}
-	
+
 	PVector getGradient(int x, int y, BufferedImage img) {
 		setCurrentFilter("sobelx5");
 		float dx = convolvePixel( x,  y,  img);
-		
+
 		setCurrentFilter("sobely5");
 		float dy = convolvePixel( x,  y,  img);
 
 		PVector grad =  new PVector(-dx,-dy);
-		
+
 		System.out.println("dx dy " + dx + " " + dy);
 		//grad.rotate((float)Math.toRadians(90));
 		return grad;
 	}
-	
-	
-	
+
+
+
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//

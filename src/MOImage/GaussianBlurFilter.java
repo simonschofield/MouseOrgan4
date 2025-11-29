@@ -1,6 +1,7 @@
 package MOImage;
 
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.Kernel;
 
 import MOMaths.MOMaths;
 
@@ -16,7 +17,7 @@ public class GaussianBlurFilter{
 
 	protected float radius;
 	protected Kernel kernel;
-	
+
 	/**
 	 * Construct a Gaussian filter
 	 */
@@ -40,7 +41,7 @@ public class GaussianBlurFilter{
 		this.radius = radius;
 		kernel = makeKernel(radius);
 	}
-	
+
 	/**
 	 * Get the radius of the kernel.
 	 * @return the radius
@@ -53,14 +54,14 @@ public class GaussianBlurFilter{
         int width = src.getWidth();
         int height = src.getHeight();
 
-       
+
         	BufferedImage dst = ImageProcessing.createEmptyCopy(src);
 
         int[] inPixels = new int[width*height];
         int[] outPixels = new int[width*height];
         src.getRGB( 0, 0, width, height, inPixels, 0, width );
         boolean alpha = ImageProcessing.hasAlpha(src);
-        
+
 		convolveAndTranspose(kernel, inPixels, outPixels, width, height, alpha, CLAMP_EDGES);
 		convolveAndTranspose(kernel, outPixels, inPixels, height, width, alpha, CLAMP_EDGES);
 
@@ -85,15 +86,17 @@ public class GaussianBlurFilter{
 					if (f != 0) {
 						int ix = x+col;
 						if ( ix < 0 ) {
-							if ( edgeAction == CLAMP_EDGES )
+							if ( edgeAction == CLAMP_EDGES ) {
 								ix = 0;
-							else if ( edgeAction == WRAP_EDGES )
+							} else if ( edgeAction == WRAP_EDGES ) {
 								ix = (x+width) % width;
+							}
 						} else if ( ix >= width) {
-							if ( edgeAction == CLAMP_EDGES )
+							if ( edgeAction == CLAMP_EDGES ) {
 								ix = width-1;
-							else if ( edgeAction == WRAP_EDGES )
+							} else if ( edgeAction == WRAP_EDGES ) {
 								ix = (x+width) % width;
+							}
 						}
 						int rgb = inPixels[ioffset+ix];
 						a += f * ((rgb >> 24) & 0xff);
@@ -111,8 +114,8 @@ public class GaussianBlurFilter{
 			}
 		}
 	}
-	
-	
+
+
 
 	/**
 	 * Make a Gaussian blur kernel.
@@ -130,19 +133,22 @@ public class GaussianBlurFilter{
 		int index = 0;
 		for (int row = -r; row <= r; row++) {
 			float distance = row*row;
-			if (distance > radius2)
+			if (distance > radius2) {
 				matrix[index] = 0;
-			else
+			} else {
 				matrix[index] = (float)Math.exp(-(distance)/sigma22) / sqrtSigmaPi2;
+			}
 			total += matrix[index];
 			index++;
 		}
-		for (int i = 0; i < rows; i++)
+		for (int i = 0; i < rows; i++) {
 			matrix[i] /= total;
+		}
 
 		return new Kernel(rows, 1, matrix);
 	}
 
+	@Override
 	public String toString() {
 		return "Blur/Gaussian Blur...";
 	}

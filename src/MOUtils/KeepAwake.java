@@ -10,7 +10,7 @@ public class KeepAwake{
 	SecondsTimer timer;
 	int mouseMoveDirection = 1;
 	boolean isActive = true;
-	
+
     public KeepAwake(){
         timer = new SecondsTimer();
     	try {
@@ -22,10 +22,11 @@ public class KeepAwake{
 
             timer.startDuration(60f);
         }
-        
+
     public void update() {
-    	if(!isActive) return;
-    	if(timer.isInDuration()) return;
+    	if(!isActive || timer.isInDuration()) {
+			return;
+		}
     	Point pi = MouseInfo.getPointerInfo().getLocation();
     	hal.mouseMove(pi.x+mouseMoveDirection,pi.y);
     	mouseMoveDirection *= -1;
@@ -33,11 +34,11 @@ public class KeepAwake{
     	pi = MouseInfo.getPointerInfo().getLocation();
     	//System.out.println("KeepAwake mouse move x = " + pi.x);
     }
-    
+
     public void setActive(boolean a) {
     	isActive = a;
     }
-    
+
 }
 
 ///

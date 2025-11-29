@@ -24,15 +24,15 @@ import MOUtils.KeyValuePairList;
 
 
 public class EdgeRunVerticesCrawler{
-	
-	
-	
+
+
+
 	// copy of the network and search criteria used in the extraction
 	private NNetwork theNetwork;
 	private KeyValuePairList theSearchCriteria;
-	
+
 	// The extracted edge run vertices
-	ArrayList<Vertices2> edgeRunVertices; 
+	ArrayList<Vertices2> edgeRunVertices;
 
 	// the current vertices being crawled
 	Vertices2 currentVertices = null;
@@ -55,7 +55,7 @@ public class EdgeRunVerticesCrawler{
 	public EdgeRunVerticesCrawler(NNetwork ntwk, KeyValuePairList searchCriteria) {
 		theNetwork = ntwk;
 		theSearchCriteria = searchCriteria;
-		
+
 		}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ public class EdgeRunVerticesCrawler{
 	// extract general edge-runs from the network - so is suitable for roads and will find incomplete parts of regions
 	//
 	public void extractNetworkEdgeVertices(float angleTollerance){
-		
+
 		NNetworkEdgeRunFinder edgeRunExtractor = new NNetworkEdgeRunFinder(theNetwork, theSearchCriteria);
 		edgeRunExtractor.setAngleTollerance(angleTollerance);
 		edgeRunVertices = edgeRunExtractor.extractAllEdgeRunVertices();
@@ -78,9 +78,9 @@ public class EdgeRunVerticesCrawler{
 	// for finding the vertices of regions only
 	//
 	public void extractRegionEdgeVertices(){
-		
+
 		ArrayList<NRegion> regions = theNetwork.getRegions();
-		edgeRunVertices = new ArrayList<Vertices2>();
+		edgeRunVertices = new ArrayList<>();
 		for(NRegion r : regions) {
 			Vertices2 verts = r.getVertices();
 			edgeRunVertices.add(verts);
@@ -91,7 +91,9 @@ public class EdgeRunVerticesCrawler{
 
 
 	public void sortEdgeRuns(boolean shortestFirst) {
-		if(isInitialised()==false) return;
+		if(!isInitialised()) {
+			return;
+		}
 
 
 		if(shortestFirst) {
@@ -101,17 +103,19 @@ public class EdgeRunVerticesCrawler{
 		}
 
 	}
-	
+
 	public void setRunDirectionPreference(int preference) {
 		for(Vertices2 v: edgeRunVertices) {
 			v.setRunDirectionPreference(preference);
 		}
 	}
-	
+
 	public void removeShortEdgeRuns(float minLength) {
-		ArrayList<Vertices2> toBeRemoved = new ArrayList<Vertices2>();
+		ArrayList<Vertices2> toBeRemoved = new ArrayList<>();
 		for(Vertices2 v: edgeRunVertices) {
-			if( v.getTotalLength() < minLength) toBeRemoved.add(v);
+			if( v.getTotalLength() < minLength) {
+				toBeRemoved.add(v);
+			}
 		}
 		edgeRunVertices.removeAll(toBeRemoved);
 
@@ -128,7 +132,9 @@ public class EdgeRunVerticesCrawler{
 
 	// useful for other classes that might want to access the vertices for their own crawling (e.g. Text crawler)
 	public Vertices2 getNextEdgeRunVertices() {
-		if(runCounter >= edgeRunVertices.size()) return null;
+		if(runCounter >= edgeRunVertices.size()) {
+			return null;
+		}
 		currentVertices = edgeRunVertices.get(runCounter);
 		runCounter++;
 		return currentVertices;
@@ -137,7 +143,7 @@ public class EdgeRunVerticesCrawler{
 	public ArrayList<Vertices2> getEdgeRunVertices(){
 		return edgeRunVertices;
 	}
-	
+
 	public void setEdgeRunVertices(ArrayList<Vertices2> vertList){
 		edgeRunVertices = vertList;
 	}
@@ -147,7 +153,9 @@ public class EdgeRunVerticesCrawler{
 	// repeatedly calling updateCrawl will eventually traverse the entire extracted set of edges
 	//
 	public Line2 updateCrawl() {
-		if(isInitialised()==false) return null;
+		if(!isInitialised()) {
+			return null;
+		}
 
 		//System.out.println("updateCrawl: currentVertices num = " + currentVertices.size());
 		Line2 line = getNextCrawlLine();
@@ -184,7 +192,10 @@ public class EdgeRunVerticesCrawler{
 		currentVertices =  getNextEdgeRunVertices() ;
 
 
-		if(currentVertices==null) return null; // no more runs to be found
+		if(currentVertices==null)
+		 {
+			return null; // no more runs to be found
+		}
 
 		// works out the nearest integer subdivision of the length to the targetCrawlStepDistance
 		// and the number of steps this will take, therefore the crawlStepParametric
@@ -206,7 +217,7 @@ public class EdgeRunVerticesCrawler{
 
 
 
-		crawlStepParametric = 1.0f/(float)numSteps;
+		crawlStepParametric = 1.0f/numSteps;
 		currentVerticesProgressParametric = 0;
 
 		return currentVertices;
@@ -219,9 +230,7 @@ public class EdgeRunVerticesCrawler{
 		// it will return a consistent line length, as the division of total steps in the line is pre-calculated as an integer
 
 		// for this to work currentVertices must have been initialised with getNextEdgeRun();
-		if(currentVertices==null) return null; 
-
-		if(currentVerticesProgressParametric >= 1) {
+		if((currentVertices==null) || (currentVerticesProgressParametric >= 1)) {
 			//System.out.println("getNextCrawlLine: vertices have been fully traversed");
 			return null;
 		}
@@ -253,7 +262,7 @@ public class EdgeRunVerticesCrawler{
 	// post processing the pre-extracted edge runs
 	// Not sure about these......
 
-	
+
 
 
 	public void displaceExtractedEdgeRuns(int pointdoubling, float wobble, BufferedImage displacementImage) {
@@ -287,7 +296,7 @@ public class EdgeRunVerticesCrawler{
 		// wobble is scaled by the total vertices length; so a wobble of 0.5, would become 0.5*verticeslength()
 		//wobble *= verts.getTotalLength();
 
-		ArrayList<PVector> verticesOut = new ArrayList<PVector> ();
+		ArrayList<PVector> verticesOut = new ArrayList<> ();
 
 		int numPoints = verts.getNumVertices();
 		for(int n = 0; n < numPoints; n++) {
@@ -299,7 +308,9 @@ public class EdgeRunVerticesCrawler{
 
 			float displacement = MOMaths.lerp(imageValue, -1, 1) * wobble;
 
-			if(n == 0 || n == numPoints-1) displacement = 0;
+			if(n == 0 || n == numPoints-1) {
+				displacement = 0;
+			}
 
 			PVector displacedPoint = verts.getOrthogonallyDisplacedPoint(n, displacement);
 

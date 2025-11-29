@@ -1,21 +1,20 @@
 package MOImage;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 
 import MOMaths.MOMaths;
 import MOMaths.PVector;
-import MOMaths.PointList;
 
 /**
  * Draws a "stroke" around the alpha boundary of an image, similar to Photoshop's "stroke" command.
  * All images during these processed are maintained in ARGB space to allow for speed-hikes
  *  The mask image is ARGB, where all alpha is set to 255, but the image is black or white
  *  Same for Despeckle
- * 
+ *
  */
 public class AlphaEdgeDrawer {
 
@@ -28,17 +27,19 @@ public class AlphaEdgeDrawer {
 	int width,height;
 
 	int brushWidth;
-	
-	
+
+
 	BufferedImage brush;
-	
+
 	/**
 	 * Construct a Gaussian filter
-	 * @param brushWidth in pixels, so will need prior session-scaling. Minimum is 2. 
-	 * @param hardness is the distribution curve of the generated brush. A harness of 1 is quite hard, for a softer brush use 0.5 
+	 * @param brushWidth in pixels, so will need prior session-scaling. Minimum is 2.
+	 * @param hardness is the distribution curve of the generated brush. A harness of 1 is quite hard, for a softer brush use 0.5
 	 */
 	public AlphaEdgeDrawer(int brushWidth, float hardness) {
-		if(brushWidth<2) brushWidth=2;
+		if(brushWidth<2) {
+			brushWidth=2;
+		}
 		createBrush(brushWidth,hardness);
 	}
 
@@ -50,15 +51,15 @@ public class AlphaEdgeDrawer {
 		height = sourceImage.getHeight();
 		//System.out.println("getting raw edge");
 		BufferedImage rawEdgePixels = getRawEdge(sourceImage);
-		
+
 		//System.out.println("converting to alpha image");
 		BufferedImage alphaImage  = convertMaskToAlpha(rawEdgePixels);
 		//System.out.println("done");
 		return alphaImage;
 		//return ImageProcessing.getCompositeImage(edgesAsAlpha, sourceImage, 0, 0,1);
-		
+
 	}
-	
+
 	public BufferedImage drawEdges(BufferedImage sourceImage) {
 		width = sourceImage.getWidth();
 		height = sourceImage.getHeight();
@@ -75,12 +76,12 @@ public class AlphaEdgeDrawer {
 				if( MOPackedColor.getRed(pixelCol) < 127) {
 					continue;
 				} else {
-					
+
 					//drawBrush(x,y,outputImage);
 					g2d.drawImage(brush, x-halfBrushWidth, y-halfBrushWidth, null);
-					
+
 				}
-				
+
 
 			}
 		}
@@ -88,32 +89,32 @@ public class AlphaEdgeDrawer {
 		//System.out.println("finished drawing edges");
 		return outputImage;
 	}
-	
-	
+
+
 	public BufferedImage drawEdgesFixedBrushStamps(BufferedImage sourceImage) {
 		// this method creates a more "resolution independent" result. In the above drawEdges(...) method, larger scaled versions of the same sourceImage  produce
 		// a much larger rawEdgePixels image, resulting in many more brush applications (stamps). This makes large images produce
-		// ever more dark images, and makes a resolution independent effect impossible, so session-scaling is compromised. 
-		
+		// ever more dark images, and makes a resolution independent effect impossible, so session-scaling is compromised.
+
 		// This method produces a fixed size rawEdgePixels image based on the brush width (which should be already session scaled),
 		// so differently scaled, but otherwise identical,  sourceImages produce the same amount of brush stamps. As the brush is session scaled
 		// the results should be much more consistent between different scales of source image.
-		
-		// The size of the rawEdgePixels image is dependent on the brush size, so that adjacent stamps are overlapping by the radius of the brush (once session scaled). 
+
+		// The size of the rawEdgePixels image is dependent on the brush size, so that adjacent stamps are overlapping by the radius of the brush (once session scaled).
 		// Full scale:   If the input width is 800, and the brush width is 20 (therefore brush radius is 10), there should be width/brush radius pixel across. The resultant edgePixelImage is 800/10 with i.e. 80 pixel wide.
 		// scaling by 50%: 400 width, brush size is 5 in radius, 400/5 = 80
-		
+
 		width = sourceImage.getWidth();
 		height = sourceImage.getHeight();
-		
-		
+
+
 		BufferedImage brushScaledSourceImage = ImageProcessing.scaleImage(sourceImage, 1/(brushWidth/2.0f));
-		
-		
+
+
 		BufferedImage rawEdgePixels = getRawEdge(brushScaledSourceImage);
-		
+
 		ArrayList<PVector> edgePoints = getWhitePixelPointList(rawEdgePixels, true);
-		
+
 		BufferedImage outputImage = new BufferedImage(width,height, sourceImage.getType());
 
 		Graphics2D g2d= outputImage.createGraphics();
@@ -122,32 +123,34 @@ public class AlphaEdgeDrawer {
 		int halfBrushWidth = (int) (brushWidth/2f);
 
 
-		for(PVector p: edgePoints) {			
+		for(PVector p: edgePoints) {
 				int x = (int) (p.x * width);
 				int y = (int) (p.y * height);
 				g2d.drawImage(brush, x-halfBrushWidth, y-halfBrushWidth, null);
 		}
-					
-				
+
+
 		g2d.dispose();
 		//System.out.println("finished drawing edges");
 		return outputImage;
 	}
-	
-	
+
+
 	public BufferedImage getJitteredEdge(BufferedImage src, int numJits) {
-		
+
 		BufferedImage edgeImg =  getAsARGBRawEdge( src);
-		if(MOMaths.isOdd(numJits)) numJits+=1;
+		if(MOMaths.isOdd(numJits)) {
+			numJits+=1;
+		}
 		int numJistsOver2 = numJits/2;
-		
+
 		for(int n = -numJistsOver2; n <= numJistsOver2; n++) {
 			src = ImageProcessing.getCompositeImage(edgeImg, src, n, n ,1);
 		}
 		return src;
 	}
-	
-	
+
+
 	/**
 	 * get a (non-alpha) b/w single-pixel representation of the edges as white edge-pixels on black
 	 *
@@ -158,14 +161,14 @@ public class AlphaEdgeDrawer {
 		//System.out.println("get Raw edge : image type out is " + out.getType());
 		return out;
 	}
-	
-	
+
+
 	BufferedImage despeckle(BufferedImage maskImage) {
 		DespeckleImage despeckle = new DespeckleImage();
 		return despeckle.despeckleImage(maskImage, 2, 0);
 	}
-	
-	
+
+
 	BufferedImage convertMaskToAlpha(BufferedImage mask) {
 		// creates an ARGB image from a greyscale input mask, where the mask (white) pixels get converted to black
 		// and the alpha set
@@ -174,9 +177,9 @@ public class AlphaEdgeDrawer {
 		WritableRaster maskRaster = mask.getRaster();
 		BufferedImage edgeAlpha = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
 		WritableRaster edgeAlphaRaster = edgeAlpha.getAlphaRaster();
-		
-	
-		
+
+
+
 		for(int y = 0; y < h; y++) {
 			for(int x = 0; x < w; x++) {
 				int edgeValue = maskRaster.getSample(x, y, 0);
@@ -185,24 +188,24 @@ public class AlphaEdgeDrawer {
 					edgeAlphaRaster.setSample(x, y, 0, 255);
 				}else {
 					edgeAlphaRaster.setSample(x, y, 0, 0);
-					
+
 				}
-				
-				
+
+
 			}
-		
-		
-		
+
+
+
 		}
 		return edgeAlpha;
 	}
-	
+
 	public ArrayList<PVector> getWhitePixelPointList(BufferedImage edgeIm, boolean useNormalisedCoordinates) {
 		// returns with normalised coordinates
 	    int w = edgeIm.getWidth();
 	    int h = edgeIm.getHeight();
 
-	    ArrayList<PVector> spin = new ArrayList<PVector>();
+	    ArrayList<PVector> spin = new ArrayList<>();
 
 	    for (int y = 0; y < h; y++) {
 	      for (int x = 0; x < w; x++) {
@@ -213,8 +216,8 @@ public class AlphaEdgeDrawer {
 	          float px = x;
 	          float py = y;
 	          if(useNormalisedCoordinates) {
-	        	 px /= w; 
-	        	 py /= h; 
+	        	 px /= w;
+	        	 py /= h;
 	          }
 	          spin.add(new PVector(px, py));
 	        }
@@ -223,7 +226,7 @@ public class AlphaEdgeDrawer {
 	    //System.out.println("buildWhitePixelPointList created with " + spin.size() + " points");
 	    return spin;
 	  }
-	
+
 
 	//////////////////////////////////////////////////////////////////////////////////
 	// called at the start to make the brush
@@ -240,16 +243,16 @@ public class AlphaEdgeDrawer {
 				int argb = MOPackedColor.packARGB(a, 0,0,0);
 				brush.setRGB(i, j, argb);
 			}
-		
+
 		}
 
-		
+
 	}
 
 	private float gaussianValue(float sd, int x, int y, int matrixDim) {
 		float cx = (matrixDim-1) / 2.0f;
 		float distToCentre = PVector.dist(new PVector(cx, cx, 0), new PVector(x, y, 0));
-		
+
 		return MOMaths.gaussianCurve(distToCentre, 1.0f, 0, sd*cx);
 	}
 
@@ -306,7 +309,9 @@ class Despeckle{
 		int neighbors = 0;
 		int pixelCol = sourceImage.getRGB(Xcen,Ycen);
 		int red = MOPackedColor.getRed(pixelCol);
-		if( red<127 ) return BLACK;
+		if( red<127 ) {
+			return BLACK;
+		}
 
 		// this is where we sample every pixel around the centre pixel
 		// according to the sample-matrix size
@@ -319,19 +324,24 @@ class Despeckle{
 				int yloc = Ycen+j-1;
 
 				// Make sure we haven't walked off our image
-				if( xloc < 0 || xloc >= width) continue;
-				if( yloc < 0 || yloc >= height) continue;
+				if( xloc < 0 || xloc >= width || yloc < 0 || yloc >= height) {
+					continue;
+				}
 
 
 				// Calculate the convolution
 				col = sourceImage.getRGB(xloc,yloc);
 
-				if(MOPackedColor.getRed(col)>127 && neighbor_matrix[i][j]==1) neighbors++;
+				if(MOPackedColor.getRed(col)>127 && neighbor_matrix[i][j]==1) {
+					neighbors++;
+				}
 
 			}
 		}
 
-		if( neighbors >= neighboursToSurvive) return pixelCol;
+		if( neighbors >= neighboursToSurvive) {
+			return pixelCol;
+		}
 		return BLACK;
 	}
 
@@ -343,7 +353,9 @@ class Despeckle{
 		int neighbors = 0;
 		int pixelCol = sourceImage.getRGB(Xcen,Ycen);
 		int red = MOPackedColor.getRed(pixelCol);
-		if( red>127 ) return WHITE;
+		if( red>127 ) {
+			return WHITE;
+		}
 		// this is where we sample every pixel around the centre pixel
 		// according to the sample-matrix size
 		for (int i = 0; i < 3; i++){
@@ -355,20 +367,25 @@ class Despeckle{
 				int yloc = Ycen+j-1;
 
 				// Make sure we haven't walked off our image
-				if( xloc < 0 || xloc >= width) continue;
-				if( yloc < 0 || yloc >= height) continue;
+				if( xloc < 0 || xloc >= width || yloc < 0 || yloc >= height) {
+					continue;
+				}
 
 
 				// Calculate the convolution
 				col = sourceImage.getRGB(xloc,yloc);
 
-				if(MOPackedColor.getRed(col)<127 && neighbor_matrix[i][j]==1) neighbors++;
+				if(MOPackedColor.getRed(col)<127 && neighbor_matrix[i][j]==1) {
+					neighbors++;
+				}
 
 			}
 		}
 
-		if( neighbors >= neighboursToSurvive) return pixelCol;
+		if( neighbors >= neighboursToSurvive) {
+			return pixelCol;
+		}
 		return WHITE;
-	}  
+	}
 
 }

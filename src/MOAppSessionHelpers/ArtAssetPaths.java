@@ -18,12 +18,12 @@ public class ArtAssetPaths {
 	// Sample lib paths and cache paths can then be queried by using the base name.
 
 	static ArtAssetPathList pathList = new ArtAssetPathList();
-	
+
 	private static String sampleLib = GlobalSettings.getSampleLibPath();
 	private static String wildGrassPath = "wild grass\\";
 	private static String wildFlowerPath = "wild flowers\\";
 
-	
+
 
 	//public static String noiseBasedTextures = GlobalSettings.getSampleLibPath() + "textures\\noise based textures";
 
@@ -43,9 +43,9 @@ public class ArtAssetPaths {
 		pathList.addAssetPath("timothy", sampleLib + wildGrassPath + "species\\timothy_7000\\whole");
 		pathList.addAssetPath("cocksfoot", sampleLib + wildGrassPath + "species\\cocksfoot_10000\\whole");
 		pathList.addAssetPath("wildBarley", sampleLib + wildGrassPath + "species\\wild barley_06500\\whole");
-		
+
 		// "basicGrass",  "couchGrass", "greenMeadowGrass", "tallFescue", "barranbrome", "ribwortPlantain", "blackbent", "timothy", "cocksfoot", "wildBarley"
-		
+
 		// wild flowers
 		pathList.addAssetPath("oxeyeDaisy", sampleLib + wildFlowerPath + "oxeye daisys_05500\\whole");
 		pathList.addAssetPath("oxeyeDaisyFlowers", sampleLib + wildFlowerPath + "oxeye daisys_05500\\whole flowers");
@@ -57,10 +57,10 @@ public class ArtAssetPaths {
 		pathList.addAssetPath("cornCockleFlowers", sampleLib + wildFlowerPath + "corncockle_7000\\whole flowers");
 		pathList.addAssetPath("buttercup", sampleLib + wildFlowerPath + "buttercups_7500\\whole");
 		pathList.addAssetPath("buttercupFlowers", sampleLib + wildFlowerPath + "buttercups_7500\\whole flowers");
-		
+
 		pathList.addAssetPath("ribwortPlantain", sampleLib + wildFlowerPath + "ribwortPlantain_6000\\whole");
 		pathList.addAssetPath("clover", sampleLib + wildFlowerPath + "clover\\whole");
-		
+
 		// "oxeyeDaisy", "oxeyeDaisyFlowers", "dandelion", "dandelionFlowers", "cornCockle", "cornCockleFlowers", "buttercup", "buttercupFlowers"
 	}
 
@@ -68,83 +68,85 @@ public class ArtAssetPaths {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Returns the path to the original source asset in the Sample Lib directory
 	// For convenience, the user can ask for the simple baseName of the asset, they get the path to the "Whole" directory
-	// 
+	//
 	// Will throw an excepti0n if the asset path does not exist here
 	//
 	public static String getAssetSampleLibPath(String baseName) {
 		return pathList.getPath(baseName);
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Returns the path to the cached version of the asset.
 	// Assumes the cachePath has already been set
-	// In this newer version the cache does not duplicate the structure of the SampleLib but is a flattened directory structure where each base name folder appears at the top level. 
-	// So ensure each different asset has a unique base-name. 
-	// The enables more than one cached version to be generated from a single Asset at run-time. 
-	// 
-	// 
+	// In this newer version the cache does not duplicate the structure of the SampleLib but is a flattened directory structure where each base name folder appears at the top level.
+	// So ensure each different asset has a unique base-name.
+	// The enables more than one cached version to be generated from a single Asset at run-time.
+	//
+	//
 	public static String getAssetCachePath(String baseName) {
-		
-		
+
+
 		int scalePercentile = (int) (GlobalSettings.getSessionScale() * 100);
 		String cachFolderRoot = GlobalSettings.getMouseOrganImageCachePath(); // C:cacheName//
-	
+
 		String cachedFolderName = cachFolderRoot + baseName + "\\cached_scaled_" + scalePercentile + "\\";
-		
+
 		//System.out.println("scaled images cache directory ..." + cachedFolderName);
 		return cachedFolderName;
 	}
-	
+
 	// returns the basename from any varient
-	
-	
+
+
 	public static boolean checkAssetBaseNameExists(String baseNameQuery) {
 		ArrayList<String> baseNames = getRegisteredBaseNames();
 		for(String baseName: baseNames) {
-			if(baseName.equals(baseNameQuery)) return true;
-			
+			if(baseName.equals(baseNameQuery)) {
+				return true;
+			}
+
 		}
 		System.out.println("checkAssetBaseNameExists has returned false on " + baseNameQuery);
 		return false;
 	}
-	
+
 
 	public static ArrayList<String> getRegisteredBaseNames() {
 		return pathList.getRegisteredBaseNames();
 	}
-	
-	
+
+
 
 
 }
 
 
 class ArtAssetPathList{
-	
-	ArrayList<ArtAssetPathListElement> pathList = new ArrayList<ArtAssetPathListElement>();
-	
-	
+
+	ArrayList<ArtAssetPathListElement> pathList = new ArrayList<>();
+
+
 	void addAssetPath(String baseName, String path) {
 		ArtAssetPathListElement el = new ArtAssetPathListElement(baseName,  path);
 		pathList.add(el);
 	}
-	
-	
-	
+
+
+
 	public String getPath(String baseName) {
-		
+
 		ArtAssetPathListElement el = getArtAssetPathListElement(baseName);
 		if(el==null) {
 			return "";
 		}
-		
+
 
 		boolean assetExists = MOStringUtils.checkDirectoryExist(el.fullPath);
 		if(assetExists) {
 			return el.fullPath;
 		} else {
 			System.out.println("ArtAssetPathList.getPath - directory does not exist  " + el.fullPath);
-			
+
 	    }
 
 		return null;
@@ -152,39 +154,41 @@ class ArtAssetPathList{
 
 	private ArtAssetPathListElement getArtAssetPathListElement(String baseNm) {
 		for(ArtAssetPathListElement el: pathList) {
-			if(el.baseName.equals(baseNm)) return el;
+			if(el.baseName.equals(baseNm)) {
+				return el;
+			}
 		}
 		System.out.println("ArtAssetPathListElement.getArtAssetPathListElement - cannot find element with basename of  " + baseNm);
 		return null;
-		
+
 	}
-	
+
 	ArrayList<String> getRegisteredBaseNames(){
-		ArrayList<String> out = new ArrayList<String>();
+		ArrayList<String> out = new ArrayList<>();
 		for(ArtAssetPathListElement el: pathList) {
 			out.add(el.baseName);
 		}
 		return out;
 	}
-	
+
 }
 
 
 class ArtAssetPathListElement{
 	String baseName;
 	String fullPath;
-	
+
 	ArtAssetPathListElement(String name, String path){
 		baseName = name;
 		fullPath = path;
-		
+
 		boolean assetExists = MOStringUtils.checkDirectoryExist(fullPath);
-		if(assetExists == false) {
+		if(!assetExists) {
 			System.out.println("ArtAssetPathListElement - rootPath->whole directory for does not exist  " + fullPath);
 	    }
 	}
-	
-	
-	
+
+
+
 }
 

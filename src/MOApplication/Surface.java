@@ -16,21 +16,14 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.WindowConstants;
 
-import MOAppSessionHelpers.Scene3DHelper;
-import MOAppSessionHelpers.SceneInformationInspector;
-import MOImage.ImageDimensions;
-import MOImage.ImageProcessing;
-import MOMaths.PVector;
 import MOMaths.Rect;
 import MOSimpleUI.Menu;
-import MOSimpleUI.RadioButton;
 import MOSimpleUI.SimpleUI;
 import MOSimpleUI.UIEventData;
-
-import MOUtils.KeepAwake;
-
 import MOUtils.GlobalSettings;
+import MOUtils.KeepAwake;
 
 
 
@@ -38,23 +31,23 @@ import MOUtils.GlobalSettings;
 //
 @SuppressWarnings("serial")
 public abstract class Surface extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
-	
-	
+
+
 	enum UserSessionState {
 		  INITIALISE,
 		  LOAD,
 		  UPDATE,
 		  FINALISE,
-		  FINISHED, 
+		  FINISHED,
 		}
-	
+
 	UserSessionState theUserSessionState = UserSessionState.INITIALISE;
-	
+
 	public JFrame parentApp = null;
 
 	//Graphics theGraphics;
-	
-	
+
+
 	//private float globalSessionScale = 1.0f;
 
 	//protected MainDocumentRenderTarget theDocument;
@@ -68,23 +61,23 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 	// the fixed UI rectangle for the view onto the document image
 	private Rect canvasWindowRect;
-	
+
 	// the object that drives the main loop
 	private Timer updateTimer;
-	
+
 
 	boolean userSessionPaused = false;
 	protected boolean userSessionAborted = false;
 	private int userSessionUpdateCount = 0;
-	
+
 	// this is the frequency with which the canvas is updated
 	// in respect to userSessionUpdates. 50 has been arrived at through trial and
 	// error
 	// but the number can be dropped during interactions for a smoother update rate.
 	private int canvasUpdateFrequency = 50;
 	//public String infoToolMode;
-	
-	
+
+
 	KeepAwake keepAwake = new KeepAwake();
 
 	public Surface(JFrame papp) {
@@ -94,39 +87,39 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addKeyListener(this);
-		
+
 
 		setWindowSize();
-		
+
 		//buildUI();
-		
+
 		// here the javax swing timer instance gets passed the ActionListener part of this Surface class
 		// This calls the actionPerformed method of the ActionListener interface
 		// This drives the automated part of the Mouse Organ
 		updateTimer = new Timer(0, this);
 		updateTimer.start();
-				
+
 	}
-	
-	
+
+
 
 
 	/////////////////////////////////////////////////////////////////////
 	// Initialisation method called from initialise Session in User Session
 	// Straight forward session initialisation, not using a ROI manager
-	// 
+	//
 	//
 	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType) {
 
 		fullScaleRenderW = (int)(fullScaleRenderW * GlobalSettings.getSessionScale());
 		fullScaleRenderH = (int)(fullScaleRenderH * GlobalSettings.getSessionScale());
-		
+
 
 		theDocument = new MainDocument(fullScaleRenderW, fullScaleRenderH, mainDocumentRenderType);
-		
+
 		initialiseView();
 	}
-	
+
 
 	/////////////////////////////////////////////////////////////////////
 	// Initialisation method called from initialise Session in User Session
@@ -137,14 +130,14 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 		GlobalSettings.mainSessionName = roiManager.getCurrentROIName();
 		GlobalSettings.setROIManager(roiManager);
-		
+
 		System.out.println("initialiseDocument:: session name = " + GlobalSettings.mainSessionName);
-			
+
 		theDocument = new  MainDocument( roiManager, mainDocumentRenderType);
 
 		initialiseView();
 	}
-	
+
 	private void setWindowSize() {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int w = (int) screenSize.getWidth();
@@ -158,20 +151,20 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		parentApp.setLocationRelativeTo(null);
 		parentApp.setPreferredSize(new Dimension(windowWidth, windowHeight));
 		parentApp.pack();
-		parentApp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		parentApp.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.setFocusable(true);
-		
+
 		//canvasWindowRect = new Rect(new PVector(100, 20), new PVector(windowWidth - 20,  windowHeight - 45));
 		int left = 100;
 		int top = 30;
 		canvasWindowRect = new Rect(left, top, windowWidth - (left+20),  windowHeight - (top+40));
 	}
-	
+
 	private void initialiseView() {
 
 		// ok to do these now
 		theViewControl.init(this);
-		
+
 
 		// some default settings
 		setCanvasUpdateFrequency(500);
@@ -183,21 +176,21 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		setCanvasBackgroundColor(new Color(255,255,255,255));
 
 
-		
-		
-		
-		
-		
+
+
+
+
+
 	}
-	
-	
+
+
 	/////////////////////////////////////////////////////////////////////
 	// The main loop called by actionPerformed(ActionEvent e)
 	//
 	private void updateUserSession_All() {
 		// this is called by the Action Thread of the app via
 		// the automatically called actionPerformed method below
-		
+
 		if(theUserSessionState == UserSessionState.INITIALISE) {
 			initialiseUserSession();
 			// the ui is built after initialisation, so it can include all render targets
@@ -215,29 +208,31 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 			loadContentUserSession();
 			return;
 		}
-		
+
 		if(theUserSessionState == UserSessionState.UPDATE) {
 			if (!userSessionPaused) {
 				for(int n = 0; n < canvasUpdateFrequency; n++) {
-				   if(theUserSessionState == UserSessionState.FINALISE) break;	
+				   if(theUserSessionState == UserSessionState.FINALISE) {
+					break;
+				}
 				   updateUserSession();
 				   userSessionUpdateCount++;
 				}
 			}
 		}
-		
+
 		if(theUserSessionState == UserSessionState.FINALISE) {
 				finaliseUserSession();
 				canvasUpdateFrequency = 1;
 				theUserSessionState = UserSessionState.FINISHED;
 		}
-		
+
 		if (theUserSessionState == UserSessionState.FINISHED) {
 			userSessionFinished();
 		}
 
 	}
-	
+
 	protected final void endUpdateUserSession() {
 		// call this when the updateUserSession has finished
 		// Does some tidying up, then Moves the state machine on to FINALISE mode
@@ -247,13 +242,13 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		//System.out.println("User session state in endUserSession = " + theUserSessionState);
 		keepAwake.setActive(false);
 	}
-	
+
 
 	Rect getCanvasWindowRect() {
 		return canvasWindowRect.copy();
 	}
-	
-	
+
+
 
 	/////////////////////////////////////////////////////////////////////
 	// UI related methods
@@ -263,26 +258,26 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		theUI = new SimpleUI(this);
 
 		String[] itemList = { "save render", "save all", "quit" };
-		
+
 		theUI.addToggleButton("Pause", 0, 200);
 		theUI.addPlainButton("End", 0, 230);
 		theUI.addMenu("File", 0, 2, itemList);
-		
-		
-		
-		
-		
+
+
+
+
+
 		Menu rendertargetViewMenu = theUI.addMenu("Render View", 60, 2, itemList);
-		
+
 		//theUI.addRadioButton("3d info", 0, 430, "info tools").setSelected(true);
 		//theUI.addRadioButton("sprite info", 0, 460, "info tools");
 		//infoToolMode = "3d info";
 		theDocument.setRenderTargetViewMenu(rendertargetViewMenu);
-		
-		
+
+
 		theUI.addCanvas((int) canvasWindowRect.left, (int) canvasWindowRect.top, (int) canvasWindowRect.getWidth(), (int) canvasWindowRect.getHeight());
 		theUI.setFileDialogTargetDirectory(GlobalSettings.getUserSessionPath());
-		
+
 	}
 
 	public void handleUIEvent(UIEventData uied) {
@@ -292,8 +287,8 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 			handleCanvasMouseEvent(uied);
 			return;
 		}
-		
-		
+
+
 		if (uied.menuItem.contentEquals("save render")) {
 			theUI.openFileSaveDialog("save render");
 		}
@@ -301,17 +296,17 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		if (uied.eventIsFromWidget("fileSaveDialog") && uied.fileDialogPrompt.equals("save render")) {
 			theDocument.saveRenderTargetToFile("main",uied.fileSelection);
 		}
-		
-		
+
+
 		if (uied.menuItem.contentEquals("save all")) {
 			theUI.openDirectoryChooseDialog("save all");
-			
+
 		}
 
 		if (uied.eventIsFromWidget("directorySelectDialog") && uied.fileDialogPrompt.equals("save all")) {
 			GlobalSettings.getRenderSaver().saveAllImagesInUserSpecifiedLocation(uied.fileSelection);
 		}
-		
+
 		if (uied.menuItem.contentEquals("quit")) {
 			System.exit(0);
 		}
@@ -319,7 +314,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		if (uied.eventIsFromWidget("Pause")) {
 			userSessionPaused = uied.toggleSelectState;
 		}
-		
+
 		if (uied.eventIsFromWidget("End")) {
 			userSessionAborted = true;
 			endUpdateUserSession();
@@ -329,12 +324,12 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		if (uied.eventIsFromWidget("ruler size slider")) {
 			//setMeasuringToolSize(uied.sliderValue);
 		}
-		
+
 		if (uied.eventIsFromWidget("Render View")) {
 			theViewControl.setRenderTargetAsMainView(uied.menuItem);
 		}
-		
-		
+
+
 
 		// if there are any special UI's added by the user session handle them in the
 		// user session
@@ -348,7 +343,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	protected void setCanvasBackgroundColor(Color c) {
 		theViewControl.setViewDisplayRectBackgroundColor(c);
 	}
-	
+
 	// only draws behind the image, not to the document
 	public void setCanvasBackgroundImage(BufferedImage img) {
 		theViewControl.setBackgroundImage(img);
@@ -365,13 +360,13 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	public int getCanvasUpdateFrequency() {
 		return canvasUpdateFrequency;
 	}
-	
+
 	protected void setCanvasUpdateFrequency(int cuf) {
 		canvasUpdateFrequency = cuf;
 	}
-	
+
 	public int getUserSessionUpdateCount() {
-		
+
 		return userSessionUpdateCount;
 	}
 
@@ -379,21 +374,23 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		return theUI;
 	}
 
-	
+
 	/////////////////////////////////////////////////////////////////////
 	// session graphics update methods
 	//
 	private void updateCanvasDisplay(Graphics g) {
 
 		Graphics2D g2d = (Graphics2D) g.create();
-		
+
 		//if(theGraphics==null) theGraphics = g;
 		//System.out.println("updating canvas");
-		
-		if(theViewControl!=null) theViewControl.updateDisplay(g2d);
+
+		if(theViewControl!=null) {
+			theViewControl.updateDisplay(g2d);
+		}
 		g2d.dispose();
 	}
-	
+
 
 	@Override
 	public void paintComponent(Graphics g) {
@@ -401,22 +398,24 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		// only update the canvas every canvasUpdateFrequency updates
 		//if (userSessionUpdateCount %  == 0) {
 			super.paintComponent(g);
-			if(theUI!=null) updateCanvasDisplay(g);
+			if(theUI!=null) {
+				updateCanvasDisplay(g);
+			}
 			keepAwake.update();
 		//}
 
 		// update the ui
 		if(theUI!=null) {
-			if(theUI.isGraphicsContextSet()==false) {
+			if(!theUI.isGraphicsContextSet()) {
 				Graphics2D g2d = (Graphics2D) g.create();
 				theUI.setGraphicsContext(g2d);
 			}
 			theUI.update();
 		}
-		
-		
+
+
 		//g2d.dispose();
-		
+
 		this.setFocusable(true);
 	}
 
@@ -429,47 +428,47 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		repaint();
 	}
 
-	
+
 	// the user can call this to force redraw the display
-	// from inside a tight operation. 
+	// from inside a tight operation.
 	public void forceRefreshDisplay() {
 		//theGraphics = getGraphics();
 		updateCanvasDisplay(getGraphics());
 	}
-	
-	
+
+
 	////////////////////////////////////////////////////////////////////////
 	// overridden functions in the user's project
 	// - i.e. YOUR UserSession CODE
 
-	
+
 	protected abstract void initialiseUserSession();
 
 	protected abstract void loadContentUserSession();
 
 	protected abstract void updateUserSession();
-	
+
 	// optional
 	protected void finaliseUserSession() {}
-	
+
 	protected  abstract void handleCanvasMouseEvent(UIEventData uied);
 
 	protected abstract void handleUserSessionUIEvent(UIEventData uied);
-	
+
 	////////////////////////////////////////////////////////////////////////
 	// for using a SessionSequncer, these methods are expected by that class...
 	// overload these in your code to utilise the SessionSequncer class
-	
+
 	public void initialiseSequence(String sqname) {
-		
+
 	}
-	
+
 	public boolean updateSequence(String sqname) {
 		return false;
 	}
-	
+
 	public void finaliseSequence(String sqname) {
-		
+
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -479,19 +478,23 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		//
 		userSessionUpdateCount++;
 	}
-	
-	
+
+
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		// TODO Auto-generated method stub
-		if(theUI!=null) theUI.handleMouseEvent(e, "mouseDragged");
+		if(theUI!=null) {
+			theUI.handleMouseEvent(e, "mouseDragged");
+		}
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
 		//System.out.println(e.toString());
-		if(theUI!=null) theUI.handleMouseEvent(e, "mouseMoved");
+		if(theUI!=null) {
+			theUI.handleMouseEvent(e, "mouseMoved");
+		}
 	}
 
 	@Override
@@ -499,20 +502,26 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		// TODO Auto-generated method stub
 		//System.out.println(e.toString());
 		this.setFocusable(true);
-		if(theUI!=null) theUI.handleMouseEvent(e, "mouseClicked");
+		if(theUI!=null) {
+			theUI.handleMouseEvent(e, "mouseClicked");
+		}
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
 		// TODO Auto-generated method stub
-		if(theUI!=null) theUI.handleMouseEvent(e, "mousePressed");
+		if(theUI!=null) {
+			theUI.handleMouseEvent(e, "mousePressed");
+		}
 		canvasUpdateFrequency = 1;
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
-		if(theUI!=null) theUI.handleMouseEvent(e, "mouseReleased");
+		if(theUI!=null) {
+			theUI.handleMouseEvent(e, "mouseReleased");
+		}
 		canvasUpdateFrequency = 500;
 	}
 

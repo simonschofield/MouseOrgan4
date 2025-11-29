@@ -1,7 +1,6 @@
 package MOSimpleUI;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -11,7 +10,6 @@ import java.util.Map;
 import javax.swing.JFileChooser;
 
 import MOApplication.Surface;
-import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOUtils.MOStringUtils;
@@ -26,20 +24,20 @@ import MOVectorGraphics.VectorShapeDrawer;
 // Totally self contained by using a rectangle class called UIRect
 
 //////////////////////////////////////////////////////////////////
-// SimpleUIManager() is the only class you have to  create in your 
-// application to build the UI. 
-// 
+// SimpleUIManager() is the only class you have to  create in your
+// application to build the UI.
+//
 // The graphics context for the SimpleUI is the application window.
 // Any widgets and overlay graphics occur on the window-level graphics context, not the document images
 
 public class SimpleUI {
 
-	
+
 	Surface parentSurface;
 
 	Rect canvasRect;
 
-	ArrayList<Widget> widgetList = new ArrayList<Widget>();
+	ArrayList<Widget> widgetList = new ArrayList<>();
 
 	String UIManagerName;
 
@@ -49,9 +47,9 @@ public class SimpleUI {
 	String fileDialogPrompt = "";
 	String filaDialogTargetDirectory = "";
 	VectorShapeDrawer drawer;
-	ArrayList<VectorShape> canvasOverlayShapes = new ArrayList<VectorShape>();
+	ArrayList<VectorShape> canvasOverlayShapes = new ArrayList<>();
 	boolean graphicsContextSet = false;
-	
+
 	public SimpleUI(Surface surface) {
 		UIManagerName = "";
 
@@ -59,48 +57,50 @@ public class SimpleUI {
 	}
 
 	public void setGraphicsContext(Graphics2D g2d) {
-		
+
 		// this bit of weird code anti-aliases the text
 		Map<?, ?> desktopHints =  (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
 		if (desktopHints != null) {
 			g2d.setRenderingHints(desktopHints);
 		}
-		
+
 		drawer = new VectorShapeDrawer(g2d);
 		Widget.setParent(this);
 		graphicsContextSet = true;
 	}
-	
+
 	public boolean isGraphicsContextSet() {
 		return graphicsContextSet;
 	}
 
 	public void handleMouseEvent(MouseEvent me, String mouseEventType) {
-		
+
 		int x = me.getX();
 		int y = me.getY();
-		if(mouseEventType.equals("mouseClicked")) System.out.println("raw mouse pos " + x + " ," + y);
-		
+		if(mouseEventType.equals("mouseClicked")) {
+			System.out.println("raw mouse pos " + x + " ," + y);
+		}
+
 		handleMouseEvent(mouseEventType, x, y);
 	}
 
 	void handleMouseEvent(String mouseEventType, int x, int y) {
-		
+
 		// this avoids any concurrency issues if a button press results in a removal of a widget
 		// also, widgets get priority over canvas events (open menus over the canvas region)
 		Widget receivingWidget = null;
 		for (Widget w : widgetList) {
 			if(w.isInMe(x, y)) {
 				receivingWidget = w;
-			}	
+			}
 	    }
 		if(receivingWidget != null) {
 			receivingWidget.handleMouseEvent(mouseEventType, x, y);
 			return;
 		}
-		
+
 		checkForCanvasEvent(mouseEventType, x, y);
-		
+
 
 	}
 
@@ -121,11 +121,11 @@ public class SimpleUI {
 	public void setFileDialogTargetDirectory(String dir) {
 		filaDialogTargetDirectory = dir;
 	}
-	
+
 	public void openFileSaveDialog(String prompt) {
 
-		
-		
+
+
 		final JFileChooser fc = new JFileChooser(filaDialogTargetDirectory);
 		String suggestedName = MOStringUtils.getDateStampedImageFileName("savedImage");
 		fc.setSelectedFile(new File(suggestedName));
@@ -141,21 +141,21 @@ public class SimpleUI {
 			// log.append("Open command cancelled by user." + newline);
 		}
 	}
-	
-	
+
+
 	public void openDirectoryChooseDialog(String prompt) {
 
-		JFileChooser  chooser = new JFileChooser(); 
+		JFileChooser  chooser = new JFileChooser();
 	    chooser.setCurrentDirectory(new java.io.File("."));
 	    chooser.setDialogTitle(prompt);
 	    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-	    
+
 	    //
 	    // disable the "All files" option.
 	    //
 	    chooser.setAcceptAllFileFilterUsed(false);
-	    //    
-	    if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) { 
+	    //
+	    if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 
 	      	UIEventData uied = new UIEventData(UIManagerName, "directorySelectDialog", "directorySelectDialog", "mouseReleased", 0, 0);
 			String dirPath = chooser.getSelectedFile().toString() + "\\";
@@ -163,8 +163,8 @@ public class SimpleUI {
 			uied.fileSelection = dirPath;
 			uied.fileDialogPrompt = prompt;
 			handleUIEvent(uied);
-			
-			
+
+
 	      }
 	    else {
 	      System.out.println("No Selection ");
@@ -180,7 +180,9 @@ public class SimpleUI {
 	}
 
 	public boolean checkForCanvasEvent(String mouseEventType, int x, int y){
-       if(canvasRect==null) return false;
+       if(canvasRect==null) {
+		return false;
+	}
        if(   canvasRect.isPointInside(x,y)) {
          UIEventData uied = new UIEventData(UIManagerName, "canvas" , "canvas", mouseEventType,x,y);
 	     //the document space location of the canvas event
@@ -190,124 +192,127 @@ public class SimpleUI {
        }
        return false;
     }
-	
+
 	////////////////////////////////////////////////////////////////////////////
 	// coordinate space stuff when using the canvas points.
 	//
 	public PVector canvasCoordToDocSpace(PVector canvasPoint) {
 	    return canvasCoordToDocSpace((int)canvasPoint.x, (int)canvasPoint.y);
 	}
-	
+
 	public PVector canvasCoordToDocSpace(int x, int y) {
 	    return parentSurface.theViewControl.appWindowCoordinateToDocSpace(x,y);
 	}
-	
+
 
 	public PVector docSpaceToCanvasCoord(PVector docSpace) {
 		PVector canvasPt = parentSurface.theViewControl.docSpaceToAppWindowCoordinate(docSpace);
 		return canvasPt;
 	}
-	
+
 	// converting distances or units between screen and doc space requires two points generated and the distance measured.
 	public float canvasUnitsToDocSpaceUnits(float canvasPixelDistance) {
 		PVector zeroV = canvasCoordToDocSpace(new PVector(0,0));
 		PVector dsgap = canvasCoordToDocSpace(new PVector(0,canvasPixelDistance));
 		return zeroV.dist(dsgap);
 	}
-	
+
 	public float docSpaceUnitsToCanvasUnits(float doSpaceDistance) {
 		PVector zeroV = docSpaceToCanvasCoord(new PVector(0,0));
 		PVector dsgap = docSpaceToCanvasCoord(new PVector(0,doSpaceDistance));
 		return zeroV.dist(dsgap);
 	}
-	
 
-	
-	
-	
-	
+
+
+
+
+
 	////////////////////////////////////////////////////////////////////////////
-	
+
 	public void drawCanvas() {
-		if (canvasRect == null)
+		if (canvasRect == null) {
 			return;
-		
+		}
+
 		// probably draw the canvas fill colour here
 		// draw over stuff surrounding the canvas
 		drawer.setDrawingStyle(new Color(0, 0, 0, 0), new Color(0, 0, 0, 255), 1);
 		drawer.drawRect(canvasRect.left, canvasRect.top, canvasRect.getWidth(), canvasRect.getHeight());
-		
-		
+
+
 		for(VectorShape ds: canvasOverlayShapes) {
 			drawCanvasOverlayShape_DocSpace(ds);
 		}
-		
-		
-		
+
+
+
 	}
-	
-	
+
+
 	void drawUISurrounds() {
 		// now draw "surrounds"
 		int appWidth = parentSurface.windowWidth();
 		int appHeight = parentSurface.windowHeight();
 
-	    
-	    // left, top, right, bottom 
+
+	    // left, top, right, bottom
 		drawer.setDrawingStyle(new Color(200, 200, 200, 255), new Color(0, 0, 0, 0), 0);
 		drawer.drawRect(0,0, canvasRect.left, appHeight);
 		drawer.drawRect(canvasRect.left,0, canvasRect.getWidth(), canvasRect.top);
 		drawer.drawRect(canvasRect.right,0, appWidth-canvasRect.left, appHeight);
 		drawer.drawRect(canvasRect.left, canvasRect.bottom,  canvasRect.getWidth(), appHeight-canvasRect.getHeight());
-	   
+
 		// fine line round the outside of canvas rect
 		drawer.setDrawingStyle(new Color(0, 0, 0, 0), new Color(0, 0, 0, 255), 1);
 		drawer.drawRect(canvasRect.left, canvasRect.top, canvasRect.getWidth(), canvasRect.getHeight());
 	}
-	
-	
+
+
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// canvas overlay shape methods. Work in DocSpace
 	//
 	void clearCanvasOverlayShapes() {
 		canvasOverlayShapes.clear();
 	}
-	
-	
+
+
 	public void deleteCanvasOverlayShapes(String id) {
-		
-		ArrayList<VectorShape> tempShapes = new ArrayList<VectorShape>();
+
+		ArrayList<VectorShape> tempShapes = new ArrayList<>();
 		for(VectorShape s: canvasOverlayShapes) {
-			if( s.isID(id) ) continue;
+			if( s.isID(id) ) {
+				continue;
+			}
 			tempShapes.add(s);
 		}
 		canvasOverlayShapes = tempShapes;
-		
+
 	}
-	
+
 	public void addCanvasOverlayShape_DoscSpace(String idName, PVector docPt1, PVector docPt2, String shapeType, Color fillC, Color lineC, int lineWt) {
 		//System.out.println("addShape idName" + idName + " docPt1 " + docPt1 + " docPt2 " + docPt2 + " shapeType " + shapeType );
 		VectorShape ds = new VectorShape();
 		ds.setShape(docPt1.x, docPt1.y, docPt2.x, docPt2.y, shapeType, fillC, lineC, lineWt);
-		
+
 		addCanvasOverlayShape_DocSpace(ds,idName);
-		
+
 	}
-	
-	
+
+
 	public void addCanvasOverlayText_DocSpace(String idName, PVector docPt1, String content,  Color textColor, int txtSz) {
-		
+
 		VectorShape ds = new VectorShape();
 		ds.setTextShape(docPt1.x, docPt1.y, content, textColor, txtSz);
 
 		addCanvasOverlayShape_DocSpace(ds,idName);
 	}
-	
+
 	void addCanvasOverlayShape_DocSpace(VectorShape ds, String id) {
 		ds.setID(id);
 		canvasOverlayShapes.add(ds);
 	}
-	
+
 
 	void drawCanvasOverlayShape_DocSpace(VectorShape ds) {
 		// converts a doc space shape to a canvas space shape via the view controller then draws it
@@ -321,10 +326,10 @@ public class SimpleUI {
 		}
 		drawer.drawDrawnShape(viewScaledShape);
 	}
-	
-	
-	
-	
+
+
+
+
 	////////////////////////////////////////////////////////////////////////////
 	// widget creation
 	//
@@ -368,15 +373,15 @@ public class SimpleUI {
 		widgetList.add(m);
 		return m;
 	}
-	
+
 	public Menu addMenu(String label, int x, int y, ArrayList<String> menuItems) {
 		int len = menuItems.size();
 		String [] menuItemsArray = new String[len];
 		for(int n = 0; n < len; n++) {
 			menuItemsArray[n] = menuItems.get(n);
-			
+
 		}
-		
+
 		return addMenu( label,  x,  y, menuItemsArray);
 	}
 
@@ -410,8 +415,9 @@ public class SimpleUI {
 	//
 	Widget getWidget(String uilabel) {
 		for (Widget w : widgetList) {
-			if (w.UILabel.equals(uilabel))
+			if (w.UILabel.equals(uilabel)) {
 				return w;
+			}
 		}
 		System.out.println(" getWidgetByLabel: cannot find widget with label " + uilabel);
 		return new Widget(UIManagerName);
@@ -420,8 +426,9 @@ public class SimpleUI {
 	// get toggle state
 	public boolean getToggleButtonState(String uilabel) {
 		Widget w = getWidget(uilabel);
-		if (w.UIComponentType.equals("ToggleButton"))
+		if (w.UIComponentType.equals("ToggleButton")) {
 			return w.selected;
+		}
 		System.out.println(" getToggleButtonState: cannot find widget with label " + uilabel);
 		return false;
 	}
@@ -430,8 +437,9 @@ public class SimpleUI {
 	public String getRadioGroupSelected(String groupName) {
 		for (Widget w : widgetList) {
 			if (w.UIComponentType.equals("RadioButton")) {
-				if (((RadioButton) w).radioGroupName.equals(groupName) && w.selected)
+				if (((RadioButton) w).radioGroupName.equals(groupName) && w.selected) {
 					return w.UILabel;
+				}
 			}
 		}
 		return "";
@@ -439,15 +447,17 @@ public class SimpleUI {
 
 	public float getSliderValue(String uilabel) {
 		Widget w = getWidget(uilabel);
-		if (w.UIComponentType.equals("Slider"))
+		if (w.UIComponentType.equals("Slider")) {
 			return ((Slider) w).getSliderValue();
+		}
 		return 0;
 	}
 
 	public void setSliderValue(String uilabel, float v) {
 		Widget w = getWidget(uilabel);
-		if (w.UIComponentType.equals("Slider"))
+		if (w.UIComponentType.equals("Slider")) {
 			((Slider) w).setSliderValue(v);
+		}
 
 	}
 
@@ -486,8 +496,9 @@ public class SimpleUI {
 	void setRadioButtonOff(String groupName) {
 		for (Widget w : widgetList) {
 			if (w.UIComponentType.equals("RadioButton")) {
-				if (((RadioButton) w).radioGroupName.equals(groupName))
+				if (((RadioButton) w).radioGroupName.equals(groupName)) {
 					w.selected = false;
+				}
 			}
 		}
 	}
@@ -518,7 +529,7 @@ public class SimpleUI {
 	}
 
 	void clearAll() {
-		widgetList = new ArrayList<Widget>();
+		widgetList = new ArrayList<>();
 	}
 
 }// end of SimpleUIManager

@@ -1,19 +1,12 @@
 package MONetwork;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import MOCompositing.BufferedImageRenderTarget;
-import MOImage.KeyImageSampler;
-import MOMaths.Line2;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.RandomStream;
-import MOMaths.Rect;
 import MOMaths.Vertices2;
-import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 
 
@@ -21,17 +14,17 @@ import MOUtils.KeyValuePairList;
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Is initialised with a copy of the network's edges as a list theEdgeList (filtered by search criteria if required).
-// 
+//
 // Then, given a start-edge, this class finds a continuous run of edges based on angleTollerance.
 // call extractEdgeRun(NEdge startEdge) or extractEdgeRun_RandomStart() to get a list of continuous edges.
 
-// Once found, these edges are removed from theEdgeList, so successive calls eventually exhaust the edgeList.  
-// 
+// Once found, these edges are removed from theEdgeList, so successive calls eventually exhaust the edgeList.
+//
 // If no more edges can be found then returns null
 
 public class NNetworkEdgeRunFinder{
 
-	NNetwork theNetwork; 
+	NNetwork theNetwork;
 	ArrayList<NEdge> theEdgeList;
 
 	float angleTolleranceDegrees = 45;
@@ -43,14 +36,14 @@ public class NNetworkEdgeRunFinder{
 
 	// this is only used to check for overlap
 	ArrayList<NEdge> extractedEdges;
-	
-	
+
+
 	public NNetworkEdgeRunFinder(NNetwork ntwk, KeyValuePairList searchCriteria){
-		
+
 		theNetwork = ntwk;
 		theNetwork.setSearchAttribute(searchCriteria);
 		initialiseEdgeList();
-	} 
+	}
 
 	// common to this and region extractor
 	private void initialiseEdgeList() {
@@ -84,24 +77,24 @@ public class NNetworkEdgeRunFinder{
 	public void setRandomSeed(int s) {
 		randomStream = new RandomStream(s);
 	}
-	
-	
+
+
 	public void setRunsCanOverlap(boolean overlap) {
 		// If set to false, then runs will end when they find another point that has been used in a previous edge run.
 		// Hence all the runs are broken up.
 		runsCanOverlap = overlap;
 	}
-	
-	
+
+
 	public ArrayList<Vertices2> extractAllEdgeRunVertices(){
 		// The most common method to find all the edge runs as vertices 2
 		// Use this method to get all the edge runs with
 		// the existing search criteria, as a list of Vertices2
 		//
-		
-		extractedVertices = new ArrayList<Vertices2>();
-		extractedEdges = new ArrayList<NEdge>();
-		
+
+		extractedVertices = new ArrayList<>();
+		extractedEdges = new ArrayList<>();
+
 		while(true) {
 			Vertices2 verts = extractEdgeRunVertices();
 			if(verts==null) {
@@ -114,10 +107,10 @@ public class NNetworkEdgeRunFinder{
 		}
 
 		System.out.println("preExtractEdgeRuns: found " + extractedVertices.size() + " runs");
-		
+
 		return extractedVertices;
 	}
-	
+
 	public ArrayList<Vertices2> extractAllEdgeRunVertices(KeyValuePairList searchCriteria){
 		// Use this method to get all the edge runs with
 		// a new (and changed) searchCriteria from the previous search
@@ -127,15 +120,19 @@ public class NNetworkEdgeRunFinder{
 		initialiseEdgeList();
 		return extractAllEdgeRunVertices();
 	}
-	
+
 	ArrayList<Vertices2> getEdgeRunVertices(){
-		if(isInitialised()==false) return null;
+		if(!isInitialised()) {
+			return null;
+		}
 		return extractedVertices;
 	}
-	
-	
+
+
 	public void sortEdgeRuns(boolean shortestFirst) {
-		if(isInitialised()==false) return;
+		if(!isInitialised()) {
+			return;
+		}
 
 		if(shortestFirst) {
 			extractedVertices.sort(Comparator.comparing(Vertices2::getTotalLength));
@@ -144,28 +141,33 @@ public class NNetworkEdgeRunFinder{
 		}
 
 	}
-	
+
 	public void setRunDirectionPreference(int preference) {
-		if(isInitialised()==false) return;
-		
+		if(!isInitialised()) {
+			return;
+		}
+
 		for(Vertices2 v: extractedVertices) {
 			v.setRunDirectionPreference(preference);
 		}
 	}
-	
+
 	public void removeShortEdgeRuns(float minLength) {
-		if(isInitialised()==false) return;
-		if(minLength==0) return;
-		
-		ArrayList<Vertices2> toBeRemoved = new ArrayList<Vertices2>();
+		if(!isInitialised() || (minLength==0)) {
+			return;
+		}
+
+		ArrayList<Vertices2> toBeRemoved = new ArrayList<>();
 		for(Vertices2 v: extractedVertices) {
-			if( v.getTotalLength() < minLength) toBeRemoved.add(v);
+			if( v.getTotalLength() < minLength) {
+				toBeRemoved.add(v);
+			}
 		}
 		extractedVertices.removeAll(toBeRemoved);
 
 	}
-	
-	
+
+
 	private boolean isInitialised() {
 		if(extractedVertices==null) {
 			System.out.println("ERROR: EdgeRunVerticesCrawler: is not initilased -  call extractNetworkEdgeVertices or extractRegionEdgeVertices first");
@@ -176,7 +178,7 @@ public class NNetworkEdgeRunFinder{
 
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	// private??? methods 
+	// private??? methods
 	//
 	//This method returns an ordered list of connected edges, starting at a random
 	// available edge. These edges are removed from the initial
@@ -184,19 +186,19 @@ public class NNetworkEdgeRunFinder{
 	//
 	// common to this and region extractor
 	Vertices2 extractEdgeRunVertices() {
-		 
+
 		ArrayList<NEdge> edgeRun = extractEdgeRun_RandomStart();
-		
-		
+
+
 		if(edgeRun==null){
 			System.out.println("NNetworkEdgeRunExtractor:extractEdgeRunVertices  - no more edge runs");
 			return null;
 		}
 		extractedEdges.addAll(edgeRun);
-		
+
 		return getVertices(edgeRun);
 	}
-	
+
 	ArrayList<NEdge> extractEdgeRun_RandomStart() {
 
 		NEdge runStartEdge = findRandomStartEdge();
@@ -212,13 +214,15 @@ public class NNetworkEdgeRunFinder{
 	ArrayList<NEdge> extractEdgeRun(NEdge startEdge) {
 		// extracts an edge run in BOTH directions from the proposed startEdge
 		//
-		ArrayList<NEdge> currentEdgeRunList= new ArrayList<NEdge>();
+		ArrayList<NEdge> currentEdgeRunList= new ArrayList<>();
 
-		ArrayList<NEdge> edgesP1Direction = getConnectedRun(startEdge, startEdge.p1); 
+		ArrayList<NEdge> edgesP1Direction = getConnectedRun(startEdge, startEdge.p1);
 		ArrayList<NEdge> edgesP2Direction = getConnectedRun(startEdge, startEdge.p2);
 
 		if(edgesP1Direction==null && edgesP2Direction==null) {
-			if(startEdge!=null) currentEdgeRunList.add(startEdge);
+			if(startEdge!=null) {
+				currentEdgeRunList.add(startEdge);
+			}
 			return currentEdgeRunList;
 		}
 
@@ -227,8 +231,12 @@ public class NNetworkEdgeRunFinder{
 			Collections.reverse(edgesP1Direction);
 			currentEdgeRunList.addAll(edgesP1Direction);
 		}
-		if(startEdge!=null) currentEdgeRunList.add(startEdge);
-		if(edgesP2Direction!=null) currentEdgeRunList.addAll(edgesP2Direction);
+		if(startEdge!=null) {
+			currentEdgeRunList.add(startEdge);
+		}
+		if(edgesP2Direction!=null) {
+			currentEdgeRunList.addAll(edgesP2Direction);
+		}
 
 
 		boolean result = checkEdgesAreOrdered(currentEdgeRunList);
@@ -236,10 +244,10 @@ public class NNetworkEdgeRunFinder{
 		return currentEdgeRunList;
 	}
 
-	
 
 
-	
+
+
 
 
 
@@ -249,14 +257,16 @@ public class NNetworkEdgeRunFinder{
 
 
 	private NEdge findRandomStartEdge() {
-		if(isEdgeListOK()==false) {
+		if(!isEdgeListOK()) {
 			//System.out.println("NetworkEdgeMarcher:findAStartEdge edge = null");
 			return null;
 		}
 
 		int ind = 0;
 		int listSize = theEdgeList.size();
-		if(listSize > 1) ind = randomStream.randRangeInt(0,theEdgeList.size()-1);
+		if(listSize > 1) {
+			ind = randomStream.randRangeInt(0,theEdgeList.size()-1);
+		}
 
 		NEdge runStartEdge =  theEdgeList.get(ind);
 		popFromEdgeList(runStartEdge);
@@ -264,11 +274,7 @@ public class NNetworkEdgeRunFinder{
 	}
 
 	private boolean isEdgeListOK() {
-		if(theEdgeList == null) {
-			//System.out.println("NetworkEdgeMarcher:theEdgeList = null");
-			return false;
-		}
-		if(theEdgeList.size()==0) {
+		if((theEdgeList == null) || (theEdgeList.size()==0)) {
 			//System.out.println("NetworkEdgeMarcher:isEdgeListOK edge list empty");
 			return false;
 		}
@@ -280,35 +286,44 @@ public class NNetworkEdgeRunFinder{
 	private ArrayList<NEdge> getConnectedRun(NEdge startEdge, NPoint whichPoint) {
 		// given an edge, and a particular end to that edge, find connected edges
 		// and keep going
-		ArrayList<NEdge> connectedEdges = new ArrayList<NEdge>();
+		ArrayList<NEdge> connectedEdges = new ArrayList<>();
 		NEdge currentEdge =  startEdge;
 		NPoint otherPointInConnectedEdge = whichPoint;
 
 		while(true) {
-			NEdge  connectedEdge = getConnectedEdge(currentEdge, otherPointInConnectedEdge);// this pops the result from theEdgeList 
+			NEdge  connectedEdge = getConnectedEdge(currentEdge, otherPointInConnectedEdge);// this pops the result from theEdgeList
 
 			if(connectedEdge==null) {
 				//no more edges can be found to connect
 				break;
 			}
-			if( currentEdge.isUsingIdenticalPoints(connectedEdge) ) continue; // rare event of infinitely short line. It gets ignored
+			if( currentEdge.isUsingIdenticalPoints(connectedEdge) )
+			 {
+				continue; // rare event of infinitely short line. It gets ignored
+			}
 
 			// find "far" connecting point of current Edge
 			NPoint connectionPoint =  connectedEdge.getConnectingPoint(currentEdge);
 			otherPointInConnectedEdge = connectedEdge.getOtherPoint(connectionPoint);
 			connectedEdges.add(connectedEdge);
 			currentEdge = connectedEdge;
-			
-			if(runsCanOverlap == false && (pointIntersectsPreviouslyExtractedRun(otherPointInConnectedEdge) || pointIntersectsPreviouslyExtractedRun(connectionPoint)) ) break;
-			
+
+			if(!runsCanOverlap && (pointIntersectsPreviouslyExtractedRun(otherPointInConnectedEdge) || pointIntersectsPreviouslyExtractedRun(connectionPoint)) ) {
+				break;
+			}
+
 		}
 		return connectedEdges;
 	}
 
 	boolean pointIntersectsPreviouslyExtractedRun(NPoint np) {
-		if(extractedEdges==null) return false;
+		if(extractedEdges==null) {
+			return false;
+		}
 		for(NEdge e: extractedEdges) {
-			if(e.containsPoint(np)) return true;
+			if(e.containsPoint(np)) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -319,19 +334,13 @@ public class NNetworkEdgeRunFinder{
 		//System.out.println("getBestConnection this edge ID = " + thisEdge.getID());
 		ArrayList<NEdge> connectedEdges = (ArrayList)usingThisPoint.getEdgeReferences().clone();
 		foundEdge = getMostCollinearEdge(thisEdge, connectedEdges);
-		if(foundEdge==null) {
-			//System.out.println("getConnectedEdge: no connecting edge found");
-			return null;
-		}
-
-
-		if(isCollinearWithinTollearance(thisEdge, foundEdge, angleTolleranceDegrees)== false){
+		if((foundEdge==null) || !isCollinearWithinTollearance(thisEdge, foundEdge, angleTolleranceDegrees)){
 			//System.out.println("getConnectedEdge: best connected edge is at too great an angle");
 			return null;
 		}
-		
-		
-		
+
+
+
 
 		popFromEdgeList(foundEdge);
 		return foundEdge;
@@ -346,14 +355,16 @@ public class NNetworkEdgeRunFinder{
 		NEdge bestEdge = null;
 		float bestAngle = 10000;
 		for(NEdge otherEdge: connectedEdges) {
-			if( isInEdgeList(otherEdge) == false ) continue;
+			if( !isInEdgeList(otherEdge) ) {
+				continue;
+			}
 			float ang = e.getColiniarity(otherEdge);
 			if( ang < bestAngle) {
 				bestAngle = ang;
 				bestEdge = otherEdge;
 			}
 		}
-		
+
 		return bestEdge;
 	}
 
@@ -365,7 +376,9 @@ public class NNetworkEdgeRunFinder{
 		float radiansBetween = e1.getColiniarity(e2); //getColiniarityOfEdges( e1,  e2);
 		float degreesBetween = radiansBetween*57.2958f;
 
-		if( ( MOMaths.isClose(degreesBetween, 0, angleTolInDegrees) || MOMaths.isClose(degreesBetween, 180, angleTolInDegrees) ) )  return true;
+		if( ( MOMaths.isClose(degreesBetween, 0, angleTolInDegrees) || MOMaths.isClose(degreesBetween, 180, angleTolInDegrees) ) ) {
+			return true;
+		}
 		return false;
 	}
 
@@ -391,7 +404,7 @@ public class NNetworkEdgeRunFinder{
 		for(int n = 1; n < numEdges; n++) {
 			NEdge nextEdge = edges.get(n);
 
-			if(thisEdge.connectsWith(nextEdge) == false) {
+			if(!thisEdge.connectsWith(nextEdge)) {
 				System.out.println("checkEdgesAreOrdered - failed at edge " + n + " out of " + numEdges);
 				return false;
 			}
@@ -399,19 +412,19 @@ public class NNetworkEdgeRunFinder{
 		}
 		return true;
 	}
-	
-	
-	
+
+
+
 	///////////////////////////////////////////////////////////////////
 	// turns an array list of NEdges, which should be sequential (edges link, but by either end, so, the raw end points are not sequential), into an ordered
 	// list of PVector points by finding the joining points between each edge pair.
-	
+
 	Vertices2 getVertices(ArrayList<NEdge> edges){
-		if( checkEdgesAreOrdered(edges)==false) {
+		if( !checkEdgesAreOrdered(edges)) {
 			System.out.println("getVertices - edges are not ordered");
 			return null;
 		}
-		ArrayList<PVector> pointList = new ArrayList<PVector>();
+		ArrayList<PVector> pointList = new ArrayList<>();
 
 		NEdge thisEdge = edges.get(0);
 
@@ -453,7 +466,7 @@ public class NNetworkEdgeRunFinder{
 		return new Vertices2(pointList);
 
 	}
-	
+
 
 }
 

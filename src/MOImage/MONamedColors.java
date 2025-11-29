@@ -14,16 +14,16 @@ public class MONamedColors {
     /**
      * Initialize the color list that we have.
      */
-	
-	
+
+
 	static ArrayList<NamedColor> colorList;
-	
-	ArrayList<NamedColor> paletteColorList = new ArrayList<NamedColor>();
+
+	ArrayList<NamedColor> paletteColorList = new ArrayList<>();
 	public QRandomStream random = new QRandomStream(1);
-	
+
 	static {
-		
-		colorList = new ArrayList<NamedColor>();
+
+		colorList = new ArrayList<>();
         colorList.add(new NamedColor("AliceBlue", 0xF0, 0xF8, 0xFF));
         colorList.add(new NamedColor("AntiqueWhite", 0xFA, 0xEB, 0xD7));
         colorList.add(new NamedColor("Aqua", 0x00, 0xFF, 0xFF));
@@ -164,53 +164,55 @@ public class MONamedColors {
         colorList.add(new NamedColor("WhiteSmoke", 0xF5, 0xF5, 0xF5));
         colorList.add(new NamedColor("Yellow", 0xFF, 0xFF, 0x00));
         colorList.add(new NamedColor("YellowGreen", 0x9A, 0xCD, 0x32));
-        
-		
-		
+
+
+
 	}
-	
-	
-	
+
+
+
 	void createPalette(String[] colorNames){
 		for(String c: colorNames) {
 			paletteColorList.add( getNamedColor(c) );
 		}
-		
+
 	}
-	
+
 	public void addColorToPalette(String s) {
 		paletteColorList.add( getNamedColor(s) );
 	}
-	
-	
+
+
 	public Color getRandomColorFomPalette() {
 		int limit = paletteColorList.size();
 		int i = random.randRangeInt(0, limit-1);
 		return paletteColorList.get(i).getColor();
-		
+
 	}
-	
-    
+
+
     public static Color getColor(String name) {
 
     	NamedColor nc = getNamedColor( name);
     	return nc.getColor();
     }
-    
+
     protected static NamedColor getNamedColor(String name) {
     	String lowercaseSearchString = name.toLowerCase();
     	// is deliberately case-insensitive
     	for (NamedColor c : colorList) {
     		String lowercaseColorName = c.getName().toLowerCase();
-    		if( lowercaseColorName.equals(lowercaseSearchString) ) return c;
+    		if( lowercaseColorName.equals(lowercaseSearchString) ) {
+				return c;
+			}
     	}
     	System.out.println("NamedColors:: cannot find a color called " + name + " returning BLACK");
     	return new NamedColor();
     }
-    
-    
+
+
     public static String getColorNameFromRgb(int r, int g, int b) {
-        
+
         NamedColor closestMatch = null;
         int minMSE = Integer.MAX_VALUE;
         int mse;
@@ -228,7 +230,7 @@ public class MONamedColors {
             return "No matched color name.";
         }
     }
-    
+
     public static String getAllNames() {
     	String s = "";
     	for (NamedColor c : colorList) {
@@ -239,10 +241,10 @@ public class MONamedColors {
 
     /**
      * Convert hexColor to rgb, then call getColorNameFromRgb(r, g, b)
-     * 
+     *
      * @param hexColor
      * @return
-     
+
     public String getColorNameFromHex(int hexColor) {
         int r = (hexColor & 0xFF0000) >> 16;
         int g = (hexColor & 0xFF00) >> 8;
@@ -261,14 +263,14 @@ public class MONamedColors {
     }
     */
 
-    
+
 }
 
 
 
 /**
  * inner class the named color type
- * 
+ *
  */
 class NamedColor {
     public int r, g, b;
@@ -279,9 +281,9 @@ class NamedColor {
         this.g = 0;
         this.b = 0;
         this.name = "NOCOLOR";
-    	
+
     }
-    
+
     public NamedColor(String name, int r, int g, int b) {
         this.r = r;
         this.g = g;
@@ -291,15 +293,15 @@ class NamedColor {
 
     public int computeMSE(int pixR, int pixG, int pixB) {
     	// computes the Mean Squared Error between the incoming value, and this rgb value
-        return (int) (((pixR - r) * (pixR - r) + (pixG - g) * (pixG - g) + (pixB - b)
-                * (pixB - b)) / 3);
+        return ((pixR - r) * (pixR - r) + (pixG - g) * (pixG - g) + (pixB - b)
+                * (pixB - b)) / 3;
     }
-    
+
     public Color getColor() {
     	int pc = getPackedInt();
     	return MOPackedColor.packedIntToColor(pc,false);
     }
-    
+
     public int getPackedInt() {
     	return MOPackedColor.packARGB(255, this.r, this.g, this.b);
     }

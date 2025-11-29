@@ -22,6 +22,7 @@ public class ButtonBaseClass extends Widget {
 		setBounds(locX, locY, w, h);
 	}
 
+	@Override
 	public void handleMouseEvent(String mouseEventType, int x, int y) {
 		if (isInMe(x, y) && (mouseEventType.equals("mouseMoved") || mouseEventType.equals("mousePressed"))) {
 			rollover = true;
@@ -36,6 +37,7 @@ public class ButtonBaseClass extends Widget {
 
 	}
 
+	@Override
 	public void drawMe(VectorShapeDrawer drawer) {
 
 		if (rollover) {
