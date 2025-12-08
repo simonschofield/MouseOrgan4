@@ -2,12 +2,12 @@ package MONetwork;
 
 import java.util.ArrayList;
 
-import MOCompositing.TextRenderer;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
 import MOUtils.TextBank;
 import MOUtils.UniqueID;
+import MOVectorGraphics.TextRenderer;
 
 public class TextRibbon{
 	static TextRibbonManager theTextRibbonManager;

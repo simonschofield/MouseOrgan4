@@ -89,7 +89,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	}
 	
 	public String getFullSessionName() {
-		String sessname = GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName;
+		String sessname = GlobalSettings.getDocumentName() + "_" +  renderTargetName;
 		return sessname;
 	}
 	

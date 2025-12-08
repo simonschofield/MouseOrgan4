@@ -18,10 +18,10 @@ import MOUtils.ImageCoordinateSystem;
 import MOUtils.MOStringUtils;
 /*********************************************************
 *
-* Provides an organised way to create and manage the "output" images.<p>
-*
+* Provides an organised way to create and manage the "output" renders.<p>
+* Contains a list of RenderTargets to be used as the main output renders.<p>
 * The class presumes that there is a "main" render output document. Typically this is the in the form BufferedImage.TYPE_INT_ARGB, but could also be
-* in the form of BufferedImage.TYPE_BYTE_GRAY. However, TYPE_BYTE_GRAY does not have an alpha channel so renders are against a "solid" background colour so are not suitable for layering in post-process operations.<p>
+* in the form of BufferedImage.TYPE_BYTE_GRAY. However, TYPE_BYTE_GRAY does not have an alpha channel so renders would be against a "solid" background colour so are not suitable for layering in post-process operations.<p>
 *
 * In terms of management, the MainDocument has no use of sessionScale, but does fix the width and height of the various contained images to be the same, after instantiation. This means that all image-buffers contained can use
 * the same ImageCoordinateSystem.<p>
@@ -51,16 +51,16 @@ public class MainDocument{
 	Menu renderTargetViewMenu;
 
 	/**
-	 * The type of image-buffer class contained is defined by the interface RenderTargetInterface. This allows the addition of bespoke image-classes, such as floating point (for depth information) and integer for
-	 * item-id that can all handle the pasting of ImageSprites in various ways to create images and mask-type images.<p>
-	 * These are the Java Image Types used in MouseOrgan<p>
-	 * public static final int TYPE_CUSTOM = 0; -- in this implementation we use this to indicate FLOAT image, which is NOT a buffered image type, but wrapped in a RenderTargetInterface<p>
-	 * public static final int TYPE_INT_ARGB = 2; -- A buffered image type, Used for colour + alpha images in, may also be used to provide INT images if required<p>
-	 * public static final int TYPE_BYTE_GRAY = 10; -- A buffered image type,used for 8 bit grey scale images<p>
-	 * public static final int TYPE_USHORT_GRAY = 11; - A buffered image type, used for 16 bit greyscale images<p>
-	 * @param fullScaleWidth
-	 * @param fullScaleHeight
-	 * @param mainRenderType
+	 * Provides an organised way to create and manage the "output" renders.<p>
+	 * Contains a list of RenderTargets to be used as the main output renders.<p>
+	 * The most direct way of initialising a main Document<p>
+	 * @param fullScaleWidth - the Buffer Width of the Main Document at a sessionScale of 1
+	 * @param fullScaleHeight - the Buffer Height of the Main Document at a sessionScale of 1
+	 * @param mainRenderType can be
+	 * TYPE_CUSTOM    -- in this implementation we use this to indicate FLOAT image, which is NOT a buffered image type, but wrapped in a RenderTargetInterface<p>
+	 * TYPE_INT_ARGB  -- A buffered image type, Used for colour + alpha images in, may also be used to provide INT images if required<p>
+	 * TYPE_BYTE_GRAY -- A buffered image type,used for 8 bit grey scale images<p>
+	 * TYPE_USHORT_GRAY  -- A buffered image type, used for 16 bit greyscale images<p>
 	 */
 	public MainDocument(int fullScaleWidth, int fullScaleHeight, int mainRenderType) {
 		// simple non-roi based document
@@ -81,8 +81,16 @@ public class MainDocument{
 	}
 
 	/**
-	 * @param roiManager
-	 * @param mainRenderType
+	 * Provides an organised way to create and manage the "output" renders.<p>
+	 * Contains a list of RenderTargets to be used as the main output renders.<p>
+	 * Initialise the main document with a ROI manager. The ROI Manager is responsible for setting this render's dimensions.<p>
+	 *
+	 * @param roiManager - the ROImanager type initialised by the user or perhaps created by a SceneData3D
+	 * @param mainRenderType can be 
+	 * TYPE_CUSTOM    -- in this implementation we use this to indicate FLOAT image, which is NOT a buffered image type, but wrapped in a RenderTargetInterface<p>
+	 * TYPE_INT_ARGB  -- A buffered image type, Used for colour + alpha images in, may also be used to provide INT images if required<p>
+	 * TYPE_BYTE_GRAY -- A buffered image type,used for 8 bit grey scale images<p>
+	 * TYPE_USHORT_GRAY  -- A buffered image type, used for 16 bit greyscale images<p>
 	 */
 	public MainDocument(ROIManager roiManager, int mainRenderType) {
 		// for a roi based document
@@ -101,17 +109,22 @@ public class MainDocument{
 	}
 
 
-	// they should all have the same coordinate system within a document
+	
 	/**
-	 * @return
+	 * @return the image coordinate system for the Main Document<p>
 	 */
 	public ImageCoordinateSystem getCoordinateSystem() {
 		return documentImageCordinateSystem;
 	}
 
 	/**
-	 * @param name
-	 * @param type
+	 * Adds a new output BufferedImage "render target" to the main document. This could be to render shadows as a seperate image, to create a mask etc...<p>
+	 * @param name - the name of the new render target layer
+	 * @param type - the type of the new render target layer... can be....
+	 * TYPE_CUSTOM    -- in this implementation we use this to indicate FLOAT image, which is NOT a buffered image type, but wrapped in a RenderTargetInterface<p>
+	 * TYPE_INT_ARGB  -- A buffered image type, Used for colour + alpha images in, may also be used to provide INT images if required<p>
+	 * TYPE_BYTE_GRAY -- A buffered image type,used for 8 bit grey scale images<p>
+	 * TYPE_USHORT_GRAY  -- A buffered image type, used for 16 bit greyscale images<p>
 	 */
 	public void addRenderTarget(String name, int type) {
 			if( renderTargetExists(name) ) {
@@ -126,48 +139,7 @@ public class MainDocument{
 			updateRenderTargetMenu();
 
 	}
-
-
-
-	/**
-	 *
-	 */
-	void updateRenderTargetMenu() {
-		// update the menu
-		String[] rtNames = getRenterTargetNames();
-
-		if(renderTargetViewMenu != null) {
-			renderTargetViewMenu.setItems(rtNames);
-		}
-
-	}
-
-
-	/**
-	 * @param rtViewMenu
-	 */
-	void setRenderTargetViewMenu(Menu rtViewMenu) {
-		// called on initUI() at start, so the document can add in render targets as it goes
-		System.out.println("setting render target menu");
-		renderTargetViewMenu = rtViewMenu;
-
-		updateRenderTargetMenu();
-	}
-
-
-	/**
-	 * @return
-	 */
-	String[] getRenterTargetNames() {
-		ArrayList<String> strList = new ArrayList<> ();
-		for(RenderTargetInterface rt: renderTargets) {
-			//System.out.println("render targets in existence " + rt.getName());
-			strList.add(   rt.getName() );
-		}
-
-		return MOStringUtils.toArray(strList);
-	}
-
+	
 	/**
 	 * @param name
 	 * @param saveTYPE_USHORT_GRAYcopy
@@ -189,6 +161,51 @@ public class MainDocument{
 		renderTargets.add(rt);
 	}
 
+
+
+
+	/**
+	 * Called by Surface.BuildUI() at startup
+	 */
+	void updateRenderTargetMenu() {
+		// update the menu
+		String[] rtNames = getRenterTargetNames();
+
+		if(renderTargetViewMenu != null) {
+			renderTargetViewMenu.setItems(rtNames);
+		}
+
+	}
+
+
+	/**
+	 * Called by Surface.BuildUI() at startup
+	 * @param rtViewMenu
+	 */
+	void setRenderTargetViewMenu(Menu rtViewMenu) {
+		// called on initUI() at start, so the document can add in render targets as it goes
+		System.out.println("setting render target menu");
+		renderTargetViewMenu = rtViewMenu;
+
+		updateRenderTargetMenu();
+	}
+
+
+	/**
+	 * Called by Surface.BuildUI() at startup
+	 * @return - the list of RenderTarget names
+	 */
+	String[] getRenterTargetNames() {
+		ArrayList<String> strList = new ArrayList<> ();
+		for(RenderTargetInterface rt: renderTargets) {
+			//System.out.println("render targets in existence " + rt.getName());
+			strList.add(   rt.getName() );
+		}
+
+		return MOStringUtils.toArray(strList);
+	}
+
+	
 	/**
 	 * @return
 	 */
@@ -276,8 +293,9 @@ public class MainDocument{
 	}
 
 
-	// called by view controller to show the current image
+	// 
 	/**
+	 * Called by view controller to show the current image
 	 * @param rtname
 	 * @param currentViewCropRect
 	 * @return

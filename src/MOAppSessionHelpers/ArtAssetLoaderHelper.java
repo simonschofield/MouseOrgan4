@@ -6,15 +6,31 @@ import MOImageCollections.ScaledImageAssetGroupManager;
 import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
 
+/**
+ * Helps load image collections into the imageSampleGroupManager and works in conjunction with ArtAssetPaths to save labourious path definition. <p>
+ * It also helps with managing the source of loading an image collections, when caches are in play. Loading happens either from the sampleLib, which contains "virgin" 100% scaled assets, or from the image cache, which contains
+ * scaled-and-treated sets of images. There can be different caches: the "default" cache only saves images that have been rescaled according to the session scale. Other caches will have been created via some post processing
+ * and then saved to the currently defined cache (at whatever current session-scale) by using GlobalSettings.getImageAssetGroupManager().cacheAll(); <p>
+ * The current cache is set by GlobalSettings.setMouseOrganImageCacheName(cacheName), which simply sets a path to the cache location.<p>
+ * 
+ */
 public class ArtAssetLoaderHelper {
 
 
+	/**
+	 * Helps load image collections into the imageSampleGroupManager and works in conjunction with ArtAssetPaths to save labourious path definition. <p>
+	 * It also helps with managing the source of loading an image collections, when caches are in play. Loading happens either from the sampleLib, which contains "virgin" 100% scaled assets, or from the image cache, which contains
+	 * scaled-and-treated sets of images. There can be different caches: the "default" cache only saves images that have been rescaled according to the session scale. Other caches will have been created via some post processing
+	 * and then saved to the currently defined cache (at whatever current session-scale) by using GlobalSettings.getImageAssetGroupManager().cacheAll(); <p>
+	 * The current cache is set by GlobalSettings.setMouseOrganImageCacheName(cacheName), which simply sets a path to the cache location.<p>
+	 * 
+	 * 
+	 * @param cacheName -  the name of the cache to use
+	 * @param chacheMode - These are defined in the ScaledImageAssetGroup.  ScaledImageAssetGroup.LOADMODE_FROM_CACHE, where only cached assets are loaded (fast) or ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB, 
+	 * where things are loaded processed and cached (slow, for new alterations to the processing)
+	 * @param includesList - A list of the asset names to be loaded. These are defined by the user in ArtAssetPaths class. If a string begins with an underscore, it is regarded as a command (e.g. "_quit")
+	 */
 	public static void loadAssets(String cacheName, int chacheMode, String[] includesList) {
-		// Big chunk of code that occurs in all user sessions doing BW landscape renders, moved to here
-		//
-		// Cache mode can be set to  ScaledImageAssetGroup.CACHEMODE_FORCE_LOAD_NO_SAVE, where only cached assets are loaded (fast)
-		// or ScaledImageAssetGroup.CACHEMODE_NONE, where things are loaded processed and cached (slow, for new alterations to the processing)
-		//
 		// includes string list is for selecting only parts to be loaded and cached. So you don't have to cache everything again
 		GlobalSettings.setMouseOrganImageCacheName(cacheName);
 
@@ -54,7 +70,12 @@ public class ArtAssetLoaderHelper {
 
 	}
 
-
+	
+	/**
+	 * Called by loadAssets() method above
+	 * @param includesList
+	 * @return
+	 */
 	static private boolean checkIncludeListAssetsExist(String[] includesList) {
 		boolean ok = true;
 		for(String name: includesList) {
@@ -74,7 +95,12 @@ public class ArtAssetLoaderHelper {
 	}
 
 
-
+	
+    /**
+     * Called by loadAssets() method above
+     * @param cacheName
+     * @param includesList
+     */
     private static void loadAssetsFromCacheOnly(String cacheName,  String[] includesList) {
 		GlobalSettings.setMouseOrganImageCacheName(cacheName);
 		ScaledImageAssetGroupManager imageSampleGroupManager = GlobalSettings.getImageAssetGroupManager();
@@ -87,31 +113,11 @@ public class ArtAssetLoaderHelper {
 
 	}
 
-
-
-	private static void loadAssetAndsCache_BWLandscapeNoLevels(String cacheName,  String[] includesList) {
-
-
-		GlobalSettings.setMouseOrganImageCacheName(cacheName);
-
-		for(String assetName: includesList) {
-			if( beginsWithUnderscore(assetName)) {
-				continue;
-			}
-			loadAssetAndMakeGrayscale(assetName);
-		}
-
-		GlobalSettings.getImageAssetGroupManager().cacheAll();
-
-		if(includesListContains(includesList,"_quit")) {
-			System.out.println("quitting");
-			System.exit(0);
-			}
-
-	}
-
-
-   private static void loadAssetAndsCache_Default(String[] includesList) {
+    /**
+     * Called by loadAssets() method above
+     * @param includesList
+     */
+    private static void loadAssetAndsCache_Default(String[] includesList) {
 
 
 		GlobalSettings.setMouseOrganImageCacheName("deafultCache");
@@ -134,6 +140,12 @@ public class ArtAssetLoaderHelper {
 
 
 
+	/**
+	 * Checks to see if the assets thisString is contained in the include list. 
+	 * @param includesList
+	 * @param thisString
+	 * @return
+	 */
 	private static boolean includesListContains(String[] includesList, String thisString) {
 		if(includesList == null ) {
 			return true;
@@ -148,11 +160,42 @@ public class ArtAssetLoaderHelper {
 	}
 
 	private static void loadAssetDeafult(String assetBaseName) {
-		ScaledImageAssetGroup assetGroup = null;
 		String assetPath = ArtAssetPaths.getAssetSampleLibPath(assetBaseName);
-		assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
+		GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
 	}
 
+
+	
+	
+	/**
+	 * An example of a user-defined loading and caching process that post-processes the assets. If the user wishes to create two versions of an asset to be cached, first duplicate the 
+	 * scales image asset group with a new name, then rpcess. It will be included in the cache seperately.
+	 * @param cacheName
+	 * @param includesList
+	 */
+	private static void loadAssetAndsCache_BWLandscapeNoLevels(String cacheName,  String[] includesList) {
+
+
+		GlobalSettings.setMouseOrganImageCacheName(cacheName);
+
+		for(String assetName: includesList) {
+			if( beginsWithUnderscore(assetName)) {
+				continue;
+			}
+			loadAssetAndMakeGrayscale(assetName);
+		}
+
+		GlobalSettings.getImageAssetGroupManager().cacheAll();
+
+		if(includesListContains(includesList,"_quit")) {
+			System.out.println("quitting");
+			System.exit(0);
+			}
+
+	}
+
+
+   
 
 	private static void loadAssetAndMakeGrayscale(String assetBaseName) {
 		ScaledImageAssetGroup assetGroup = null;
@@ -164,44 +207,44 @@ public class ArtAssetLoaderHelper {
 	}
 
 
-	private static void loadBWAssetAndApplyLevels(String assetBaseName, float[] levels, boolean overlayEdges) {
-
-		ScaledImageAssetGroup assetGroup = null;
-
-		String assetPathWhole = ArtAssetPaths.getAssetSampleLibPath(assetBaseName);
-
-
-		if(overlayEdges) {
-			String assetPathEdges = ArtAssetPaths.getAssetSampleLibPath(assetBaseName + "Edges");
-			assetGroup = overlayScaledImageAssetGroup(assetBaseName, assetPathWhole, assetPathEdges, 1.0f);
-		} else {
-			assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPathWhole, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
-		}
-
-		MOColorTransform colorTransformGrey = new MOColorTransform();
-		colorTransformGrey.addGreyscaleTransform();
-		assetGroup.colorTransformAll(colorTransformGrey);
-
-		if(levels!=null) {
-			MOColorTransform levelsTransform = new MOColorTransform();
-			levelsTransform.addLevelsTransform(levels[0], levels[1], levels[2], levels[3], levels[4]);
-			assetGroup.colorTransformAll(levelsTransform);
-		}
-
-
-
-	}
-
-
-	public static ScaledImageAssetGroup overlayScaledImageAssetGroup(String targetGroupName, String tagetAssetPath, String overlayAssetPath, float alpha) {
-		// Loads both the target and overlay group.
-		// Pastes the overlay sprite on-top of the target sprite groups. The composited target group is then kept in the ImageAssetGroupManager, while the overlay group is removed.
-		// Overlay sprites must be sized exactly the same as the target (under-lay) sprite, and have the same number of assets.
-		//
-		ScaledImageAssetGroup targetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(targetGroupName,  tagetAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
-		ScaledImageAssetGroup overlayGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup("tempOverlayGroupName",  overlayAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
-		targetGroup.overlayScaledImageAssetGroup(overlayGroup, alpha);
-		GlobalSettings.getImageAssetGroupManager().removeImageAssetGroup("tempOverlayGroupName");
-		return targetGroup;
-	}
+//	private static void loadBWAssetAndApplyLevels(String assetBaseName, float[] levels, boolean overlayEdges) {
+//
+//		ScaledImageAssetGroup assetGroup = null;
+//
+//		String assetPathWhole = ArtAssetPaths.getAssetSampleLibPath(assetBaseName);
+//
+//
+//		if(overlayEdges) {
+//			String assetPathEdges = ArtAssetPaths.getAssetSampleLibPath(assetBaseName + "Edges");
+//			assetGroup = overlayScaledImageAssetGroup(assetBaseName, assetPathWhole, assetPathEdges, 1.0f);
+//		} else {
+//			assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPathWhole, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
+//		}
+//
+//		MOColorTransform colorTransformGrey = new MOColorTransform();
+//		colorTransformGrey.addGreyscaleTransform();
+//		assetGroup.colorTransformAll(colorTransformGrey);
+//
+//		if(levels!=null) {
+//			MOColorTransform levelsTransform = new MOColorTransform();
+//			levelsTransform.addLevelsTransform(levels[0], levels[1], levels[2], levels[3], levels[4]);
+//			assetGroup.colorTransformAll(levelsTransform);
+//		}
+//
+//
+//
+//	}
+//
+//
+//	public static ScaledImageAssetGroup overlayScaledImageAssetGroup(String targetGroupName, String tagetAssetPath, String overlayAssetPath, float alpha) {
+//		// Loads both the target and overlay group.
+//		// Pastes the overlay sprite on-top of the target sprite groups. The composited target group is then kept in the ImageAssetGroupManager, while the overlay group is removed.
+//		// Overlay sprites must be sized exactly the same as the target (under-lay) sprite, and have the same number of assets.
+//		//
+//		ScaledImageAssetGroup targetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(targetGroupName,  tagetAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
+//		ScaledImageAssetGroup overlayGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup("tempOverlayGroupName",  overlayAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
+//		targetGroup.overlayScaledImageAssetGroup(overlayGroup, alpha);
+//		GlobalSettings.getImageAssetGroupManager().removeImageAssetGroup("tempOverlayGroupName");
+//		return targetGroup;
+//	}
 }

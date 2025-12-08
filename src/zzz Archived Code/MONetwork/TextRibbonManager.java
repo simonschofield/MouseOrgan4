@@ -2,10 +2,10 @@ package MONetwork;
 
 import java.util.ArrayList;
 
-import MOCompositing.TextRenderer;
 import MOMaths.Vertices2;
 import MOUtils.KeyValuePairList;
 import MOUtils.TextBank;
+import MOVectorGraphics.TextRenderer;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TextRibbonManager contains all the TextRibbons, textRibbons are made up of RibbonLetters
 // The whole point is to have the RibbonLetters as persistent objects, that can interact. Specifically delete one another in a priority war to clean up crowded areas.

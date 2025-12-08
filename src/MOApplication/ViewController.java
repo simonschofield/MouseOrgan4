@@ -11,55 +11,61 @@ import MOMaths.PVector;
 import MOMaths.Rect;
 import MOUtils.GlobalSettings;
 
-// This is an improved view controller that uses the whole window and is not limited to the aspect of the document
-// Given the following unchanging parameters
-// Document size (w, h and aspect)
-// ViewDisplayRegion (w,h and aspect)
-// calculate the view (i.e. the portion of the document buffer) to be shown.
-// Other than "zoonState 0 - fit to window", the calculation of this cropped area
-// is made on currentZoom (1... > 1, == scale = 1/zoom), and panX and panY (which are in buffer space pixels.
-public class ViewController {
-	// this is the document buffer pixel space rect which represents
-	// a region of the image to be cropped out and shown in the
-	// viewDisplayRegion. Hence, apart from the fitToWindow view, it
-	// always has the same aspect as the viewDisplayRecT
-	Rect currentViewCropRect;
 
-	//private MainDocumentRenderTarget theDocument;
-	MainDocument theDocument;
+/**
+ * This is an improved view controller that uses the whole window and is not limited to the aspect of the document
+ * Given the following unchanging parameters <p>
+ * Document size (w, h) - The current buffer size of the Document (at the current scale) <p>
+ * canvasWindowRect (w,h) -this is the canvas UI rectangle in window pixel dimensions within the Application window. It does not change.<p>
+ * The purpose of this class is to calculate the view (i.e. the portion of the document buffer) to be shown.
+ * Other than "zoomState 0 - fit to window", the calculation of this cropped area
+ * is made on currentZoom (1... > 1, == scale = 1/zoom), and panX and panY (which are in buffer space pixels.
+ * 
+ */
+public class ViewController {
+	
+	/**
+	 * currentViewCropRect - this is the document buffer pixel space rect which represents
+	 * a region of the image to be cropped out and shown in the
+	 * viewDisplayRegion. Hence, apart from the fitToWindow view, it
+	 * always has the same aspect as the canvasWindowRect
+	 */
+	private Rect currentViewCropRect;
+	
+	
+	/**
+	 * canvasWindowRect (w,h) -this is the canvas UI rectangle in window pixel dimensions within the Application window. It does not change.<p>
+	 */
+	private Rect canvasWindowRect;
+	private Color canvasWindowRectBackgroundColor = Color.WHITE;	
+		
+
+	
+	
+	// Zoom and pan settings
 	// This is a flag
 	// 0 == fit to window
 	// 1 == first zoom, fitting the shortest image dimension to the width/height of
 	// the view rect
 	// 2 upwards == zooms into the image
-	int zoomSetting = 0;
+	private int zoomSetting = 0;
 
 	// always 1 or larger, defines the "magnification" from 1
-	float currentZoom = 1.0f;
+	private float currentZoom = 1.0f;
 
 	// are the actual pixel coordinates of the centre of the currentViewRect
 	//
-	float currentXPan = 0, currentYPan = 0;
+	private float currentXPan = 0, currentYPan = 0;
 
-	// this is the canvas UI rectangle in window pixel dimensions within
-	// the Application window. It does not change.
-	Rect canvasWindowRect;
-	float canvasWindowRectAspect;
-
-	// This is the rect to position the image in the centre of the view under FitToWindow
-	Rect fitToWindowCentreRect = new Rect();
-
+	
+	//reference set to the MainDocument, set in init()
+	MainDocument theDocument;
+	private String theCurrentRenderTargetName = "main";
+	
 	// this is the dimension of the main document in buffer space. They do not
-	// change.
+	// change and are used a lot
 	private int theDocumentWidth;
 	private int theDocumentHeight;
-	private float theDocumentAspect;
-	private PVector theDocumentCentre;
-	Rect theDocumentRect;
-
-	Color viewDisplayRectBackgroundColor = Color.WHITE;
-
-	private String theCurrentRenderTargetName = "main";
 
 	///////////////////////////////////////////////////////////////////////////
 	// Background Image
@@ -67,26 +73,42 @@ public class ViewController {
 	// so all view-mapping operations are identical
 	BufferedImage backgroundImage = null;
 
+	
+	/**
+	 * This is an improved view controller that uses the whole window and is not limited to the aspect of the document
+	 * Given the following unchanging parameters... <p>
+	 * Document size (w, h) - The current buffer size of the Document (at the current scale) <p>
+	 * canvasWindowRect (w,h) -this is the canvas UI rectangle in window pixel dimensions within the Application window. <p>
+	 * ...The purpose of this class is to calculate the view (i.e. the portion of the document buffer) to be shown.
+	 * Other than "zoomState 0 - fit to window", the calculation of this cropped area
+	 * is made on currentZoom (1... > 1, == scale = 1/zoom), and panX and panY (which are in buffer space pixels.<p>
+	 * Initialised in Surface constructor
+	 */
 	public ViewController() {
 
 	}
 
+	/**
+	 * Called from Surface.InitialiseView(). can only be called after the main document and UI.canvasWindowRect have been initialised
+	 * @param surf
+	 */
 	void init(Surface surf) {
 		theDocument = surf.theDocument;
 		canvasWindowRect = surf.getCanvasWindowRect();
 		System.out.println(
 				"viewRect width " + canvasWindowRect.getWidth() + " viewRect height " + canvasWindowRect.getHeight());
-		canvasWindowRectAspect = canvasWindowRect.aspect();
-
-		theDocumentWidth = GlobalSettings.getTheDocumentCoordSystem().getBufferWidth();
-		theDocumentHeight = GlobalSettings.getTheDocumentCoordSystem().getBufferHeight();
-
-
+		
+		
+		theDocumentWidth = theDocument.getCoordinateSystem().getBufferWidth();
+		theDocumentHeight = theDocument.getCoordinateSystem().getBufferHeight();
 
 
-		theDocumentAspect = theDocumentWidth / (float) theDocumentHeight;
-		theDocumentCentre = new PVector(theDocumentWidth / 2f, theDocumentHeight / 2f);
-		theDocumentRect = new Rect(0,0,theDocumentWidth,theDocumentHeight);
+	
+
+		
+		
+		//theDocumentCentre = new PVector(theDocumentWidth / 2f, theDocumentHeight / 2f);
+		//theDocumentRect = theDocument.getCoordinateSystem().getBufferRect().copy();
 		currentViewCropRect = new Rect(0, 0, theDocumentWidth, theDocumentHeight);
 
 
@@ -95,6 +117,10 @@ public class ViewController {
 
 	}
 
+	/**
+	 * Sets the background imame of the canvas area
+	 * @param bi -  the background buffered image - this is resized to fit the canvasWindowRect
+	 */
 	public void setBackgroundImage(BufferedImage bi) {
 		if(bi==null) {
 			backgroundImage = null;
@@ -104,56 +130,68 @@ public class ViewController {
 		System.out.println(
 				"background image set to width " + theDocumentWidth + "  height " + theDocumentHeight);
 	}
-
-	Rect getCurrentViewCropRect() {
-		return currentViewCropRect.copy();
-	}
-
-
-	Rect getCurrentViewPortDocSpace() {
-		// returns the currentViewCropRect (whihc is in buffer-space) into documentSpace
-		// this is needed by external objects only to do cropping operations
-		PVector topLeftBufferSpace = currentViewCropRect.getTopLeft();
-		PVector bottomRightBufferSpace = currentViewCropRect.getBottomRight();
-		PVector topLeftDocSpace = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(topLeftBufferSpace);
-		PVector bottomRightDocSpace = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(bottomRightBufferSpace);
-		return new Rect(topLeftDocSpace, bottomRightDocSpace);
-	}
-
-	void setViewDisplayRectBackgroundColor(Color c) {
-		viewDisplayRectBackgroundColor = c;
+	
+	/**
+	 * Sets the colour of the canvas window background to c
+	 * @param c
+	 */
+	public void setCanvasWindowRectBackgroundColor(Color c) {
+		canvasWindowRectBackgroundColor = c;
 
 	}
+	
+	/**
+	 * Uses the named render target as the image to draw to the canvas window. Default is "main". So can be called by the user and UI. 
+	 * @param renderTargetName
+	 */
+	public void setRenderTargetAsMainView(String renderTargetName) {
 
-	// this is called frequently by the surface to update the display to the new zoom/pan
-	void updateDisplay(Graphics2D g2d) {
+		//System.out.println("ViewControl: setting render view to " + renderTargetName);
+		theCurrentRenderTargetName = renderTargetName;
+	}
+
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// calls from other classes, but not for the user
+	//
+	//
+	//
+
+	/**
+	 * Called frequently from Surface.updateCanvasDisplay() to update the display to the new zoom/pan
+	 * @param g2d
+	 */
+	public void updateDisplay(Graphics2D g2d) {
 
 		if (zoomSetting == 0) {
 			showFitToViewDisplayRect(g2d);
 		}
 
 		if (zoomSetting > 0) {
-			showZoom(g2d);
+			drawView(g2d, canvasWindowRect);
 		}
 
 	}
 
 
-	// coordinate space conversion between the doc space and the the absolute
-	// pixel location in the application window (not offset by the canvas location)
-	// and vice-versa
+	
+	/**
+	 * Called by the SimpleUI canvasCoordToDocSpace(). Maps a point on the canvasWindow (pixel x,y) to current DocSpace
+	 * @param x -  the x coordinate in the canvas rectangle in pixels
+	 * @param y -  the y coordinate in the canvas rectangle in pixels
+	 * @return - a PVector containing the equivalent DocSpace point of the x,y above
+	 */
 	public PVector appWindowCoordinateToDocSpace(int x, int y) {
-		// used by the SimpleUI interface canvas object
-		// takes a pixel location within the viewDisplayRect (0,0) top left
-		// and maps it to Document space
-
-
+		
 		//System.out.println("appWindowCoordinateToDocSpace x,y " + x + "," + y); // confirms this is the raw position in the canvas area (not the app)
 
 		PVector viewDisplayRectPoint = new PVector(x,y);
 
 		if (zoomSetting == 0) {
 			// do the correct mapping for the fitToWindow set up
+			Rect theDocumentRect = theDocument.getCoordinateSystem().getBufferRect().copy();
+			Rect fitToWindowCentreRect = getFitFullImageToCanvasWindowRect();
 			PVector pixelInImageBuffer = Rect.map(viewDisplayRectPoint,  fitToWindowCentreRect, theDocumentRect);
 			//
 			PVector docSpace = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(pixelInImageBuffer);
@@ -162,16 +200,22 @@ public class ViewController {
 		}
 
 		// if zoom > 1 the use the currentViewCropRect
+		//
 		PVector pixelInImageBuffer = Rect.map(viewDisplayRectPoint, canvasWindowRect, currentViewCropRect);
 		return GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(pixelInImageBuffer);
 	}
 
 
+	/**
+	 * Called by the SimpleUI docSpaceToCanvasCoordinate(). Maps a point in DocSpace to the canvasWindow (pixel x,y). used by the SimpleUI interface canvas to draw overlay items to the viewDisplayRect
+	 * @param docSpacePt
+	 * @return PVector the equivalent point on the canvasWindow in Pixel x,y
+	 */
 	public PVector docSpaceToAppWindowCoordinate(PVector docSpacePt) {
-		// used by the SimpleUI interface canvas to draw overlay items to the viewDisplayRect
-
 		PVector pixelInImageBuffer = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(docSpacePt);
 		if (zoomSetting == 0) {
+			Rect theDocumentRect = theDocument.getCoordinateSystem().getBufferRect().copy();
+			Rect fitToWindowCentreRect = getFitFullImageToCanvasWindowRect();
 			return Rect.map(pixelInImageBuffer, theDocumentRect, fitToWindowCentreRect);
 		}
 
@@ -180,243 +224,11 @@ public class ViewController {
 		PVector pointInCurrentCropRect = new PVector(xInCurrentCropRect,yInCurrentCropRect);
 		return Rect.map(pointInCurrentCropRect, currentViewCropRect, canvasWindowRect);
 	}
-
-
-	void showFitToViewDisplayRect(Graphics2D g2d) {
-		// "fit to window" stuff. This is a special case, so uses own algorithm.
-		// draw the whole image offset in the centre of the viewDisplayRect
-
-		// also resets zoom and pan for subsequent zooms
-		currentZoom = 1;
-		currentXPan = theDocumentCentre.x;
-		currentYPan = theDocumentCentre.y;
-
-		currentViewCropRect = new Rect(0, 0, theDocumentWidth, theDocumentHeight);
-
-		fitToWindowCentreRect = getFitToViewDisplayRect();
-
-		drawView(g2d, fitToWindowCentreRect);
-
-
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// returns the absolute application pixel coordinates of the region in the centre
-	// of the viewDisplayRect that can contain (a scaled version of) the whole image
-	Rect getFitToViewDisplayRect() {
-		Rect fitToWindowRect = new Rect();
-		if (theDocumentAspect > canvasWindowRectAspect) {
-			//System.out.println("getFitToViewDisplayRect: landscape rect");
-			// do "landscape fit" where it needs padding top/bottom for "landscape fit"
-			// work out the scale to shrink the image into this rect
-			float scaleToFit = canvasWindowRect.getWidth() / theDocumentWidth;
-			float scaledImageHeight = theDocumentHeight * scaleToFit;
-			int halfDifferenceInHeight = (int) Math.abs((canvasWindowRect.getHeight() - scaledImageHeight) / 2f);
-
-			fitToWindowRect.setWithDimensions(canvasWindowRect.left, canvasWindowRect.top + halfDifferenceInHeight, canvasWindowRect.getWidth(), scaledImageHeight);
-		} else {
-			// do "portrait fit" where it needs padding left right
-			// work out the scale to shrink the image into this rect
-			float scaleToFit = canvasWindowRect.getHeight() / theDocumentHeight;
-			float scaledImageWidth = (theDocumentWidth * scaleToFit);
-			int halfDifferenceInWidth = (int) Math.abs((canvasWindowRect.getWidth() - scaledImageWidth) / 2f);
-
-			fitToWindowRect.setWithDimensions( canvasWindowRect.left + halfDifferenceInWidth, canvasWindowRect.top, scaledImageWidth, canvasWindowRect.getHeight());
-		}
-		//System.out.println("getFitToViewDisplayRect: " + fitToWindowRect.toStr());
-		return fitToWindowRect;
-	}
-
-
-
-	void showZoom(Graphics2D g2d) {
-		drawView(g2d, canvasWindowRect);
-	}
-
-
-
-	void drawView(Graphics2D g2d, Rect imageDisplayRegion) {
-
-		Color inertFill = new Color(230,230,230);
-		g2d.setColor(inertFill);
-		g2d.fillRect((int) canvasWindowRect.left, (int) canvasWindowRect.top, (int) canvasWindowRect.getWidth(),
-				(int) canvasWindowRect.getHeight());
-
-		g2d.setColor(viewDisplayRectBackgroundColor);
-		g2d.fillRect((int) imageDisplayRegion.left, (int) imageDisplayRegion.top,
-				(int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight());
-
-
-		if(backgroundImage != null) {
-			// draw the background image first, then the render on top
-			//System.out.println("ViewControl: drawView currentViewCropRect " + currentViewCropRect.toStr());
-
-			BufferedImage croppedToCurrentViewRectImg = ImageProcessing.cropImage(backgroundImage, currentViewCropRect);
-
-
-
-			g2d.drawImage(croppedToCurrentViewRectImg, (int) imageDisplayRegion.left,
-					(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
-
-		}
-
-		// draw the render image
-		//
-		BufferedImage displayImage =  theDocument.getCropBufferSpace(theCurrentRenderTargetName,  currentViewCropRect);
-
-
-		g2d.drawImage(displayImage, (int) imageDisplayRegion.left,
-				(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
-
-
-
-	}
-
-
-	public void setRenderTargetAsMainView(String renderTargetName) {
-
-		//System.out.println("ViewControl: setting render view to " + renderTargetName);
-		theCurrentRenderTargetName = renderTargetName;
-	}
-
-
-	void showActualSize() {
-		// width of screen
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		float screenWidth =  (float)screenSize.getWidth();
-
-
-		// physical width of viewDisplayRect window in inches
-		float physicalWidthOfScreen = 23.5f;
-		float physicalWidthOfViewDisplayRect = physicalWidthOfScreen * (canvasWindowRect.getWidth()/screenWidth);
-
-		// so a full-scale image would be shown at 300 dpi
-		// an image shown at SessionScale of 0.5 would show 300*0.5 pixels
-		float fullSizeDPI = 300 * GlobalSettings.getSessionScale();
-		float pixelsShownAtThisWidthForFullSize = physicalWidthOfViewDisplayRect*fullSizeDPI;
-
-		// now work out the scale required so that
-		// currentViewCropRect.width is set to equal pixelsShownAtThisWidthForFullSize
-		// Under "portrait" fit the total width of the image is shown in the viewDisplayRect at a  scale of 1
-		// under "landscape" fit the scale is set to 1 to show the whole height of the image, so the scale for the correct dpi needs to be increased by * aspect of image
-		// However, the result would be the same whatever aspect the image is
-		// so we don't need to take this into consideration
-		float scale = pixelsShownAtThisWidthForFullSize / theDocumentWidth;
-		if (theDocumentAspect > canvasWindowRectAspect) {
-			scale *= theDocumentAspect;
-		}
-
-		// work out the zoomSetting that would be needed for this scale
-		int zoomSettingCounter = 1;
-		float testScale = 1f;
-		while(testScale > scale) {
-			zoomSettingCounter++;
-			testScale /= 1.25;
-			if(zoomSettingCounter > 1000) {
-				System.out.println("showActualSize something went wrong");
-				return;
-			}
-		}
-
-		zoomSetting = zoomSettingCounter;
-		currentZoom = 1/scale;
-		currentViewCropRect = calculateViewCropRect(currentXPan,currentYPan);
-
-		System.out.println("showActualSize set zoom to" + currentZoom + " zoomSettings to " + zoomSetting);
-	}
-
-	float getCurrentScale() {
-		return 1 / currentZoom;
-	}
-
-	float getCurrentZoom() {
-		return currentZoom;
-	}
-
-
-
-	void setZoomPlusMinus(int dzoom) {
-
-		zoomSetting += dzoom;
-
-		if (zoomSetting < 0) {
-			zoomSetting = 0;
-		}
-
-		if(zoomSetting == 0) {
-			return;
-		}
-
-		if(zoomSetting == 1) {
-			currentZoom = 1f;
-		}
-
-		if(zoomSetting > 1) {
-
-			if(dzoom == 1) {
-				currentZoom = currentZoom * 1.25f;
-			}
-			if(dzoom == -1) {
-				currentZoom = currentZoom/ 1.25f;
-			}
-
-		}
-
-		//System.out.println("zoomSetting " + zoomSetting + " currentZoom " + currentZoom);
-
-		currentViewCropRect = calculateViewCropRect(currentXPan,currentYPan);
-
-	}
-
-
-	void shiftXY(float dx, float dy) {
-		// the amount of shift is scaled here to be a proportion of the current view
-
-		float attemptedShiftX = currentXPan + dx * theDocumentWidth * getCurrentScale();
-		float attemptedShiftY = currentYPan + dy * theDocumentHeight * getCurrentScale();
-
-		currentViewCropRect = calculateViewCropRect(attemptedShiftX,attemptedShiftY);
-
-		System.out.println("currentViewRect " + currentViewCropRect + " currentXPan " + currentXPan + " currentYPan " + currentYPan);
-	}
-
-	Rect calculateViewCropRect(float attemptedPanX, float attempetedPanY) {
-		// calculates the currentViewCropRect based on
-		// the currentScale (1/currentZoom) and the attemptedPanX and Y
-
-		float scale = getCurrentScale();
-
-		float cropBoxWidth, cropBoxHeight;
-
-		if (theDocumentAspect < canvasWindowRectAspect) {
-			// then it fits pillar box in to the always letter box VDR
-			// so the width of the currentViewRect is set to the width of the document image
-			// and the height of the currentViewRect is set to this width /
-			// viewDisplayRectAspect
-			cropBoxWidth = theDocumentWidth * scale;
-			cropBoxHeight = cropBoxWidth / canvasWindowRectAspect;
-		} else {
-			// then it fits letter box in to the always letter box VDR
-			// so the height of the currentViewRect is set to the height of the document
-			// image
-			// and the width of the currentViewRect this height * viewDisplayRectAspect
-			cropBoxHeight = theDocumentHeight * scale;
-			cropBoxWidth = cropBoxHeight * canvasWindowRectAspect;
-		}
-
-		Rect untranslatedViewRect = new Rect(0, 0, cropBoxWidth, cropBoxHeight);
-		untranslatedViewRect.setCentreTo(attemptedPanX, attempetedPanY);
-		Rect translatedViewRect = shuntInside(untranslatedViewRect);
-		currentXPan = translatedViewRect.getCentre().x;
-		currentYPan = translatedViewRect.getCentre().y;
-		return translatedViewRect;
-	}
-
-
-
-	// called from the Surface event handler
-	//
-	//
+	
+	/**
+	 * Called by the Surface.keyPressed() handler
+	 * @param e
+	 */
 	public void keyboardViewInput(KeyEvent e) {
 		// println("keyboard zoom", theKey, theKeyCode);
 		// - + zoom keys
@@ -463,8 +275,269 @@ public class ViewController {
 		// currentViewRect.getHeight());
 
 	}
+	
 
-	Rect shuntInside(Rect r) {
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Private methods
+	//
+	//
+	//
+	
+	
+	/**
+	 * Called internally by updateDisplay(). <p>
+	 * "Fit entire image to canvas window" stuff. This is a special case, so uses own algorithm. draw the whole image offset in the centre of the viewDisplayRect
+	 * @param g2d
+	 */
+	private void showFitToViewDisplayRect(Graphics2D g2d) {
+		// also resets zoom and pan for subsequent zooms
+		currentZoom = 1;
+		PVector theDocCentre = theDocument.getCoordinateSystem().getBufferRect().getCentre();
+		currentXPan = theDocCentre.x;
+		currentYPan = theDocCentre.y;
+
+		currentViewCropRect = theDocument.getCoordinateSystem().getBufferRect().copy();
+
+		Rect fitToWindowCentreRect = getFitFullImageToCanvasWindowRect();
+
+		drawView(g2d, fitToWindowCentreRect);
+
+
+	}
+
+	
+	/**
+	 * Returns the "full document view rectangle" within the canvasWindowRect when the zoomSetting is 0 <p>
+	 * in absolute application pixel coordinates of the region in the centre of the viewDisplayRect that can contain (a scaled version of) the whole image
+	 * @return
+	 */
+	private Rect getFitFullImageToCanvasWindowRect() {
+		Rect fitToWindowRect = new Rect();
+		if (theDocument.getCoordinateSystem().getDocumentAspect() > canvasWindowRect.aspect()) {
+			//System.out.println("getFitToViewDisplayRect: landscape rect");
+			// do "landscape fit" where it needs padding top/bottom for "landscape fit"
+			// work out the scale to shrink the image into this rect
+			float scaleToFit = canvasWindowRect.getWidth() / theDocumentWidth;
+			float scaledImageHeight = theDocumentHeight * scaleToFit;
+			int halfDifferenceInHeight = (int) Math.abs((canvasWindowRect.getHeight() - scaledImageHeight) / 2f);
+
+			fitToWindowRect.setWithDimensions(canvasWindowRect.left, canvasWindowRect.top + halfDifferenceInHeight, canvasWindowRect.getWidth(), scaledImageHeight);
+		} else {
+			// do "portrait fit" where it needs padding left right
+			// work out the scale to shrink the image into this rect
+			float scaleToFit = canvasWindowRect.getHeight() / theDocumentHeight;
+			float scaledImageWidth = (theDocumentWidth * scaleToFit);
+			int halfDifferenceInWidth = (int) Math.abs((canvasWindowRect.getWidth() - scaledImageWidth) / 2f);
+
+			fitToWindowRect.setWithDimensions( canvasWindowRect.left + halfDifferenceInWidth, canvasWindowRect.top, scaledImageWidth, canvasWindowRect.getHeight());
+		}
+		//System.out.println("getFitToViewDisplayRect: " + fitToWindowRect.toStr());
+		return fitToWindowRect;
+	}
+
+
+
+	/**
+	 * Called internally by showFitToViewDisplayRect(Graphics2D) and updateDisplay(Graphics2D) <p>
+	 * Fit and draws the region of the document render defined by imageDisplayRegion into the canvas window rect
+	 * @param g2d
+	 * @param imageDisplayRegion
+	 */
+	private void drawView(Graphics2D g2d, Rect imageDisplayRegion) {
+
+		Color inertFill = new Color(230,230,230);
+		g2d.setColor(inertFill);
+		g2d.fillRect((int) canvasWindowRect.left, (int) canvasWindowRect.top, (int) canvasWindowRect.getWidth(),
+				(int) canvasWindowRect.getHeight());
+
+		g2d.setColor(canvasWindowRectBackgroundColor);
+		g2d.fillRect((int) imageDisplayRegion.left, (int) imageDisplayRegion.top,
+				(int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight());
+
+
+		if(backgroundImage != null) {
+			// draw the background image first, then the render on top
+			//System.out.println("ViewControl: drawView currentViewCropRect " + currentViewCropRect.toStr());
+
+			BufferedImage croppedToCurrentViewRectImg = ImageProcessing.cropImage(backgroundImage, currentViewCropRect);
+
+
+
+			g2d.drawImage(croppedToCurrentViewRectImg, (int) imageDisplayRegion.left,
+					(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
+
+		}
+
+		// draw the render image
+		//
+		BufferedImage displayImage =  theDocument.getCropBufferSpace(theCurrentRenderTargetName,  currentViewCropRect);
+
+
+		g2d.drawImage(displayImage, (int) imageDisplayRegion.left,
+				(int) imageDisplayRegion.top, (int) imageDisplayRegion.getWidth(), (int) imageDisplayRegion.getHeight(), null);
+
+
+
+	}
+
+
+	
+
+
+	/**
+	 * Intended to show the document image so that one pixel of the document image maps to one pixel of the canvasDisplayWindow.
+	 * Called by the keyboard view controller
+	 */
+	void showActualSize() {
+		// width of screen
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		float screenWidth =  (float)screenSize.getWidth();
+
+
+		// physical width of viewDisplayRect window in inches
+		float physicalWidthOfScreen = 23.5f;
+		float physicalWidthOfViewDisplayRect = physicalWidthOfScreen * (canvasWindowRect.getWidth()/screenWidth);
+
+		// so a full-scale image would be shown at 300 dpi
+		// an image shown at SessionScale of 0.5 would show 300*0.5 pixels
+		float fullSizeDPI = 300 * GlobalSettings.getSessionScale();
+		float pixelsShownAtThisWidthForFullSize = physicalWidthOfViewDisplayRect*fullSizeDPI;
+
+		// now work out the scale required so that
+		// currentViewCropRect.width is set to equal pixelsShownAtThisWidthForFullSize
+		// Under "portrait" fit the total width of the image is shown in the viewDisplayRect at a  scale of 1
+		// under "landscape" fit the scale is set to 1 to show the whole height of the image, so the scale for the correct dpi needs to be increased by * aspect of image
+		// However, the result would be the same whatever aspect the image is
+		// so we don't need to take this into consideration
+		float scale = pixelsShownAtThisWidthForFullSize / theDocumentWidth;
+		if (theDocument.getCoordinateSystem().getDocumentAspect() > canvasWindowRect.aspect()) {
+			scale *= theDocument.getCoordinateSystem().getDocumentAspect();
+		}
+
+		// work out the zoomSetting that would be needed for this scale
+		int zoomSettingCounter = 1;
+		float testScale = 1f;
+		while(testScale > scale) {
+			zoomSettingCounter++;
+			testScale /= 1.25;
+			if(zoomSettingCounter > 1000) {
+				System.out.println("showActualSize something went wrong");
+				return;
+			}
+		}
+
+		zoomSetting = zoomSettingCounter;
+		currentZoom = 1/scale;
+		currentViewCropRect = calculateViewCropRect(currentXPan,currentYPan);
+
+		System.out.println("showActualSize set zoom to" + currentZoom + " zoomSettings to " + zoomSetting);
+	}
+
+	/**
+	 * @return
+	 */
+	private float getCurrentScale() {
+		return 1 / currentZoom;
+	}
+
+	
+	/**
+	 * @param dzoom
+	 */
+	private void setZoomPlusMinus(int dzoom) {
+
+		zoomSetting += dzoom;
+
+		if (zoomSetting < 0) {
+			zoomSetting = 0;
+		}
+
+		if(zoomSetting == 0) {
+			return;
+		}
+
+		if(zoomSetting == 1) {
+			currentZoom = 1f;
+		}
+
+		if(zoomSetting > 1) {
+
+			if(dzoom == 1) {
+				currentZoom = currentZoom * 1.25f;
+			}
+			if(dzoom == -1) {
+				currentZoom = currentZoom/ 1.25f;
+			}
+
+		}
+
+		//System.out.println("zoomSetting " + zoomSetting + " currentZoom " + currentZoom);
+
+		currentViewCropRect = calculateViewCropRect(currentXPan,currentYPan);
+
+	}
+
+
+	/**
+	 * @param dx
+	 * @param dy
+	 */
+	private void shiftXY(float dx, float dy) {
+		// the amount of shift is scaled here to be a proportion of the current view
+
+		float attemptedShiftX = currentXPan + dx * theDocumentWidth * getCurrentScale();
+		float attemptedShiftY = currentYPan + dy * theDocumentHeight * getCurrentScale();
+
+		currentViewCropRect = calculateViewCropRect(attemptedShiftX,attemptedShiftY);
+
+		System.out.println("currentViewRect " + currentViewCropRect + " currentXPan " + currentXPan + " currentYPan " + currentYPan);
+	}
+
+	/**
+	 * @param attemptedPanX
+	 * @param attempetedPanY
+	 * @return
+	 */
+	private Rect calculateViewCropRect(float attemptedPanX, float attempetedPanY) {
+		// calculates the currentViewCropRect based on
+		// the currentScale (1/currentZoom) and the attemptedPanX and Y
+
+		float scale = getCurrentScale();
+
+		float cropBoxWidth, cropBoxHeight;
+
+		if (theDocument.getCoordinateSystem().getDocumentAspect() < canvasWindowRect.aspect()) {
+			// then it fits pillar box in to the always letter box VDR
+			// so the width of the currentViewRect is set to the width of the document image
+			// and the height of the currentViewRect is set to this width /
+			// viewDisplayRectAspect
+			cropBoxWidth = theDocumentWidth * scale;
+			cropBoxHeight = cropBoxWidth / canvasWindowRect.aspect();
+		} else {
+			// then it fits letter box in to the always letter box VDR
+			// so the height of the currentViewRect is set to the height of the document
+			// image
+			// and the width of the currentViewRect this height * viewDisplayRectAspect
+			cropBoxHeight = theDocumentHeight * scale;
+			cropBoxWidth = cropBoxHeight * canvasWindowRect.aspect();
+		}
+
+		Rect untranslatedViewRect = new Rect(0, 0, cropBoxWidth, cropBoxHeight);
+		untranslatedViewRect.setCentreTo(attemptedPanX, attempetedPanY);
+		Rect translatedViewRect = shuntInside(untranslatedViewRect);
+		currentXPan = translatedViewRect.getCentre().x;
+		currentYPan = translatedViewRect.getCentre().y;
+		return translatedViewRect;
+	}
+
+
+	
+
+	/**
+	 * @param r
+	 * @return
+	 */
+	private Rect shuntInside(Rect r) {
 		// this deals with a rect in buffer space. If it is outside the
 		// legal bounds of (0,0, documentWidth, documentHeight)
 		// it is shunted to the nearest legal position

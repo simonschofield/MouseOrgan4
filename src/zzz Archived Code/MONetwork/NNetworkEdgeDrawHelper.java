@@ -6,7 +6,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import MOCompositing.BufferedImageRenderTarget;
-import MOCompositing.TextRenderer;
 import MOImage.ImageProcessing;
 import MOImage.MOColor;
 import MOMaths.Line2;
@@ -22,6 +21,7 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 import MOUtils.TextBank;
+import MOVectorGraphics.TextRenderer;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // common network operations
