@@ -5,31 +5,50 @@ import java.util.ArrayList;
 
 import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
-
+/**
+ * This is a "soft coded" static helper class. i.e. it is expected to have new asset paths added by the user in the buildPaths() method. Each new path must be given a unique short-name (the baseName).<p>
+ * 
+ * 
+ * The class associates a user-give "baseName" to a particular path to a directory containing the assets in the sample lib so saves on laborious path definition in the UserSession.
+ * Instead, assets are loaded using the short baseName, which is placed into a list to be loaded.<p>
+ * The baseName should be unique to that set of assets, as the baseName is then used to build a path in the current cache directory<p>
+ * The baseName is then also used as the group-name of the ScaledImageAssetGroup within the ScaledImageAssetGroupManager.<p>
+ * 
+ * 
+ * NOTE: Caches no longer makes any duplication of the sample lib directory structure. Caches now has a very "flat" structure (e.g. C:currentcachDirectory//baseName//cached_scaled_10). 
+ * Each baseName folder contains every scaled version of that asset. Hence the requirement for unique baseNames in each image cache.
+ * The means that any new groups created at run-time, by group duplication, can now be cached under a new baseName. <p>
+ * NOTE: If new groups are made at run time, the includes list for loading original assets from the SampleLib will be shorter than the includes list 
+ * for loading from the cache (same as load list, but with extra created group names). <p>
+ * 
+ * Sample lib paths and cache paths can then be queried by using the base name.
+ */
 public class ArtAssetPaths {
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	// The class associates a user-give name to a particular path to a directory containing the assets in the sample lib.
-	// The user-given name should be unique to that set of assets, as the name (the baseName) is then used to build a path in the current cache directory
-	// The structure of the cache is now very flat (i.e. C:currentcachDirectory//baseName//cached_scaled_10)
-	// so the cache no longer makes any reference to the sample lib path.
-	// The means that the any new groups created at run-time can be cached. It also means that, if new groups are made at run time, the includes list for creating the cache
-	// will be shorter (only including assets to load from the sample lib) from the includes list for loading from the cache (same as load list, but with extra created group names).
-	// Sample lib paths and cache paths can then be queried by using the base name.
 
 	static ArtAssetPathList pathList = new ArtAssetPathList();
 
-	private static String sampleLib = GlobalSettings.getSampleLibPath();
-	private static String wildGrassPath = "wild grass\\";
-	private static String wildFlowerPath = "wild flowers\\";
 
-
-
-	//public static String noiseBasedTextures = GlobalSettings.getSampleLibPath() + "textures\\noise based textures";
-
-
+	/**
+	 * Add your new paths here.
+	 * Called by the ArtAssetLoaderHelper.loadAssets() to build the paths
+	 */
 	public static void buildpaths() {
+		//
+		//
+		// ADD NEW PATHS HERE
+		//
+		//
+		//
+		
+		
 
+		String sampleLib = GlobalSettings.getSampleLibPath();
+		String wildGrassPath = "wild grass\\";
+		String wildFlowerPath = "wild flowers\\";
+		
+		// NOTE: this could be defined in a text file 
+		//
 		// grasses
 		pathList.addAssetPath("basicGrass", sampleLib + wildGrassPath + "low level coverage\\basic grass_6000\\whole");
 		pathList.addAssetPath("basicSkinnyGrass", sampleLib + wildGrassPath + "low level coverage\\basic_grass_skinny_6000\\whole");
@@ -64,25 +83,35 @@ public class ArtAssetPaths {
 		// "oxeyeDaisy", "oxeyeDaisyFlowers", "dandelion", "dandelionFlowers", "cornCockle", "cornCockleFlowers", "buttercup", "buttercupFlowers"
 	}
 
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Returns the path to the original source asset in the Sample Lib directory
-	// For convenience, the user can ask for the simple baseName of the asset, they get the path to the "Whole" directory
-	//
-	// Will throw an excepti0n if the asset path does not exist here
-	//
+	/**
+	*
+	* Returns the path to the original source asset in the Sample Lib directory
+	* For convenience, the user can ask for the simple baseName of the asset, they get the path to the "Whole" directory
+	*
+	* Will throw an exception if the asset path does not exist here<p>
+	* Used at various points in ArtAssetLoaderHelper<p>
+	* 
+	* @param baseName
+	* @return
+	*/
 	public static String getAssetSampleLibPath(String baseName) {
 		return pathList.getPath(baseName);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Returns the path to the cached version of the asset.
-	// Assumes the cachePath has already been set
-	// In this newer version the cache does not duplicate the structure of the SampleLib but is a flattened directory structure where each base name folder appears at the top level.
-	// So ensure each different asset has a unique base-name.
-	// The enables more than one cached version to be generated from a single Asset at run-time.
-	//
-	//
+	
+	
+	/**
+	*
+	* Returns the path to the cached version of the asset based on the currently used cache defined by GlobalSettings.getMouseOrganImageCachePath()/GlobalSettings.setMouseOrganImageCachePath()
+	* For convenience, the user can ask for the simple baseName of the asset, they get the path to the "Whole" directory
+	* In this newer version the cache does not duplicate the structure of the SampleLib but is a flattened directory structure where each base name folder appears at the top level.
+	* Will throw an excepti0n if the asset path does not exist here <p>
+	*
+	* Used by ScaledImageAssetGroup.getCachedScaledImagesFolderName(). The baseName is set as the group name in the ScaledImageAssetGroup, this is then used to load the correct cache images.<p>
+	* 
+	* @param baseName
+	* @return
+	*/
 	public static String getAssetCachePath(String baseName) {
 
 
@@ -98,6 +127,11 @@ public class ArtAssetPaths {
 	// returns the basename from any varient
 
 
+	/**
+	 * Used by the ArtAssetLoaderHelper.checkIncludelistAssetExists() method. Not sure the user needs this
+	 * @param baseNameQuery
+	 * @return
+	 */
 	public static boolean checkAssetBaseNameExists(String baseNameQuery) {
 		ArrayList<String> baseNames = getRegisteredBaseNames();
 		for(String baseName: baseNames) {
@@ -111,6 +145,10 @@ public class ArtAssetPaths {
 	}
 
 
+	/**
+	 * Used by this.checkAssetBaseNameExists(String)
+	 * @return - an array-list of strings of all the asset baseNames
+	 */
 	public static ArrayList<String> getRegisteredBaseNames() {
 		return pathList.getRegisteredBaseNames();
 	}
@@ -121,6 +159,9 @@ public class ArtAssetPaths {
 }
 
 
+/**
+ * Used privately by ArtAssetPaths
+ */
 class ArtAssetPathList{
 
 	ArrayList<ArtAssetPathListElement> pathList = new ArrayList<>();
@@ -174,6 +215,9 @@ class ArtAssetPathList{
 }
 
 
+/**
+ * Used privately by ArtAssetPathList
+ */
 class ArtAssetPathListElement{
 	String baseName;
 	String fullPath;

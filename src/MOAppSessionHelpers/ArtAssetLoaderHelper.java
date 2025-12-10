@@ -7,27 +7,33 @@ import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
 
 /**
+ * This is a "soft coded" helper class. i.e. it is expected to have code added by the user. In this case, new pre-procesing operations for new image-caches.<p>
+ * 
+ * Used in UserSession.loadContentUserSession() to load assets into the ImageAssetGroupManager from either a cache or the sampleLib, depending on the mode.<p>
  * Helps load image collections into the imageSampleGroupManager and works in conjunction with ArtAssetPaths to save labourious path definition. <p>
- * It also helps with managing the source of loading an image collections, when caches are in play. Loading happens either from the sampleLib, which contains "virgin" 100% scaled assets, or from the image cache, which contains
+ * Loading happens either from the sampleLib, which contains "virgin" 100% scaled assets, or from the image cache, which contains
  * scaled-and-treated sets of images. There can be different caches: the "default" cache only saves images that have been rescaled according to the session scale. Other caches will have been created via some post processing
  * and then saved to the currently defined cache (at whatever current session-scale) by using GlobalSettings.getImageAssetGroupManager().cacheAll(); <p>
- * The current cache is set by GlobalSettings.setMouseOrganImageCacheName(cacheName), which simply sets a path to the cache location.<p>
- * 
  */
 public class ArtAssetLoaderHelper {
 
 
 	/**
+	 * Used in UserSession.loadContentUserSession() to load assets into the ImageAssetGroupManager from either a cache or the sampleLib, depending on the mode.<p>
 	 * Helps load image collections into the imageSampleGroupManager and works in conjunction with ArtAssetPaths to save labourious path definition. <p>
-	 * It also helps with managing the source of loading an image collections, when caches are in play. Loading happens either from the sampleLib, which contains "virgin" 100% scaled assets, or from the image cache, which contains
+	 * Loading happens either from the sampleLib, which contains "virgin" 100% scaled assets, or from the image cache, which contains
 	 * scaled-and-treated sets of images. There can be different caches: the "default" cache only saves images that have been rescaled according to the session scale. Other caches will have been created via some post processing
 	 * and then saved to the currently defined cache (at whatever current session-scale) by using GlobalSettings.getImageAssetGroupManager().cacheAll(); <p>
+	 * 
+	 * If the user wishes to define a new pre-process, and therefore a new cache, as part of the loading, then they have to add a new if-statement to just below the comment "// ADD NEW PRE-PROCESSES HERE", and 
+	 * probably add a new method that defines the pre-process operation as a private method here.
 	 * The current cache is set by GlobalSettings.setMouseOrganImageCacheName(cacheName), which simply sets a path to the cache location.<p>
 	 * 
+	 * This is the only public method in this class - ArtAssetLoaderHelper
 	 * 
 	 * @param cacheName -  the name of the cache to use
 	 * @param chacheMode - These are defined in the ScaledImageAssetGroup.  ScaledImageAssetGroup.LOADMODE_FROM_CACHE, where only cached assets are loaded (fast) or ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB, 
-	 * where things are loaded processed and cached (slow, for new alterations to the processing)
+	 * where things are loaded processed and cached (slow, as it loads full-scale versions and may include user-defined pre-processing of the assets)
 	 * @param includesList - A list of the asset names to be loaded. These are defined by the user in ArtAssetPaths class. If a string begins with an underscore, it is regarded as a command (e.g. "_quit")
 	 */
 	public static void loadAssets(String cacheName, int chacheMode, String[] includesList) {
@@ -48,7 +54,11 @@ public class ArtAssetLoaderHelper {
 		int currentcachMode = chacheMode;    // CACHEMODE_NONE for first-time caching of post-processed images, after that use CACHEMODE_FORCE_LOAD_NO_SAVE
 
 		if(currentcachMode == ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB) {
-
+			//
+			// ADD NEW PRE-PROCESSES HERE
+			// Add your own different image pre-processing for different caches here
+			// if the cache directory does not yet exist, then this should create it the first time used
+			//
 			if(cacheName.equals("BWLandscapeNoLevels")) {
 				loadAssetAndsCache_BWLandscapeNoLevels( cacheName,   includesList);
 				ArtAssetPresetLevels.init();
@@ -69,6 +79,11 @@ public class ArtAssetLoaderHelper {
 
 
 	}
+	
+	/////////////////////////////////////////////////////////////////
+	// private methods below here
+	//
+	//
 
 	
 	/**
