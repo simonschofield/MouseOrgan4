@@ -85,7 +85,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 		Sprite sprite = getSpriteInstance(false);
 		sprite.setSpriteFontDataAndSelectImage(this);
 
-		BufferedImage chosenTexture = sprite.getMainImage();
+		BufferedImage chosenTexture = sprite.getCurrentImage();
 
 		// tbd
 		//chosenTexture = scaleImageToFitMask(chosenTexture, polygonMask, scaleToFit);
@@ -103,7 +103,7 @@ public class PolygonPatchSpriteFont extends SpriteFont{
 
 	BufferedImage createMask(Vertices2 spriteBufferSpacePolygon) {
 		Rect bufferSpaceExtents = spriteBufferSpacePolygon.getExtents();
-		BufferedImageRenderTarget rt = new BufferedImageRenderTarget((int)bufferSpaceExtents.getWidth(), (int)bufferSpaceExtents.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		BufferedImageRenderTarget rt = new BufferedImageRenderTarget("__TemporaryRenderBuffer__", (int)bufferSpaceExtents.getWidth(), (int)bufferSpaceExtents.getHeight(), BufferedImage.TYPE_INT_ARGB);
 		rt.fillBackground(Color.BLACK);
 		rt.getVectorShapeDrawer().setDrawingStyle(Color.WHITE,  Color.WHITE, 1);
 		rt.getVectorShapeDrawer().drawVertices2(spriteBufferSpacePolygon);

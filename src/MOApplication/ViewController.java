@@ -95,25 +95,14 @@ public class ViewController {
 	void init(Surface surf) {
 		theDocument = surf.theDocument;
 		canvasWindowRect = surf.getCanvasWindowRect();
-		System.out.println(
-				"viewRect width " + canvasWindowRect.getWidth() + " viewRect height " + canvasWindowRect.getHeight());
-		
+		//System.out.println(
+		//		"viewRect width " + canvasWindowRect.getWidth() + " viewRect height " + canvasWindowRect.getHeight());
 		
 		theDocumentWidth = theDocument.getCoordinateSystem().getBufferWidth();
 		theDocumentHeight = theDocument.getCoordinateSystem().getBufferHeight();
-
-
-	
-
-		
-		
-		//theDocumentCentre = new PVector(theDocumentWidth / 2f, theDocumentHeight / 2f);
-		//theDocumentRect = theDocument.getCoordinateSystem().getBufferRect().copy();
 		currentViewCropRect = new Rect(0, 0, theDocumentWidth, theDocumentHeight);
 
-
-
-		System.out.println("INIT VIEW theDocumentWidth " + theDocumentWidth + " theDocumentHeight " + theDocumentHeight );
+		//System.out.println("INIT VIEW theDocumentWidth " + theDocumentWidth + " theDocumentHeight " + theDocumentHeight );
 
 	}
 
@@ -127,8 +116,8 @@ public class ViewController {
 			return;
 		}
 		backgroundImage = ImageProcessing.resizeTo(bi, theDocumentWidth, theDocumentHeight);
-		System.out.println(
-				"background image set to width " + theDocumentWidth + "  height " + theDocumentHeight);
+		//System.out.println(
+		//		"background image set to width " + theDocumentWidth + "  height " + theDocumentHeight);
 	}
 	
 	/**

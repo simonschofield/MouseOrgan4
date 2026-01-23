@@ -5,13 +5,16 @@ import MOMaths.MOMaths;
 
 
 /**
- * For every art asset group, defined by their baseName, return the ImageProcessing.level settings that defined the dark, mid and loght versions of that asset group.
+ * 
+ * Returns a pre-defined levels settings to produce a light, mid and dark version of the asset when used in conjunction with ImageProcessing.adjustLevels(...) 
+ * 
+ * For every art asset group, defined by their baseName, return the ImageProcessing.level settings that defined the dark, mid and light versions of that asset group.
  * The process is very user-driven, and is best done using the "paradeContent()" method of the ScaledAssetGroupManager to save out an image of
  * entire group and arrive at the level setting using Photoshop.
  * 
  * It does not do the actual processing of the images, juts returns the level settings.
  * 
- *  This is a "soft coded" helper class. i.e. it is expected to have the pre-set levels added by the user using the baseNames defined in ArtAssetPaths.<p>
+ *  This is a "soft coded" helper class. i.e. it is expected to have the pre-set levels added by the user using the baseNames of the assets (defined in ArtAssetPaths).<p>
  *  
  *  This class helps the user define what is a "dark" version of an art asset, and what is a "light" version of an art asset using levels to adjust between the two.
  *  Once defined, the user can ask for the level using a control variable (0..1), where 0 returns the dark version, 1 returns the bright version,
@@ -24,21 +27,20 @@ public class ArtAssetPresetLevels {
 
 
 	/**
+	 * Returns a pre-defined levels settings to produce a light, mid and dark version of the asset when used in conjunction with ImageProcessing.adjustLevels(...) 
 	 * 
-	 * 
-	 * @param name - the baseName of the image asset group
-	 * @param blend - the blend point between dark (0) and light (1)
-	 * @return - an array of values defining the 5 level as an array of floats settings listed below <p>
+	 * @param name - the baseName of the image asset group (defined in ArtAssetPaths)
+	 * @param blend - the blend point between the dark level settings (0) and light level settings (1)
+	 * @return - an array of float values defining the 5 level as listed below <p>
 	 * 
 	 * input value ranges are all 0..255 except for midtoneGamma, which is 0.01...10 s <p>
-	 * shadowVal - output outShadowVal is mapped to this value in the input image <p>
-	 * midGamma - in the range 0.001-10, where 1 is in the middle. It is the amount of "bend" between shadowVal and highlightVal - as per Photoshop's dialog <p>
-	 * highlightVal - output outHighlightVal is mapped to this value in the input image <p>
-	 * outShadowVal -  The darkest colour output in the destination image <p>
-	 * outHighlightVal -  The brightest colour output in the destination image <p>
+	 * [0] shadowVal - output outShadowVal is mapped to this value in the input image. In the range (0..255) <p>
+	 * [1] midGamma - It is the amount of "bend" between shadowVal and highlightVal - as per Photoshop's dialog. In the range 0.001-10.0, where 1 is in the middle.  <p>
+	 * [2] highlightVal - output outHighlightVal is mapped to this value in the input image. In the range (0..255) <p>
+	 * [3] outShadowVal -  The darkest colour output in the destination image. In the range (0..255) <p>
+	 * [5] outHighlightVal -  The brightest colour output in the destination. In the range (0..255) image <p>
 	 * 
 	 *
-	 */
 	 */
 	public static float[] getLevels(String name, float blend) {
 

@@ -50,7 +50,7 @@ public class GlobalSettings {
 	private static String mouseOrganImageCachePath = "C:\\simon\\mouseOrganCaches\\defaultCache\\";
 	private static String userSessionPath = "";
 
-	
+	public static boolean debugFlag = false;
 	/**
 	 * The default session name is set to be the same as the containing directory<p>
 	 * But can be set by the user
@@ -119,37 +119,6 @@ public class GlobalSettings {
 			return fullPath;
 		}
 	
-	
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// Initialisation
-	// Called from UserSession->initialiseUserSession() which must contain a call to Surface.initialiseSystem(....)
-	// Surface.initialiseSystem(....) calls init(...), instantiates the MainDocument then calls setTheDocumentCoordSystem(...)
-	/*
-	public static void setDocumentDimensions(String userSessionPth, int fullScaleRenderW, int fullScaleRenderH, float sessionScl, Surface surf){
-		// only called in Surface.initialiseSystem()
-
-		if(!userSessionPth.contains(liveProjectsBasePath)) {
-			System.out.println("GlobalSettings::init USER SESSION PATH IS NOT SET CORRECTLY ..... EXITING");
-			System.out.println("please use makeUserSessionPath(String subPath) ");
-			System.exit(0);
-		}
-
-
-		GlobalSettings.userSessionPath = userSessionPth;
-		sessionScale = sessionScl;
-		fullScaleRenderWidth = fullScaleRenderW;
-		fullScaleRenderHeight = fullScaleRenderH;
-
-		//ImageProcessing.setInterpolationQuality(getRenderQuality());
-		setDefaultSessionName();
-
-		// for your convenience, and because we don't want a null one
-		theImageAssetGroupManager = new ScaledImageAssetGroupManager();
-		theSurface = surf;
-		}
-		*/
-
 	
 
 	

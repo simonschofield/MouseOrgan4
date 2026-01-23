@@ -33,28 +33,15 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 	
 	
 	
-	public FloatImageRenderTarget(int w, int h, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
+	public FloatImageRenderTarget(String name, int w, int h, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
 		floatImage = new FloatImage(w, h);
 		floatImageMake16BitCopyOnSave = saveTYPE_USHORT_GRAYcopy;
 		floatImageCopyGamma = imageCopyGamma;
 		coordinateSystem = new ImageCoordinateSystem(w, h);
-	}
-	
-	
-	@Override
-	public void setCoordinateSystem(ImageCoordinateSystem ics) {
-		// TODO Auto-generated method stub
-		coordinateSystem = ics;
-	}
-	
-
-	
-
-	@Override
-	public void setName(String name) {
 		renderTargetName = name;
-
 	}
+	
+	
 	
 	
 	public String getName() {
@@ -230,16 +217,15 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 		return floatImage;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-	// The idea here is to preserve actual floating point values, and the only option for that is to have a 
-	// separate FloatImage store and save the data. However, this cannot be saved as a viewable image.
-	// To save as viewable image the nearest thing is a 16bit gray image TYPE_USHORT_GRAY. 
-	// So to use this method 
-	// you should initialise it as a TYPE_USHORT_GRAY. The TYPE_USHORT_GRAY is built from the float image, using the float images' extrema,
-	// at save time.
-	//
-	//
-	public void pasteFloatValues(Sprite sprite, float val) {
+	
+	/**
+	 * Pastes the sprite into a floating point buffer. The pasted value is defined by the user (val). The threshold for the paste operation,
+	 * based on the sprites alpha, is also defined (alphaThreshold)
+	 * @param sprite -the sprite being pasted
+	 * @param val - the pasted value of any pixel with an alpha above the alphaThreshold
+	 * @param alphaThreshold - 1-255
+	 */
+	public void pasteSprite(Sprite sprite, float val, int alphaThreshold) {
 
 		if (floatImage == null) {
 			System.out.println(
@@ -257,9 +243,9 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 		int sourceHeight = sprite.getImageHeight();
 		int targetOffsetX = (int) bufferPt.x;
 		int targetOffsetY = (int) bufferPt.y;
-		WritableRaster sourceImageAlphaData = sprite.getMainImage().getAlphaRaster();
+		WritableRaster sourceImageAlphaData = sprite.getCurrentImage().getAlphaRaster();
 
-		int alphaThreshold = 3;
+		
 		
 		for (int y = 0; y < sourceHeight; y++) {
 			for (int x = 0; x < sourceWidth; x++) {
@@ -275,18 +261,6 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 
 	}
 	
-	
-	
-	
-	
-	
-
-	@Override
-	public void pasteSprite(Sprite sprite, String imageName) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	
 
 }

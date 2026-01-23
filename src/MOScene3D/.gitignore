@@ -29,3 +29,12 @@
 /Lighting_CommonUtils.class
 /Lighting_HardShadow3D.class
 /Lighting_RadialInterShadow.class
+/Lighting_RadialInterShadow$SpriteShadowInformation.class
+/Lighting_RadialInterShadow$ShadowGeometry.class
+/ShadowGeometry.class
+/ShadowGeometrySpatialIndex.class
+/ShadowGeometrySpatialIndexBox2D.class
+/ToneRamp.class
+/ToneRampControlPoint.class
+/SpatialIndexPointBox3D.class
+/SpatiallyIndexedPointCollection.class

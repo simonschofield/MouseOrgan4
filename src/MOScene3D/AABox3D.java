@@ -16,6 +16,11 @@ public class AABox3D{
 		init( new PVector(x1,y1,z1), new PVector(x2,y2,z2));
 
 	}
+	
+	public AABox3D copy() {
+		
+		return new AABox3D(minXYZ, maxXYZ);
+	}
 
 	void init(PVector p1, PVector p2) {
 		float minX = Math.min(p1.x, p2.x);
@@ -117,6 +122,13 @@ public class AABox3D{
 
 
 	}
+	
+	public void expand(float exp) {
+		PVector asVector = new PVector(exp,exp,exp);
+		minXYZ.sub(asVector);
+		maxXYZ.add(asVector);
+	}
+	
 
 
 }

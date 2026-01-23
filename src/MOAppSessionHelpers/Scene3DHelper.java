@@ -22,51 +22,23 @@ import MOUtils.GlobalSettings;
 
 
 
+/**
+ * A place where you can put odd 3D "helper" type methods. Waves and point shifting etc. Also a 3D test method.
+ */
 public class Scene3DHelper {
-		static Surface theSurface = null;
-		static SceneData3D sceneData3D = null;
-
-		static float measuringToolSize = 10;
-		static PVector measuringToolStartPoint;
-
-		public static void initialise(SceneData3D sd3d, Surface s) {
-			theSurface = s;
-			sceneData3D = sd3d;
-
-			//add3DMeasuringToolSlider();
-			makeRenderImageMenu();
-			System.out.println("initialising scene data helper" );
-		}
-
-		public static SceneData3D getSceneData3D() {
-			return sceneData3D;
-		}
-
-
-
-
-
-
-		static PVector vec(float x, float y, float z) {
-			return new PVector(x,y,z);
-		}
-
-
-
-
-
-
-
-
-
-
-
-
-
+		
+		
+		/**
+		 * adjusts the anchor point Y of a sprite so that it is lifted or dropped by an amount - shiftY -  in 3D. Hence an image can be used to add height-detail to the sprites.<p>
+		 * FYI: Just altering the anchor-point by a fixed amount will not do, as sprites of differing heights will have inconsistent outcomes wrt the "baseline"<p>
+		 * This seems over-elaborate, why can't we just re-calculate the base point in 3D? Perhaps has a knock-on effect wrt rotation/waves????
+		 * @param sprite
+		 * @param shiftY
+		 */
 		public static void shiftSpriteOriginBy3DYAmountV2(Sprite sprite, float shiftY) {
-			// adjusts the anchor point Y of a sprite so that it is lifted or dropped by an amount - shiftY -  in 3D
-			// Hence an image can be used to add height-detail to the sprites.
-			// FYI: Just altering the anchor-point by a fixed amount will not do, as sprites of differing heights will have inconsistent outcomes wrt the "baseline"
+			// 
+			// 
+			// 
 
 			//
 			// work out the new shifted doc point
@@ -76,9 +48,9 @@ public class Scene3DHelper {
 			//float scaledShift = shiftY * scl3d;
 			//PVector shiftedDocPoint = new PVector(docPoint.x,docPoint.y+scaledShift);
 
-			PVector exiting3DPoint =  sceneData3D.get3DSurfacePoint(docPoint);
+			PVector exiting3DPoint =  GlobalSettings.getSceneData3D().get3DSurfacePoint(docPoint);
 			PVector displaced3DPoint = new PVector(exiting3DPoint.x, exiting3DPoint.y+shiftY,exiting3DPoint.z);
-			PVector shiftedDocPoint = sceneData3D.depthBuffer3d.world3DToDocSpace(displaced3DPoint);
+			PVector shiftedDocPoint = GlobalSettings.getSceneData3D().depthBuffer3d.world3DToDocSpace(displaced3DPoint);
 			//PVector shiftedDocPoint= shiftedDocPointNOROI;
 
 
@@ -114,60 +86,45 @@ public class Scene3DHelper {
 
 		}
 
-		public static void shiftSpriteDocPoint3DYAmount(Sprite sprite, float shiftY) {
-			PVector shiftedDocPt = sceneData3D.depthBuffer3d.get3DDisplacedDocPoint(sprite.getDocPoint(), new PVector(0,shiftY,0));
-			sprite.setDocPoint(shiftedDocPt);
-		}
+		
+		
 
 
-		public static float addWave(Sprite sprite, String waveImageName, float amt, boolean flipInDirection) {
-
-
-
-			PVector grad = sceneData3D.getCurrentRenderGradiant(sprite.getDocPoint());
-			float mag = grad.mag();
-
-			if(mag>0.001) {
-				float rot = grad.heading();
-				float scaledRot = rot*mag*amt;
-				System.out.println("rotation " + scaledRot);
-				if(scaledRot > 0 && flipInDirection) {
-					sprite.setMainImage(ImageProcessing.mirrorImage(sprite.getMainImage(), true, false));
-				}
-				sprite.rotate((float)Math.toDegrees(scaledRot));
-				return scaledRot;
-			}
-			return 0;
-		}
-
-
+		/**
+		 * Rotates and, if required, flips-in-x the sprite. Art assets for grasses etc are, by default, facing towards the left. If the sprite is rotated further towards the left (Anti-clockwise)
+		 * then there is no flip. If the sprite is rotated CW towards the right, then a flip-in-x occurs.
+		 * @param sprite -  the sprite. This is altered by the method.
+		 * @param rotationDegrees - -ve rotation is anti-clockwise, +ve is clockwise and results in a flip
+		 * @param flipInDirection - turns flipping on and off
+		 */
 		public static void addWave(Sprite sprite, float rotationDegrees,  boolean flipInDirection) {
 
 			if(rotationDegrees > 0 && flipInDirection) {
-				sprite.setMainImage(ImageProcessing.mirrorImage(sprite.getMainImage(), true, false));
+				sprite.mirror(true);
 			}
 			sprite.rotate(rotationDegrees);
+			
 
 		}
 
-		public static float addWave(Sprite sprite, String waveImageName, float degreesLeft, float degreesRight, float noise, boolean flipInDirection) {
+		
 
 
-			float rotationDegrees =  getWaveRotationDegrees( waveImageName, sprite.getDocPoint(), sprite.getRandomStream(),  degreesLeft,  degreesRight,  noise);
-
-
-			if(rotationDegrees > 0 && flipInDirection) {
-				sprite.setMainImage(ImageProcessing.mirrorImage(sprite.getMainImage(), true, false));
-			}
-			sprite.rotate(rotationDegrees);
-			return rotationDegrees;
-		}
-
-
-		public static float getWaveRotationDegrees(String waveImageName, PVector docPt, QRandomStream ranStream, float degreesLeft, float degreesRight, float noise) {
+		/**
+		 * Based on the value found in an image at docPt, a degrees-rotation is returned. A value v (0..1) if calculated from the image pixel value then 
+		 * the value v is used to interpolate between degreesLeft and degreesRight. An amount of proportional perturbation is added to degreesLeft and degreesRight
+		 * @param waveImageName - the image texture responsible for creating the wave effect
+		 * @param docPt - the docPoint in the above image being sampled
+		 * @param ranStream - a randomStream with which to do the perturbation - probably from the sprite being rotated.
+		 * @param degreesLeft - maximum degrees left
+		 * @param degreesRight - maximum degrees right
+		 * @param noise - perturbation between 0...1, if 0 then no perturbation, if 1 then the output range will be between 0 and 2*input-value.
+		 * @return - the final rotation in degrees
+		 */
+		public static float getWaveRotationDegrees_InterpolateOnPixelValue(String waveImageName, PVector docPt, QRandomStream ranStream, float degreesLeft, float degreesRight, float noise) {
 			// return degrees rotation based on a wave image
-			sceneData3D.setCurrentRenderImage(waveImageName);
-			float v = sceneData3D.getCurrentRender01Value(docPt);
+			GlobalSettings.getSceneData3D().setCurrentRenderImage(waveImageName);
+			float v = GlobalSettings.getSceneData3D().getCurrentRender01Value(docPt);
 
 
 			degreesLeft = ranStream.perturbProportional(degreesLeft, noise);
@@ -178,53 +135,67 @@ public class Scene3DHelper {
 
 			return rotationDegrees;
 		}
+		
+		
+		/**
+		 * A wave rotation based on the gradient found at docPoint in the image, using a convolution filter
+		 * @param waveImageName - the image texture responsible for creating the wave effect
+		 * @param docPt - the docPoint in the above image being sampled
+		 * @param ranStream - a randomStream with which to do the perturbation - probably from the sprite being rotated.
+		 * @param amt - The rotation is based on the heading of the gradient vector * magnitude * amount
+		 * @param noise -  perturbation between 0...1, if 0 then no perturbation, if 1 then the output range will be between 0 and 2*input-value.
+		 * @return
+		 */
+		public static float getWaveRotationDegrees_InterpolateOnImageGradient(String waveImageName, PVector docPt, QRandomStream ranStream, float amt, float noise) {
+
+			PVector grad = GlobalSettings.getSceneData3D().getCurrentRenderGradiant(docPt);
+			float mag = grad.mag();
+
+			if(mag>0.001f) {
+				float rot = grad.heading();
+				float scaledRot = rot*mag*amt;
+				return scaledRot;
+			}
+			return 0;
+		}
+		
+		
+		
+		/**
+		 * this is used to fudge the appearance of base grass etc to make it fill out in the distance, but be skinny in the foreground
+		 * @param sprite
+		 * @param nearDepth - in normalised units of the master render (1 far, 0 near)
+		 * @param farDepth - in normalised units of the master render (1 far, 0 near)
+		 * @param nearWidthScale
+		 * @param farWidthScale
+		 * @param nearHeightScale
+		 * @param farHeightScale
+		 */
+		public static void tweakSpriteScaleOnDepth(Sprite sprite, float nearDepth, float farDepth, float nearWidthScale, float farWidthScale, float nearHeightScale, float farHeightScale) {
 
 
+			
+				float nd = GlobalSettings.getSceneData3D().getNormalisedDepth(sprite.docPoint);
+				if(nd > farDepth) {
+					return;
+				}
 
-		////
-		static float addLighting(Sprite sprite, String lightingImage, float dark, float bright, float noise) {
-			sceneData3D.setCurrentRenderImage(lightingImage);
-			float v = sceneData3D.getCurrentRender01Value(sprite.getDocPoint());
 
-			if(noise > 0.001) {
+				float widthScale = MOMaths.mapClamped(nd, nearDepth, farDepth, nearWidthScale, farWidthScale);
+				float heightScale = MOMaths.mapClamped(nd, nearDepth, farDepth, nearHeightScale, farHeightScale);
 
-			QRandomStream ranStream = sprite.getRandomStream();
-			v = ranStream.perturbProportional(v, noise);
+				sprite.scale(widthScale, heightScale);
+
 			}
 
-			float brightness = MOMaths.lerp(v, dark, bright);
-			SceneHelper.addLighting( sprite,  brightness );
-			return brightness;
-		}
 
 
 
-	public static void handleMyUIEvents(UIEventData uied) {
 
-		if (uied.eventIsFromWidget("SceneData View")) {
-			System.out.println("change scene view to " + uied.menuItem);
-			if(uied.menuItem.contentEquals("none")) {
-				theSurface.setCanvasBackgroundImage(null);
-			} else {
-				BufferedImage viewIm = sceneData3D.getRenderImage(uied.menuItem, true);
-				theSurface.setCanvasBackgroundImage(viewIm);
-			}
-		}
-
-	}
-
-	static void makeRenderImageMenu() {
-		ArrayList<String> names = sceneData3D.getRenderImageNames();
-	    String nameArray[] = new String[names.size()+1];
-	    nameArray[0] = "none";
-	    int i = 1;
-	    for(String name: names) {
-	    	nameArray[i++] = name;
-	    }
-	    theSurface.theUI.addMenu("SceneData View", 120, 2, nameArray);
-	}
-
-
+	/**
+	 * Was used during the development of the SceneData3D class
+	 * kept because it might be useful for debugging. Test Mode 3, which paints a grid onto the scene in 3D
+	 */
 	public static void test3D() {
 		Range xRange = new Range(); xRange.initialiseForExtremaSearch();
 		Range yRange = new Range(); yRange.initialiseForExtremaSearch();
@@ -249,11 +220,11 @@ public class Scene3DHelper {
 				PVector docPt = GlobalSettings.getTheDocumentCoordSystem().bufferSpaceToDocSpace(bufferSpacePt);
 
 
-				if( !sceneData3D.isSubstance(docPt)) {
+				if( !GlobalSettings.getSceneData3D().isSubstance(docPt)) {
 					continue;
 				}
 
-				PVector p3d = sceneData3D.get3DSurfacePoint(docPt);
+				PVector p3d = GlobalSettings.getSceneData3D().get3DSurfacePoint(docPt);
 
 				xRange.addExtremaCandidate(p3d.x);
 				yRange.addExtremaCandidate(p3d.y);
@@ -303,6 +274,17 @@ public class Scene3DHelper {
 		System.out.println("X Extema " + xRange.toStr() + ", Y Extema " + yRange.toStr() + ", Z Extema " + zRange.toStr());
 	}
 
+	/**
+	 * For any point in the scene in 3D, determines if that point is a grid line (black) or grid space (white)
+	 * kept because it might be useful for debugging
+	 * @param p3d
+	 * @param gridSpace
+	 * @param gridLineThickness
+	 * @param xLines
+	 * @param yLines
+	 * @param zLines
+	 * @return
+	 */
 	public static Color testGrid3D(PVector p3d, float gridSpace, float gridLineThickness, boolean xLines, boolean yLines,boolean zLines) {
 		PVector offset = new PVector(-10000,-10000,-10000);
 		offset.add(p3d);

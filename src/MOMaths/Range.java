@@ -43,6 +43,13 @@ public class Range {
 		}
 		return false;
 	}
+	
+	
+	public float constrain(float v) {
+		return MOMaths.constrain(v, limit1, limit2);
+	}
+	
+	
 
 	public Range copy() {
 		return new Range(limit1, limit2);
@@ -70,13 +77,14 @@ public class Range {
 		numExtremaSamples ++;
 		sumExtremaSamples += v;
 
-		if (limit1 == 0 && limit2 == 0) {
-			limit1 = v;
-			limit2 = v;
-			return;
-		}
+		//if (limit1 == 0 && limit2 == 0) {
+		//	limit1 = v;
+		//	limit2 = v;
+		//	return;
+		//}
 		if (v < limit1) {
 			limit1 = v;
+			return;
 		}
 		if (v > limit2) {
 			limit2 = v;

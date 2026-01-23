@@ -19,6 +19,8 @@ import MOImageCollections.ImageAssetGroup;
 import MOMaths.PVector;
 import MOMaths.Range;
 import MOMaths.Rect;
+import MOPointGeneration.SpatiallyIndexedPointCollection;
+import MOSimpleUI.UIEventData;
 import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 import MOUtils.KeyValuePairList;
@@ -56,7 +58,7 @@ public class SceneData3D {
 	//
 	private ROIManager roiManager;
 
-
+	private SpatiallyIndexedPointCollection spatiallyIndexedSurfacePoints;
 
 	public SceneData3D(String targetDirectory) {
 		directoryPath = targetDirectory;
@@ -68,13 +70,40 @@ public class SceneData3D {
 
 		// create a default ROIManager. This will probably be user-specified later
 		roiManager = createROIManager(3000);
-
+		
+		makeSpatiallyIndexedSurfacePoints();
 
 		GlobalSettings.setSceneData3D(this);
 
 	}
 
-
+	private void makeSpatiallyIndexedSurfacePoints() {
+		int step = 1;
+		AABox3D extentsBox = depthBuffer3d.getExtents();
+		spatiallyIndexedSurfacePoints = new SpatiallyIndexedPointCollection(extentsBox, extentsBox.getWidth()/25f);
+		
+		for(int y= 0; y < depthBuffer3d.height; y+= step) {
+			for(int x = 0; x < depthBuffer3d.width; x += step ) {
+				PVector docSpace = depthBuffer3d.bufferSpaceToDocSpace( x,  y);
+				float depth = depthBuffer3d.getDepth(x, y);
+				PVector p3d = depthBuffer3d.docSpaceToWorld3D(docSpace, depth);
+				spatiallyIndexedSurfacePoints.addPoint(p3d);
+			}
+			
+		}
+	}
+	
+	public SpatiallyIndexedPointCollection getSpatiallyIndexedSurfacePoints() {
+		
+		return spatiallyIndexedSurfacePoints;
+	}
+	
+	/**
+	 * @return - the actual surface point from the spatially-indexed collection of surface points, that is closest to searchPoint
+	 */
+	public PVector getNearestPointOnSurface(PVector searchPoint) {
+		return spatiallyIndexedSurfacePoints.getNearestLocalPoint(searchPoint);
+	}
 
 	public void loadTexturemaps(String[] include) {
 
@@ -95,7 +124,7 @@ public class SceneData3D {
 		textureMapImages.setDirectoryFileNameScanner(dfns);
 		textureMapImages.loadImages();
 		setCurrentRenderImage(0);
-
+		makeSceneData3DRenderImageMenu();
 	}
 
 	public ROIManager createROIManager(int masterRenderWidth) {
@@ -303,6 +332,10 @@ public class SceneData3D {
 		float worldDepth =  getDepth(docSpace);
 		return depthBuffer3d.normaliseDepth(worldDepth);
 	}
+	
+	public PVector getSurfaceNormal(PVector docSpace) {
+		return depthBuffer3d.docSpaceToSurfaceNormal3D(docSpace);
+	}
 
 
 	public PVector world3DToDocSpace(PVector world3dPt) {
@@ -500,6 +533,43 @@ public class SceneData3D {
 		return surfacePoint.dist(p3d);
 
 	}
+	
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// Moved from helper class to here, as it seems sensible
+	//
+	//
+	
+	
+	public void handleSceneData3DRenderImageMenuEvent(UIEventData uied) {
+
+		if (uied.eventIsFromWidget("SD3D View")) {
+			System.out.println("change scene view to " + uied.menuItem);
+			if(uied.menuItem.contentEquals("none")) {
+				GlobalSettings.getTheApplicationSurface().setCanvasBackgroundImage(null);
+			} else {
+				BufferedImage viewIm = getRenderImage(uied.menuItem, true);
+				GlobalSettings.getTheApplicationSurface().setCanvasBackgroundImage(viewIm);
+			}
+		}
+
+	}
+
+	/**
+	 * called after the textures are loaded
+	 */
+	private void makeSceneData3DRenderImageMenu() {
+		ArrayList<String> names = getRenderImageNames();
+	    String nameArray[] = new String[names.size()+1];
+	    nameArray[0] = "none";
+	    int i = 1;
+	    for(String name: names) {
+	    	nameArray[i++] = name;
+	    }
+	    
+	    GlobalSettings.getTheApplicationSurface().theUI.addMenu("SD3D View", 120, 2, nameArray);
+	}
+
 
 
 

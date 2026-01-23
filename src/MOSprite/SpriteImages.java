@@ -45,12 +45,18 @@ public class SpriteImages{
 	}
 
 	public boolean imageNameExists(String nm) {
+		if(nm == null) return false;
 		for (ImageAsset thisImage : imageList) {
 			if (thisImage.name.contentEquals(nm)) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	public String getImageName(int i) {
+		if(i > getNumImages()) return null;
+		return imageList.get(i).name;
 	}
 
 	public void setImage(int i, BufferedImage img) {

@@ -186,7 +186,7 @@ public class ImageCoordinateSystem {
 		}
 
 		public Rect getDocumentRect() {
-			//return new Rect(0,0,documentWidth,documentHeight);
+			//return the doc-space rect;
 			return documentSpaceRect.copy();
 		}
 

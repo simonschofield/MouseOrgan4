@@ -37,16 +37,16 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 	// 2/
 	//
 	//
-	public Lighting_HardShadow3D(SceneData3D scene3D, String nameOfShadowRender, String nameOfDepthRender,  PVector lightDir,   boolean addSceneSurfaceToDepth){
-		super(scene3D, nameOfShadowRender);
+	public Lighting_HardShadow3D(String nameOfShadowRender, String nameOfDepthRender,  PVector lightDir,   boolean addSceneSurfaceToDepth){
+		super(nameOfShadowRender);
 
 		Range worldY = sceneData3D.depthBuffer3d.worldYExtrema;
 		System.out.println("worldY extrama " + worldY.toStr() );
 		float sceneYMin = sceneData3D.depthBuffer3d.worldYExtrema.getUpper();
 
-		initialiseDepthRender( nameOfDepthRender,  addSceneSurfaceToDepth, lightDirection) ;
+		initialiseDepthRender( nameOfDepthRender,  addSceneSurfaceToDepth) ;
 
-		progress = new Progress("Lighting_HardShadow3D: ");
+		setLightDirection(lightDir);
 	}
 
 
@@ -60,7 +60,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 		if(contributes) {
 			castHardShadow(sprite);
 		} else {
-			depthRenderTarget.pasteFloatValues(sprite, sprite.getDepth());
+			depthRenderTarget.pasteSprite(sprite, sprite.getDepth(),3);
 			shadowRenderTarget.pasteSprite_ReplaceColour(sprite, nonContributingColor);
 		}
 
@@ -77,11 +77,11 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 
 	public void castHardShadow(Sprite sprite) {
 		boolean debug = false;
-		progress.update();
+		
 
 
 		// paste the sprite into the depth buffer
-		depthRenderTarget.pasteFloatValues(sprite, sprite.getDepth());
+		depthRenderTarget.pasteSprite(sprite, sprite.getDepth(),3);
 
 		// paste the sprite as white into the shadow buffer to remove any shadows behind this sprite
 		shadowRenderTarget.pasteSprite_ReplaceColour(sprite, Color.WHITE);
@@ -90,7 +90,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 		// get the sprites Rect3D
 		BillboardRect3D spriteRectScene3D = sprite.getSpriteBillboardRect3D();
 
-		BilinearBufferedImageSampler spriteImageSampler = new BilinearBufferedImageSampler(sprite.getMainImage());
+		BilinearBufferedImageSampler spriteImageSampler = new BilinearBufferedImageSampler(sprite.getCurrentImage());
 
 
 

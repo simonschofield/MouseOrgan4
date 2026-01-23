@@ -25,7 +25,8 @@ public class Sprite {
 	// the images contained within this sprite. The first image (image(0)) is the "main" image, and sets
 	// the size of all other added images. This implementation does not work with images of different dimensions
 	private SpriteImages images;
-
+	private String currentImageName = "main";
+	
 	////////////////////////////////////////////////////
 	// the id is a unique integer > 0. It is set by the sprite's constructor from the static UniqueID class declared above.
 	// This is used in seeding the sprite's random number generator, thereby ensuring the same random events happen to each sprite
@@ -302,8 +303,37 @@ public class Sprite {
 	/// sprite image getting and setting
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	public BufferedImage getMainImage() {
-		return images.getImage(0);
+	//public BufferedImage getMainImage() {
+	//	return images.getImage(0);
+	//}
+	
+	public boolean containsImageNamed(String name) {
+		return images.imageNameExists(name);
+	}
+	
+	public BufferedImage getCurrentImage() {
+		return getImage(currentImageName);
+	}
+	
+	public void setCurrentImage(String ci) {
+		if(images.imageNameExists(ci)==false) {
+			//System.out.println("Sprite::setCurrentImage, image name " + ci + " does not exist or is null");
+			return;
+		}
+		currentImageName = ci;
+	}
+	
+	public void setCurrentImage(int i) {
+		String s = images.getImageName(i);
+		if(s==null){
+			System.out.println("Sprite::setCurrentImage, image number " + i + " does not exist");
+			return;
+		}
+		currentImageName = s;
+	}
+	
+	String getCurrentImageName() {
+		return currentImageName;
 	}
 
 	public BufferedImage getImage(int i) {
@@ -462,12 +492,12 @@ public class Sprite {
 
 
 	public int getImageWidth() {
-		return getMainImage().getWidth();
+		return getCurrentImage().getWidth();
 
 	}
 
 	public int getImageHeight() {
-		return getMainImage().getHeight();
+		return getCurrentImage().getHeight();
 
 	}
 
@@ -643,9 +673,6 @@ public class Sprite {
 
 
 		imageQuad.applyMirror(inX);
-
-
-
 
 		if (inX) {
 
@@ -953,7 +980,7 @@ public class Sprite {
 	}
 
 	public void colorTransform(MOColorTransform colTransform) {
-		setMainImage(colTransform.doColorTransforms(getMainImage()));
+		setMainImage(colTransform.doColorTransforms(getCurrentImage()));
 	}
 
 	public void colorTransform(String imageName, MOColorTransform colTransform) {
@@ -965,18 +992,7 @@ public class Sprite {
 
 
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// experimental: towards applying masked effects
-	// think this is pretty rubbish.....
-
-
-
-	public void mergeMaskedImage(BufferedImage maskedImage){
-
-		ImageProcessing.compositeImage_ChangeTarget(maskedImage, getMainImage(), 0, 0, 1);
-
-	}
-
+	
 
 
 

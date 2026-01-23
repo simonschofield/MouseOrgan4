@@ -11,8 +11,8 @@ import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 
 /**
-* Defines the relationship between the Master Render (the whole render) and SubROIs (sub rectangles of the master render, rendered separately once the maste render has been finalised)<p>
-* A Master render is set up as a  fixed-dimension image, which is invariant with sessionScale.<p>
+* Defines the relationship between the Master Render (the whole render) and SubROIs (sub rectangles of the master render, rendered separately once the master render has been finalised)<p>
+* A Master render is set up as a  fixed-dimension image, which not affected by the sessionScale. However the loaded assets ARE scaled with session scale, so this may have an effect.<p>
 * The Master Render is given the name "Master", and the ROIs are given user-defined names, along with the rects that define their extents within the master render.<p>
 * The Master Render rect is stored as a document space rect. I.e. docwidth = bufferWidth/longestEdge, docheight = bufferHeight/longestEdge<p>
 * The SubROIs are stored in master rect doc space, as sub rectanges contained within the master rect.<p>
@@ -34,25 +34,17 @@ public class ROIManager {
 
 	String currentROIName;
 
-	// useful rects for testing etc
-	public Rect WholeRect;
-	public Rect WholeRect_5pcBorder;
-	public Rect WholeRect_10pcBorder;
-	public Rect TopLeftQtrRect;
-	public Rect TopRightQtrRect;
-	public Rect LeftHalfRect;
-	public Rect TopHalfRect;
-	public Rect CentreRect;
+	
 
 
 	/**
 	 * @param masterWidth
 	 * @param masterHeight
 	 * ROI means Region Of Interest, and this class enables the user to specify regions of a Master render to be rendered separately at any size and session scale.
-	 * The class ins initialised with a full-scene Master render of set height and width. The diemsions of this Master will not change with the render-session scale.
+	 * The class is initialised with a full-scene Master render of set height and width. Once set, the dimensions of the Master render will not change with the render-session scale.
 	 * When using a SceneData3D, the scenedata3d object initialises this class using the SceneData3D.createROIManager(int width) method, to ensure the same aspect ratio
 	 * is maintained between the SceneData3D scene, and the ROI Master image.
-	 * A number of pre-defined ROIs are automatically created, including one for the whole master render called "WholeRect".
+	 * A number of pre-defined ROIs are automatically created, including one for the whole master render called "WholeRect". Use "WholeRect" ROI if you want to render the master render at different sessionScales
 	 */
 	public ROIManager(int masterWidth, int masterHeight){
 
@@ -70,7 +62,7 @@ public class ROIManager {
 
 		// adds some predefined rois, for testing,
 		// with a pre-defined width equivalent to a 24-inch wide print
-		addPredefinedROIs(24*300);
+		setPredefinedROIs(24*300);
 	}
 
 	/**
@@ -160,10 +152,39 @@ public class ROIManager {
 
 
 		SubROI subroi = new SubROI(name,  ROIInMasterDocSpace, fullROIRenderWidth);
-		SubROIList.add(subroi);
+		
+		if( roiNameExists(name) ) {
+			int i = getIndexOfROIName(name);
+			SubROIList.set(i, subroi);
+		}else {
+			SubROIList.add(subroi);
+		}
+		
+		
 	}
 
-
+	private boolean roiNameExists(String name) {
+		for(SubROI ri: SubROIList) {
+			if(ri.name.equals(name)) {
+				return true;
+			}
+		}
+		return false;
+		
+	}
+	
+	private int getIndexOfROIName(String name) {
+		int count = 0;
+		for(SubROI ri: SubROIList) {
+			if(ri.name.equals(name)) {
+				return count;
+			}
+			count++;
+		}
+		// the name does not exist
+		return -1;
+		
+	}
 	/**
 	 * Generally used for de-bugging and for convenience to see the ROI as super-imposed over the master render.
 	 * @param roiName - the roi to be drawn
@@ -182,7 +203,7 @@ public class ROIManager {
 	}
 
 
-
+	
 
 
 
@@ -255,7 +276,7 @@ public class ROIManager {
 
 
     /**
-     * @return
+     * @return the document space rect of the current ROI
      */
     public Rect getCurrentROIDocRect() {
     	return getCurrentROIInfo().ROIRect;
@@ -263,7 +284,7 @@ public class ROIManager {
 
     /**
      * @param name
-     * @return
+     * @return the document space rect of the named ROI
      */
     public Rect getROIDocRect(String name) {
 		SubROI info =  getROIInfo(name);
@@ -295,7 +316,8 @@ public class ROIManager {
 
 	}
 
-	private void addPredefinedROIs(int fullSizeRenderWidth) {
+	private ArrayList<String>  setPredefinedROIs(int fullSizeRenderWidth) {
+		
 		int masterWidth = masterCoordinateSystem.getBufferWidth();
 		int masterHeight = masterCoordinateSystem.getBufferHeight();
 
@@ -306,36 +328,47 @@ public class ROIManager {
 		float borderH_percentile = masterHeight/100f;
 
 
-		WholeRect = new Rect(0,0,masterWidth,masterHeight);
+		Rect WholeRect = new Rect(0,0,masterWidth,masterHeight);
 		addROI("WholeRect", WholeRect, fullSizeRenderWidth);
 
 		int w5pc = (int)(borderW_percentile*5);
 		int h5pc = (int)(borderH_percentile*5);
-		WholeRect_5pcBorder = new Rect(w5pc,h5pc,masterWidth-(2*w5pc),masterHeight-(2*h5pc));
+		Rect  WholeRect_5pcBorder = new Rect(w5pc,h5pc,masterWidth-(2*w5pc),masterHeight-(2*h5pc));
 		addROI("WholeRect_5pcBorder", WholeRect_5pcBorder, fullSizeRenderWidth);
 
 		int w10pc = (int)(borderW_percentile*10);
 		int h10pc = (int)(borderH_percentile*10);
-		WholeRect_10pcBorder = new Rect(w10pc,h10pc,masterWidth-(2*w10pc),masterHeight-(2*h10pc));
+		Rect  WholeRect_10pcBorder = new Rect(w10pc,h10pc,masterWidth-(2*w10pc),masterHeight-(2*h10pc));
 		addROI("WholeRect_10pcBorder", WholeRect_10pcBorder, fullSizeRenderWidth);
 
-
-		TopLeftQtrRect = new Rect(0,0,widthOver2,heightOver2);
+		Rect  TopLeftQtrRect = new Rect(0,0,widthOver2,heightOver2);
 		addROI("TopLeftQtrRect", TopLeftQtrRect, fullSizeRenderWidth);
+		
+		Rect  BottomLeftQtrRect = new Rect(0,heightOver2,widthOver2,heightOver2);
+		addROI("BottomLeftQtrRect", BottomLeftQtrRect, fullSizeRenderWidth);
 
-		TopRightQtrRect = new Rect(widthOver2,0,widthOver2,heightOver2);
+		Rect  TopRightQtrRect = new Rect(widthOver2,0,widthOver2,heightOver2);
 		addROI("TopRightQtrRect", TopRightQtrRect, fullSizeRenderWidth);
+		
+		Rect  BottomRightQtrRect = new Rect(widthOver2,heightOver2,widthOver2,heightOver2);
+		addROI("BottomRightQtrRect", BottomRightQtrRect, fullSizeRenderWidth);
 
-		LeftHalfRect = new Rect(0,0,widthOver2,masterHeight);
+		Rect  LeftHalfRect = new Rect(0,0,widthOver2,masterHeight);
 		addROI("LeftHalfRect", LeftHalfRect, fullSizeRenderWidth);
+		
+		Rect  RightHalfRect = new Rect(widthOver2,0,widthOver2,masterHeight);
+		addROI("RightHalfRect", RightHalfRect, fullSizeRenderWidth);
 
-		TopHalfRect = new Rect(0,0,masterWidth,heightOver2);
+		Rect  TopHalfRect = new Rect(0,0,masterWidth,heightOver2);
 		addROI("TopHalfRect", TopHalfRect, fullSizeRenderWidth);
+		
+		Rect  BottomHalfRect = new Rect(0,heightOver2,masterWidth,heightOver2);
+		addROI("BottomHalfRect", BottomHalfRect, fullSizeRenderWidth);
 
-		CentreRect = new Rect(widthOver2/2f,heightOver2/2f,widthOver2,heightOver2);
+		Rect CentreRect = new Rect(widthOver2/2f,heightOver2/2f,widthOver2,heightOver2);
 		addROI("CentreRect", CentreRect, fullSizeRenderWidth);
 
-
+		return getROINames();
 
 	}
 

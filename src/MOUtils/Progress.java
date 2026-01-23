@@ -13,8 +13,8 @@ public class Progress {
     	reset();
     }
 
-    public Progress(String startMessage) {
-    	reset();
+    public Progress(String startMessage, int totalNum) {
+    	reset(totalNum);
     	setStartMessage(startMessage);
     }
 
@@ -35,24 +35,21 @@ public class Progress {
     }
 
     public void update() {
-
-    	print(count, totalNum);
+    	if(!startMessagePrinted) {
+			System.out.print( startMessage );
+			startMessagePrinted = true;
+		}
+    	tryprint(count, totalNum);
     	count++;
     }
 
-    public void  print(int thisNum, int outOf) {
+   private void  tryprint(int thisNum, int outOf) {
 
 		int percent = (int)( (thisNum/(float)outOf) * 100);
 		if(percent%10==0 && percent>lastpercentdisplayed) {
 			lastpercentdisplayed = percent;
 			if(active) {
-
-				if(!startMessagePrinted) {
-					System.out.print( startMessage );
-					startMessagePrinted = true;
-				}
-
-				System.out.print( percent + "%(" + thisNum + "/" + outOf +  "), " );
+				System.out.print( percent + "%(" + thisNum + "/" + outOf +  "), ");
 			}
 		}
 	}

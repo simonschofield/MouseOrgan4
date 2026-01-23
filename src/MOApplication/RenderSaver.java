@@ -13,9 +13,9 @@ import MOUtils.MOStringUtils;
 
 
 /**
-    * The Render Saver Class. Helps manage the saving process for renders to a new directory created in the User Session directory
+    * The RenderSaver class helps manage the saving process for renders to an automatically created new directory in the User Session directory.
 	* The user decides if directories from subsequent sessions are overwritten, or saved as new (automatically enumerated) files/directories by
-	* setting the mode to either RenderSaver.FILENAME_OVERWRITE or RenderSaver.FILENAME_INCREMENT <p>
+	* setting the mode to either RenderSaver.FILENAME_OVERWRITE or RenderSaver.FILENAME_INCREMENT. The render saves can be turned off by setting the mode to  RenderSaver.INACTIVE<p>
 	*
 	* If using FILENAME_INCREMENT, each session is saved with an incremented number in the name in the form "_sessionXXXX" (where XXXX is always a 4-character leading-zero-padded integer).<p>
 	* The process is based on scanning the userSessionPath for files/folders containing such a string. The highest previously saved session number in the userSessionPath is identified and  the new incremented number is found.<p>
@@ -27,9 +27,9 @@ import MOUtils.MOStringUtils;
 	*
 	*
 	* when creating the  SUB DIRECTORY The naming convention for the directory is<p>
-	* userSessionPath/ GlobalSettings.mainSessionName + enumerator
-	* Within this renders are files saved with the following convention
-	* 		GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + fileExtension<p>
+	* [userSessionPath/ GlobalSettings.mainSessionName + enumerator] <p>
+	* Within this renders are files saved with the following convention <p>
+	* [GlobalSettings.mainSessionName + "_" + GlobalSettings.currentSchemea + "_" +  renderTargetName + fileExtension]<p>
 	* 
 	* Also saves a copy of the UserSession.java file in a directory called "UserSessionSourceCodeArchive" within the new sub-directory<p>
 	* 
@@ -40,24 +40,20 @@ public class RenderSaver {
 
 
 	MainDocument theDocument;
-	boolean isActive = true;
-
+	
 	int currentSessionEnumerator = 0;
 
-	
 	boolean subDirectoryCreated = false;
 	String subDirectoryPath;
 
 	
-
+	private boolean isActive = true;
 	final public static int FILENAME_OVERWRITE = 0;
 	final public static int FILENAME_INCREMENT = 1;
 
-
-	int session_filename_mode = FILENAME_INCREMENT; // this is the default as it's safer
-	String session_differentiator_string = "0000";
-
-
+	private int render_saver_mode = FILENAME_INCREMENT; // this is the default as it's safer
+	
+	String session_enumeration_string = "0000";
 	boolean saveUserSessionSourceCode = true;
 
 	/**
@@ -65,15 +61,16 @@ public class RenderSaver {
 	* If using FILENAME_INCREMENT, each session is saved with an incremented number in the name in the form "_sessionXXXX" (where XXXX is always a 4-character leading-zero-padded integer).
 	* The process is based on scanning the userSessionPath for files/folders containing such a string. The highest previously saved session number in the userSessionPath is identified and  the new incremented number is found.<p>
 	*
-	* If using FILENAME_OVERWRITE, this will overwrite previously saved directory (the one with the highest enumeration so far). The action is sensitive to previously saved SESSION_DIFFERENTIATOR_INCREMENT sessions, and will target the highest,<P>
+	* If using FILENAME_OVERWRITE, this will overwrite previously saved directory (the one with the highest enumeration so far). The action is sensitive to previously saved enumerated directories 
+	* sessions, and will target the highest,<P>
 	* numerical session files/directories it finds on the UserSessionPath. If no previous SESSION_DIFFERENTIATOR_NUMERICAL is found, then the differentiating file string is 0000
-	* @param mode - either RenderSaver.FILENAME_INCREMENT or enderSaver.FILENAME_OVERWRITE, see above
+	* @param mode - either RenderSaver.FILENAME_INCREMENT, renderSaver.FILENAME_OVERWRITE, or RenderSaver.INACTIVE
 	* @param doc - reference to the MainDocument singleton
 	*/
 	public RenderSaver(int mode, MainDocument doc) {
 
 		this.theDocument = doc;
-		this.session_filename_mode = mode;
+		this.render_saver_mode = mode;
 
 		updateCurrentSessionEnumerator();
 
@@ -91,9 +88,6 @@ public class RenderSaver {
 	 * @return
 	 */
 	public boolean isActive() {
-		if(!isActive){
-			System.out.println( "RenderSaver is inactive - no file saves" );
-		}
 		return isActive;
 	}
 
@@ -153,10 +147,10 @@ public class RenderSaver {
 
 	private void updateCurrentSessionEnumerator() {
 		int i = searchDirectoryForHighestSessionEnumerator();
-		if(session_filename_mode == FILENAME_OVERWRITE) {
+		if(render_saver_mode == FILENAME_OVERWRITE) {
 			currentSessionEnumerator = i;
 		}
-		if(session_filename_mode == FILENAME_INCREMENT) {
+		if(render_saver_mode == FILENAME_INCREMENT) {
 			currentSessionEnumerator = i + 1;
 		}
 	}
@@ -262,7 +256,7 @@ public class RenderSaver {
 			}
 		}
 
-		System.out.println("Found highest number " + highestNumber);
+		//System.out.println("Found highest number " + highestNumber);
 		return highestNumber;
 
 

@@ -37,14 +37,14 @@ public class Lighting_CommonUtils {
 	Rect theDoumentDocSpaceRect;
 
 
-	public Lighting_CommonUtils(SceneData3D sd3d, String nameOfShadowRender) {
-
-		if(sd3d == null) {
+	public Lighting_CommonUtils(String nameOfShadowRender) {
+		
+		sceneData3D = GlobalSettings.getSceneData3D();
+		if(sceneData3D == null) {
 			System.out.println("Lighting_CommonUtils  SceneData3D == null, please initialse first ");
 
 		}
 
-		sceneData3D = sd3d;
 		coordinateSystem = GlobalSettings.getDocument().getCoordinateSystem();
 		theDoumentDocSpaceRect = coordinateSystem.getDocumentRect();
 
@@ -53,19 +53,36 @@ public class Lighting_CommonUtils {
 		shadowRenderTarget = GlobalSettings.getDocument().getBufferedImageRenderTarget(nameOfShadowRender);
 		shadowRenderTarget.fillBackground(Color.WHITE);
 		shadowImageGetSet = new ByteImageGetterSetter(shadowRenderTarget.getBufferedImage());
+		// set a default light direction
+		setLightDirection( vec(-0.5f,-1,1) );
 	}
 
 
-	protected void initialiseDepthRender(String nameOfDepthRender, boolean addSceneSurfaceToDepthRender, PVector lightDir) {
+	protected void initialiseDepthRender(String nameOfDepthRender, boolean addSceneSurfaceToDepthRender) {
 
 		GlobalSettings.getDocument().addFloatRenderTarget(nameOfDepthRender, true, 1);
 		depthRenderTarget = GlobalSettings.getDocument().getFloatImageRenderTarget(nameOfDepthRender);
-		lightDirection = lightDir.copy();
-		negativeLightDirection = PVector.mult(lightDir, -1);
+		
 		//System.out.println("coordinateSystem rect = " + coordinateSystem.getDocumentRect().toStr() + " getCurrentROIDocRect " + theROIManangerDocSpaceRect.toStr());
 		if(addSceneSurfaceToDepthRender) {
 			addSceneSurfaceToDepth();
 		}
+	}
+	
+	
+	/**
+	 * Sets the light direction into the scene. Must have +ve z, so shadows go into the scene
+	 * @param lightDir
+	 */
+	public void setLightDirection(PVector lightDir) {
+		PVector v = lightDir.copy();
+
+		v.z = Math.abs(v.z);
+		
+		v.normalize();
+		lightDirection = lightDir.copy();
+		negativeLightDirection = PVector.mult(lightDir, -1);
+		
 	}
 
 
@@ -97,6 +114,10 @@ public class Lighting_CommonUtils {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	// useful shorthands, propose adding these to a new class
 	// which can be mixed in when needed
+	PVector vec(float x, float y, float z) {
+		return new PVector(x,y,z);
+	}
+	
 	PVector DStoBS(PVector docPt) {
 		return this.coordinateSystem.docSpaceToBufferSpace(docPt);
 	}

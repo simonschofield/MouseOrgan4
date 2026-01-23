@@ -7,6 +7,7 @@ import MOMaths.PVector;
 import MOMaths.RandomStream;
 import MOMaths.Rect;
 import MOScene3D.AABox3D;
+import MOScene3D.Plane3D;
 import MOScene3D.SceneData3D;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // The idea is to iterate in floating point 2D to generate 3D points on the surface of the scene
@@ -31,34 +32,30 @@ import MOScene3D.SceneData3D;
 import MOUtils.GlobalSettings;
 import MOUtils.Progress;
 import MOUtils.SecondsTimer;
-///////////////////////////////////////////////////////////////////////////////////////////
-// The point surface packer will pack points on a surface using a radius-per-point. When attempting to place the next point, if any other previous point
-// is already placed is within the packing radius, the new point cannot be placed (failed), so moves to the next one. Hence is
-// Monte-carlo method. The algorithm ends when the desired number of points have been placed, or the consecutive failed number of attempts has
-// exceeded a threshold (default is 300).
-// This surface packing algorithm uses a "data cube" type of spatial indexing to speed up
-// searching for neighbouring points.
-//
-// The point-placement radius can be made to respond to the brightness of an image, so can achieve clustering and thinning of points in
-// response to an image pixel values. It can also be responsive to depth, to achieve "depth-thinning".
-//
-//
-// The image sampling occurs on the SceneData's current render (using setCurrentRenderImage(name) )
-// The radius response is set by adding in a set PackingInterpolationScheme
-//
-//
-// It improves on the previous version by 1/ Using spatial indexing, 2/ Getting rid of the class hierarchy, which was too deep and cumbersome
-// e.g. this class does not need to be a collection Iterator; it just returns a list of points, either in world space, or as "depth enhanced" doc Space points..
-//
+
+/**
+ * The point surface packer will pack points on a surface using a radius-per-point. When attempting to place the next point, if any other previous point
+ * is already placed is within the packing radius, the new point cannot be placed (failed), so moves to the next one. Hence is a 
+ * Monte-carlo type process. The algorithm ends when the desired number of points have been placed, or the consecutive failed number of attempts has exceeded a threshold (default is 300).
+ * The point-placement radius can be made to respond to the brightness of an image, so can achieve clustering and thinning of points in
+ * response to an image pixel values. It can also be responsive to depth, to achieve "depth-thinning".
+ * 
+ * The image sampling occurs on one of the SceneData's texture images, and is specified by the user. The relationship between the value of the pixel and the radius is set using
+ * a PackingInterpolationScheme, which correlates a particular pixel brightness to a packing radius so that there is a linear relationship between density of points and the pixel value.
+ * 
+ * Packing requires that new points check neighbouring points, and this process is accelerated by using a spatial index of placed points.
+ * 
+ * When packing points there are two modes available: PACKINGMODE_2D_VISITATION mode iterates in screen-space to place new points. This is siple to implement but has the effect of iterating over near areas more than far areas, 
+ * so has an in-built bias toward populating near areas over far areas.
+ */
 public class PointGenerator_SurfacePack3D {
 
-	Rect generationArea;
-
+	
+	SpatiallyIndexedPointCollection spatiallyIndexedOutputPoints;
 	AABox3D fullExtents;
+	Rect generationArea_2d;
 
-	int inX,inY,inZ;
-	SpatialIndexBox3D[][][] boxMesh;
-
+	
 	ArrayList<PVector> points2DWithDepth = new ArrayList<>();
 	SceneData3D sceneData;
 
@@ -86,129 +83,175 @@ public class PointGenerator_SurfacePack3D {
 
 
 	Progress progress;
+	
+	public final static int PACKINGMODE_3D_VISITATION = 0;
+	public final static int PACKINGMODE_2D_VISITATION = 1;
+	int packingVisitationMode = PACKINGMODE_2D_VISITATION;
+	
+	SpatiallyIndexedPointCollection spatiallyIndexedSceneDataSurfacePoints;
+	
+	/**
+	 * The point surface packer will pack points on a surface using a packing 3D radius. When attempting to place a new point, if any other previous point
+	 * is already placed is within the packing radius, the new point cannot be placed (failed), so moves to the next one. Hence this is a 
+	 * Monte-carlo type process. The algorithm ends when the desired number of points have been placed, or the consecutive failed number of attempts has exceeded a threshold (default is 300).
+	 * The point-placement radius can be made to respond to the brightness of an image, so can achieve clustering and thinning of points in
+	 * response to an image pixel values. It can also be responsive to depth, to achieve "depth-thinning".<p>
+	 * 
+	 * The image sampling occurs on one of the SceneData's texture images, and is specified by the user. The relationship between the value of the pixel and the radius is set using
+	 * a PackingInterpolationScheme, which correlates a particular pixel brightness to a packing radius so that there is a good visual relationship between density of points and the pixel value.<p>
+	 * 
+	 * Hence packing requires that new points check neighbouring points, and this process is accelerated by using a spatial index of placed points.<p>
+	 * 
+	 * When packing points there are two modes available: PACKINGMODE_2D_VISITATION mode iterates in screen-space to place new points. 
+	 * This is simple to implement but has the consequence of iterating over near areas more than far areas (as they occupy more screen space)
+	 * so has an in-built bias toward populating near areas over far areas. This may suit, but it is not very controllable.<p>
+	 * 
+	 * When packing in PACKINGMODE_3D_VISITATION mode, it makes use of the Scenedata3D's in-built spatially indexed surface points. A random surface-point-box is selected, and a random 3D point (P3) generated 
+	 * within. The nearest point on the surface is found (SP). A new surface point is created using the XZ of the random 3D point (P3) and the Y of SP.<p>
+	 *
+	 * The default visitationMode is PACKINGMODE_2D_VISITATION 
+	 */
+	public PointGenerator_SurfacePack3D() {
 
-	public PointGenerator_SurfacePack3D(SceneData3D sd, float maxRadius) {
-
-		sceneData = sd;
+		sceneData = GlobalSettings.getSceneData3D();
 		fullExtents = sceneData.depthBuffer3d.getExtents();
-		int numBoxesX = (int) Math.ceil(fullExtents.getWidth()/maxRadius);
-		int numBoxesY = (int) Math.ceil(fullExtents.getHeight()/maxRadius);
-		int numBoxesZ = (int) Math.ceil(fullExtents.getDepth()/maxRadius);
-
-		// in almost all cases the number will be 50,50,50
-		numBoxesX = Math.min(numBoxesX, 50);
-		numBoxesY = Math.min(numBoxesY, 50);
-		numBoxesZ = Math.min(numBoxesZ, 50);
-
-		//System.out.println("creating a boxMesh with " + numBoxesX + " " + numBoxesY + " " + numBoxesZ + " cells");
-		init( 1,  sd,  numBoxesX,  numBoxesY,  numBoxesZ);
+		// create a little bit of headroom
+		float exp = fullExtents.getWidth()/100f;
+		fullExtents.expand(exp);
+		generationArea_2d = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
+		
+		spatiallyIndexedSceneDataSurfacePoints  = sceneData.getSpatiallyIndexedSurfacePoints();
+		
+		packingVisitationMode = PACKINGMODE_2D_VISITATION;
+	}
+	
+	
+	
+	
+	
+	/**
+	 * @param vistationMode - either PACKINGMODE_2D_VISITATION or PACKINGMODE_3D_VISITATION
+	 */
+	public void setPointPackingVisitationMode(int vistationMode) {
+		
+		packingVisitationMode = vistationMode;
 	}
 
-	public PointGenerator_SurfacePack3D(SceneData3D sd) {
-
-		init( 1,  sd,  50,  50,  50);
-	}
-
-	public void init(int rseed, SceneData3D sd, int numBoxesX, int numBoxesY, int numBoxesZ) {
-		ranStream = new RandomStream(rseed);
-		sceneData = sd;
-		fullExtents = sceneData.depthBuffer3d.getExtents();
-		inX = numBoxesX;
-		inY = numBoxesY;
-		inZ = numBoxesZ;
-		boxMesh = new SpatialIndexBox3D[inX][inY][inZ];
-
-
-		float dx = fullExtents.getWidth()/inX;
-		float dy = fullExtents.getHeight()/inY;
-		float dz = fullExtents.getDepth()/inZ;
-
-		float extentsLeft = fullExtents.getLeft();
-		float extentsBottom = fullExtents.getBottom();
-		float extentsFront = fullExtents.getFront();
-
-		for(int z = 0; z < inZ; z++) {
-			for(int y = 0; y < inY; y++) {
-				for(int x = 0; x < inX; x++) {
-
-					float loX = extentsLeft + (x * dx); // for 10 boxes in x, width of 0.1f, and a loWidth of 5. when x == 0, the lower value will be 5, the upper will be 5.1, when x == 9, the lower value will be 5.9
-					float loY = extentsBottom + (y * dy);
-					float loZ = extentsFront + (z * dz);
-
-					float hiX = loX + dx;
-					float hiY = loY + dy;
-					float hiZ = loZ + dz;
-
-					boxMesh[x][y][z] = new SpatialIndexBox3D(loX,loY,loZ,hiX,hiY,hiZ);
-				}
-			}
-		}
-
-		setAllNeighbours();
-
-		generationArea = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
-		progress = new Progress("Generating Points: ");
-	}
-
-
-
-
-
+	
+	/**
+	 * @param name - the short-name of the texture-image within the loaded SceneData textures
+	 */
 	public void setPackingImage(String name) {
 		sceneData.setCurrentRenderImage(name);
 
 	}
 
+	/**
+	 * @param n - the specified maximum number of placed points that are placed. The packing algorithm may bail before this number is achieved
+	 */
 	public void setMaxNumPointsLimit(int n) {
 		maxNumPoints = n;
 	}
 
+	/**
+	 * @param r - the 3D radius for the packing. use this method if you are not using an image-responsive PackingInterpolationScheme
+	 */
 	public void setDefaultPackingRadius(float r) {
 		defaultPackingRadius = r;
+		initialiseSpatiallyIndexedPointCollection(defaultPackingRadius);
 	}
 
+	/**
+	 * @param pis - sets the image-responive packing interpolation scheme for this packing. See PackingInterpolationScheme class
+	 */
 	public void setPackingInterpolationScheme(PackingInterpolationScheme pis) {
 		packingInterpolationScheme = pis;
+		float maxRadius = Math.max(packingInterpolationScheme.radiusAtControlMin, packingInterpolationScheme.radiusAtControlMax);
+		initialiseSpatiallyIndexedPointCollection(maxRadius);
 	}
 
+	/**
+	 * Changes the packing radius according to scene depth. Uses normalised depth with respect to whole (master) scene data, not the ROI.
+	 * Set the farMultiplier > 1 to get thinning to happen in the distance. Thinning occurs between the nearThreshold (no thinning) and the far depth (full thinning)
+	 * when the distance is far (1), the value out == radiusIn*farMultimpler when the distance is nearDistanceThreshold value out == radius
+	 * 
+	 * @param farMultiplier
+	 * @param nearThreshold
+	 */
 	public void setDepthSensitivePacking(float farMultiplier, float nearThreshold) {
-		// set the farMultiplier > 1 to get thinning to happen in the distance
-		// Thinning occurs between the nearThreshold (no thinning) and the far depth (full thinning)
-		// when the distance is far (1), the value out == radiusIn*farMultimpler
-		// when the distance is nearDistanceThreshold value out == radius
-
 		farDistanceMultiplier = farMultiplier;
 		nearDistanceThreshold = nearThreshold;
 	}
 
-	public void setGenerationArea(Rect r) {
-		generationArea = r;
+	/**
+	 * @param r - the doc space Rect within whihc points are generated. If not set the full document space rect is used.
+	 */
+	public void setGenerationArea_2DVisitation(Rect r) {
+		generationArea_2d = r;
 	}
 
+	/**
+	 * @param n - integer. the seed used by the random stream determining the random point generation in both 2 and 3d
+	 */
 	public void setRandomStreamSeed(int n) {
 		ranStream = new RandomStream(n);
 	}
 
 
-	//////////////////////////////////////////////////////////////////////
-	// This method is called when the user is ready to make the points. It used to take a long time
-	// and now should be quicker, without losing integrity.
-	// It generates the points in both 2D and 3D. Not sure which is more useful.
+	
+	/**
+	 * The main packing method. Call this once all the parameters are set up correctly. It is sometimes a long process. It can operate in 2 modes, PACKINGMODE_2D_VISITATION or PACKINGMODE_3D_VISITATION<p>
+	 * 
+	 * The PACKINGMODE_2D_VISITATION mode:- A random 2D screen space point is projected back into a 3D surface point, and then a packing algorithm is used to see if 
+	 * there is "space" for the new 3D point. This method has an inherent bias toward packing more densely in near areas, as those near areas occupy more screen-space than far points
+	 * and so there are more points generated in near parts than far parts. <p>
+	 * 
+	 * The PACKINGMODE_3D_VISITATION mode:- A point packing method using a 3D random point generation as its basis.
+	 * New random 3D surface points are generated based on a spatially indexed version of the depth buffer. For each point to be generated in 3D, a random (already populated) Spatial Box is selected.  
+	 * An existing surface point EP is randomly selected from this Spatial Box, and a surface-plane established at this point, using the 3D scene surface normal at EP. 
+	 * A new point NP is calculated on this surface plane, within the packing radius of the existing point. 
+	 * Once the new 3D point NP is generated, it is added to the output point list if the packing algorithm determines that 
+	 * there is "space" for this new 3D point NP. This method hopefully will counteract the inherent bias toward packing more densely in near areas using 2D visitation. <p>
+	 * 
+	 * @return - an array list of packed docSpace points that are DEPTH ENHANCED. I.e. have the z component set to the depth in the scene at that point.
+	 */
+	public ArrayList<PVector> generatePoints(){
+		
+		if(spatiallyIndexedOutputPoints == null) {
+			System.out.println("Error - PointGenerator_SurfacePack3D::generatePoints() - the packing radius has not been defined, and so the spatial index has not been initialised - retuning null ");
+			return null;
+		}
 
-
-	public ArrayList<PVector> generatePoints() {
-		clearAllPoints();
+		progress = new Progress("Generating Points ", maxNumPoints);
+		points2DWithDepth.clear();
+		spatiallyIndexedOutputPoints.clearAllPoints();
 		progress.reset();
 		timer = new SecondsTimer();
-		timer.start();
 
 		int numPlaced = 0;
 		int bailAtNumTries = 300;
 		int failedSequentialTries = 0;
 		while(true) {
 			boolean isPlaced = false;
+			
 			PVector p3 = null;
-			PVector p2 = getRandomDocSpacePoint();
+			PVector p2 = null;
+			
+			
+			if(packingVisitationMode == PACKINGMODE_2D_VISITATION) {
+			
+				p3 = null;
+				p2 = getRandomDocSpacePoint();
+			}
+			
+			if(packingVisitationMode == PACKINGMODE_3D_VISITATION) {
+				
+				p3 = getRandom3DSurfacePoint();
+				p2 = sceneData.world3DToDocSpace(p3);
+			}
+			
+			
+			
 			float controlValue = sceneData.getCurrentRender01Value(p2);
 			//System.out.println("value at docx = ")
 			if( isExcluded(controlValue)) {
@@ -220,7 +263,7 @@ public class PointGenerator_SurfacePack3D {
 
 				r = applyDepthThinning(r,  p2);
 
-				isPlaced = tryAddPoint( p3,  r);
+				isPlaced = spatiallyIndexedOutputPoints.tryAddPointWithPackingRadius( p3,  r);
 			}
 
 
@@ -231,7 +274,7 @@ public class PointGenerator_SurfacePack3D {
 				p2.z = p3.z;
 				points2DWithDepth.add(p2);
 
-				progress.print(points2DWithDepth.size(), this.maxNumPoints);
+				progress.update();
 
 			} else {
 				failedSequentialTries++;
@@ -252,54 +295,27 @@ public class PointGenerator_SurfacePack3D {
 
 		}
 
-		float s = timer.getElapsedTime();
-		System.out.println("Time taken " + s + " seconds");
-		System.out.println("Having used  " + inX + " " + inY + " " + inZ + " cells");
-		System.out.println();
-		return getDocSpacePoints(true);
+		System.out.println("Time taken " + timer.getElapsedTime() + " seconds");
+		return PVector.deepCopy(points2DWithDepth);
 	}
+	
+	
 
-
-
-
-
-
-
-	public ArrayList<PVector> getDocSpacePoints(boolean includeDepth){
-		// returns a deep copy
-		ArrayList<PVector> copyOf2DPts = PVector.deepCopy(points2DWithDepth);
-		if(includeDepth) {
-			return copyOf2DPts;
-		}
-
-		for(PVector p: copyOf2DPts) {
-			p.z = 0;
-		}
-		return copyOf2DPts;
-
-	}
-
-	public ArrayList<PVector> getWorldSpacePoints(){
-		// returns a deep copy
-		ArrayList<PVector> gethered3DPoints = new ArrayList<>();
-
-		for(int z = 0; z < inZ; z++) {
-			for(int y = 0; y < inY; y++) {
-				for(int x = 0; x < inX; x++) {
-					gethered3DPoints.addAll(boxMesh[x][y][z].points);
-				}
-			}
-		}
-
-		return PVector.deepCopy(gethered3DPoints);
-	}
-
+	
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// private methods
 	//
 	//
+	
+	/**
+	 * This is kept separate from the main initialisation, as the user may not know the 
+	 * @param spatialIndexBoxSize - the 3D dimension of the box in space. The full extents on the space in question is sub-divided into these boxes, so you have a number of boxes in x,y,z
+	 */
+	private void initialiseSpatiallyIndexedPointCollection(float spatialIndexBoxSize) {
+		spatiallyIndexedOutputPoints = new SpatiallyIndexedPointCollection(fullExtents, spatialIndexBoxSize);
+	}
 
 	private boolean isExcluded(float v) {
 		// returns false if the packing interpolation scheme determines that this
@@ -342,125 +358,16 @@ public class PointGenerator_SurfacePack3D {
 		return radiusIn;
 
 	}
-
-	private void clearAllPoints() {
-		points2DWithDepth.clear();
-		for(int z = 0; z < inZ; z++) {
-			for(int y = 0; y < inY; y++) {
-				for(int x = 0; x < inX; x++) {
-					boxMesh[x][y][z].points.clear();
-				}
-			}
-		}
-	}
-
-	private void setAllNeighbours() {
-		for(int z = 0; z < inZ; z++) {
-			for(int y = 0; y < inY; y++) {
-				for(int x = 0; x < inX; x++) {
-					setNeighbours(x,y,z);
-				}
-			}
-		}
-
-	}
-
-	private void setNeighbours(int cx, int cy, int cz) {
-
-		// sets the neighbouring boxs for th box ar cx,cy,cz
-		SpatialIndexBox3D thisBox = boxMesh[cx][cy][cz];
-
-		for(int z = cz-1; z <= cz+1; z++) {
-			for(int y = cy-1; y <= cy+1; y++) {
-				for(int x = cx-1; x <= cx+1; x++) {
-
-					if(x==cx && y==cy && z==cz)
-					 {
-						continue; // don't want to add thisBox as neighbour
-					}
-					if(x < 0 || y < 0 || z < 0)
-					 {
-						continue; // outside boxMesh
-					}
-					if(x >= inX || y >= inY || z >= inZ)
-					 {
-						continue; // outside boxMesh
-					}
-
-					thisBox.addNeighbour( boxMesh[x][y][z] );
-				}
-			}
-		}
-
-	}
-
-
-
-	private boolean tryAddPoint(PVector p, float radiusRequired) {
-		// this can be sped up by working out the index directly from the coordinate
-		int[] index = getBoxIndexFromPoint(p);
-		int x = index[0];
-		int y = index[1];
-		int z = index[2];
-		// get the neighbouring points to this index
-		ArrayList<PVector> neighboringPoint = boxMesh[x][y][z].getNeighboringPoints();
-
-		// see if any are within the radiusRequired
-		// if any other point is within the radiusRequired, return false
-		if( isSpaceAvailable(p, radiusRequired, neighboringPoint) ) {
-			// if OK then try to add....
-			// The box checks to see if the point is within, so could potentially fail if indexing maths is wrong
-			return boxMesh[x][y][z].tryAddPoint(p);
-		}
-		// no space available
-		return false;
-	}
-
-	private int[] getBoxIndexFromPoint(PVector p) {
-
-		if( !fullExtents.isPointInside(p)) {
-			// this happens very occasionally due to small errors in 3D calculations
-			// System.out.println("point outside box " + p.toStr());
-			p = fullExtents.constrain(p);
-		}
-
-
-		PVector pnorm = fullExtents.norm(p);
-		int x = (int) (pnorm.x * inX); // if there where 10 boxes in X, then the index required is 0...9.  A p.x of 0.99 would correctly return  9
-		int y = (int) (pnorm.y * inY);
-		int z = (int) (pnorm.z * inZ);
-
-		// probably need to clamp them
-		x = MOMaths.constrain(x,0,inX-1);
-		y = MOMaths.constrain(y,0,inY-1);
-		z = MOMaths.constrain(z,0,inZ-1);
-
-		return new int[] {x,y,z};
-
-	}
-
-
-
-
-
-	private ArrayList<PVector> getNeighboringPoints(int cx, int cy, int cz){
-		return boxMesh[cx][cy][cz].getNeighboringPoints();
-	}
-
-
-	private boolean isSpaceAvailable(PVector p, float radius, ArrayList<PVector> otherPoints) {
-		float rsq = radius*radius;
-		for(PVector otherPoint: otherPoints) {
-			if(  p.distSq(otherPoint) < rsq ) {
-				return false;
-			}
-		}
-		return true;
-	}
-
+	
+	
+	/**
+	 * Called by the 2D visitation packing algorithm. This method has a natural bias towards crrating points in near parts. This is becausenear points as the same 3D surface area occupies 
+	 * more pixels in near points, than far points.
+	 * @return - a doc-space point corresponding to a 3D surface point (of substance)
+	 */
 	private PVector getRandomDocSpacePoint() {
 
-		PVector p = ranStream.randomPoint2(generationArea);
+		PVector p = ranStream.randomPoint2(generationArea_2d);
 
 		int bailCount = 0;
 
@@ -468,7 +375,7 @@ public class PointGenerator_SurfacePack3D {
 			if (sceneData.isSubstance(p)) {
 				return p;
 			}
-			p = ranStream.randomPoint2(generationArea);
+			p = ranStream.randomPoint2(generationArea_2d);
 			bailCount++;
 			if (bailCount > 1000000) {
 				System.out.println("getRandomDocSpacePoint - cannot find any substance in the scene to add a point to - bailing with null");
@@ -478,53 +385,86 @@ public class PointGenerator_SurfacePack3D {
 
 	}
 
-
-}
-
-class SpatialIndexBox3D extends AABox3D{
-	public ArrayList<PVector> points = new ArrayList<>();
-	int indexX, indexY, indexZ;
-	ArrayList<SpatialIndexBox3D> neighbors = new ArrayList<>();
-
-	public SpatialIndexBox3D(float x1, float y1, float z1, float x2, float y2, float z2) {
-		super(x1, y1, z1, x2, y2, z2);
-
+	/**
+	 * Called by the 3D visitation method. This generates a random 3D point on the surface of the scene. It then has to be converted to
+	 * a doc-space point. This method avoids any spatial bias, and is as likely to produce a point in a distance 3D area, as a near 3D area.
+	 * @return - A 3D point on the surface of the scene
+	 */
+	private PVector getRandom3DSurfacePoint() {
+		// get some local points from a random location on the surface
+		SpatiallyIndexedPointBox3D box = findRandomSpatiallyIndexedBox3D();
+		ArrayList<PVector> surfacePoints = box.getLocalPoints();
+		
+		// select a random surface point from the above list and establish its plane
+		int len = surfacePoints.size();
+		int rindex = ranStream.randRangeInt(0, len);
+		PVector p3d = surfacePoints.get(rindex).copy();
+		
+		
+		
+		// displace a new point from p3d, on the plane 
+		PVector p2d = sceneData.world3DToDocSpace(p3d);
+		PVector surfaceNormal = sceneData.getSurfaceNormal(p2d);
+		Plane3D plane = new Plane3D(p3d,surfaceNormal);
+		float displaceX = box.getWidth()/2;
+		float displaceZ = box.getDepth()/2;
+		
+		PVector displacedP3d = p3d.copy();
+		displacedP3d.x += ranStream.randRangeF(-displaceX, displaceX);
+		displacedP3d.z += ranStream.randRangeF(-displaceZ, displaceZ);
+		
+		PVector pointOnPlane =  plane.nearestPointOnPlane(displacedP3d);
+		
+		
+		
+		//System.out.println("Based on found point " + p3d.toStr() + " displaced 3D point " + displacedP3d.toStr() + " point on plane " + pointOnPlane.toStr());
+		return pointOnPlane;
 	}
-
-	public boolean tryAddPoint(PVector p) {
-
-		if( this.isPointInside(p)) {
-
-			points.add(p);
-			return true;
-		}
-
-		return false;
-	}
-
-	public ArrayList<PVector> getPoints() {
-		return points;
-	}
-
-	public void addNeighbour(SpatialIndexBox3D n) {
-		neighbors.add(n);
-	}
-
-	public ArrayList<PVector> getNeighboringPoints(){
-		// returns all the points in this box plus all the neighbouring points
-		ArrayList<PVector> collectedPoints = new ArrayList<>();
-		collectedPoints.addAll( this.getPoints() );
-		for(SpatialIndexBox3D pb: neighbors) {
-			if(pb == this) {
-				continue;
+	
+	
+	/**
+	 * @return and array list of 3D surface points that are local to a randomly selected spatially indexed box. Thereby cutting down the amount of 2D bias.
+	 */
+	SpatiallyIndexedPointBox3D findRandomSpatiallyIndexedBox3D() {
+		
+		int[] boxIndexDims = spatiallyIndexedSceneDataSurfacePoints.getBoxGridArrayDimensions();
+		int bailCount = 0;
+		
+		while(true) {
+		
+		int rxi = ranStream.randRangeInt(0, boxIndexDims[0]);
+		int ryi = ranStream.randRangeInt(0, boxIndexDims[1]);
+		int rzi = ranStream.randRangeInt(0, boxIndexDims[2]);
+		
+		int numPoints = spatiallyIndexedSceneDataSurfacePoints.getBoxNumPoints(rxi, ryi, rzi);
+		if(numPoints > 0) {
+			
+			return spatiallyIndexedSceneDataSurfacePoints.getBox(rxi, ryi, rzi);
 			}
-			collectedPoints.addAll( pb.getPoints() );
+		bailCount++;
+		if(bailCount>1000) {
+			System.out.println("findRandomSpatiallyIndexedBox3DPoints - cannot find any spatially indexed boxes with points in after 1000 tries - bailing with null");
+			return null;
 		}
-		return collectedPoints;
+		
+		}
+		
+		
 	}
+	
+	
+	
+	
+		
+}// end class
+	
+	
+
+	
 
 
-}
+
+
 
 
 

@@ -26,17 +26,11 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeepAwake;
 
 
-
-//////////////////////////////////////////////////////////////////
-//
 /**
  * The Surface class provides the application surface in the form of a JPanerl (parent class), updating and control flow. It is an abstract class from which is derived the UserSession.
  * The Surface is responsible for 1/ control flow, and going through the phases of Initialise, Load, Update, Finalise and Finish.
  * It is also responsible for setting up the graphics window and contains the ViewControl class for zooming/panning. It extents JPanel and
- * builds the UI, listens for user events.
- */
-/**
- * 
+ * hosts and builds the UI and listens for user events.
  */
 @SuppressWarnings("serial")
 public abstract class Surface extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
@@ -91,11 +85,10 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	
 	/**
 	 * This is called automatically on UserSession instantiation.
-	 * The Surface class provides the application graphics window frame in the form of a JPanel (parent class). It is also responsible for updating and control flow. <p>
-	 * It is an abstract class from which is derived the UserSession.
+	 * The Surface class provides the application surface in the form of a JPanerl (parent class), updating and control flow. It is an abstract class from which is derived the UserSession.
 	 * The Surface is responsible for 1/ control flow, and going through the phases of Initialise, Load, Update, Finalise and Finish.
 	 * It is also responsible for setting up the graphics window and contains the ViewControl class for zooming/panning. It extents JPanel and
-	 * builds the UI, listens for user events.
+	 * hosts and builds the UI and listens for user events.
 	 */
 	public Surface(JFrame papp) {
 		parentApp = papp;
@@ -174,13 +167,13 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	 * @param fullScaleRenderH
 	 * @param mainDocumentRender   
 	 */
-	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType) {
+	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType, int render_saver_mode) {
 
 		fullScaleRenderW = (int)(fullScaleRenderW * GlobalSettings.getSessionScale());
 		fullScaleRenderH = (int)(fullScaleRenderH * GlobalSettings.getSessionScale());
 
 
-		theDocument = new MainDocument(fullScaleRenderW, fullScaleRenderH, mainDocumentRenderType);
+		theDocument = new MainDocument(fullScaleRenderW, fullScaleRenderH, mainDocumentRenderType, render_saver_mode);
 
 		initialiseView();
 	}
@@ -193,14 +186,14 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	 * @param roiManager -  the ROI manager is repsoible for setting the documents dimensions, and so should have already been correctly set up
 	 * @param mainDocumentRenderType TYPE_INT_ARGB,TYPE_BYTE_GRAY or TYPE_USHORT_GRAY
 	 */
-	public void initialiseDocument(ROIManager roiManager, int mainDocumentRenderType) {
+	public void initialiseDocument(ROIManager roiManager, int mainDocumentRenderType, int render_saver_mode) {
 
 		GlobalSettings.mainSessionName = roiManager.getCurrentROIName();
 		GlobalSettings.setROIManager(roiManager);
 
 		System.out.println("initialiseDocument:: session name = " + GlobalSettings.mainSessionName);
 
-		theDocument = new  MainDocument( roiManager, mainDocumentRenderType);
+		theDocument = new  MainDocument( roiManager, mainDocumentRenderType, render_saver_mode);
 
 		initialiseView();
 	}
@@ -380,7 +373,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		//System.out.println("keyPressed");
 		theViewControl.keyboardViewInput(e);
 		//System.out.println("zoom scale = " + theViewControl.getCurrentScale());
-		canvasUpdateFrequency = 1;
+		//canvasUpdateFrequency = 1;
 	}
 
 	/**
@@ -391,21 +384,22 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	public void keyReleased(KeyEvent e) {
 		// TODO Auto-generated method stub
 		//System.out.println("keyReleased");
-		canvasUpdateFrequency = 50;
+		//canvasUpdateFrequency = 50;
 	}
 	
 	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Private Methods not used by the user
+	// Private Methods
 	//
 	//
 	//
 	//
+
 	
-	
-	
-	
+	/**
+	 * Called on Surface instantiation
+	 */
 	private void setWindowSize() {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int w = (int) screenSize.getWidth();
@@ -528,6 +522,9 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	/////////////////////////////////////////////////////////////////////
 	// UI related methods
 	//
+	/**
+	 * called by Surface.updateUserSession_All(), just after initilaiseUserSession() has finished
+	 */
 	private void buildUI() {
 
 		theUI = new SimpleUI(this);
@@ -611,7 +608,11 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 			theViewControl.setRenderTargetAsMainView(uied.menuItem);
 		}
 
-
+		if (uied.eventIsFromWidget("SD3D View")) {
+			if(GlobalSettings.getSceneData3D()!=null) {
+				GlobalSettings.getSceneData3D().handleSceneData3DRenderImageMenuEvent(uied);
+			}
+		}
 
 		// if there are any special UI's added by the user session handle them in the
 		// user session

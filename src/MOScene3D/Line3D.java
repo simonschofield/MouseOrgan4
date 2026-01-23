@@ -33,6 +33,11 @@ public class Line3D {
 	float length() {
 		return p1.dist(p2);
 	}
+	
+	AABox3D getBoundingBox() {
+		AABox3D box = new AABox3D(p1,p2);
+		return box;
+	}
 
 	public PVector getMidPoint() {
 		return PVector.lerp(p2, p1, 0.5f);

@@ -43,6 +43,7 @@ public class MainDocument{
 
 
 	ArrayList<RenderTargetInterface> renderTargets = new ArrayList<>();
+	private RenderSaver theRenderSaver;
 	public RenderBorder renderBorder;
 	int width, height;
 
@@ -62,7 +63,7 @@ public class MainDocument{
 	 * TYPE_BYTE_GRAY -- A buffered image type,used for 8 bit grey scale images<p>
 	 * TYPE_USHORT_GRAY  -- A buffered image type, used for 16 bit greyscale images<p>
 	 */
-	public MainDocument(int fullScaleWidth, int fullScaleHeight, int mainRenderType) {
+	public MainDocument(int fullScaleWidth, int fullScaleHeight, int mainRenderType, int render_save_mode) {
 		// simple non-roi based document
 
 		// session scaling of the document image happens here....
@@ -78,7 +79,12 @@ public class MainDocument{
 
 
 		addRenderTarget("main", mainRenderType);
+		
+		theRenderSaver = new RenderSaver( render_save_mode, this); // RenderSaver.FILENAME_INCREMENT or RenderSaver.INACTIVE
 	}
+	
+	
+	
 
 	/**
 	 * Provides an organised way to create and manage the "output" renders.<p>
@@ -92,7 +98,7 @@ public class MainDocument{
 	 * TYPE_BYTE_GRAY -- A buffered image type,used for 8 bit grey scale images<p>
 	 * TYPE_USHORT_GRAY  -- A buffered image type, used for 16 bit greyscale images<p>
 	 */
-	public MainDocument(ROIManager roiManager, int mainRenderType) {
+	public MainDocument(ROIManager roiManager, int mainRenderType, int render_save_mode) {
 		// for a roi based document
 
 		// session scaling of the document image happens here....
@@ -106,9 +112,20 @@ public class MainDocument{
 
 		System.out.println(">>" + documentImageCordinateSystem.toStr());
 		addRenderTarget("main", mainRenderType);
+		
+		theRenderSaver = new RenderSaver( render_save_mode, this); // RenderSaver.FILENAME_INCREMENT or RenderSaver.INACTIVE
 	}
+	
 
-
+	/**
+	 * used in finalising the session, and saving the renders
+	 * @return the render save singleton.
+	 */
+	public RenderSaver getRenderSaver() {
+		
+		return theRenderSaver;
+	}
+	
 	
 	/**
 	 * @return the image coordinate system for the Main Document<p>
@@ -131,9 +148,9 @@ public class MainDocument{
 				System.out.println("MainDocument addRendertarget " + name + " already exists - cannot add");
 				return;
 			}
-			BufferedImageRenderTarget rt = new BufferedImageRenderTarget(width, height,type);
-			rt.setCoordinateSystem(documentImageCordinateSystem);
-			rt.setName(name);
+			BufferedImageRenderTarget rt = new BufferedImageRenderTarget(name, width, height,type);
+			//rt.setCoordinateSystem(documentImageCordinateSystem);
+			//rt.setName(name);
 			renderTargets.add(rt);
 
 			updateRenderTargetMenu();
@@ -154,10 +171,10 @@ public class MainDocument{
 			imageCopyGamma = 1;
 		}
 
-		FloatImageRenderTarget rt = new FloatImageRenderTarget(width, height,  saveTYPE_USHORT_GRAYcopy,  imageCopyGamma);// deferred
-		rt.setCoordinateSystem(documentImageCordinateSystem);
+		FloatImageRenderTarget rt = new FloatImageRenderTarget(name, width, height,  saveTYPE_USHORT_GRAYcopy,  imageCopyGamma);// deferred
+		//rt.setCoordinateSystem(documentImageCordinateSystem);
 
-		rt.setName(name);
+		//rt.setName(name);
 		renderTargets.add(rt);
 	}
 
@@ -318,7 +335,7 @@ public class MainDocument{
 		if(rt.getFileExtension().equals(".data")) {
 			return (FloatImageRenderTarget) rt;
 		}
-		System.out.println("MainRenderDocument::getBufferedImageRenderTarget - cannot find buffered image render target called " + name);
+		System.out.println("MainRenderDocument::getBufferedImageRenderTarget - cannot find float image render target called " + name);
 		return null;
 	}
 
@@ -353,6 +370,7 @@ public class MainDocument{
 
 
 	/**
+	 * Not used as far as I can see
 	 * @param name
 	 */
 	public void deleteRenderTarget(String name) {

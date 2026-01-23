@@ -17,36 +17,49 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
 import MOUtils.MOStringUtils;
 
+/**
+ * When initialised, the user can get real-time feedback on SceneData3D information via a dialogue box. It can be set up to show either SceneData pixel data or, if initialised with the sprite batch, will show 
+ * pasted sprite based data (the sprite id, its images etc). 
+ */
 public class SceneInformationInspector {
 
-	static Surface theSurface = null;
-	static SceneData3D sceneData3D = null;
-	static SimpleUI theUI;
-	static SpriteBatch theSpriteBatch;
-	static float measuringToolSize = 10;
-	static PVector measuringToolStartPoint;
+	static private Surface theSurface = null;
+	static private  SceneData3D sceneData3D = null;
+	static private  SimpleUI theUI;
+	static private  SpriteBatch theSpriteBatch;
+	static private  float measuringToolSize = 10;
+	static private  PVector measuringToolStartPoint;
 
-	static String toolMode = "3d info";
+	static private  final int MODE_3D_INFO = 0;
+	static private  final int MODE_SPRITE_INFO = 1;
+	
+	static private  int toolMode = MODE_3D_INFO;
 
-	static boolean initialised = false;
+	static private  boolean initialised = false;
 
-	static BufferedImageRenderTarget spriteIDRenderTarget;
-	static String overlayGroup = "overlayGroup";
+	static private  BufferedImageRenderTarget spriteIDRenderTarget;
+	static private  String overlayGroup = "overlayGroup";
 
 	static Color darkBlue = new Color(74,74,240);
-	///////////////////////////////////////////////////////////////////////////////////////////
-	// initialise() must be called from  loadContentUserSession(), as it requires the UI to be already initialised
-	// which only happens after initialiseUserSession()
-	// As the inclusion of SpriteID takes a lot of memory and pasting time, it is nullable
-	// As the scene may be only 2D, the SceneData3D is also nullable
-	//
-	public static void initialise(Surface s, SpriteBatch sb, SceneData3D sd3d) {
+	
+	
+	/**
+	 * When initialised, the user can get real-time feedback on SceneData3D information via a dialogue box. It can be set up to show either 3D_Info mode showing 3D scene-data information pixel data or, if initialised 
+	 * in sprite_info_mode with the sprite batch, can show pasted sprite based data (the sprite id, its image group and short name, sprite batch, sprite font etc). <p>
+     * initialise() must be called in UserSession.loadContentUserSession() (i.e. after the UI has been initialised just after UserSession.initialaiseUserSession() )
+     * 
+	 * 
+	 * @param spriteBatch - Nullable. If set, then the feedback about the pasted sprites is enabled (should create a new button in the interface). If not, then info is about the SceneData pixel values. 
+	 * If set to a sprite batch, then a SpriteID render target is initialised and you must use SceneInformationInspector.pasteSpriteID(sprite) to add sprites to this image during the render
+	 * 
+	 */
+	public static void initialise(SpriteBatch spriteBatch) {
 
-		theSurface = s;
+		theSurface = GlobalSettings.getTheApplicationSurface();
 		theUI = theSurface.theUI;
 
-		theSpriteBatch = sb;
-		sceneData3D = sd3d;
+		theSpriteBatch = spriteBatch;
+		sceneData3D = GlobalSettings.getSceneData3D();
 
 		if(theSpriteBatch != null) {
 			GlobalSettings.getDocument().addRenderTarget("spriteIDRenderTarget", BufferedImage.TYPE_INT_ARGB);
@@ -67,75 +80,21 @@ public class SceneInformationInspector {
 		initialised = true;
 	}
 
-	public static boolean isInitialised() {
-		return initialised;
-	}
+	
 
+	/**
+	 * @return - true is the sprite ID information has been initialised with a sprite batch
+	 */
 	public static boolean isSpriteIDInfoInitialised() {
 		if(theSpriteBatch==null) {
 			return false;
 		}
 		return true;
 	}
-
-	public static boolean isScene3DInfoInitialised() {
-		if(sceneData3D==null) {
-			return false;
-		}
-		return true;
-	}
-
-	public static void updateToolFromUI(UIEventData uied) {
-
-		if( !isInitialised()) {
-			return;
-		}
-
-		if (uied.eventIsFromWidget("3d info")) {
-			toolMode = "3d info";
-
-		}
-
-		if (uied.eventIsFromWidget("sprite info")) {
-			toolMode = "sprite info";
-		}
-
-		if (uied.eventIsFromWidget("ruler size slider")) {
-			//System.out.println("ruler slider ");
-			update3DMeasuringToolSlider(uied.sliderValue);
-		}
-
-	}
-
-
-
-
-
-	public static void handleCanvasMouseEvent(UIEventData uied) {
-		if(!isInitialised() || uied.mouseEventType.contentEquals("mouseMoved")) {
-			return;
-		}
-
-		if(uied.mouseEventType.contentEquals("mousePressed") || uied.mouseEventType.contentEquals("mouseDragged")) {
-
-			if(toolMode.equals("3d info")) {
-				draw3DMeasuringTool(uied.docSpacePt, true, uied.mouseEventType);
-			}
-			if(toolMode.equals("sprite info")) {
-				showSpriteInfo(uied.docSpacePt);
-			}
-
-		}
-
-		if( uied.mouseEventType.contentEquals("mouseReleased")  ) {
-			theSurface.theUI.deleteCanvasOverlayShapes(overlayGroup);
-		}
-
-	}
-
-
-
-
+	
+	/**
+	 * @param sprite - pastes the sprite's ID into the initialised spriteIDRenderTarget
+	 */
 	public static void pasteSpriteID(Sprite sprite) {
 
 		if( !isInitialised()) {
@@ -152,7 +111,82 @@ public class SceneInformationInspector {
 	}
 
 
-	public static void showSpriteInfo(PVector docPt) {
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// below here, methods not to be called by user.
+	//
+	//
+
+	/**
+	 * Sets the mode to either Scenedata3D info, or Pasted Sprite Info
+	 * called internally by Surface.handleUserSessionUIEvent(UIEventData)
+	 * @param uied
+	 */
+	public static void updateToolFromUI(UIEventData uied) {
+
+		if( !isInitialised()) {
+			return;
+		}
+
+		if (uied.eventIsFromWidget("3d info")) {
+			toolMode = MODE_3D_INFO;
+
+		}
+
+		if (uied.eventIsFromWidget("sprite info")) {
+			toolMode = MODE_SPRITE_INFO;
+		}
+
+		if (uied.eventIsFromWidget("ruler size slider")) {
+			//System.out.println("ruler slider ");
+			update3DMeasuringToolSlider(uied.sliderValue);
+		}
+
+	}
+
+
+
+
+
+	/**
+	 * Updates the dialogue box display on mouse roam
+	 * called internally by Surface.handleCanvasMouseEvent(UIEventData)
+	 * @param uied
+	 */
+	public static void handleCanvasMouseEvent(UIEventData uied) {
+		if(!isInitialised() || uied.mouseEventType.contentEquals("mouseMoved")) {
+			return;
+		}
+
+		if(uied.mouseEventType.contentEquals("mousePressed") || uied.mouseEventType.contentEquals("mouseDragged")) {
+
+			if(toolMode == MODE_3D_INFO) {
+				draw3DMeasuringTool(uied.docSpacePt, true, uied.mouseEventType);
+			}
+			if(toolMode == MODE_SPRITE_INFO) {
+				showSpriteInfo(uied.docSpacePt);
+			}
+
+		}
+
+		if( uied.mouseEventType.contentEquals("mouseReleased")  ) {
+			theSurface.theUI.deleteCanvasOverlayShapes(overlayGroup);
+		}
+
+	}
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// private below here
+	//
+	//
+
+	
+	private static boolean isInitialised() {
+		return initialised;
+	}
+
+	
+
+	private static void showSpriteInfo(PVector docPt) {
 		///////////////////////////////////////////////////////////////////////////////////////
 		// Displays sprite data information under the mouse,
 		// This requires a sriteIDRenderTarget to be created (just an ARGB image), and sprites
@@ -220,7 +254,7 @@ public class SceneInformationInspector {
 
 	}
 
-	static void add3DMeasuringToolSlider() {
+	private static void add3DMeasuringToolSlider() {
 		Slider s = theSurface.theUI.addSlider("ruler size slider", 0, 260);
 		TextInputBox tib = theSurface.theUI.addTextInputBox("ruler size", 0, 290, "0");
 		theSurface.theUI.setText("ruler size", "0.5");
@@ -229,7 +263,7 @@ public class SceneInformationInspector {
 	}
 
 
-	static void update3DMeasuringToolSlider(float slideVal) {
+	private static void update3DMeasuringToolSlider(float slideVal) {
 		float s = slideVal*10;
 		measuringToolSize = s;
 		//System.out.println("MeasuringToolSize " + measuringToolSize);
@@ -239,7 +273,7 @@ public class SceneInformationInspector {
 	}
 
 
-	public static void draw3DMeasuringTool(PVector docPt, boolean visible, String mouseEventType) {
+	private static void draw3DMeasuringTool(PVector docPt, boolean visible, String mouseEventType) {
 		///////////////////////////////////////////////////////////////////////////////////////
 		// Displays scene data information under the mouse, and draws two measuring lines
 		// The blue line indicates a set scene height (defaul 5) in the scene. The green line indicates a drag distance, and the respective (3D, doc space) lengths
@@ -278,7 +312,7 @@ public class SceneInformationInspector {
 		float worldScale = sceneData3D.get3DScale(docPt);
 		PVector startPoint3D = sceneData3D.get3DSurfacePoint(measuringToolStartPoint);
 		PVector currentPoint3D = sceneData3D.get3DSurfacePoint(docPt);
-
+		PVector surfaceNormal3D = sceneData3D.getSurfaceNormal(docPt);
 		float dragDistance3DSurface = startPoint3D.dist(currentPoint3D);
 		float dragDistanceDocSpace = docPt.dist(measuringToolStartPoint);
 
@@ -320,6 +354,7 @@ public class SceneInformationInspector {
 		float textY4 = rectTopLeft.y + (gap*4);
 		float textY5 = rectTopLeft.y + (gap*5);
 		float textY6 = rectTopLeft.y + (gap*6);
+		float textY7 = rectTopLeft.y + (gap*7);
 
 
 		theSurface.theUI.addCanvasOverlayShape_DoscSpace(overlayGroup, docPt, heightIndicatorEndPt, "line", Color.black, Color.blue, 3);
@@ -327,15 +362,16 @@ public class SceneInformationInspector {
 		theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY1), "3d height line " + measuringToolSize ,  Color.red, textSize);
 		theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY2), "Depth " + depth + ".  Norm depth " + normalisedDepth,  Color.red, textSize);
 		theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY3), "3D Loc = " + currentPoint3D.toStr() + " 3D drag dist = " + dragDistance3DSurface ,  Color.red, textSize);
-		theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY4), "Doc Point = " + docPt.toStr() + " drag doc dist " + dragDistanceDocSpace,  Color.red, textSize);
+		theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY4), "Surface Normal = " + surfaceNormal3D.toStr() ,  Color.red, textSize);
+		theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY5), "Doc Point = " + docPt.toStr() + " drag doc dist " + dragDistanceDocSpace,  Color.red, textSize);
 
 		PVector bp = GlobalSettings.getTheDocumentCoordSystem().docSpaceToBufferSpace(docPt);
-		theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY5), "Buffer XY = " + bp.toStr() ,  Color.red, textSize);
+		theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY6), "Buffer XY = " + bp.toStr() ,  Color.red, textSize);
 
 		if( GlobalSettings.getDocument().renderTargetExists("SpriteID")) {
 
 			int spriteID = GlobalSettings.getDocument().getBufferedImageRenderTarget("SpriteID").getSpriteID(docPt);
-			theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY6), "SpriteID = " + spriteID,  Color.red, textSize);
+			theSurface.theUI.addCanvasOverlayText_DocSpace(overlayGroup, new PVector(textX, textY7), "SpriteID = " + spriteID,  Color.red, textSize);
 		}
 
 		//GlobalSettings.getDocument().getMain().drawPoint(docPt, Color.RED, 5);

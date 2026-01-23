@@ -2,7 +2,10 @@ package MOScene3D;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Comparator;
 
+import MOImage.ByteImageGetterSetter;
 import MOImage.ImageDimensions;
 import MOImage.MOPackedColor;
 import MOMaths.MOMaths;
@@ -13,57 +16,56 @@ import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 import MOUtils.Progress;
 
+/**
+ * Lighting_BasePoint uses the tone sampled at the base of the pated sprite to give it an overall tone for each sprite. The render is created in a separate 8-bit greyscale render target. 
+ * There is also the facility to add a "ramped" effect. This is used to add darkness around the base and add a lightened tip.
+ * 
+ */
 public class Lighting_BasePoint extends Lighting_CommonUtils{
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// renderShadow is called immediately after a sprite is pasted. In order to use this class, you first need to add a
-	// FloatRendertarget and a greyscale render target sIt works out the shadow cast by that sprite on all sprites previously pasted
-	// using a kind of ray tracing. It iterates over the scene already pasted, and added to the depthRender, and for each pixel works out
-	// if a ray cast from that pixel towards the light is obscured by the new sprite being pasted. If so draw shadow in the shadowRender at that point.
-	// The light is assumed to be a parallel source.
-	// There are a lot of optimisations here
-
-
-	Range basePointValueRange;
-
-	public Lighting_BasePoint(SceneData3D scene3D,  String nameOfShadowRender, float minBasePointValue, float maxBasePointValue){
-		super(scene3D, nameOfShadowRender);
-
+	String lightingTextureName;
+	ToneRamp toneRamp;
+	/**
+	 * @param nameOfShadowRender - The name of the new render created to store the lighting image
+	 * @param lightingSourceTextureName - the texture name in the SceneData3D for the lighting calculation
+	 */
+	public Lighting_BasePoint(String nameOfShadowRender, String lightingSourceTextureName){
+		super(nameOfShadowRender);
+		lightingTextureName = lightingSourceTextureName;
+		
 		Range worldY = sceneData3D.depthBuffer3d.worldYExtrema;
 		System.out.println("worldY extrama " + worldY.toStr() );
 		float sceneYMin = sceneData3D.depthBuffer3d.worldYExtrema.getUpper();
 
-		basePointValueRange = new Range(minBasePointValue,maxBasePointValue);
-
 		coordinateSystem = GlobalSettings.getDocument().getCoordinateSystem();
-
-		progress = new Progress("Shadows: ");
 	}
 
 
 
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// original lighting based on a single point sample at the base of the sprite, with the option to
-	// include a 3D ramp from black at the base, to the base-point colour (tone) at the top of the ramp (and beyond)
-	// If the rampBaseHeight and rampTopHeight are both set to 0, then no ramp is added so the base-point tone is applied over the whole sprite.
-	// The ramp is measured and calculated in 3D height units, measured from the base of the sprite, as taller sprites would receive more light, or the light would be on a roughly consistent height level
-	//
-	// sprite
-	//
-	// endBaseShadingHeight - height of span from 0 (black) -> endBaseShadeHeight (base_point_sample_tone)
-	// startTipLigtheningHeight - height of span from base_point_sample_tone (startTipLigtheningHeight) -> tipPoint (tipShade)
-	// tipBrightening (0..1) - tipShade = lerp(tipBrightening, base_point_sample_tone, white )
-	//
-	//
-
-	public void basePointLighting(Sprite sprite, String projectLightTextureName,  float baseRampEndHeight, float tipRampStart, float tipRampEnd, float tipBrighteningAmount, float stochasticAmount) {
+	/**
+	* Lighting_BasePoint uses the tone sampled at the base of the pated sprite to give it an overall tone for each sprite. The render is created in a separate 8-bit greyscale render target. 
+    * There is also the facility to add a "ramped" effect. This is used to add darkness around the base and add a lightened tip.<p>
+    * 
+    * Ramp effect measurements are in real-scene sprite height dimensions, so short sprites may never achieve their tip values, which seems to match real-life.
+	* If the rampBaseHeight and rampTopHeight are both set to 0, then no ramp is added so the base-point tone is applied over the whole sprite.
+	* The ramp is measured and calculated in 3D height units, measured from the base of the sprite, as taller sprites would receive more light, or the light would be on a roughly consistent height level
+	*
+	* @param sprite - the sprite being pasted and "lit"
+	
+	* @param baseRampEndHeight - height of span from 0 (black) -> endBaseShadeHeight (base_point_sample_tone)
+	* @param tipRampStart - height of span from base_point_sample_tone (startTipLigtheningHeight) -> tipPoint (tipShade)
+	* @param tipRampEnd - the height at which tip-brightening ends
+	* @param tipBrighteningAmount
+	* @param stochasticAmount
+	*/
+	public void basePointLighting(Sprite sprite,  float baseRampEndHeight, float tipRampStart, float tipRampEnd, float tipBrighteningAmount, float stochasticAmount) {
 		debugFlag=false;
-		progress.update();
+		//progress.update();
 
 		// dont need z render depth texture for this algorithm - just usesd the scenedata
 
 		// set the projected shadow render
-		sceneData3D.setCurrentRenderImage(projectLightTextureName);
+		sceneData3D.setCurrentRenderImage(lightingTextureName);
 
 
 
@@ -74,7 +76,7 @@ public class Lighting_BasePoint extends Lighting_CommonUtils{
 		float spriteDepth = sprite.getDepth();
 
 		float basePointBrightness = sceneData3D.getCurrentRender01Value(spriteDocPt);
-		basePointBrightness = basePointValueRange.lerp(basePointBrightness);
+		
 
 		//System.out.println("basePointBrightness "+ basePointBrightness );
 
@@ -91,7 +93,7 @@ public class Lighting_BasePoint extends Lighting_CommonUtils{
 		float thisStochasticAmount = sprite.getRandomStream().keyedFloat(sprite.randomKey, -stochasticAmount, stochasticAmount);
 
 
-		BufferedImage spriteImage = sprite.getMainImage();
+		BufferedImage spriteImage = sprite.getCurrentImage();
 		int spriteBufferW = spriteImage.getWidth();
 		int spriteBufferH = spriteImage.getHeight();
 		Rect spriteBoundingRectBufferSpace = sprite.getDocumentBufferSpaceRect();
@@ -162,10 +164,124 @@ public class Lighting_BasePoint extends Lighting_CommonUtils{
 
 
 	}
+	
+	public void setToneRamp(float baseTopControlPoint, float baseAlphaBottom,  float tipBottomControlPoint,  float tipTopControlPoint, float tipAlphaTop) {
+		
+		toneRamp = new ToneRamp();
+		// the base has full base tone + alpha
+		toneRamp.addControlPoint(0, 0, baseAlphaBottom);
+		
+		// this fades to nothing by baseTopControlPoint
+		toneRamp.addControlPoint(baseTopControlPoint, 0, 0);
+		
+		
+		// the mid ramp has nothing to contribute, so between the previous and this no alpha
+		// this then defines the start of the tip
+		toneRamp.addControlPoint(tipBottomControlPoint, 1, 0);
+		
+		
+		// this defines the end of the tip ramp. Anything beyond this is constant
+		toneRamp.addControlPoint(tipTopControlPoint, 1, tipAlphaTop);
+	}
+	
+	
+	public void basePointLighting(Sprite sprite) {
+		debugFlag=false;
+		//progress.update();
+
+		// dont need z render depth texture for this algorithm - just usesd the scenedata
+
+		// set the projected shadow render
+		sceneData3D.setCurrentRenderImage(lightingTextureName);
+
+
+
+		shadowRenderTarget.pasteSprite_ReplaceColour(sprite, Color.BLACK);
+
+
+		PVector spriteDocPt = sprite.getDocPoint();
+		float spriteDepth = sprite.getDepth();
+
+		float basePointBrightness = sceneData3D.getCurrentRender01Value(spriteDocPt);
+		
+
+		//System.out.println("basePointBrightness "+ basePointBrightness );
+
+
+		PVector basePoint3D = 	sceneData3D.get3DSurfacePoint(spriteDocPt);
+
+		if(this.debugFlag) {
+			System.out.println("Sprite ");
+		}
+
+		// the stochastic change in ramp values must be calculated once at the start, and is a scaling in the range
+		// - stochasticAmount, + stochasticAmount
+
+
+		BufferedImage spriteImage = sprite.getCurrentImage();
+		int spriteBufferW = spriteImage.getWidth();
+		int spriteBufferH = spriteImage.getHeight();
+		Rect spriteBoundingRectBufferSpace = sprite.getDocumentBufferSpaceRect();
+		ImageDimensions spriteImageDimensions = new ImageDimensions(spriteBufferW,spriteBufferH);
+
+		// we do it bottom to top, so as to trap the bright point going upwards
+		for(int y = (int) spriteBoundingRectBufferSpace.bottom; y >= spriteBoundingRectBufferSpace.top; y--) {
+
+
+			//work out the doc space location of the pixel above the basepoint, in docSpace
+			PVector docSpaceOfY = BStoDS(0,y);
+			PVector aboveBasePointAtThisY = new PVector(spriteDocPt.x, docSpaceOfY.y);
+
+
+			// convert this into a 3D point (at the sprite's depth)
+			PVector y3D  = sceneData3D.get3DVolumePoint(aboveBasePointAtThisY, spriteDepth);
+
+
+			// measure this distance between the basePoint, and this y3D point
+			// This gives oyu the height of this row of ixels above the
+			// base point in 3D units
+			
+			float thisYHeight3D = y3D.dist(basePoint3D);
+			
+			int rampedvalue;
+			
+			if(toneRamp!=null) {
+				rampedvalue = (int)  (toneRamp.modifyTone(thisYHeight3D, basePointBrightness) * 255);
+			} else {
+				rampedvalue = (int)  (basePointBrightness * 255);
+			}
+
+			for (int x = (int) spriteBoundingRectBufferSpace.left; x <= spriteBoundingRectBufferSpace.right; x++) {
+
+				if( !shadowRenderTarget.getCoordinateSystem().isInsideBufferSpace(x, y)) {
+					continue;
+				}
+
+				int pixelLocationInSpriteImageX = x - (int)spriteBoundingRectBufferSpace.left;
+				int pixelLocationInSpriteImageY = y - (int)spriteBoundingRectBufferSpace.top;
+
+				if( !spriteImageDimensions.isLegalIndex(pixelLocationInSpriteImageX, pixelLocationInSpriteImageY) ) {
+					continue;
+				}
+
+				int spriteRGBA = spriteImage.getRGB(pixelLocationInSpriteImageX, pixelLocationInSpriteImageY);
+				int alpha = MOPackedColor.getAlpha(spriteRGBA);
+				if(alpha == 0) {
+					continue;
+				}
+				int existingValue = shadowImageGetSet.getPixel(x, y);
+				int blendedValue = alphaBlend(existingValue, rampedvalue,  alpha);
+				shadowImageGetSet.setPixel(x, y, blendedValue);
+
+			}// for X
+		}// for Y
+
+	}
+
 
 
 	float getRampValue(float thisHeight, float basePointBrightness, float baseRampEndHeight, float tipRampStart, float tipRampEnd, float tipBrighteningAmount, float stochasticAmount) {
-		float shadowVal = this.basePointValueRange.getLower();
+		float shadowVal = 0;
 		if( baseRampEndHeight == 0) {
 			return basePointBrightness;
 		}
@@ -207,14 +323,10 @@ public class Lighting_BasePoint extends Lighting_CommonUtils{
 
 	}
 
-	//PVector BStoDS(int x, int y) {
-	//	return GlobalSettings.getDocument().getCoordinateSystem().bufferSpaceToDocSpace(x,y);
-	///}
-
-
-	//PVector BStoDS(PVector buffPt) {
-	//	return GlobalSettings.getDocument().getCoordinateSystem().bufferSpaceToDocSpace(buffPt);
-	//}
-
-
 }
+
+
+
+
+
+

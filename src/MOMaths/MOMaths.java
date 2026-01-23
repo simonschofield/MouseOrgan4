@@ -35,6 +35,15 @@ public class MOMaths {
 		}
 		return false;
 	}
+	
+	public static boolean isBetweenExc(float v, float a, float b) {
+		float lo = Math.min(a, b);
+		float hi = Math.max(a, b);
+		if (v > lo && v < hi) {
+			return true;
+		}
+		return false;
+	}
 
 	public static boolean isClose(float v, float target, float tol) {
 		if (diff(v,target) >= tol) {

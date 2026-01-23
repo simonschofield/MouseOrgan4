@@ -1032,6 +1032,15 @@ public class ImageProcessing {
 		return ImageProcessing.convertColorModel(imageOut, originalImageType);
 	}
 
+	/**
+	 * Simulates Photoshop's Levels interface.  input value ranges are all 0..255 except for midtoneGamma, which is 0.01...10 s. Shorthanded: The outShadow value is defaulted to 0, and the outHighlightVal is defaulted to 255.
+	 * @param image - the input image (is unaltered)
+	 * @param shadowVal - output outShadowVal is mapped to this value in the input image
+	 * @param midGamma - in the range 0.001-10, where 1 is in the middle. It is the amount of "bend" between shadowVal and highlightVal - as per Photoshop's dialog
+	 * @param highlightVal - output outHighlightVal is mapped to this value in the input image
+	 * @return returns the processed BufferedImage
+	 *
+	 */
 	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneVal, float highlightVal) {
 		// shorthand of main function above with output set to 0,255
 		return adjustLevels( image,  shadowVal,  midtoneVal,  highlightVal, 0,  255);

@@ -6,6 +6,7 @@ import MOMaths.PVector;
 import MOMaths.Rect;
 import MOPointGeneration.PackingInterpolationScheme;
 import MOPointGeneration.PointGenerator_SurfacePack3D;
+import MOScene3D.AABox3D;
 import MOScene3D.SceneData3D;
 import MOSprite.Sprite;
 import MOSprite.SpriteBatch;
@@ -13,81 +14,125 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePairList;
 import MOUtils.MOStringUtils;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A helper class. Produces a sprite batch from scene 3D data using a packing algorithm
-// A sprite batch is a list of sprites. The spites have a hash-field called SpriteBatchName
-// When sprite batches are appended together the sprites maintain their original SpriteBatchName
-//
-// There is one long-lived pointGenerator utilised by the class, which is re-purposed if used multiple times. This enables the user to set any of the packing settings
-// before point generation happens.
+
+/**
+ * A helper class. Produces a sprite batch(es) from scene 3D data using a 3D packing algorithm, which in turn may use a PackingInterpolationScheme based on SceneData3D texture. <p>
+ * Hence, the distribution of sprites on the 3D surface is controlled by the tonality of an underlying SceneData3D texture image. <p>
+ * A sprite batch is a list of sprites (see SpriteBatch class); they are created with unique ID's, doc-space points, scene depths 
+ * randomKeys and a String SpriteBatchName (in the sprite's KeyValuePairList), but NOT their image data (i.e. the image, pivot point and scale in scene). These are set later by a SpriteFont to complete the sprite.
+ * This ensures that sprite batches are very light weight; a SpriteBatch can be saved in-toto and reloaded.<p>
+ * When creating a set of SpriteBatches for the render, it is typical to concatenate them together as they are made into a "Collated" sprite batch, which is then easy to use for the full render. 
+ * When sprite batches are appended together the sprites maintain their original SpriteBatchName. There is one long-lived pointGenerator utilised by the class, which is re-purposed if used across multiple batches. 
+ * This enables the user to set any of the packing settings before point generation happens.<p>
+ * 
+ * Using this class, multiple sprite batches can be generated, saved and loaded. As they are generated, they are added to a "collated" sprite batch internally. This can then be recovered
+ */
 public class SpriteBatchHelper_Scene3D {
 
 	PointGenerator_SurfacePack3D pointGenerator;
 	String currentSpriteBatchName;
-	int spriteRandomKey = 0;
+	SpriteBatch collatedSpriteBatches;
 
-	public SpriteBatchHelper_Scene3D(SceneData3D sd) {
-		pointGenerator = new PointGenerator_SurfacePack3D(sd);
+	public SpriteBatchHelper_Scene3D() {
+		pointGenerator = new PointGenerator_SurfacePack3D();
+		collatedSpriteBatches = new SpriteBatch("collated");
 	}
+
+
+	
+	
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// A sprite's randomKey is automatically set to be the same as its UniqueId upon instantiation.
-	// However this poses a problem if you want sprite batches to be stochastically independent of each other - as any
-	// alteration to sprite batch A's total number of generated sprites, would affect sprite batch B's randomKey allocation.
-	// To work round this, Sprite batch generators explicitly set the generated Sprite's random keys after sprite instantiation.
-	// The default is for each sprite batch generator to allocate sprite randomKeys starting
-	// at 0 and count upward, but this allows the user to set the start-count number on each sprite batch generator.
+	// Packing settings
 	//
-	public void setSpriteRandomKeyStartNumber(int k) {
-		spriteRandomKey = k;
-
+	/**
+	 * Sets the packing Mode to ether 2D visitation, with its innate bias toward near areas, or 3D mode which is being tested
+	 * @param packingMode either 0 or 1, PointGenerator_SurfacePack3D.PACKINGMODE_2D_VISITATION, PointGenerator_SurfacePack3D.PACKINGMODE_3D_VISITATION
+	 */
+	public void setPackingMode(int packingMode) {
+		
+		pointGenerator.setPointPackingVisitationMode(packingMode);
+		
 	}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Packing settings
-//
+	
+	
+	
+	
+	
+	/**
+	 * Decreases the packing radius according to scene depth. Uses normalised depth with respect to whole (master) scene data, not the ROI.
+	 * Set the farMultiplier > 1 to get thinning to happen in the distance. Thinning occurs between the nearThreshold (no thinning) and the far depth (full thinning)
+	 * when the distance is far (1), the value out == radiusIn*farMultimpler when the distance is nearDistanceThreshold value out == radius
+	 * 
+	 * @param farMultiplier -  the amount of increase in radius at the farthest depth in the (whole) scene
+	 * @param nearThreshold -  the (normalised) distance at which there is not more thinning.
+	 */
 	public void setDepthThinning(float farMultiplier, float nearThreshold) {
-		// Decreases the packing radius according to scene depth. Uses normalised depth
-		// Normalised depth is always with respect to whole (master) scene data, not the ROI.
-		// Set the farMultiplier > 1 to get thinning to happen in the distance
-		// Thinning occurs between the nearThreshold (no thinning) and the far depth (full thinning)
-		// when the distance is far (1), the value out == radiusIn*farMultimpler
-		// when the distance is nearDistanceThreshold value out == radius
 		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
 	}
 
+	/**
+	 * @param r - sets the docSpace extents of the generated points. Therefore this is a 2D extents box.
+	 */
 	public void setExtentsRect(Rect r) {
-		pointGenerator.setGenerationArea(r);
+		pointGenerator.setGenerationArea_2DVisitation(r);
 	}
 
+	/**
+	 * @param n - the maximum number of points that can be generated by this batch. Will bail at this number.
+	 */
 	public void setMaxNumPoints(int n) {
 		pointGenerator.setMaxNumPointsLimit(n);
 	}
 
+	/**
+	 * @param rk - the random seed for the point generator
+	 */
 	public void setPointGeneratorRandomSeed(int rk) {
 		pointGenerator.setRandomStreamSeed(rk);
 
 	}
 
-	///////////////////////////////////////////////////////////////////////
-	// returns a sprite batch, using a default packing radius
-	//
-	//
-	public SpriteBatch createSpriteBatch3D(String name, float radius, int seedRandomKey, int maxNumPoints) {
+	
+	/**
+	 * Generates a Sprite batch of points based on a Scenedata3D. Creates a SpriteBatch of evenly-spaced points. All the packing in this class uses a method that packs until it cannot find another space for a 
+	 * point (bailing at 300 failed attempts to find a "space").
+	 * 
+	 * @param name - the generated SpriteBatch name
+	 * @param radius - the 3D radius of the packing. In  this method the packing is set to a constant value (although can use setDepthThinning(...))
+	 * @param pointGeneratorRandomSeed - the random seed for the point-packing generator
+	 * @param maxNumPoints - the maximum number of points that can be generated by this batch. Will bail at this number.
+	 * @return the SpriteBatch with the generated points. docPoint, 3Ddepth and SpriteBatchName, UniqueID, RandomKey
+	 */
+	public SpriteBatch createSpriteBatch3D(String name, float radius, int pointGeneratorRandomSeed, int spriteRandomKeyStart, int maxNumPoints) {
 		currentSpriteBatchName = name;
+		
 		pointGenerator.setDefaultPackingRadius(radius);
 		pointGenerator.setMaxNumPointsLimit(maxNumPoints);
-		pointGenerator.setRandomStreamSeed(seedRandomKey);
-		return generateSpriteBatch();
+		pointGenerator.setRandomStreamSeed(pointGeneratorRandomSeed);
+		SpriteBatch spriteBatch = generateSpriteBatch(spriteRandomKeyStart);
+		collatedSpriteBatches.append(spriteBatch);
+		return spriteBatch;
 	}
 
-	///////////////////////////////////////////////////////////////////////
-	// returns a sprite batch, using a Packing Interpolation Scheme based on an image
-	//
-	//
-	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointPackingRanSeed, int spriteRandomKeyStart, int maxNumPoints) {
+	
+	/**
+	 * Generates a Sprite batch of points based on a Scenedata3D. The distribution  of the points is governed by an image in conjunction with a radius interpolation scheme.
+	 * This method assumes that dense areas of sprites are in the dark areas of the image, with a maximum packing defined by controlValMin and radAtControlMin. Below this value the sprite radius is clamped, creating areas of dense-but-even distribution.
+	 * Light areas of the image represent the most sparse packing (greatest radius) defined by controlValMax and radAtControlMax. Sprites will not be added to areas brighter than controlValMax, thereby creating empty patches.
+	 * @param name - the generated SpriteBatch name. 
+	 * @param packingImage - the name of the image in the SceneData3D texture collection used to effect the distribution of points
+	 * @param controlValMin - The value in the image at which the packing is radAtControlMin. At lowers values, the radius is CLAMPED, creating areas with even distribution. 
+	 * @param controlValMax - The value in the image at which the packing is radAtControlMax. At higher values, the points are EXCLUDED, creating areas with no points. 
+	 * @param radAtControlMin - The radius (in 3D units) at the image data controlValMin, where the packing is most dense. 
+	 * @param radAtControlMax - The radius (in 3D units) at the image data controlValMax, where the packing is most thin.
+	 * @param pointGeneratorRandomSeed - the random seed for the point-packing generator
+	 * @param spriteRandomKeyStart - the start number of the random keys for this sprite batch. Each sprite adds 1 to this.
+	 * @param maxNumPoints - the maximum number of points that can be generated by this batch. Will bail at this number.
+	 * @return the SpriteBatch with the generated points. Data set is docPoint, 3Ddepth and SpriteBatchName, UniqueID, RandomKey
+	 */
+	public SpriteBatch createSpriteBatch3D(String name, String packingImage, float controlValMin, float controlValMax, float radAtControlMin, float radAtControlMax, int pointGeneratorRandomSeed, int spriteRandomKeyStart, int maxNumPoints) {
 
 			PackingInterpolationScheme interpolationScheme = new PackingInterpolationScheme( controlValMin,  controlValMax,  radAtControlMin,  radAtControlMax, PackingInterpolationScheme.EXCLUDE,  PackingInterpolationScheme.CLAMP);
 
@@ -97,24 +142,69 @@ public class SpriteBatchHelper_Scene3D {
 
 			//SpriteBatchHelper_Scene3D seedBatchHelper = new SpriteBatchHelper_Scene3D(sceneData3D);
 			currentSpriteBatchName = name;
-			spriteRandomKey = spriteRandomKeyStart;
-			pointGenerator.setRandomStreamSeed(pointPackingRanSeed);
+			
+			pointGenerator.setRandomStreamSeed(pointGeneratorRandomSeed);
 			pointGenerator.setPackingImage(packingImage);
 			pointGenerator.setPackingInterpolationScheme(interpolationScheme);
 
 			pointGenerator.setMaxNumPointsLimit(maxNumPoints);
-			return generateSpriteBatch();
+			
+			
+			SpriteBatch spriteBatch = generateSpriteBatch(spriteRandomKeyStart);
+			collatedSpriteBatches.append(spriteBatch);
+			return spriteBatch;
 		}
 
 
+	/**
+	 * @return - the collated SpriteBatch which contains the sprite batches created so far, either procedurally or loaded from file. Each sprite batch keeps its original sprite batch name.
+	 */
+	public SpriteBatch getCollatedSpriteBatch() {
+		
+		return collatedSpriteBatches;
+	}
+	
+	
+	/**
+	 * saves the collated sprite batch so far with the name csvFname into the SpriteBatches folder in the current session
+	 * @param csvFname - the csv filename of the sprite batch. This must end ".csv"
+	 */
+	public void saveCollatedSpriteBatch(String csvFname) {
+		collatedSpriteBatches.saveSpriteBatch( collatedSpriteBatches.getSpriteBatchDirectoryPath() + "//" + csvFname );
+	}
+	
+	
+	/**
+	 * loads a SpriteBatch into the the collated sprite batch from the .csv file names csvFname. This should be in the SpriteBatches folder in the current session. It will append the current
+	 * collatedSpriteBatches. 
+	 * @param csvFname - the csv filename of the sprite batch. This must end ".csv"
+	 */
+	public void loadSpriteBatcheIntoCollated(String csvFname) {
+		int beforeNumber = collatedSpriteBatches.getNumItems();
+		collatedSpriteBatches.loadSpriteBatch( collatedSpriteBatches.getSpriteBatchDirectoryPath() + "//" + csvFname );
+		int afterNumber = collatedSpriteBatches.getNumItems();
+		System.out.println(" loaded base grass seeds - " + (afterNumber-beforeNumber) );
+	}
 
-
-
-	///////////////////////////////////////////////////////////////////////
-	// private methods
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// private internal methods
 	//
 	//
-	private SpriteBatch generateSpriteBatch() {
+	
+	/**
+	* Called by createSpriteBatch3D(..) methods. 
+	* This generates the sprite batch based on previously set data in the point generator. Is called from  public createSpriteBatch3D(..) methods <p>
+	* Note on sprite randomKey: A sprite's randomKey is automatically set to be the same as its UniqueId upon instantiation.
+	* However this poses a problem if you want sprite batches to be stochastically independent of each other - as any
+	* alteration to sprite batch A's total number of generated sprites, would affect sprite batch B's randomKey allocation.
+	* To work round this, Sprite batch generators explicitly set the generated Sprite's random keys after sprite instantiation.
+	* The default is for each sprite batch generator to allocate sprite randomKeys starting
+	* at 0 and count upward, but this allows the user to set the start-count number on each sprite batch generator.
+	* 
+	* @param randomKeyStart - sprites in the batch have a randomKey that starts at this value and increments by 1 every sprite
+	* @return the SpriteBatch with the generated points. docPoint, 3Ddepth and SpriteBatchName, UniqueID, RandomKey
+	*/
+	private SpriteBatch generateSpriteBatch(int randomKeyStart) {
 		if(pointGenerator == null) {
 			System.out.println("SeedBatchFactory_Scene3D::generateSpriteSeedBatch -  point packing is undefined , please call definePointPacking before using this method");
 			return null;
@@ -129,11 +219,11 @@ public class SpriteBatchHelper_Scene3D {
 
 		ArrayList<PVector> points = pointGenerator.generatePoints();
 
-
+		int spriteRandomKey = randomKeyStart;
 		for(PVector p: points) {
 			Sprite sprite = new Sprite(true);
 
-			// sprite batch makers should set the ransom ket to be different from the
+			// sprite batch makers should set the random key to be different from the
 			// unique ID, so that the ran key is independent of previously made/loaded sprites
 			sprite.setRandomKey(spriteRandomKey++);
 

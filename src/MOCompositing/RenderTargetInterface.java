@@ -13,7 +13,7 @@ import MOUtils.ImageCoordinateSystem;
 
 public interface RenderTargetInterface {
 	
-	public void setName(String name);
+	//public void setName(String name);
 	
 	public String getName();
 	
@@ -25,13 +25,11 @@ public interface RenderTargetInterface {
 	
 	public void pasteSprite(Sprite sprite);
 	
-	public void pasteSprite(Sprite sprite, String imageName);
-	
 	public void saveRenderToFile(String pathAndFilename);
 
 	public ImageCoordinateSystem getCoordinateSystem();
 	
-	public void setCoordinateSystem(ImageCoordinateSystem ics);
+	//public void setCoordinateSystem(ImageCoordinateSystem ics);
 	
 	public int getImageType();
 	

@@ -18,19 +18,19 @@ import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
 
 /****************************************************************
-* RenderBoarder determines what happens to sprites pasted on the boarder of an image
+* RenderBorder determines what happens to sprites pasted on the Border of an image
 *
 * It operates by culling/cropping/leaving-intact a sprite just before the final paste operations into the receiving output-image buffers
 *
-* The boarderRect is SET using Normalised coordinates (0..1 in both x and y) as this is human-readable, but STORED using docSpace coordinates
+* The BorderRect is SET using Normalised coordinates (0..1 in both x and y) as this is human-readable, but STORED using docSpace coordinates
 
-* If a sprite is completely within the boarder rect then it will be pasted as normal
+* If a sprite is completely within the Border rect then it will be pasted as normal
 *
-* Each of the four edges of the boarder-rect can have a different boarder-action
+* Each of the four edges of the Border-rect can have a different Border-action
 * the actions that can be done on an edge are
 * NONE : allow the paste in full, no cropping at all
-* EXCLUDE : do not paste any sprite overlapping this boarderRect edge
-* RECT : Crop to this hard edge of the boarderRect
+* EXCLUDE : do not paste any sprite overlapping this BorderRect edge
+* RECT : Crop to this hard edge of the BorderRect
 * BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
 *
 * Sometimes sprites will be cropped by two edges with different actions (or more) in which case a dominant action is decided
@@ -44,9 +44,9 @@ import MOUtils.GlobalSettings;
 
 /**
 *
-* RenderBoarder determines what happens to sprites pasted on the boarder of an image
+* RenderBorder determines what happens to sprites pasted on the Border of an image
 *
-* It operates by culling/cropping/leaving-intact a sprite just before the final paste operations into the receiving output-image buffers
+* It operates by culling/cropping/leaving-intact a sprite just before the final paste operations into the RenderTarget
 *
 */
 public class RenderBorder {
@@ -62,7 +62,7 @@ public class RenderBorder {
 	
 	boolean isActive = false;
 
-	private Rect boarderRect = new Rect();
+	private Rect BorderRect = new Rect();
 
 	int leftEdgeAction = CROP_ACTION_NONE;
 	int topEdgeAction = CROP_ACTION_NONE;
@@ -77,13 +77,13 @@ public class RenderBorder {
 	
 	/**
 	*
-	* RenderBoarder determines what happens to sprites pasted on the boarder of an image
+	* RenderBorder determines what happens to sprites pasted on the Border of an image
 	*
 	* It operates by culling/cropping/leaving-intact a sprite just before the final paste operations into the receiving output-image buffers
 	*
 	*/
 	public RenderBorder(){
-		boarderRect = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
+		BorderRect = GlobalSettings.getTheDocumentCoordSystem().getDocumentRect();
 	}
 	
 	
@@ -98,13 +98,13 @@ public class RenderBorder {
 	 * Setting up the border. The left,right,top, bottom are in Normalised space, as working in DocSpace for humans is difficult.
 	 * Edge actions are statics defined as
 	 * CROP_ACTION_NONE : allow the paste in full, no cropping at all
-	 * CROP_ACTION_EXCLUDE : do not paste any sprite overlapping this boarderRect edge
-	 * CROP_ACTION_RECT : Crop to this hard edge of the boarderRect
+	 * CROP_ACTION_EXCLUDE : do not paste any sprite overlapping this BorderRect edge
+	 * CROP_ACTION_RECT : Crop to this hard edge of the BorderRect
 	 * CROP_ACTION_BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
 	 *  
 	 */
-	public void setBoarders(float left, float top, float right, float bottom, int edgeAction) {
-		setBoarders( left,  top,  right,  bottom, edgeAction,edgeAction,edgeAction,edgeAction);
+	public void setBorders(float left, float top, float right, float bottom, int edgeAction) {
+		setBorders( left,  top,  right,  bottom, edgeAction,edgeAction,edgeAction,edgeAction);
 	}
 	
 	
@@ -121,12 +121,12 @@ public class RenderBorder {
 	 * Setting up the border. The left,right,top, bottom are in Normalised space, as working in DocSpace for humans is difficult.
 	 * Edge actions are statics defined as
 	 * CROP_ACTION_NONE : allow the paste in full, no cropping at all
-	 * CROP_ACTION_EXCLUDE : do not paste any sprite overlapping this boarderRect edge
-	 * CROP_ACTION_RECT : Crop to this hard edge of the boarderRect
+	 * CROP_ACTION_EXCLUDE : do not paste any sprite overlapping this BorderRect edge
+	 * CROP_ACTION_RECT : Crop to this hard edge of the BorderRect
 	 * CROP_ACTION_BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
 	 */
-	public void setBoarders(float left, float top, float right, float bottom, int leftAction, int topAction, int rightAction, int bottomAction){
-		setBoarderRectWithNomalisedCoords( left,  top,  right,  bottom);
+	public void setBorders(float left, float top, float right, float bottom, int leftAction, int topAction, int rightAction, int bottomAction){
+		setBorderRectWithNomalisedCoords( left,  top,  right,  bottom);
 		leftEdgeAction = leftAction;
 		topEdgeAction = topAction;
 		rightEdgeAction = rightAction;
@@ -163,11 +163,11 @@ public class RenderBorder {
 	
 	
 	/**
-	 * @return the rectangle wjihc is the boarder rect - useful data access, may be used by the user to optimise the render
+	 * @return the rectangle wjihc is the Border rect - useful data access, may be used by the user to optimise the render
 	 */
-	public Rect getBoarderRect() {
-		//System.out.println(">>>>getBoarderRect " + boarderRect.toStr() );
-		return boarderRect.copy();
+	public Rect getBorderRect() {
+		//System.out.println(">>>>getBorderRect " + BorderRect.toStr() );
+		return BorderRect.copy();
 	}
 	
 	
@@ -175,19 +175,19 @@ public class RenderBorder {
 	 * @param docSpacePt 
 	 * @return -  true if docSpacePt is fully inside the border rect
 	 */
-	public boolean isPointInsideBoarderRect(PVector docSpacePt) {
-		return boarderRect.isPointInside(docSpacePt);
+	public boolean isPointInsideBorderRect(PVector docSpacePt) {
+		return BorderRect.isPointInside(docSpacePt);
 	}
 	
 	/**
 	 * @param r
 	 * @return true if r is fully inside the border rect
 	 */
-	public boolean isWhollyInsideBoarderRect(Rect r) {
+	public boolean isWhollyInsideBorderRect(Rect r) {
 		// simple interface for any doc space rect, either in or out!
-		// if the renderBoarder is inactive, then all rects are within it.
+		// if the renderBorder is inactive, then all rects are within it.
 		if(isActive == false) return true;
-		return r.isWhollyInsideOther(boarderRect);
+		return r.isWhollyInsideOther(BorderRect);
 	}
 	
 
@@ -196,7 +196,7 @@ public class RenderBorder {
 	 * @return boolean - is this sprite completely cropped? Used in optimising ROI images
 	 * 
 	 * The main method used by the document class
-	 * use this method to crop the sprite according to the conditions set (if it needs cropping to the boarder)
+	 * use this method to crop the sprite according to the conditions set (if it needs cropping to the Border)
 	 * If the sprite needs cropping then the sprite's image is altered in-place. This does not alter the dimensions of the sprite image, rather
 	 * it makes cropped pixels blank (alpha of zero).
 	 * The return value is whether or not to continue with the sprite after crop; if false, then the sprite has been completely excluded or
@@ -229,11 +229,11 @@ public class RenderBorder {
 	private boolean cropSpriteImage(Sprite sprite, int enumeratedImageNum) {
 		int numImage = sprite.getNumImages();
 		
-		String overlapReport = sprite.getDocSpaceRect().reportIntersection(boarderRect);
+		String overlapReport = sprite.getDocSpaceRect().reportIntersection(BorderRect);
 		
 		//System.out.println("cropSprite 
 		
-		// do the trivial non-cropping actions if the image is wholly inside or outside the boarderRect
+		// do the trivial non-cropping actions if the image is wholly inside or outside the BorderRect
 		// or is fully excluded, or there is no action to be taken
 		if(overlapReport.equals("NONE")) return false;
 		if(overlapReport.equals("WHOLLYINSIDE")) return true;
@@ -245,7 +245,7 @@ public class RenderBorder {
 		// so work out the crop-rect. First get the intersection of the sprite's rect
 		// with the document rect (all in doc space units)
 		Rect uncroppedSpriteRect = sprite.getDocSpaceRect();
-		Rect spriteDocRectIntersection = boarderRect.getBooleanIntersection(uncroppedSpriteRect);
+		Rect spriteDocRectIntersection = BorderRect.getBooleanIntersection(uncroppedSpriteRect);
 		
 		// debug
 		//Color c = MOColor.getRandomRGB(255);
@@ -303,7 +303,7 @@ public class RenderBorder {
 		}
 		
 		// paste the cropped image back into the empty output image at the correct point
-		BufferedImage outputImage = new BufferedImage(sprite.getImageWidth(), sprite.getImageHeight(), sprite.getMainImage().getType());
+		BufferedImage outputImage = new BufferedImage(sprite.getImageWidth(), sprite.getImageHeight(), sprite.getCurrentImage().getType());
 		ImageProcessing.compositeImage_ChangeTarget(preCroppedImage, outputImage, (int)croppedRectBufferSpace.left, (int)croppedRectBufferSpace.top, 1);
 		sprite.setImage(enumeratedImageNum,outputImage);
 		
@@ -320,7 +320,7 @@ public class RenderBorder {
 		if(bespokeCropCalledFor == false) return false;
 		
 		if(  bespokeCropImages == null ) {
-				System.out.println("RenderBoarder::checkBespokeCropImagesLoaded CROP_ACTION_BESPOKE_CROP set but no crop images loaded" );
+				System.out.println("RenderBorder::checkBespokeCropImagesLoaded CROP_ACTION_BESPOKE_CROP set but no crop images loaded" );
 				return false;
 				}
 		
@@ -469,11 +469,11 @@ public class RenderBorder {
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////
-	// if the user wants to tweak one of the boarders (maybe on the fly for different sprites) then
+	// if the user wants to tweak one of the Borders (maybe on the fly for different sprites) then
 	// this function  offers a nullable solution. If argument is set to null then the parameter is not changed
-	public void setBoarderRectWithNomalisedCoords(Float newLeft, Float newTop, Float newRight, Float newBottom) {
+	public void setBorderRectWithNomalisedCoords(Float newLeft, Float newTop, Float newRight, Float newBottom) {
 		
-		Rect normRect = getBoarderRectInNormalisedCoords();
+		Rect normRect = getBorderRectInNormalisedCoords();
 		float left = normRect.left;
 		float top = normRect.top;
 		float right = normRect.right;
@@ -484,13 +484,13 @@ public class RenderBorder {
 		if(newRight != null) right = newRight;
 		if(newBottom != null) bottom = newBottom;
 		
-		setBoarderRectWithNomalisedCoords( left,  top,  right,  bottom);
+		setBorderRectWithNomalisedCoords( left,  top,  right,  bottom);
 	}
 	
 	
-	public Rect getBoarderRectInNormalisedCoords() {
-		PVector topleftDocSpace = boarderRect.getTopLeft();
-		PVector bottomRightDocSpace = boarderRect.getBottomRight();
+	public Rect getBorderRectInNormalisedCoords() {
+		PVector topleftDocSpace = BorderRect.getTopLeft();
+		PVector bottomRightDocSpace = BorderRect.getBottomRight();
 		PVector topLeftNormSpace = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(topleftDocSpace);
 		PVector bottomRightNormSpace = GlobalSettings.getTheDocumentCoordSystem().docSpaceToNormalisedSpace(bottomRightDocSpace);
 		return new Rect(topLeftNormSpace, bottomRightNormSpace);
@@ -500,14 +500,14 @@ public class RenderBorder {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 
-	private void setBoarderRectWithNomalisedCoords(float left, float top, float right, float bottom) {
+	private void setBorderRectWithNomalisedCoords(float left, float top, float right, float bottom) {
 		PVector topLeftNormSpace = new PVector(left,top);
 		PVector bottomRightNormSpace = new PVector(right,bottom);
 		PVector topLeft = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(topLeftNormSpace);
 		PVector bottomRight = GlobalSettings.getTheDocumentCoordSystem().normalisedSpaceToDocSpace(bottomRightNormSpace);
 		
-		boarderRect = new Rect(topLeft, bottomRight);
-		System.out.println(">>>>RenderBoarder: boarderRect " + boarderRect.toStr());
+		BorderRect = new Rect(topLeft, bottomRight);
+		System.out.println(">>>>RenderBorder: BorderRect " + BorderRect.toStr());
 	}
 	
 	
@@ -552,7 +552,7 @@ public class RenderBorder {
 		if(action1 == CROP_ACTION_EXCLUDE || action2 == CROP_ACTION_EXCLUDE) return CROP_ACTION_EXCLUDE;
 		if(action1 == CROP_ACTION_BESPOKE || action2 == CROP_ACTION_BESPOKE) return CROP_ACTION_BESPOKE;
 		// should cause a crash, but should never get here
-		System.out.println("RenderBoarder getDominantAction: problem with decided action between " + action1 +" and "+ action2);
+		System.out.println("RenderBorder getDominantAction: problem with decided action between " + action1 +" and "+ action2);
 		return -1;
 	}
 	
