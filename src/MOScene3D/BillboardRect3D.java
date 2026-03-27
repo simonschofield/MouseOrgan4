@@ -76,6 +76,15 @@ public class BillboardRect3D {
 	public PVector getRayIntersectionPoint(Ray3D ray) {
 		return Util3D.getPlaneInZIntersection(ray, bottomLeftCorner);
 	}
+	
+	// returns the point if the intersection is in the bounded plane or NULL if it is not
+	public PVector getRayIntersectionPoint_Bounded(Ray3D ray) {
+		PVector p = Util3D.getPlaneInZIntersection(ray, bottomLeftCorner);
+		if( p == null) return null; // ray is parallel with plane so does not intersect
+		if( isPointInBoundedPlane(p) ) return p;
+		return null;
+		
+	}
 
 	public boolean intersects(Ray3D ray) {
 		PVector p = getRayIntersectionPoint(ray);
@@ -84,11 +93,17 @@ public class BillboardRect3D {
 			return false;// the ray must have been parallel with the plane
 		}
 
+		return isPointInBoundedPlane(p);
+	}
+	
+	private boolean isPointInBoundedPlane(PVector p) {
+		
 		if( MOMaths.isBetweenInc(p.x, bottomLeftCorner.x, bottomLeftCorner.x+width)   &&
 				MOMaths.isBetweenInc(p.y, bottomLeftCorner.y, bottomLeftCorner.y+height)	) {
-			return true;
-		}
+				return true;
+			}
 		return false;
+		
 	}
 
 	public PVector interpolate(PVector parametric){
@@ -108,7 +123,7 @@ public class BillboardRect3D {
 		return "BillBoardRect3D:  clockwise from topleft: " + corners[0].toStr() + "," + corners[1].toStr() + "," + corners[2].toStr() + "," + corners[3].toStr();
 	}
 
-
+	
 
 
 }

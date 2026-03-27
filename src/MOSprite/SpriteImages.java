@@ -11,7 +11,7 @@ public class SpriteImages{
 
 	ArrayList<ImageAsset> imageList = new ArrayList<>();
 
-
+	String currentImageName = "main";
 
 
 	public SpriteImages(){

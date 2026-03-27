@@ -88,20 +88,18 @@ public class RenderBorder {
 	
 	
 	/**
-	 * @param left 
-	 * @param top
-	 * @param right
-	 * @param bottom
-	 * @param edgeAction edge Action applied to all edges. 
-	 * 
-	 * 
-	 * Setting up the border. The left,right,top, bottom are in Normalised space, as working in DocSpace for humans is difficult.
+	 * Setting up the border. The left,right,top, bottom are in Normalised space, as working in DocSpace for humans is difficult. However, the boarder rectangle, one defined, is stored in DocSpace coordinates
 	 * Edge actions are statics defined as
 	 * CROP_ACTION_NONE : allow the paste in full, no cropping at all
 	 * CROP_ACTION_EXCLUDE : do not paste any sprite overlapping this BorderRect edge
 	 * CROP_ACTION_RECT : Crop to this hard edge of the BorderRect
 	 * CROP_ACTION_BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
-	 *  
+	 * 
+	 * @param left - The left-most edge of the crop rectangle in normalised-space 
+	 * @param top - The top-most edge of the crop rectangle in normalised-space 
+	 * @param right - The right-most edge of the crop rectangle in normalised-space (usually 1-left) 
+	 * @param bottom - The bottom-most edge of the crop rectangle in normalised-space (usually 1-top) 
+	 * @param edgeAction  - The action (see above) used on all 4 edges
 	 */
 	public void setBorders(float left, float top, float right, float bottom, int edgeAction) {
 		setBorders( left,  top,  right,  bottom, edgeAction,edgeAction,edgeAction,edgeAction);
@@ -109,21 +107,21 @@ public class RenderBorder {
 	
 	
 	/**
-	 * @param left
-	 * @param top
-	 * @param right
-	 * @param bottom
-	 * @param leftAction
-	 * @param topAction
-	 * @param rightAction
-	 * @param bottomAction
-	 * 
-	 * Setting up the border. The left,right,top, bottom are in Normalised space, as working in DocSpace for humans is difficult.
+	 * Setting up the border. The left,right,top, bottom are in Normalised space, as working in DocSpace for humans is difficult. However, the boarder rectangle, one defined, is stored in DocSpace coordinates
 	 * Edge actions are statics defined as
 	 * CROP_ACTION_NONE : allow the paste in full, no cropping at all
 	 * CROP_ACTION_EXCLUDE : do not paste any sprite overlapping this BorderRect edge
 	 * CROP_ACTION_RECT : Crop to this hard edge of the BorderRect
 	 * CROP_ACTION_BESPOKE : Apply a bespoke crop to a sprite overlapping this edge using the crop images
+	 * 
+	 * @param left - The left-most edge of the crop rectangle in normalised-space 
+	 * @param top - The top-most edge of the crop rectangle in normalised-space 
+	 * @param right - The right-most edge of the crop rectangle in normalised-space (usually 1-left) 
+	 * @param bottom - The bottom-most edge of the crop rectangle in normalised-space (usually 1-top)  
+	 * @param leftAction - The action (see above) used on the left edge
+	 * @param topAction - The action (see above) used on the top edge
+	 * @param rightAction - The action (see above) used on the right edge
+	 * @param bottomAction - The action (see above) used on the bottom edge
 	 */
 	public void setBorders(float left, float top, float right, float bottom, int leftAction, int topAction, int rightAction, int bottomAction){
 		setBorderRectWithNomalisedCoords( left,  top,  right,  bottom);
@@ -134,16 +132,18 @@ public class RenderBorder {
 		isActive = true;
 	}
 	
+	
+	
+	
 	/**
-	 * @param pathandfilename - path to the bespoke crop image collection
-	 * @param unscaledWidth - The pixel width of the crop-image defined in pixels in the full scale output image
-	 * @param unscaledHeight  - The pixel height of the crop-image defined in pixels in the full scale output image
-	 * 
 	 * Loads a collection of images to define the bespoke cropping applied to each sprite. A crop image is a 32 bit png with alpha. The
-	 * solid part of the crop image is removed from the sprite within the border rect, along with anything outside the border rect. Crop images are rotated to deal with
-	 * each edge of the output image. The default (unrotated) form is for the left edge of the output image, so crop images must be produced in a vertical format
-	 * with the left-most side being the solid-pixels crop region, and the right most edge being transparent pixels.
+	 * solid, full-alpha,  part of the crop image is used to remove pixels from the sprite within the border rect, along with anything outside the border rect. Crop images are rotated to deal with
+	 * each edge of the output image. The default (unrotated) form of a crop-image is configured to be used on the left edge of the output image, so crop images must be produced in a vertical format
+	 * with the left-most side being the solid-pixels crop region, and the right most edge being transparent pixels. Crop image are selected randomly from the collection, but keyed to the sprite randomKey
 	 * 
+	 * @param pathandfilename - path to the bespoke crop image collection. Need the full path. Something like ... GlobalSettings.getSampleLibPath() + "mask images//waveCropAlpha"
+	 * @param unscaledWidth - The pixel width of the crop-image defined in pixels in the full scale (100%) output image
+	 * @param unscaledHeight  - The pixel height of the crop-image defined in pixels in the full scale (100%) output image
 	 */
 	public void setBespokeCropImageSampleGroup(String pathandfilename, int unscaledWidth, int unscaledHeight) {
 		DirectoryFileNameScanner cropdfns = new DirectoryFileNameScanner(pathandfilename, "png");
@@ -154,6 +154,9 @@ public class RenderBorder {
 		bespokeCropImages.resizeToAll((int)(unscaledWidth*sessionScale), (int)(unscaledHeight*sessionScale));
 	}
 	
+	
+	
+	
 	/**
 	 * @param active - switches the cropping on and off
 	 */
@@ -163,7 +166,7 @@ public class RenderBorder {
 	
 	
 	/**
-	 * @return the rectangle wjihc is the Border rect - useful data access, may be used by the user to optimise the render
+	 * @return - the DocSpace border rectangle - vcan be used to display the boarder during the render process
 	 */
 	public Rect getBorderRect() {
 		//System.out.println(">>>>getBorderRect " + BorderRect.toStr() );
@@ -192,15 +195,14 @@ public class RenderBorder {
 	
 
 	/**
-	 * @param sprite - the sprite to be cropped. Crops the sprite's pixels to transparent but does not alter its uncropped image size
-	 * @return boolean - is this sprite completely cropped? Used in optimising ROI images
-	 * 
-	 * The main method used by the document class
-	 * use this method to crop the sprite according to the conditions set (if it needs cropping to the Border)
-	 * If the sprite needs cropping then the sprite's image is altered in-place. This does not alter the dimensions of the sprite image, rather
+	 * The main method used to crop the sprite according to the conditions set.
+	 * If the sprite needs cropping then the sprite's image is altered in-place. This does not alter the dimensions of the sprite image(s), rather
 	 * it makes cropped pixels blank (alpha of zero).
-	 * The return value is whether or not to continue with the sprite after crop; if false, then the sprite has been completely excluded or
-	 * obliterated by the crop action.
+	 * The return boolean is whether or not to continue with the sprite after crop; if false, then the sprite has been completely excluded or
+	 * obliterated by the crop action. This can be used to determine whether a sprite contributes to a particular render.
+	 * 
+	 * @param sprite - the sprite to be cropped. Sets cropped pixels to transparent but does not alter its uncropped image size
+	 * @return boolean - is this sprite completely cropped? Used in optimising ROI images
 	 */
 	public boolean cropSprite(Sprite sprite) {
 		// has to deal with the main sprite image, and then possibly overlay images, which must be
@@ -292,7 +294,7 @@ public class RenderBorder {
 			// add the bespoke crop to the cropping image set
 			
 			// reset the QRandim stream of the bespoke cropping randomness to the sprites ID
-			qRandomStream = new QRandomStream(sprite.getUniqueID());
+			qRandomStream = new QRandomStream(sprite.randomKey);
 			boolean result = doBespokeCrop(preCroppedImage, overlapReport );
 			if(result == false) {
 				// the bespoke crop obliterated the image

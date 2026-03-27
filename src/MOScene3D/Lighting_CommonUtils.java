@@ -62,10 +62,12 @@ public class Lighting_CommonUtils {
 
 		GlobalSettings.getDocument().addFloatRenderTarget(nameOfDepthRender, true, 1);
 		depthRenderTarget = GlobalSettings.getDocument().getFloatImageRenderTarget(nameOfDepthRender);
-		
+
 		//System.out.println("coordinateSystem rect = " + coordinateSystem.getDocumentRect().toStr() + " getCurrentROIDocRect " + theROIManangerDocSpaceRect.toStr());
 		if(addSceneSurfaceToDepthRender) {
 			addSceneSurfaceToDepth();
+		} else {
+			depthRenderTarget.setAll(Float.MAX_VALUE);
 		}
 	}
 	

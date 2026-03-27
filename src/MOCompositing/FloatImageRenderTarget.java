@@ -37,7 +37,7 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 		floatImage = new FloatImage(w, h);
 		floatImageMake16BitCopyOnSave = saveTYPE_USHORT_GRAYcopy;
 		floatImageCopyGamma = imageCopyGamma;
-		coordinateSystem = new ImageCoordinateSystem(w, h);
+		coordinateSystem = GlobalSettings.getTheDocumentCoordSystem();
 		renderTargetName = name;
 	}
 	
@@ -65,6 +65,11 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 	public void clearImage() {
 		
 		floatImage.setAll(0f);
+	}
+	
+	
+	public void setAll(float val) {
+		floatImage.setAll(val);
 	}
 
 	@Override
@@ -224,8 +229,9 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 	 * @param sprite -the sprite being pasted
 	 * @param val - the pasted value of any pixel with an alpha above the alphaThreshold
 	 * @param alphaThreshold - 1-255
+	 * @param depthBufferLogic - if true then can only add closer (smaller z) depth points
 	 */
-	public void pasteSprite(Sprite sprite, float val, int alphaThreshold) {
+	public void pasteSprite(Sprite sprite, float val, int alphaThreshold, boolean useDepthBufferLogic) {
 
 		if (floatImage == null) {
 			System.out.println(
@@ -253,8 +259,16 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 				int targetY = y + targetOffsetY;
 				if (targetX < 0 || targetX >= targetWidth || targetY < 0 || targetY >= targetHeight)
 					continue;
-
+				
 				int sourceImageAphaValue = sourceImageAlphaData.getSample(x, y, 0);
+				
+				if(useDepthBufferLogic) {
+					float existingVal = floatImage.get(targetX, targetY);
+					
+					// if the existing val in the buffer is less than the desired paste continue, and is NOT sky. 
+					if(existingVal <= val && existingVal != -Float.MAX_VALUE) continue;
+				}
+				
 				if (sourceImageAphaValue > alphaThreshold) floatImage.set(targetX, targetY, val);
 			}
 		}

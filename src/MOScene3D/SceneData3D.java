@@ -447,8 +447,8 @@ public class SceneData3D {
 		float closestNearDistance = -1000000f;
 		float closestFarDistance = 1000000f;
 
-		PVector closestNearPointOnLineToSurface = null;
-		PVector closestFarPointOnLineToSurface = null;
+		PVector closestNearPointOnLineToSurface = lineIn.p1.copy();
+		PVector closestFarPointOnLineToSurface = lineIn.p2.copy();
 
 
 		float step = 1f/numIterations;
@@ -473,7 +473,7 @@ public class SceneData3D {
 			}
 
 		}
-
+		
 		return new Line3D(closestNearPointOnLineToSurface, closestFarPointOnLineToSurface);
 
 	}

@@ -9,8 +9,9 @@ import MOMaths.MOMaths;
 import MOMaths.Range;
 
 /**
- * Defines a multi-contol point ramp suitable for calculating a specific tone (in any range) and alpha value (in any range) given a specific control value (in any range).
- * Ramps are made of at least 2 control points (the ToneRampControlPoint class). As control points are added, they are sorted in order of their control point values. <p>
+ * Defines a multi-control point ramp suitable for calculating a specific tone (in any range) and alpha value (in any range) given a specific control value (in any range).
+ * Ramps are made of at least 2 control points (the ToneRampControlPoint class). As control points are added, they are sorted in order of their control point values. This creates a 
+ * ramp definition, where arbitrary values are attached to sequenced control values in the control-range (0... max control value). Then, given any value in the control-range, the interpolated attached (tone and alpha)values are returned<p>
  * 
  * One purpose, used in BasePointLighting,  is to mix in an amount of tone with another colour (the basePointTone) to create a ramp-enhanced tone. hence we need both the tone and 
  * an alpha value to be ramped, in order to mix in the correct amount using the modifyTone(..) method here.
@@ -19,7 +20,7 @@ import MOMaths.Range;
  * the lowest control-point control value, to the highest. Input control values are clamped to this range.<p>
  * 
  * A ramp is defined by calling addControlPoint(..) to add at least two control points <p>
- * Once defined call modifyTone(float controlValue, float baseTone) to modify an existing "base tone" with the ramp values.
+ * Once defined, the user calls modifyTone(float controlValue, float baseTone) to modify an existing "base tone" with the ramp values. The modified tone is always in the range 0..1 is then used in image processing calculations
  */
 public class ToneRamp {
 	

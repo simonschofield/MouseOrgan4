@@ -4,8 +4,11 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import MOImage.ByteImageGetterSetter;
 import MOImage.ImageCoordinate;
+import MOImage.ImageDimensions;
 import MOImage.MOColor;
+import MOImage.MOPackedColor;
 import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Range;
@@ -13,63 +16,66 @@ import MOMaths.Rect;
 
 import MOSprite.Sprite;
 import MOUtils.GlobalSettings;
+import MOUtils.KeyValuePair;
 import MOUtils.Progress;
 
 
 /**
- * RadialInterShadowing creates a soft shadow effect within a set 3d distance from sprite pasted in front of the existing substance. A light direction can be also used to give the shadows an accent
- * but the shadow must be pointing "into" the image (i.e. have positive z component) . Lighting_RadialInterShadow constructor be called in loadContentUserSession, after which 
+ * RadialInterShadowing creates a soft shadow effect  The Lighting_RadialInterShadow constructor is called in loadContentUserSession, after which 
  * rendering is done in two passes<p>
  * 
- * The First Pass: addShadowGeometry(...) is called for every sprite in the updateUserSession UserSession method <p>
- * The Second Pass: The method renderShadows(...) is called once in finaliseUserSession UserSession method<p>
+ * The First Pass: addShadowGeometry(...) is called for every sprite in the updateUserSession UserSession method. <p>
  * 
+ * The Second Pass: The method renderShadows(...) is called once in finaliseUserSession UserSession method. <p>
  * 
- * The process involves calculating distances from a simple 3D "shadow line" from the base of the sprite, towards its tip, including rotation (accumulated in the first pass).
- * The amount of shade calculated for each pixel in the shadow render is based on its distance from adjacent shadow-lines (rendered in the second pass).
  */
 public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 
 
 	 ShadowGeometrySpatialIndex shadowGeometrySpatialIndex;
 
-	 	float shadowLineHeightProportionOfSpriteHeight = 1;
+	 
+	 
 	 	
 	 int shadowGeometryCount = 0;
 	 
 	 Rect renderExtentsDocSpace;
 	
 	 /**
-	  * RadialInterShadowing creates a soft shadow effect within a set 3d distance from sprite pasted in front of the existing substance. A light direction can be also used to give the shadows an accent
-	  * but the light direction must be pointing "into" the image (i.e. have positive z component). Lighting_RadialInterShadow constructor be called in loadContentUserSession, after which 
+	  * RadialInterShadowing creates a soft shadow effect within a set 3d distance from a sprite pasted in front of the existing substance in the depth buffer. A light direction is used to give the shadows a direction,
+	  * but the light direction must be pointing "into" the image (i.e. have positive z component). The Lighting_RadialInterShadow constructor is called in loadContentUserSession, after which 
 	  * rendering is done in two passes<p>
 	  * 
-	  * The First Pass: addShadowGeometry(...) is called for every sprite in the updateUserSession UserSession method <p>
-	  * The Second Pass: The method renderShadows(...) is called once in finaliseUserSession UserSession method<p>
+	  * The First Pass: addShadowGeometry(...) is called for every sprite in the updateUserSession UserSession method. This adds the depth of the sprite to the depth buffer, and adds the 3D "shadow geometry" of the sprite to a list
+	  * used in the second pass. The shadow geometry contains a 3D "shadow line", which is used as a proxy for the sprite's visual presence, a 2D doc-space shadow-extents, used in optimising the process, and a shadow image, which is mapped to the 
+	  * shadow line to "flesh out" the shadow casting shape of the sprite. <p>
 	  * 
-	 *
-	 * The return value relates to the contribution of the sprite's shadow to the image. Using a ROI, a sprite may be completely cropped from the ROI's image, but the shadow still contributes.
-	 * Returns false if the shadow is completely outside the current doc space rect. Returns true otherwise.
-	 * @param nameOfShadowRender - the render-target name for the shadowRender. This will be a BufferedImage.TYPE_BYTE_GRAY image.
-	 * @param nameOfDepthRender - the render-target name for the depthRender. This will be a FloatImage type Render target image.
-	 * @param addSceneSurfaceToDepth - If true, add the scene-data depth to the depth-render-target first, before any pasting happens. This is so the ground can "receive" shadows)
-	 * @param lightDir - The direction of the light, must have +ve Z
-	 */
-	public Lighting_RadialInterShadow(String nameOfShadowRender, String nameOfDepthRender,  boolean addSceneSurfaceToDepth, float shadowLineHeightProportion, PVector lightDir){
+	  * The Second Pass: The method renderShadows(...) is called once in finaliseUserSession UserSession method. This is a scan-line algorithm for the whole image, so is a bit slow. It uses the shadow lines that are previously calculated in
+	  * the first pass, and the depth buffer to work out, for each pixel, the amount of shadow that pixel is receiving. The process is sped up by  spatially indexing the shadow lines against the pixels rough location, so that each pixel
+	  * does not have to consider shadow lines that have no bearing on the that shadow amount <p>
+	  * 
+	  * Implementation note: The 2D doc-space shadow-extents for each shadow geometry are used to to a spatially index the shadow-geometries against the screen buffer-space (into 100 x whatever-amount-in-Y screen space boxes),
+	  * so that for every pixel being processed in the second pass, only those shadow-extents that overlap the pixel are retrieved (quickly), and used to accumulate 
+	  * the final shadow value from the contributing shadow geometries accordingly<p>
+	  *
+	  * The return value relates to the contribution of the sprite's shadow to the image. Using a ROI, a sprite may be completely cropped from the ROI's image, but the shadow still contributes.
+	  * Returns false if the shadow is completely outside the current doc space rect. Returns true otherwise.
+	  * @param nameOfShadowRender - the render-target name for the shadowRender. This will be a BufferedImage.TYPE_BYTE_GRAY image.
+	  * @param nameOfDepthRender - the render-target name for the depthRender. This will be a FloatImage type Render target image.
+	  * @param addSceneSurfaceToDepth - If true, add the scene-data depth to the depth-render-target first, before any pasting happens. This is so the ground can "receive" shadows)
+	  * @param lightDir - The direction of the light, must have +ve Z
+	  */
+	public Lighting_RadialInterShadow(String nameOfShadowRender, String nameOfDepthRender,  boolean addSceneSurfaceToDepth,  PVector lightDir){
 		super(nameOfShadowRender);
 
 		Range worldY = sceneData3D.depthBuffer3d.worldYExtrema;
 		System.out.println("worldY extrama " + worldY.toStr() );
-		float sceneYMin = sceneData3D.depthBuffer3d.worldYExtrema.getUpper();
-
+		
 		super.initialiseDepthRender( nameOfDepthRender,  addSceneSurfaceToDepth) ;
 
-		
 		setLightDirection(lightDir);
 		
-		
 		shadowGeometrySpatialIndex = new ShadowGeometrySpatialIndex(100);
-		shadowLineHeightProportionOfSpriteHeight = shadowLineHeightProportion;
 	}
 	
 	
@@ -79,30 +85,25 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 	 * It adds the 3D shadow line for each sprite, and its docSpace extents rect to the list, pastes the depth to the depth buffer, and returns true if the sprite contributes to this ROI. If the sprite does not contribute to this ROI
 	 * then the shadow line is not preserved, as there would be no point.
 	 * @param sprite - The sprite currently being pasted, it adds to the depth buffer and creates a shadow geometry object to store its resultant shadow.
-	 * @param shadowLineHeightProportion - The relative height of the shadow line (as a 0..1 proportion) to the sprites full vertical height, so smaller proportion - shorter shadows.
+	 * @param shadowImg - The shadow image. (nullable) Set this if you are using the shadow image approach. An RGBA image of tones of the shadow, where black => no shadow, white => full shadow contribution. 
+	 * 
 	 * @return  true if the sprite contributes to this ROI image.
 	 */ 
-	public boolean addShadowGeometry(Sprite sprite) {
+	public boolean addShadowGeometry(Sprite sprite, BufferedImage shadowImg) {
 		
 		float depth = sprite.getDepth();
-		depthRenderTarget.pasteSprite(sprite, depth, 127);
+		depthRenderTarget.pasteSprite(sprite, depth, 127,true);
 
-		ShadowGeometry thisShadowGeometry = new ShadowGeometry(sprite, shadowLineHeightProportionOfSpriteHeight);
-			
+		ShadowGeometry thisShadowGeometry = new ShadowGeometry(sprite, shadowImg, lightDirection);
+		
+		
+		
+		
 		if( thisShadowGeometry.contributesToThisROI ) {
 			shadowGeometrySpatialIndex.addShadowGeometryToIndex(thisShadowGeometry);
-			
-			
-			
-			
 			shadowGeometryCount++;
 		}
-		if( sprite.getID()==371) {
-			
-			
-			System.out.println("sprite 371 " + thisShadowGeometry.toStr());
-			
-		}
+		
 		return thisShadowGeometry.contributesToThisROI;
 	}
 
@@ -111,20 +112,11 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 	 * The second pass. Do this once in finaliseUserSession() method. 
 	 *
 	 * @param maxShadowContribution
-	 * @param dropOffGamma
-	 * @param useLightDirection
 	 * @param renderRectDocSpace - defines the area you want rendered. This is nullable if you want the whole render doing
 	 * @return - Returns TRUE if the shadow intersects the current documetSpaceREct. This will be the ROI rect is a ROI session. So, this is then used to help determine which sprites to preserve in a ROI's spriteBatch.
 	 */
-	public void renderShadows(float maxShadowContribution, float dropOffGamma, boolean useLightDirection, Rect renderRectDocSpace) {
+	public void renderShadows(float maxShadowContribution,  Rect renderRectDocSpace) {
 		// Iterates over the image visiting each pixel only once, and renders the shadow of that pixelo based on the shadow line list.
-		
-		
-		
-		
-		
-		PVector lightDirectioProjected = new PVector(lightDirection.x, 0, lightDirection.z).normalize();
-		
 		// iterate over the render area
 		//
 		
@@ -155,19 +147,18 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 
 				// check to see if there is something there to receive a shadow. Copy the surface z values in
 				// first if you want the surface to receive shadows.
-				if (shadowRenderDepth == 0) {
+				if (shadowRenderDepth == 0 || shadowRenderDepth == Float.MAX_VALUE) {
 					continue;
 				}
 				
 				// get the docPoint of x,y
 				PVector shadowPixelDocSpace = BStoDS(x, y);
 				
-				float shadowAmount = calculateShadowAmount(shadowPixelDocSpace, shadowRenderDepth,  maxShadowContribution,   dropOffGamma,  useLightDirection, lightDirectioProjected);
+				
+				float shadowAmount = calculateShadowAmount(shadowPixelDocSpace, shadowRenderDepth,  maxShadowContribution);
 				
 				contributeShadowToImage( x, y, shadowAmount);
 				
-				// end of more efficient loop
-
 			}
 			progress.update();
 		}
@@ -177,65 +168,103 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 	}
 	
 	
-	private float calculateShadowAmount(PVector docPt, float pixelDepth, float maxShadowContribution,  float dropOffGamma, boolean useLightDirection, PVector lightDirectioProjected) {
+	
+	/**
+	 * Once all the shadow geometry for all the sprites has been calculated (after the full construction of the image), this can be called in finaliseUserSession(..) to add the shadow data to each sprite
+	 * based on amount of shade each shadow line receives from the full collection of shadow lines. It works like the full render, but only does it for selected points on each shadow line, so
+	 * should be faster. This data is then added to each sprite and, presumably, saved out in a sprite batch.This is then re-loaded in the next session, so sprites have shadow data ahead of rendering.
+	 */
+	public void addShadowDataToSprites() {
+		
+		
+		ArrayList<ShadowGeometry> shadowGeometryList = shadowGeometrySpatialIndex.getSimpleShadowGeometryList();
+		
+		for(ShadowGeometry sg: shadowGeometryList) {
+			
+			float shadowAmount = 0;
+			
+			// makes a set of samples along the shadow line, and stores the results in an array
+			float[] samplePositionsOnLine = {0.001f,0.333f,0.666f,0.999f};
+			int numSamples = samplePositionsOnLine.length;
+			float[] shadowDataArray = new float[numSamples];
+			
+			float maxShadowContribution = 0.3333f;
+			for(int i = 0; i < numSamples; i++) {
+
+				PVector linePoint = sg.shadowLine3D.lerp(  samplePositionsOnLine[i]   );
+				PVector docPt = sceneData3D.world3DToDocSpace(linePoint);
+				shadowDataArray[i] = calculateShadowAmount( docPt, linePoint.z, maxShadowContribution);
+				
+				}
+			
+			shadowAmount = shadowAmount/numSamples;
+			
+			
+			KeyValuePair shadowData = new KeyValuePair("ShadowData", shadowDataArray);
+			
+			
+			sg.spriteRef.setSpriteData( shadowData );
+		}
+		
+		
+	}
+	
+	public void pasteShadow(Sprite sprite) {
+		
+		// depends on there being shadow data
+		if( sprite.spriteDataKeyExists("ShadowData")==false  ) {
+			System.out.println("Lighting_RadialIntershadowing::pasteShadowAmount(...) - Sprite has no shadow data, returning");
+			return;
+		}
+		
+			
+		KeyValuePair shadowDataKVP = sprite.getSpriteData("ShadowData");
+		float[] shadowAmounts = shadowDataKVP.getVector();
+
+		float ave = MOMaths.mean(shadowAmounts)	;	
+		
+		
+		if(MOMaths.nearZero(ave)) {   shadowRenderTarget.pasteSprite_ReplaceColour(sprite, Color.WHITE); return;}
+		if(ave >= 0.996f) {   shadowRenderTarget.pasteSprite_ReplaceColour(sprite, Color.BLACK); return;}
+
+		int greyTone = (int) ((1-ave)*255);
+		Color grey = new Color(greyTone,greyTone,greyTone);
+		shadowRenderTarget.pasteSprite_ReplaceColour(sprite, grey);
+		
+	}
+	
+	
+	/**
+	 * The shadow amount is calculated using the EITHER distance from each shadow line to the 3D point (represented by docPt + depth), and accumulating. OR by using a "shadow image" to
+	 * set the amount of shadow for each point. The shdow image method is used IF the shadow image has ben set, otherwise uses the maths radial (distance/angle) approach
+	 * this to moderate the shadow so it is stronger along the light direction axis.
+	 * @param docPt -used to calculated the 3D point from the completed depth render
+	 * @param pixelDepth -used to calculated the 3D point from the completed depth render
+	 * @param maxShadowContribution - the maximum shadow contribution of each shadow line
+	 * @return the amount of shade at this point
+	 */
+	private float calculateShadowAmount(PVector docPt, float pixelDepth, float maxShadowContribution) {
 		// normalisedShade = norm(d, radius, 0); // so when d == radius,normalisedShade = 0,  and when  d == 0 ,normalisedShade = 1
 		// shadeAmount = pow(normalisedShade, dropOffGamma) // so when gamma == 1, drop off in linear, gamma < 1, drops off to maximum quickly at start. Gamma > 1 drops off only toward the end
 		
-		
+		// 1. Get the 3D location of the point you want to shade - the shadowRenderPoint3D
 		PVector shadowRenderPoint3D = sceneData3D.get3DVolumePoint(docPt, pixelDepth);
-		//float radiusSquared = radius*radius;
 		
-		
-		
-		// get all the sprite shadows that intersect with this docPoint
+		// 2. get all the sprite shadow-geometry that belongs to the image-section of this docPoint from the spatially indexed shadow geometry
 		ArrayList<ShadowGeometry> intersectingShadows = getIntersectingShadows(docPt, pixelDepth);
 		
-		
-		
-		//setIntersectingShadows(docPt, pixelDepth);
+		// this is the amount of accumulated shadow from all the shadow lines
 		float accumulatedShadow = 0;
 		
-		
-		
+		// 3. Loop through the shadow lines and for each one....
 		for(ShadowGeometry thisShadow: intersectingShadows) {
 			
+			// 3.1 some of the shadow geometry from above may not actually intersect this point
 			if(thisShadow.intersecting == false) continue;
 			
-			PVector clostestPointOnShadowLine = thisShadow.shadowLine.closestPointOnLine(shadowRenderPoint3D);
+			// now choose the shadow method, using a radial distance approach, or a shadow map approach
+			accumulatedShadow += calculateShadowMapShadowForThisShadowGeometry(shadowRenderPoint3D,  thisShadow,  maxShadowContribution);
 
-			float distanceSqFromShadowLine = shadowRenderPoint3D.distSq(clostestPointOnShadowLine);
-			if(distanceSqFromShadowLine>thisShadow.shadowRadiusSq) {
-				continue;
-			}
-
-
-			float distanceFromShadowLine = (float) Math.sqrt(distanceSqFromShadowLine);
-			float shadowAmount01 = MOMaths.map(distanceFromShadowLine, 0, thisShadow.shadowRadius, maxShadowContribution, 0);
-			shadowAmount01 = MOMaths.constrain(shadowAmount01,0,1);
-
-			// if the shadow intensity is < 1/255  ignore
-
-
-
-			// add in the lightDirection here
-			if(useLightDirection) {
-				PVector thisRay  = PVector.sub(shadowRenderPoint3D, clostestPointOnShadowLine);
-				thisRay.y = 0; // projected onto the y=0 plane
-				thisRay.normalize();
-
-				float amountOfBias = thisRay.dot(lightDirectioProjected);
-				// when the ray is in-line with the light, the dot/cos value will be 1
-				shadowAmount01 *= amountOfBias;
-			}
-
-			if(shadowAmount01 < 0.0078f) {
-				continue;
-			}
-			shadowAmount01 = MOMaths.constrain(shadowAmount01, 0.0078f,1);
-
-			accumulatedShadow +=  (float) Math.pow(shadowAmount01, dropOffGamma);
-			
-			
 		}
 		
 		//System.out.println("intersecting shadow num " + intersectingShadows.size() + " accumulated shadow " + accumulatedShadow);
@@ -248,6 +277,59 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 	
 	
 	/**
+	 * Projects a ray from the shadowRenderPoint3D along the negativeLightDirection and calculates where it intersects the shadow image (if at all). If so, then 
+	 * uses the pixel value at that point to calculate the amount of shadow contributed.
+	 * Working notes: if the shadow image plane is flat on to the viewer (billboard style) then the shadow will be forshortened in width at striong light angles.
+	 * If the shadow image plane is perpendicular to the light direction, then this is avaoided. So, this depends on significance of effect and speed of projection in both cases.
+	 * @param shadowRenderPoint3D
+	 * @param thisShadow
+	 * @param maxShadowContribution
+	 * @return
+	 */
+	private float calculateShadowMapShadowForThisShadowGeometry(PVector shadowRenderPoint3D, ShadowGeometry thisShadow, float maxShadowContribution) {
+		// make the shadow plane. This is a BOUNDED PLANE. This can be done earlier when chached
+		// The shadow plane has the shadowLine running up the centre (so deines the height) and uses the aspect of the shadow image to define the corners.
+		if(thisShadow.shadowImageGetterSetter==null) {
+			// ERROR
+			return 0;
+		}
+		
+		
+		// specific to this point
+		Ray3D lightRay = new Ray3D(shadowRenderPoint3D, negativeLightDirection);
+		
+		PVector intersectionPoint = thisShadow.shadowPlane.getRayIntersectionPoint_Bounded(lightRay);
+		
+		
+		
+		// point does not intersect the shadow plane (common outcome), or ray is parallel (only if there is no z component to the ray)
+		if(intersectionPoint == null) return 0;
+
+		// Take into consideration the distance of the shadow
+		float distancePlaneToPoint = shadowRenderPoint3D.dist(intersectionPoint);
+		float distanceShadowMultimplier = MOMaths.map(distancePlaneToPoint, 0, thisShadow.shadowRadius, 1, 0.1f); // should be 1 when near to the shadow, and 0.25 when far away
+		
+		
+		
+		// so the point intersectionPoint is in the bounded plane. Now get the intersectionPoint normalised within the bounded shadow plane
+		PVector normalisedIntersectionPoint  = thisShadow.shadowPlane.norm(intersectionPoint);
+		
+		float shadowAmount01 = thisShadow.shadowImageGetterSetter.getPixelFromNormalisedCoordinate(normalisedIntersectionPoint.x, 1-normalisedIntersectionPoint.y) * 0.00392f * maxShadowContribution * distanceShadowMultimplier;
+		
+		// take into consideration distance; near points will receive stronger shadow than far points
+		
+		
+		
+		if(shadowAmount01 < 0.00392f) {
+			return 0;
+		}
+		if(shadowAmount01 > 1) {
+			return 1;
+		}
+		return shadowAmount01;
+	}
+	
+	/**
 	 * This method uses the spatial index to return only the ShadowGeometry that intersects this docSpace point
 	 * @param docSpacePoint
 	 * @param pixelDepth
@@ -258,18 +340,11 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 		ArrayList<ShadowGeometry> intersectingShadows = shadowGeometrySpatialIndex.getIntersectingShadowGeometry(docSpacePoint);
 		for(ShadowGeometry ssi: intersectingShadows) {
 			ssi.intersecting = false;
-			if( ssi.shadowRectDocSpaceExtents.isPointInside(docSpacePoint) && MOMaths.isBetweenExc( ssi.shadowLine.p1.z , pixelDepth-ssi.shadowRadius, pixelDepth) ) {
+			if( ssi.shadowRectDocSpaceExtents.isPointInside(docSpacePoint) && MOMaths.isBetweenExc( ssi.shadowLine3D.p1.z , pixelDepth-ssi.shadowRadius, pixelDepth) ) {
 				ssi.intersecting = true;
 			}
 			
 		}
-		
-		if(pixelDepth == -1) {
-			
-			System.out.println("intersecting shadow num " + intersectingShadows.size() );
-			
-		}
-		
 		
 		return intersectingShadows;
 	}
@@ -295,77 +370,127 @@ public class Lighting_RadialInterShadow  extends Lighting_CommonUtils{
 
 
 /**
- * Class that defines one sprites resultant shadow geometry. 
- * These are accumulated in the first pass, and then used to render the final image in the second pass.
+ * Class that calculates a sprites shadow geometry. 
+ * These are accumulated within a spatial index as each sprite is pasted to the image (in update), and then used to render the final image in the second pass, (in finalise).
  */
 class ShadowGeometry{
+	// this is used to save out shadow data with each sprite
+	Sprite spriteRef;
 	
-	Line3D shadowLine;
+	
+	
+	SceneData3D sceneData3D;
+	Line3D shadowLine3D;
 	Rect shadowRectDocSpaceExtents;
-	float shadowRadius, shadowRadiusSq;
+	float shadowRadius;
 	boolean intersecting = false;
 	
 	boolean contributesToThisROI = false;
 	
+	ByteImageGetterSetter shadowImageGetterSetter = null;
+	float shadowImageAspect = 1;
+	BillboardRect3D shadowPlane = null;
+	PVector lightDirection;
 	
-	public ShadowGeometry(Sprite sprite, float shadowLineHeightProportion) {
+	public ShadowGeometry(Sprite sprite, BufferedImage shadowImg, PVector lightDir) {
 		
-			SceneData3D sceneData3D = GlobalSettings.getSceneData3D();
+			spriteRef = sprite;
+			
+			sceneData3D = GlobalSettings.getSceneData3D();
+			lightDirection = lightDir;
 			float depth = sprite.depth;
-			// all of this could be moved to the ShadowGeometry class
-			// get the document space sprite top and bottom points, mapped into the scene, using the sprite's image quad
-			PVector mappedSpriteBasePointDocSpace = sprite.mapNormalisedLocalSpritePointToDocSpace( 0.5f, 1.0f);
-			PVector mappedSpriteTopPointDocSpace = sprite.mapNormalisedLocalSpritePointToDocSpace( 0.5f, 0);
+			
+			// Calculate the document space sprite top and bottom points, mapped into the scene, using the sprite's image quad
+			// Take into consideration  the pivot point 
+			//REMEMBER: a Y of 0 is the top of the sprite, a Y of 1 is the base of the sprite
+			PVector mappedSpriteBasePointDocSpace = sprite.getDocPoint(); // this is the transformed base of the sprite
+			PVector mappedSpriteTopPointDocSpace = sprite.mapNormalisedLocalSpritePointToDocSpace( 0.5f, 0); // this returns the transformed top of the sprite
+			
+			//System.out.println("sprite base " + mappedSpriteBasePointDocSpace.toStr() + " sprite top " + mappedSpriteTopPointDocSpace.toStr());
 
-			PVector shadowLineBasePoint3D = sceneData3D.get3DVolumePoint(mappedSpriteBasePointDocSpace, depth);
+			PVector shadowLineBasePoint3D = sceneData3D.get3DSurfacePoint(mappedSpriteBasePointDocSpace);
 			PVector mappedSpriteTopPoint3D = sceneData3D.get3DVolumePoint(mappedSpriteTopPointDocSpace, depth);
 
-			// interpolate over this to get the shadowLineTopPoint
-			PVector shadowLineTopPoint3D = PVector.lerp(shadowLineBasePoint3D, mappedSpriteTopPoint3D, shadowLineHeightProportion);
-
-			Line3D shadowLine = new Line3D(shadowLineBasePoint3D, shadowLineTopPoint3D);
-			AABox3D shadowLineBoundingBox = shadowLine.getBoundingBox();
-			
-			// TBD:: radius should be a product to the lighting direction. When lit from completely above the shadow would be very short, when lit from a low angle
-			// the shadow would be longer.
-			float shadowRadius = shadowLineBoundingBox.getHeight();
-			
-			
-			
+			this.shadowLine3D = new Line3D(shadowLineBasePoint3D, mappedSpriteTopPoint3D);
+			this.shadowRadius = shadowLine3D.getBoundingBox().getHeight();
 			
 			// establish screen-bounds of region to process
 			//
 			//
-			float r = shadowRadius;
-			PVector lineBase = shadowLine.p1.copy();
-			PVector lineBasePlusRX = new PVector(lineBase.x+r, lineBase.y, lineBase.z);
-			PVector lineBaseMinusRX = new PVector(lineBase.x-r, lineBase.y, lineBase.z);
+			Rect theDoumentDocSpaceRect;
 
-			PVector lineTop = shadowLine.p2.copy();
-			PVector lineTopPlusRX = new PVector(lineTop.x+r, lineTop.y, lineTop.z);
-			PVector lineTopMinusRX = new PVector(lineTop.x-r, lineTop.y, lineTop.z);
-			PVector lineTopPlusRY = new PVector(lineTop.x, lineTop.y+r, lineTop.z);
-
-			PVector docSpaceExtents[] = new PVector[7];
-			docSpaceExtents[0] = sceneData3D.world3DToDocSpace(lineBase); // the base point
-			docSpaceExtents[1] = sceneData3D.world3DToDocSpace(lineTop); // the top point
-			docSpaceExtents[2] = sceneData3D.world3DToDocSpace(lineBasePlusRX); // the base plus radius in x
-			docSpaceExtents[3] = sceneData3D.world3DToDocSpace(lineBaseMinusRX); // the base minus radius in x
-			docSpaceExtents[4] = sceneData3D.world3DToDocSpace(lineTopPlusRX); // the top plus radius in x
-			docSpaceExtents[5] = sceneData3D.world3DToDocSpace(lineTopMinusRX); // the top minus radius in x
-			docSpaceExtents[6] = sceneData3D.world3DToDocSpace(lineTopPlusRY); // the top point plus radius in y
-
-			Rect shadowRectDocSpaceExtents = Rect.getExtents(docSpaceExtents);
-
-			Rect theDoumentDocSpaceRect = GlobalSettings.getDocument().getCoordinateSystem().getDocumentRect();
+			shadowImageGetterSetter = new ByteImageGetterSetter(shadowImg);
+			shadowImageAspect = shadowImg.getWidth()/((float) shadowImg.getHeight()); // should be a number  less that 1 for grasses etc.
+			this.shadowRectDocSpaceExtents =  calculateShadowRectForShadowImage_UsingShadowLine(sprite,this.shadowLine3D);
+			
+			
+			// Does this shadow contributes to the ROI?
+			theDoumentDocSpaceRect = GlobalSettings.getDocument().getCoordinateSystem().getDocumentRect();
 			contributesToThisROI =  shadowRectDocSpaceExtents.intersects(theDoumentDocSpaceRect) ;
 		
-			this.shadowLine = shadowLine;
-			this.shadowRectDocSpaceExtents = shadowRectDocSpaceExtents;
-			this.shadowRadius = shadowLine.getBoundingBox().getHeight();
-			this.shadowRadiusSq = shadowRadius*shadowRadius;
-		
 	}
+	
+	
+	/**
+	 * In this version the shadow line is used to define the height of the shadow plane, The width of the shadow plane is defined by the height * shadowImageAspect
+	 * @return
+	 */
+	private Rect calculateShadowRectForShadowImage_UsingShadowLine(Sprite sprite, Line3D shadLine) {
+
+		PVector spriteDocPoint = sprite.getDocPoint();
+		PVector spriteBasePoint3D = shadLine.p1;
+		
+		float shadowLineHeight = shadLine.getBoundingBox().getHeight();
+		float shadowLineWidth = shadowLineHeight * this.shadowImageAspect;
+		float shadowLineWidthOver2 = shadowLineWidth/2f;
+	
+		// calculate the shadowPlane - The shadowPlane has the same world-space height as the shadow line, and uses the aspect of the shadpw image to calculate the width.
+		PVector bl = new PVector(spriteBasePoint3D.x-shadowLineWidthOver2, spriteBasePoint3D.y, spriteBasePoint3D.z);
+		shadowPlane = new BillboardRect3D(bl,shadowLineWidth,shadowLineHeight);
+		
+
+		// for each of the 2 top sprite rect corners, project a ray in the lightDirection and see
+		// where this intersects the basePlane
+		PVector c1 = shadowPlane.getCorners()[0]; // top left corner
+		PVector c2 = shadowPlane.getCorners()[1]; // top right corner
+
+		Ray3D c1Ray = new Ray3D(c1, lightDirection);
+		Ray3D c2Ray = new Ray3D(c2, lightDirection);
+
+		PVector c1PointOnSurface = sceneData3D.raySurfaceIntersection(c1Ray);
+		PVector c2PointOnSurface = sceneData3D.raySurfaceIntersection(c2Ray);
+
+		// get the rect extents for the sprite from its base point(where it hits the surface) to its top. This then takes into consideration
+		// any Y-shifting or pivot point deviations from Y = 1
+		float bottom = spriteDocPoint.y;
+		PVector top3D = shadLine.p2;
+		float top = sceneData3D.world3DToDocSpace(top3D).y;
+		float left = sceneData3D.world3DToDocSpace(c1).x;
+		float right = sceneData3D.world3DToDocSpace(c2).x;
+		
+		// The rayBaseIntersectionPoints and the sprites base points c3,c4 give us the world extents of the possible shadow
+		// project these back into doc space
+		PVector docSpaceExtents[] = new PVector[6];
+		docSpaceExtents[0] = sceneData3D.world3DToDocSpace(c1PointOnSurface);
+		docSpaceExtents[1] = sceneData3D.world3DToDocSpace(c2PointOnSurface);
+		docSpaceExtents[2] = new PVector(left,top);
+		docSpaceExtents[3] = new PVector(right,top);
+		docSpaceExtents[4] = new PVector(left,bottom);
+		docSpaceExtents[5] = new PVector(right,bottom);
+
+		// The hull of these vertices forms a 5-sided shape - A rectangle with a triangle attached to one side, depending on the light direction
+		// We can call this the potential shadow region. Any previous sprite's pixels falling within the shadow region can receive shade. Any point
+		// outside it cannot receive shade.
+		// if the light ray direction is going left (-ve x) then the vertices of the shadow region are [2][3][5][4][2] for the sprite rect and [0][4][2][0] for the triangle
+		// if the light ray direction is going right (+ve x) then the vertices of the shadow region are [2][3][5][4] for the sprite rect and [1][5][3][1] for the triangle
+		// UNLESS the shape is cropped by the edge of the image!!!
+		// anyway, the inside check for the triangles is more expensive than the ray casting
+
+		// get the extents of these points
+		return Rect.getExtents(docSpaceExtents);
+	}
+	
+	
 	
 	String toStr() {
 		
@@ -382,11 +507,19 @@ class ShadowGeometry{
 	}
 	
 	
+	
+	
+	
 }
 
 
 
 class ShadowGeometrySpatialIndex{
+	
+	// this is a simple linera list of th shadowe geometries. Useful for 
+	// assigning shadow data back to the sprite
+	ArrayList<ShadowGeometry> simpleShadowGeometryList;
+	
 	
 	ShadowGeometrySpatialIndexBox2D[][] docSpaceGrid;
 	int numWidth, numHeight;
@@ -437,7 +570,7 @@ class ShadowGeometrySpatialIndex{
 			
 		}
 		
-		
+		simpleShadowGeometryList = new ArrayList<ShadowGeometry>();
 	}
 	
 	
@@ -446,6 +579,8 @@ class ShadowGeometrySpatialIndex{
 	 * @param sg
 	 */
 	void addShadowGeometryToIndex(ShadowGeometry sg) {
+		
+		simpleShadowGeometryList.add(sg);
 		
 		for(int y = 0; y < numHeight; y++) {
 			for(int x = 0; x < numWidth; x++) {
@@ -503,6 +638,10 @@ class ShadowGeometrySpatialIndex{
 	
 	PVector BStoDS(int x, int y) {
 		return GlobalSettings.getDocument().getCoordinateSystem().bufferSpaceToDocSpace(x,y);
+	}
+	
+	ArrayList<ShadowGeometry> getSimpleShadowGeometryList(){
+		return simpleShadowGeometryList;
 	}
 	
 }

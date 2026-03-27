@@ -60,7 +60,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 		if(contributes) {
 			castHardShadow(sprite);
 		} else {
-			depthRenderTarget.pasteSprite(sprite, sprite.getDepth(),3);
+			depthRenderTarget.pasteSprite(sprite, sprite.getDepth(),3,true);
 			shadowRenderTarget.pasteSprite_ReplaceColour(sprite, nonContributingColor);
 		}
 
@@ -81,7 +81,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 
 
 		// paste the sprite into the depth buffer
-		depthRenderTarget.pasteSprite(sprite, sprite.getDepth(),3);
+		depthRenderTarget.pasteSprite(sprite, sprite.getDepth(),3,true);
 
 		// paste the sprite as white into the shadow buffer to remove any shadows behind this sprite
 		shadowRenderTarget.pasteSprite_ReplaceColour(sprite, Color.WHITE);

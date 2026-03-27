@@ -73,7 +73,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	 */
 	public BufferedImageRenderTarget(String name, int w, int h, int imgType) {
 		
-		coordinateSystem = new ImageCoordinateSystem(w,h);
+		coordinateSystem = GlobalSettings.getTheDocumentCoordSystem();
 		
 		targetRenderImage = new BufferedImage(w, h, imgType);
 		

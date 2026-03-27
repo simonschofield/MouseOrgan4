@@ -204,14 +204,14 @@ public class SpriteBatch extends CollectionIterator{
 	 * "DocPoint", "UniqueID", "RandomKey",  "Depth"  and "SpriteBatchName"
 	 * @param fileAndPath
 	 */
-	public void saveSpriteBatch(String fileAndPath) {
+	public void saveSpriteBatch(String fileAndPath, String[] include) {
 		// there should be a directory in the project folder called seeds
 		FileWriter csvWriter = null;
 		try{
 			csvWriter = new FileWriter(fileAndPath);
 
-			String[] include = {"DocPoint", "UniqueID", "RandomKey",  "Depth" ,"SpriteBatchName"};
-			// String[] include = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "UseRelativeSizes", "ImageAssetGroupName", "ImageGroupItemShortName","SpriteBatchName"};
+			
+			//include = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "UseRelativeSizes", "ImageAssetGroupName", "ImageGroupItemShortName","SpriteBatchName"};
 			int activeSprites = 0;
 			for(Sprite s: spriteList){
 				if(s.isActive)  {

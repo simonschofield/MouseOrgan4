@@ -38,6 +38,13 @@ public class ByteImageGetterSetter {
 		int loc = x + y * width;
 		byteBuffer[loc] = (byte) val;
 	}
+	
+	public int getPixelFromNormalisedCoordinate(float xn, float yn) {
+		int x = (int)(xn*width);
+		int y = (int)(yn*height);
+		if( isInsideImage( x, y) ) return getPixel(x,y);
+		return 0;
+	}
 
 
 }

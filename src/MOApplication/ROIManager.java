@@ -316,7 +316,7 @@ public class ROIManager {
 
 	}
 
-	private ArrayList<String>  setPredefinedROIs(int fullSizeRenderWidth) {
+	public ArrayList<String>  setPredefinedROIs(int fullSizeRenderWidth) {
 		
 		int masterWidth = masterCoordinateSystem.getBufferWidth();
 		int masterHeight = masterCoordinateSystem.getBufferHeight();

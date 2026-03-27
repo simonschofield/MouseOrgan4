@@ -52,12 +52,21 @@ public class ScaledImageAssetGroupManager {
 	}
 
 
-	int getNumImageAssetsInGroup(String name) {
+	public int getNumImageAssetsInGroup(String name) {
 		ScaledImageAssetGroup cc = getScaledImageAssetGroup(name);
 		if (cc == null) {
 			return 0;
 		}
 		return cc.getNumImageAssets();
+	}
+	
+	public boolean imageAssetGroupExists(String name) {
+		for (ScaledImageAssetGroup cc : theScaledImageAssetGroupList) {
+			if (cc.isNamed(name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 

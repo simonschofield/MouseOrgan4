@@ -71,6 +71,10 @@ public class SpriteBatchHelper_Scene3D {
 	public void setDepthThinning(float farMultiplier, float nearThreshold) {
 		pointGenerator.setDepthSensitivePacking(farMultiplier, nearThreshold);
 	}
+	
+	public void noDepthThinning() {
+		pointGenerator.setDepthSensitivePacking(1, 0.5f);
+	}
 
 	/**
 	 * @param r - sets the docSpace extents of the generated points. Therefore this is a 2D extents box.

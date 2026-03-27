@@ -217,7 +217,14 @@ public class MOMaths {
 		return new PVector(v.y, -v.x, v.z);
 	}
 
-
+	
+	public static float mean(float[] m) {
+	    float sum = 0;
+	    for (int i = 0; i < m.length; i++) {
+	        sum += m[i];
+	    }
+	    return sum / m.length;
+	}
 
 	//interpolates the input value between the low and hi values
 	public static float ramp(float v, float low, float hi) {

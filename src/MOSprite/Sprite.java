@@ -18,6 +18,92 @@ import MOUtils.GlobalSettings;
 import MOUtils.KeyValuePair;
 import MOUtils.KeyValuePairList;
 
+/**
+ * General Introduction<pre>
+ * The Sprite Class. Contains a single graphic element that can be added to the output document images, usually through some sort of pasting. 
+ * Within a session multiple sprites are generated and added to the output images. Typically a single sprite will contain an image (and possibly 
+ * overlays of that image) loaded from the asset library. For each iteration of the updateUserSession, 
+ * usually one sprite (and it's overlay-images if present) are added to the output image(s).
+ * A sprite contains data, such as doc-space location, pivot-point, size in scene, depth (if in 3D) and a uniqueId and non-unique random-key. 
+ * 
+ * 
+ * The life-cycle of a sprite starts in the loadContentUserSession() method.
+ * Instantiation. This can happen individually or as part of a "SpriteBatch" created using multiple points. Sprite batches can also be saved and reloaded from file.
+ * Initialisation. The sprite needs certain data before it can work. A point in the scene, and an image is the very least that will do. The image is usually provided from
+ * the AssetLibrary. The setting of the sprite's images happens on a per-sprite basis, so usually in the updateUserSession() method. This is to avoid accumulating large amounts of image data in memory.
+ * Geometric and Colour transforms are applied on a per-sprite basis in the updateUserSession() method.
+ * The sprite then pastes to the output images. The image memory is freed on the sprite. The sprite batch (if there is one) can be saved for re-use.
+ * 
+ * 
+ * 
+ * </pre>
+ * 
+ *
+ * 
+ * Sprites have some essential "core" data, set up as specific fields in the sprite class. Other data can be added using the keyValuePair spriteData field. This can contain any amount of supplementary data. When
+ * a sprite is saved to file, each parameter has a unique name. Whether the data is core or user-added, all data can be set/get by using a "data name"<p>
+ *
+ * Core Data Fields. Data Name, type and variable name<p>
+ *<pre>
+ * 
+ *"DocPoint", PVector docPoint. 
+ *  
+ *"UniqueID", int uniqueID . 
+ *  
+ *"RandomKey", int randomKey 
+ * 
+ *"PivotPoint", PVector pivotPoint; 
+ *  
+ *"SizeInScene", float sizeInScene. Is used to set the size of the sprite in the scene
+ *  If in 2D, then the value refers to the HEIGHT of the sprite in document-space dimensions i.e. size of 1 means that the height of 
+ *  image is scaled to be the same as the longest edge of the document scaling to 2D scene
+ *  If in 3D the image is scaled to the correct size using  sizeInScene to represent the items's size in the 3D scene in world units. 
+ *  The sprites location, and depth is usually taken at the sprites pivot point within the scene.
+ *  
+ *"RelativeGroupSizeEqualization", float relativeGroupSizeEqualization. Default is 0. 
+ *   When relativeGroupSizeEqualization is set to 0, the scale = (sizeInScene * relative size of the asset within its group) - so all 
+ *   sprites are scaled differently according to their relative size within their asset group. 
+ *   The largest (tallest) image in the group gets scaled to sizeInScene, and all other sprite images are scaled smaller relative to this. 
+ *   When relativeGroupSizeEqualization is set to 1, the scale = (sizeInScene * 1)  - so all sprites are same size regardless of their source-image dimensions
+ *   When relativeGroupSizeEqualization is set to 0.5, the resultant scale is a interpolation of the above 
+ *   
+ *	
+ *"Depth", float depth
+ *  
+ *"ImageAssetGroupName", String ImageAssetGroupName
+ *  
+ *"ImageGroupItemShortName", String ImageGroupItemShortName
+ * 
+ *  </pre>
+ *
+ *Adding and Modifying data to a sprite <pre> 
+ * All the fields above can be set or modified directly or by using setSpriteData(..) methods.
+ * Supplementary session/user-defined data can be added to each sprite, by utilising the the same methods. 
+ * Each sprites contains a KeyValuePairList hash-table public field called "spriteData". 
+ * This is used to store arbitrary user-defined sprite data. Data can be 
+ * added/modified using  setSpriteData(..) which accept either a single KeyValuePair, a KeyValuePairList, or a CSV line, which is then 
+ * parsed into a KeyValuePairList. If a KVP does not exist within the spriteData hash table, then it is added. If it already exists, then it is modified. 
+ * 
+ * One example of adding user-session data to a sprite would be adding the name of the particular sprite-batch to which a sprite belongs. 
+ * This is often used to assign the image from the SpriteFonts using sprite.spiteDataStringEquals("SpriteBatchName","wildFlowerSpeciesSeedBatch"))
+ * Another example may be to store inter-shadowing data. This is calculated in the master session and stored per-sprite and saved as a sprite-batch 
+ * at the end of th session, to be used in subsequent sessions to augment shadows.
+ * </pre>
+ *
+ * 
+ *
+ * 
+ * 
+ * Note on Image Storage within in the sprite<p>
+ * Images are managed internally using  the  SpriteImages class. Add images via public methods such as This contains one or more images. All images within are subject to the same geometric transforms and cropping. All images contained need to be the same image-dimensions in order to overlay correctly.
+ * Images are named and can accessed thus. The class has a string storing the currentImagename, for access use. The first image (image(0)) is named "main" , and sets the size of all other added images. This implementation does not work with images of different dimensions<p> 
+ * 
+ * Sprites are instantiated in several ways depending on the needs. For the purposes of replication at different scales, and rendering  ROIs fully consistent with the master image, sprites can be generated as a batch 
+ * in the top-level loadContentUserSession() method, and stored in a SpriteBatch class. A sprite batch can be saved and loaded between sessions to help with consistency. Once the sprite batch has been created, each iteration of the 
+ * updateUserSession method deals with one sprite at a time. If saved, this is a CSV type, with each value name the same as the data name field. Image buffer data is never saved, but must be re-loaded each session, using availble information to ensure repreatability. <p> 
+ * 
+ * 
+ */
 public class Sprite {
 
 
@@ -25,7 +111,7 @@ public class Sprite {
 	// the images contained within this sprite. The first image (image(0)) is the "main" image, and sets
 	// the size of all other added images. This implementation does not work with images of different dimensions
 	private SpriteImages images;
-	private String currentImageName = "main";
+	
 	
 	////////////////////////////////////////////////////
 	// the id is a unique integer > 0. It is set by the sprite's constructor from the static UniqueID class declared above.
@@ -59,7 +145,7 @@ public class Sprite {
 	private PVector pivotPoint = new PVector(0.5f, 0.5f);
 
 	/////////////////////////////////////////////////////
-	// the doc point used to position  the item in the scene
+	// the doc point used to position the item in the scene
 	// While certain processes generate a doc point with Z value for depth, the docPoint should never contain
 	// any Z value other than 0, as this will screw up scaling calculations
 	public PVector docPoint = new PVector(0.5f, 0.5f);
@@ -167,6 +253,19 @@ public class Sprite {
 	}
 
 
+	/**
+	 * Adds a new, or modifies an existing, single Key value Pair to the sprite
+	 * @param dataIn
+	 */
+	public void setSpriteData(KeyValuePair dataIn) {
+		
+		KeyValuePairList kvpl = new KeyValuePairList();
+		kvpl.addKeyValuePair(dataIn);
+		setSpriteData(kvpl);
+		
+	}
+	
+	
 	public void setSpriteData(KeyValuePairList dataIn) {
 
 		if( dataIn.keyExists("DocPoint") ) {
@@ -195,10 +294,6 @@ public class Sprite {
 		if( dataIn.keyExists("SizeInScene") ) {
 			sizeInScene = dataIn.getFloat("SizeInScene");
 		}
-
-		//if( dataIn.keyExists("UseRelativeSizes") ) {
-		//	useRelativeSizes = dataIn.getBoolean("UseRelativeSizes");
-		//}
 
 		if( dataIn.keyExists("RelativeGroupSizeEqualization") ) {
 			relativeGroupSizeEqualization = dataIn.getFloat("RelativeGroupSizeEqualization");
@@ -252,8 +347,6 @@ public class Sprite {
 
 		outList.addKeyValuePair(   new KeyValuePair("SizeInScene", sizeInScene  )  );
 
-		//outList.addKeyValuePair(   new KeyValuePair("UseRelativeSizes", useRelativeSizes  )  );
-
 		outList.addKeyValuePair(   new KeyValuePair("RelativeGroupSizeEqualization", relativeGroupSizeEqualization  )  );
 
 		outList.addKeyValuePair(   new KeyValuePair("Depth", depth  )  );
@@ -298,6 +391,14 @@ public class Sprite {
 		return s.contains(containsThis);
 
 	}
+	
+	public boolean spriteDataKeyExists(String dataKey) {
+		return spriteData.keyExists(dataKey);
+	}
+	
+	public KeyValuePair getSpriteData(String dataKey) {
+		return spriteData.findKeyValue(dataKey);
+	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	/// sprite image getting and setting
@@ -312,7 +413,8 @@ public class Sprite {
 	}
 	
 	public BufferedImage getCurrentImage() {
-		return getImage(currentImageName);
+		return getImage(images.currentImageName);
+		
 	}
 	
 	public void setCurrentImage(String ci) {
@@ -320,7 +422,7 @@ public class Sprite {
 			//System.out.println("Sprite::setCurrentImage, image name " + ci + " does not exist or is null");
 			return;
 		}
-		currentImageName = ci;
+		images.currentImageName = ci;
 	}
 	
 	public void setCurrentImage(int i) {
@@ -329,11 +431,11 @@ public class Sprite {
 			System.out.println("Sprite::setCurrentImage, image number " + i + " does not exist");
 			return;
 		}
-		currentImageName = s;
+		images.currentImageName = s;
 	}
 	
 	String getCurrentImageName() {
-		return currentImageName;
+		return images.currentImageName;
 	}
 
 	public BufferedImage getImage(int i) {
