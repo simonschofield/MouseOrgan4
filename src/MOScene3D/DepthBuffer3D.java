@@ -70,8 +70,8 @@ public class DepthBuffer3D {
 
 			calculateWorld3DExtents();
 
-			System.out.println("depth buffer extrema are " + depthBufferExtrema.limit1 + " " + depthBufferExtrema.limit2);
-			System.out.println("worldZExtrema extrema are " + worldZExtrema.limit1 + " " + worldZExtrema.limit2);
+			//System.out.println("depth buffer extrema are " + depthBufferExtrema.limit1 + " " + depthBufferExtrema.limit2);
+			//System.out.println("worldZExtrema extrema are " + worldZExtrema.limit1 + " " + worldZExtrema.limit2);
 		}
 
 

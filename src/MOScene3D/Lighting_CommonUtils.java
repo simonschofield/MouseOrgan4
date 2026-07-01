@@ -2,11 +2,13 @@ package MOScene3D;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 
 import MOCompositing.BufferedImageRenderTarget;
 import MOCompositing.FloatImageRenderTarget;
 import MOImage.ByteImageGetterSetter;
 import MOImage.MOColor;
+import MOMaths.MOMaths;
 import MOMaths.PVector;
 import MOMaths.Rect;
 import MOSprite.Sprite;
@@ -19,9 +21,15 @@ public class Lighting_CommonUtils {
 	SceneData3D sceneData3D;
 	protected ImageCoordinateSystem coordinateSystem;
 
+	
+	
 	BufferedImageRenderTarget shadowRenderTarget;
 	BufferedImage shadowRenderImage;
-	ByteImageGetterSetter  shadowImageGetSet;
+	protected int shadowRenderImageType = BufferedImage.TYPE_BYTE_GRAY;
+	
+	
+	WritableRaster shadowShortImageGetSet;
+	ByteImageGetterSetter  shadowByteImageGetSet;
 
 	FloatImageRenderTarget depthRenderTarget;
 	PVector lightDirection;
@@ -30,6 +38,8 @@ public class Lighting_CommonUtils {
 	public boolean debugFlag = false;
 	Progress progress;
 
+	// used by both base-point lighting and inter-shadowing
+	ToneRamp toneRamp;
 
 	// this is used to determine whether or not a particular sprite in a ROI session contributes to the image
 	// Because shadows extend beyond the sprite itself, sprites outside the ROI may contribute, so should be included in the
@@ -37,22 +47,38 @@ public class Lighting_CommonUtils {
 	Rect theDoumentDocSpaceRect;
 
 
-	public Lighting_CommonUtils(String nameOfShadowRender) {
+	public Lighting_CommonUtils(String nameOfShadowRender, int renderImageType) {
 		
 		sceneData3D = GlobalSettings.getSceneData3D();
 		if(sceneData3D == null) {
 			System.out.println("Lighting_CommonUtils  SceneData3D == null, please initialse first ");
 
 		}
+		
+		if( renderImageType == BufferedImage.TYPE_BYTE_GRAY || renderImageType == BufferedImage.TYPE_USHORT_GRAY ) {
+			shadowRenderImageType = renderImageType;
+		}else {
+			System.out.println("Lighting_CommonUtils:: you cannot set the output render to type " + renderImageType + " - Only TYPE_BYTE_GRAY and TYPE_USHORT_GRAY ");
+			// defaults to TYPE_BYTE_GRAY
+		}
+		
 
 		coordinateSystem = GlobalSettings.getDocument().getCoordinateSystem();
 		theDoumentDocSpaceRect = coordinateSystem.getDocumentRect();
 
 
-		GlobalSettings.getDocument().addRenderTarget(nameOfShadowRender, BufferedImage.TYPE_BYTE_GRAY);
+		GlobalSettings.getDocument().addRenderTarget(nameOfShadowRender, shadowRenderImageType);
 		shadowRenderTarget = GlobalSettings.getDocument().getBufferedImageRenderTarget(nameOfShadowRender);
 		shadowRenderTarget.fillBackground(Color.WHITE);
-		shadowImageGetSet = new ByteImageGetterSetter(shadowRenderTarget.getBufferedImage());
+		
+		if(shadowRenderImageType == BufferedImage.TYPE_BYTE_GRAY) {
+			shadowByteImageGetSet = new ByteImageGetterSetter(shadowRenderTarget.getBufferedImage());
+		}
+		if(shadowRenderImageType == BufferedImage.TYPE_USHORT_GRAY) {
+			shadowShortImageGetSet = shadowRenderTarget.getBufferedImage().getRaster();
+		}
+		
+		
 		// set a default light direction
 		setLightDirection( vec(-0.5f,-1,1) );
 	}
@@ -110,7 +136,7 @@ public class Lighting_CommonUtils {
 	}
 
 
-
+	
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,7 +211,25 @@ public class Lighting_CommonUtils {
 		GlobalSettings.getDocument().getMain().drawRectBufferSpace(spriteBufferRect, new Color(0,0,0,0), rc, 10f);
 	}
 
+	
+	/**
+	 * Calculates a new interpolated value from ints using a control value in the range 0...255, so prefigured for raw alpha values
+	 * @param valA - int in any range
+	 * @param valB - int in any range
+	 * @param alpha - in the range 0...255
+	 * @return the interpolated value  between A & B
+	 */
+	protected static int lerpInt256(int valA, int valB, int alpha) {
+		float af = alpha*0.003922f;
+		return (int)MOMaths.lerp(af, valA, valB);
 
+	}
+	
+	protected static int lerpInt65535(int valA, int valB, int alpha) {
+		float af = alpha*0.00001525879f;
+		return (int)MOMaths.lerp(af, valA, valB);
+
+	}
 
 
 }

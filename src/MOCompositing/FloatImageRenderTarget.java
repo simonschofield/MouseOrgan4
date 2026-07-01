@@ -24,8 +24,8 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 
 	public ImageCoordinateSystem coordinateSystem;
 
-	private boolean floatImageMake16BitCopyOnSave = false;
-	public boolean saveRenderAtEndOfSession = true;
+	private boolean saveAs16BitGreyBufferedImage = false;
+	public boolean saveFloatingPointZBuffer = false;
 	
 	private String renderTargetName = "";
 	
@@ -33,16 +33,19 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 	
 	
 	
-	public FloatImageRenderTarget(String name, int w, int h, boolean saveTYPE_USHORT_GRAYcopy, float imageCopyGamma) {
+	public FloatImageRenderTarget(String name, int w, int h, float imageCopyGamma) {
 		floatImage = new FloatImage(w, h);
-		floatImageMake16BitCopyOnSave = saveTYPE_USHORT_GRAYcopy;
 		floatImageCopyGamma = imageCopyGamma;
 		coordinateSystem = GlobalSettings.getTheDocumentCoordSystem();
 		renderTargetName = name;
+		setRenderSaves(false, true);
 	}
 	
 	
-	
+	public void setRenderSaves(boolean saveFloartingPointZ, boolean save16BitGreyImage) {
+		saveAs16BitGreyBufferedImage = save16BitGreyImage;
+		saveFloatingPointZBuffer = saveFloartingPointZ;
+	}
 	
 	public String getName() {
 		return renderTargetName;
@@ -80,15 +83,13 @@ public class FloatImageRenderTarget implements RenderTargetInterface {
 
 	@Override
 	public void saveRenderToFile(String pathAndFilename) {
-		if(saveRenderAtEndOfSession == false) {
-			System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename + " save set to false ");
-		} else {
+		if(saveFloatingPointZBuffer)  {
 			System.out.println("RenderTarget:saveRenderToFile  " + pathAndFilename);
 			saveFloatImage(pathAndFilename);
 		}
 		
 			
-		if( floatImageMake16BitCopyOnSave ) {
+		if( saveAs16BitGreyBufferedImage ) {
 			
 			BufferedImage TYPE_USHORT_GRAY_BufferedImage = copyFloatDataToBufferedImage(floatImageCopyGamma);
 			

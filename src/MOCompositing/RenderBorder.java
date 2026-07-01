@@ -230,7 +230,7 @@ public class RenderBorder {
 	 */
 	private boolean cropSpriteImage(Sprite sprite, int enumeratedImageNum) {
 		int numImage = sprite.getNumImages();
-		
+		//System.out.println("cropSpriteImage " + sprite.ImageGroupItemShortName + " enum " + enumeratedImageNum );
 		String overlapReport = sprite.getDocSpaceRect().reportIntersection(BorderRect);
 		
 		//System.out.println("cropSprite 
@@ -276,6 +276,8 @@ public class RenderBorder {
 		// System.out.println("croppedRectBufferSpace " + croppedRectBufferSpace.toStr() + " testRect " + testRect.toStr() );
 		
 		//System.out.println("doBespokeCrop:uncroppedSpriteRect " + uncroppedSpriteRect.toStr() + " in doc rect " + documentRect.toStr() + " translatedCroppedSpriteRect " + translatedSpriteDocRectIntersection.toStr());
+		//BufferedImage img = sprite.getImage(enumeratedImageNum);
+		//System.out.println("img w h " + img.getWidth() + " ," + img.getHeight());
 		//System.out.println("doBespokeCrop:croppedRectBufferSpace " + croppedRectBufferSpace.toStr() + " sprite image size " + sprite.getImageWidth() + "," + + sprite.getImageHeight());
 		// if the crop rect is zero in either dimension return the culled decision
 		if(croppedRectBufferSpace.getWidth() < 1 || croppedRectBufferSpace.getHeight() < 1) {
@@ -286,6 +288,7 @@ public class RenderBorder {
 		// Now we have got the basic (and legal) crop rect
 		// As we don't want to complicate things, and don't want to have to adjust the origin
 		// of the sprite to adjust to the new crop, we just delete the pixels outside of the croppedRectBufferSpace
+		
 		BufferedImage preCroppedImage = ImageProcessing.cropImage(sprite.getImage(enumeratedImageNum), croppedRectBufferSpace);
 
 		

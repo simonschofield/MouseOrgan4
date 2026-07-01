@@ -127,6 +127,35 @@ public class GlobalSettings {
 	// public data access methods
 	//
 	//
+	public static void checkGlobalSettings() {
+		if(sessionScale == 0) {
+			System.out.println("FATAL:: GlobalSettings session scale has not been set! call GlobalSettings.initialiseSession(....) earlier. EXITING");
+			System.exit(0);
+			
+		}
+		if( userSessionPath.length() < 2) {
+			System.out.println("FATAL:: GlobalSettings session directory path has not been set! call GlobalSettings.initialiseSession(....) earlier. EXITING");
+			System.exit(0);
+			
+		}
+		
+		
+		
+		
+		System.out.println("Global Session Settings as follows:");
+		System.out.println("Session Scale :" + sessionScale);
+		System.out.println("Session path :" + userSessionPath);
+		
+		MainDocument md = getDocument();
+		ImageCoordinateSystem cs = md.getCoordinateSystem();
+		System.out.println("Document Name " + GlobalSettings.getDocumentName());
+		System.out.println("Document size " + cs.getBufferWidth() + ", " + cs.getBufferHeight());
+		
+	}
+	
+	
+	
+	
 	/**
 	 * @return - the session scale. usually 0.1, 0.25, 0.5 or 1.0
 	 */
@@ -330,7 +359,7 @@ public class GlobalSettings {
 		if(mainSessionName.equals("")){
 			File f  = new File(GlobalSettings.getUserSessionPath());
 			mainSessionName = f.getName();
-			System.out.println("default doc name is " + mainSessionName);
+			//System.out.println("default doc name is " + mainSessionName);
 		}
 	}
 	

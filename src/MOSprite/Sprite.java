@@ -23,8 +23,7 @@ import MOUtils.KeyValuePairList;
  * The Sprite Class. Contains a single graphic element that can be added to the output document images, usually through some sort of pasting. 
  * Within a session multiple sprites are generated and added to the output images. Typically a single sprite will contain an image (and possibly 
  * overlays of that image) loaded from the asset library. For each iteration of the updateUserSession, 
- * usually one sprite (and it's overlay-images if present) are added to the output image(s).
- * A sprite contains data, such as doc-space location, pivot-point, size in scene, depth (if in 3D) and a uniqueId and non-unique random-key. 
+ * usually one sprite (and it's overlay-images if present) is added to the output image(s).
  * 
  * 
  * The life-cycle of a sprite starts in the loadContentUserSession() method.
@@ -46,13 +45,15 @@ import MOUtils.KeyValuePairList;
  * Core Data Fields. Data Name, type and variable name<p>
  *<pre>
  * 
- *"DocPoint", PVector docPoint. 
+ *"DocPoint", PVector docPoint. The location of the sprite within the document - i.e. the place where it is to be added, in document space
  *  
- *"UniqueID", int uniqueID . 
+ *"UniqueID", int uniqueID . A totally unique integer id for each sprite. This is immutable and used in identifying sprites in the output image, if required.
  *  
- *"RandomKey", int randomKey 
+ *"RandomKey", int randomKey. A non-unique integer for each sprite. This is initially set to the unique ID, but can be changed by the user, or processes. 
+ * It is used to seed random streams associated with this sprites life-cycle, so the same things happen to the sprite each time.
  * 
- *"PivotPoint", PVector pivotPoint; 
+ *"PivotPoint", PVector pivotPoint; The local-origin of the sprite. It is stored in normalised coordinate space, where 0,0 is the top-left of the sprite and 1,1 
+ * is the bottom right of the sprite. This is used to match up the point in the sprite to be placed at the docPoint when pasting. It is also local origin for geometric transforms.
  *  
  *"SizeInScene", float sizeInScene. Is used to set the size of the sprite in the scene
  *  If in 2D, then the value refers to the HEIGHT of the sprite in document-space dimensions i.e. size of 1 means that the height of 
@@ -65,29 +66,29 @@ import MOUtils.KeyValuePairList;
  *   sprites are scaled differently according to their relative size within their asset group. 
  *   The largest (tallest) image in the group gets scaled to sizeInScene, and all other sprite images are scaled smaller relative to this. 
  *   When relativeGroupSizeEqualization is set to 1, the scale = (sizeInScene * 1)  - so all sprites are same size regardless of their source-image dimensions
- *   When relativeGroupSizeEqualization is set to 0.5, the resultant scale is a interpolation of the above 
+ *   When relativeGroupSizeEqualization is set to 0.5, the resultant scale is an interpolation of the above rules
  *   
  *	
- *"Depth", float depth
+ *"Depth", float depth. The depth in 3D units (but could also be used in 2D) to organise drawing order
  *  
- *"ImageAssetGroupName", String ImageAssetGroupName
+ *"ImageAssetGroupName", String ImageAssetGroupName - The name of the asset group associated with this sprite, e.g. "OxeyeDaisys"
  *  
- *"ImageGroupItemShortName", String ImageGroupItemShortName
+ *"ImageGroupItemShortName", String ImageGroupItemShortName - The short name of the image from the above group, e.g. "Daisy017"
  * 
  *  </pre>
  *
  *Adding and Modifying data to a sprite <pre> 
- * All the fields above can be set or modified directly or by using setSpriteData(..) methods.
+ * All the fields above can be set or modified directly or by using setSpriteData(..) methods, using their KVP names, listed above (e.g. "RandomKey").
  * Supplementary session/user-defined data can be added to each sprite, by utilising the the same methods. 
  * Each sprites contains a KeyValuePairList hash-table public field called "spriteData". 
- * This is used to store arbitrary user-defined sprite data. Data can be 
+ * This is used to store arbitrary user-defined sprite data, extra to the Core Data defined above. Data can be 
  * added/modified using  setSpriteData(..) which accept either a single KeyValuePair, a KeyValuePairList, or a CSV line, which is then 
  * parsed into a KeyValuePairList. If a KVP does not exist within the spriteData hash table, then it is added. If it already exists, then it is modified. 
  * 
  * One example of adding user-session data to a sprite would be adding the name of the particular sprite-batch to which a sprite belongs. 
  * This is often used to assign the image from the SpriteFonts using sprite.spiteDataStringEquals("SpriteBatchName","wildFlowerSpeciesSeedBatch"))
- * Another example may be to store inter-shadowing data. This is calculated in the master session and stored per-sprite and saved as a sprite-batch 
- * at the end of th session, to be used in subsequent sessions to augment shadows.
+ * Another example may be to store inter-shadowing data. This is calculated in the master session and stored per-sprite and saved in a sprite-batch CSV file
+ * at the end of the session, to be used in subsequent sessions to augment shadows.
  * </pre>
  *
  * 
@@ -95,8 +96,9 @@ import MOUtils.KeyValuePairList;
  * 
  * 
  * Note on Image Storage within in the sprite<p>
- * Images are managed internally using  the  SpriteImages class. Add images via public methods such as This contains one or more images. All images within are subject to the same geometric transforms and cropping. All images contained need to be the same image-dimensions in order to overlay correctly.
- * Images are named and can accessed thus. The class has a string storing the currentImagename, for access use. The first image (image(0)) is named "main" , and sets the size of all other added images. This implementation does not work with images of different dimensions<p> 
+ * Images are managed internally using  the  SpriteImages class. This contains one "main" images and, if required, other "overlay" images. All images within are subject to the same geometric transforms and cropping. All images contained need to be the same image-dimensions in order to overlay correctly.
+ * Images are named and can accessed using the name; this is not the same as the "short name" for the image, but the user-assigned name of the "overlay" images. 
+ * The class has a string storing the currentImagename, for access use. The first image (image(0)) is always named "main" , and sets the size of all other added images. This implementation does not work with images of different dimensions<p> 
  * 
  * Sprites are instantiated in several ways depending on the needs. For the purposes of replication at different scales, and rendering  ROIs fully consistent with the master image, sprites can be generated as a batch 
  * in the top-level loadContentUserSession() method, and stored in a SpriteBatch class. A sprite batch can be saved and loaded between sessions to help with consistency. Once the sprite batch has been created, each iteration of the 
@@ -119,7 +121,7 @@ public class Sprite {
 	// regardless of previous random events
 	// It is also used in optimisations such as registering whether or not a sprite is used in a render.
 	// NB: An ID of zero (0) is never used, as 0 is used in ID-RenderTargets (where the pixel information is the ID of the sprite)
-	// to represent "nothing".
+	// to represent "nothing" i.e. no sprite present at this pixel.
 	private int uniqueID;
 
 	// the randomKey is used to guarantee the same outcome from stochastic processes, rather than relying on the UniqueID. It is initially set to equal the uniqueID, but if the user is unhappy
@@ -191,12 +193,11 @@ public class Sprite {
 
 
 
-
-	///////////////////////////////////////////////////////////
-	// Constructors
-	//
-	// This one used by SpriteMakers.. they have to establish a
-	// unique ID, which is used to set the ransomKet as well.
+	/**
+	 * Creates a new sprite with minimal data
+	 * @param newUniqueID - Normally set to true if a new unique ID is required. Only set to false when loading sprite-batch data from file
+	 * as the Unique Id will be loaded from there instead.
+	 */
 	public Sprite(boolean newUniqueID) {
 		if(newUniqueID) {
 			newUniqueID();
@@ -205,7 +206,11 @@ public class Sprite {
 
 	}
 
-	// "naive" constructor
+	
+	/**
+	 * A "naive" constructor. Once set the sprite is ready to use. Has a unique ID.
+	 * @param img
+	 */
 	public Sprite(BufferedImage img) {
 		newUniqueID();
 		images = new SpriteImages();
@@ -214,38 +219,56 @@ public class Sprite {
 	}
 
 
+	/**
+	 * Must be called just after the main image is set
+	 */
 	private void initImageQuad() {
 		if( imageQuad==null ) {
 			imageQuad = new SpriteImageQuad(this);
 		}
 	}
 
+	/**
+	 * Creates a new U nique ID for the sprite from a global unique ID source
+	 */
 	private void newUniqueID() {
 		this.uniqueID = GlobalSettings.getNextUniqueID();
 		setRandomKey(this.uniqueID);
 	}
 
-	public void setUniqueIDFromOtherSource(int id) {
+	/**
+	 * When loading sprites from file, this informs the global unique source that the ID has been used.
+	 * @param id - the id that has been loaded from file (or another source) 
+	 */
+	private void setUniqueIDFromOtherSource(int id) {
 		GlobalSettings.grabUniqueIDFromOtherSource(id);
 		this.uniqueID = id;
 		setRandomKey(this.uniqueID);
 	}
 
+	/**
+	 * Used to seed random processes associated with this sprites life-cycle, so the same things happen to the sprite each time.
+	 * Is initially set to the UniqueID, but can be user-set. 
+	 * @param k
+	 */
 	public void setRandomKey(int k) {
 		this.randomKey = k;
 		setRandomStreamPos(this.randomKey);
 	}
 
+	/**
+	 * @return the unique ID of the sprite. Used in identifying a specific sprite
+	 */
 	public int getUniqueID() {
 		return uniqueID;
 	}
 
-	///////////////////////////////////////////////////////////////////////////////
-	// This allows the setting of complete or "partial" data back to the sprite
-	// Is used, for instance, in the initial SpriteBatch, where only ID and positional data is added,
-	// and in the SpriteFont, where only image asset related data is set
-	//
-	//
+	
+	/**
+	 * This allows the setting of complete or "partial" data back to the sprite Is used, for instance, in the initial SpriteBatch, where only ID and positional data is added,
+	 * and in the SpriteFont, where only image asset related data is set
+	 * @param line - this must be in correct CSV format
+	 */
 	public void  setSpriteDataWithCSVLine(String line) {
 		KeyValuePairList kvpl = new KeyValuePairList();
 		kvpl.ingestCSVLine(line);
@@ -254,8 +277,8 @@ public class Sprite {
 
 
 	/**
-	 * Adds a new, or modifies an existing, single Key value Pair to the sprite
-	 * @param dataIn
+	 * Adds a new, or modifies existing sprite data, from a single Key-Value Pair
+	 * @param dataIn - A single key-value pair
 	 */
 	public void setSpriteData(KeyValuePair dataIn) {
 		
@@ -266,6 +289,10 @@ public class Sprite {
 	}
 	
 	
+	/**
+	 * Adds a new, or modifies existing sprite data, from a list of Key-Value Pairs
+	 * @param dataIn - A key-value pair list
+	 */
 	public void setSpriteData(KeyValuePairList dataIn) {
 
 		if( dataIn.keyExists("DocPoint") ) {
@@ -464,17 +491,23 @@ public class Sprite {
 		// If the existing name already exists, it replaces that image, otherwise adds a new image
 		// The same as setImage
 		images.setImage(name, img);
+		
 		initImageQuad();
 	}
 
 	public void setImage(int i, BufferedImage img) {
 		// sets an image via numerical index. The list element must already exist for this to work
 		images.setImage(i, img);
+		
 		initImageQuad();
 	}
 
 	public int getNumImages() {
 		return images.getNumImages();
+	}
+	
+	public boolean checkImageSizes(String message) {
+		return images.checkOverlayImagesMatchingDimensions(message);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////
@@ -483,6 +516,7 @@ public class Sprite {
 	public void duplicateImage(String sourceImageName, String duplicateName) {
 		BufferedImage copyImg = ImageProcessing.copyImage(getImage(sourceImageName));
 		setImage(duplicateName, copyImg);
+		images.checkOverlayImagesMatchingDimensions("duplicateImage ");
 	}
 
 
@@ -519,7 +553,7 @@ public class Sprite {
 		ScaledImageAssetGroup siag = sf.getSpriteImageGroup();
 		String shortName = siag.getImageAssetName(index);
 		BufferedImage img = siag.getImage(index);
-
+		//System.out.println(" getting image " + shortName + " from sprite font of size " + img.getWidth()+ ", " + img.getHeight() );
 		KeyValuePairList kvlist = new KeyValuePairList();
 
 		kvlist.addKeyValue("SpriteFontName", sf.thisSpriteFontName);
@@ -539,39 +573,7 @@ public class Sprite {
 		setMainImage(img);
 	}
 
-	/***** Not sure we need or should encourage sprite copying
-	public Sprite copy() {
-		// returns a completely identical, but independent copy
-		// The image is set by shared reference for speed purposes
-		//
-		Sprite cpy = new Sprite(false);
-
-		cpy.uniqueID = this.getUniqueID();
-		cpy.randomKey = this.randomKey;
-
-		cpy.ImageAssetGroupName = this.ImageAssetGroupName;
-		cpy.ImageGroupItemShortName= this.ImageGroupItemShortName;
-
-		cpy.sizeInScene = this.sizeInScene;
-		//cpy.useRelativeSizes = this.useRelativeSizes;
-		cpy.relativeGroupSizeEqualization =  this.relativeGroupSizeEqualization;
-		cpy.pivotPoint = this.pivotPoint.copy();
-
-		cpy.docPoint = this.docPoint.copy();
-		cpy.depth = this.depth;
-
-		cpy.setRandomStream(this.qRandomStream);
-
-		cpy.images = this.images;
-
-		cpy.spriteData = spriteData.copy();
-
-		return cpy;
-	}
-	*/
-
-
-
+	
 
 	public void setRandomStreamPos(int rseed) {
 		// a sprite's random stream is set by this
@@ -683,6 +685,9 @@ public class Sprite {
 
 	}
 
+	/**
+	 * @return the pixel location of the pivot point in local (sprite image) pixel-buffer space
+	 */
 	private PVector getPivotPointLocalBufferSpace() {
 		// this is the amount you add in pixels to shift the sprite according to its pivot point
 		// so an origin of (1,1) (bottom right hand corner) would result in a subtraction of the whole width and height of sprite pos.

@@ -138,7 +138,7 @@ public  class QRandomStream {
 		return randRangeAveragedDistribution( lo,  hi, 20);
 	}
 
-	float randRangeAveragedDistribution(float lo, float hi, int numSamples) {
+	public float randRangeAveragedDistribution(float lo, float hi, int numSamples) {
 		/* using 4 average-samples this is the population distribution between 0..1
 		 * (total population 1000)
 		Range: 0.0,0.1: population: 3
@@ -161,7 +161,7 @@ public  class QRandomStream {
 
 	}
 
-	float skewedNormalisedRange(float lo, float cen, float hi) {
+	public float skewedNormalisedRange(float lo, float cen, float hi) {
 		/* lo = 0, cen = 0.25, hi = 1, population 1000
 		 * 	Range: 0.0,0.05: population: 3
 			Range: 0.05,0.1: population: 15

@@ -34,19 +34,25 @@ import MOUtils.Progress;
 import MOUtils.SecondsTimer;
 
 /**
- * The point surface packer will pack points on a surface using a radius-per-point. When attempting to place the next point, if any other previous point
- * is already placed is within the packing radius, the new point cannot be placed (failed), so moves to the next one. Hence is a 
+ * The point surface packer will pack points on a surface using a packing 3D radius. When attempting to place a new point, if any other previous point
+ * is already placed is within the packing radius, the new point cannot be placed (failed), so moves to the next one. Hence this is a 
  * Monte-carlo type process. The algorithm ends when the desired number of points have been placed, or the consecutive failed number of attempts has exceeded a threshold (default is 300).
  * The point-placement radius can be made to respond to the brightness of an image, so can achieve clustering and thinning of points in
- * response to an image pixel values. It can also be responsive to depth, to achieve "depth-thinning".
+ * response to an image pixel values. It can also be responsive to depth, to achieve "depth-thinning".<p>
  * 
  * The image sampling occurs on one of the SceneData's texture images, and is specified by the user. The relationship between the value of the pixel and the radius is set using
- * a PackingInterpolationScheme, which correlates a particular pixel brightness to a packing radius so that there is a linear relationship between density of points and the pixel value.
+ * a PackingInterpolationScheme, which correlates a particular pixel brightness to a packing radius so that there is a good visual relationship between density of points and the pixel value.<p>
  * 
- * Packing requires that new points check neighbouring points, and this process is accelerated by using a spatial index of placed points.
+ * Hence packing requires that new points check neighbouring points, and this process is accelerated by using a spatial index of placed points.<p>
  * 
- * When packing points there are two modes available: PACKINGMODE_2D_VISITATION mode iterates in screen-space to place new points. This is siple to implement but has the effect of iterating over near areas more than far areas, 
- * so has an in-built bias toward populating near areas over far areas.
+ * When packing points there are two modes available: PACKINGMODE_2D_VISITATION mode iterates in screen-space to place new points. 
+ * This is simple to implement but has the consequence of iterating over near areas more than far areas (as they occupy more screen space)
+ * so has an in-built bias toward populating near areas over far areas. This may suit, but it is not very controllable.<p>
+ * 
+ * When packing in PACKINGMODE_3D_VISITATION mode, it makes use of the Scenedata3D's in-built spatially indexed surface points. A random surface-point-box is selected, and a random 3D point (P3) generated 
+ * within. The nearest point on the surface is found (SP). A new surface point is created using the XZ of the random 3D point (P3) and the Y of SP.<p>
+ *
+ * The default visitationMode is PACKINGMODE_2D_VISITATION 
  */
 public class PointGenerator_SurfacePack3D {
 

@@ -101,6 +101,7 @@ public class ImageAssetGroup {
 	//
 	protected void loadImage(String pathAndName) {
 		BufferedImage img = ImageProcessing.loadImage(pathAndName);
+		img =ImageProcessing.assertImageTYPE_INT_ARGB(img);
 		String thisShortFileName = MOStringUtils.getShortFileNameFromFullPathAndFileName(pathAndName);
 		addImageAsset(img, thisShortFileName);
 	}

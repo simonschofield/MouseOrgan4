@@ -23,6 +23,7 @@ public class SpriteBatch extends CollectionIterator{
 	public String thisSpriteBatchName = "";
 	private ArrayList<Sprite> spriteList = new ArrayList<>();
 
+	public static String[] defaultIncludes = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "RelativeGroupSizeEqualization", "ImageAssetGroupName", "ImageGroupItemShortName","SpriteBatchName"};
 
 	/**
 	 * A SpriteBatch is a list of sprites, that are created ahead of the render. Typically, when a SpriteBatch is created, each sprite not contain the full set of information required to completes it's life cycle, but is used
@@ -143,6 +144,22 @@ public class SpriteBatch extends CollectionIterator{
 		}
 		return points;
 	}
+	
+	/**
+	 * @return - return an array list of all the 3D points of the sprites in the batch
+	 */
+	public ArrayList<PVector> get3DPoints(){
+		ArrayList<PVector> points = new ArrayList<>();
+		for(Sprite s : spriteList) {
+			
+			PVector docPoint = s.getDocPoint();
+	
+			PVector p3d = GlobalSettings.getSceneData3D().get3DSurfacePoint(docPoint);
+			points.add(p3d);
+		}
+		return points;
+	}
+
 
 	/**
 	 * Legacy. Not sure this is ever used. Overwites the names of the Sprite Batch Makes in this sprite batch with name
@@ -172,8 +189,7 @@ public class SpriteBatch extends CollectionIterator{
 	 * @param rm
 	 * @return
 	 */
-	public String getROISpriteBatchDataFileName(ROIManager rm) {
-		//String roiname = rm.getCurrentROIName();
+	public String getROISpriteBatchDataFileName() {
 		String sessionname = GlobalSettings.getDocumentName();
 		return getSpriteBatchDirectoryPath() + "//ROISpriteBatchData_" + sessionname + ".csv";
 	}
@@ -181,28 +197,31 @@ public class SpriteBatch extends CollectionIterator{
 
 	/**
 	 * Given a specific current ROI name, get the full path its associated SpriteBatch file.
+	 * Only called by system when deleting ROI sprite batches
 	 * @param shortname
 	 * @return
 	 */
-	public String getROIFullFilePath(String shortname) {
+	private String getROIFullFilePath(String shortname) {
 
 		return getSpriteBatchDirectoryPath() + "//ROISpriteBatchData_" + shortname + ".csv";
 
-	}
+	} 
 
 
 	/**
 	 * @return the path and filename to the MasterSpriteBatchdata.csv file for this session
 	 */
-	public String getMasterSpriteBatchDataFileName() {
+	public String getMasterFullPathAndName() {
 		return getSpriteBatchDirectoryPath() + "//MasterSpriteBatchData.csv";
 	}
 
 	
 	/**
-	 * saves the sprite batch data as a CSV file at the specified location. The data saved in each sprite is 
-	 * "DocPoint", "UniqueID", "RandomKey",  "Depth"  and "SpriteBatchName"
-	 * @param fileAndPath
+	 * saves the sprite batch data as a CSV file at the specified location. The includes option can be nulled to save all data in the sprite, 
+	 * or set to a list of data keys for the sprite, or set to SpriteBatch.defaultIncludes to save
+	 * {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "RelativeGroupSizeEqualization", "ImageAssetGroupName", "ImageGroupItemShortName","SpriteBatchName"}
+	 * @param fileAndPath - string to the location of the spriteBatch data, normally this string is got from the SpriteBatch.getMasterFullPathAndName() and includes automatic naming
+	 * @param include - set to null to include ALL sprite data, or a list of includes, using the key names of the data. A default is available  - SpriteBatch.defaultIncludes - see above for list
 	 */
 	public void saveSpriteBatch(String fileAndPath, String[] include) {
 		// there should be a directory in the project folder called seeds
@@ -211,7 +230,6 @@ public class SpriteBatch extends CollectionIterator{
 			csvWriter = new FileWriter(fileAndPath);
 
 			
-			//include = {"DocPoint", "UniqueID", "RandomKey", "PivotPoint", "Depth", "SizeInScene", "UseRelativeSizes", "ImageAssetGroupName", "ImageGroupItemShortName","SpriteBatchName"};
 			int activeSprites = 0;
 			for(Sprite s: spriteList){
 				if(s.isActive)  {
@@ -263,14 +281,14 @@ public class SpriteBatch extends CollectionIterator{
 	/**
 	 * This attempts to load a previously saved ROISpriteBatchData file, saved as an efficiency measure as only "contributing" sprites are saved to this file. 
 	 * It may not exist (yet) as it needs to be generated, per-roi render, once the MasterSriteBatchData has been generated. If it does not exist then the MasterSriteBatchData file 
-	 * is loaded, and the ROI rendered there of. The ROISpriteBatchData is then saved out for next time speed-ups.
+	 * is loaded, and the ROI rendered there of, which will include non-contributing sprites and is therefore slower. The ROISpriteBatchData is then saved out for next time speed-ups.
 	 * @param roiManager
 	 */
-	public void loadROISprites(ROIManager roiManager) {
+	public void loadROISprites() {
 		
 
-		String MasterSpriteBatchFile = getMasterSpriteBatchDataFileName();
-		String ROISpriteBatchFile = getROISpriteBatchDataFileName(roiManager);
+		String MasterSpriteBatchFile = getMasterFullPathAndName();
+		String ROISpriteBatchFile = getROISpriteBatchDataFileName();
 
 
 
@@ -398,7 +416,7 @@ public class SpriteBatch extends CollectionIterator{
 	 * @param dotDiameter  - the dots pixel diameter. Not session scaled
 	 * @param rt - the render target
 	 */
-	public void drawDifferentiatedDocPonts(float dotDiameter, BufferedImageRenderTarget rt) {
+	public void drawDifferentiatedDocPoints(float dotDiameter, BufferedImageRenderTarget rt) {
 		ArrayList<String> uniquebatchNames = new ArrayList<String>();
 		
 		Color[] basicColors = MOColor.getBasic12ColorPalette();

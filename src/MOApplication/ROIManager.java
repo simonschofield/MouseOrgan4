@@ -54,11 +54,11 @@ public class ROIManager {
 		masterCoordinateSystem = new ImageCoordinateSystem(masterWidth,  masterHeight);
 		Rect masterPixelExtents = new Rect(0,0, masterWidth,  masterHeight);
 		//System.out.println("ROI Manager init master width: " + masterWidth + " master height " + masterHeight);
-		System.out.println("master doc rect = " + masterPixelExtents.toStr());
+		//System.out.println("master doc rect = " + masterPixelExtents.toStr());
 		masterDimensions = new ImageDimensions(masterWidth,  masterHeight); //masterCoordinateSystem.getBufferDimensions();
 
 		addROI("master", masterPixelExtents, masterWidth);
-		setCurrentROI("master");
+		currentROIName = "master";
 
 		// adds some predefined rois, for testing,
 		// with a pre-defined width equivalent to a 24-inch wide print
@@ -102,8 +102,14 @@ public class ROIManager {
 	 * @param roiName - the user defined ROI name, or "Master", or one of the pre-defiend ROIs e.g. "WholeRect"
 	 */
 	public void setCurrentROI(String roiName) {
+		//System.out.println("1 roiName = " + roiName);
 		if(roiName.contains("master" ) || roiName.contains("Master" )) {
 			currentROIName = "master";
+			//System.out.println("2 roiName = " + roiName);
+			if( GlobalSettings.getSessionScale()>0.25f) {
+				System.out.println("ROIManager setCurrentROI :: you are using a master render with a session scale of " + GlobalSettings.getSessionScale() + ", so the assets are too big - exiting!!!!");
+				System.exit(0);
+			}
 		} else {
 			currentROIName = roiName;
 		}
@@ -244,11 +250,11 @@ public class ROIManager {
 		System.out.println("_____ROI______");
 		System.out.println("ROI Name " + ri.name);
 
-		System.out.println("ROI ROIExtents " + ri.ROIRect.toStr());
+		System.out.println("ROI Docspace Extents " + ri.ROIRect.toStr());
 		//System.out.println("ROI ppaExtents " + ri.ppaExtents.toStr());
 
-		System.out.println("ROI pixel width " + ri.extentsFullPixelWidth);
-		System.out.println("ROI pixel height " + ri.extentsFullPixelHeight);
+		System.out.println("ROI full-size render width " + ri.extentsFullPixelWidth);
+		System.out.println("ROI full-size render height " + ri.extentsFullPixelHeight);
 		System.out.println("_________________");
 
 	}

@@ -120,14 +120,26 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	//
 	//
 	/**
-	 * Initialises the MainDocument width and height and other session immutable
+	 * Initialises the MainDocument width and height and other session immutables <p>
+	 * 
+	 * Notes on system initialisation order	<p>
+	 * As GlobalSettings is the method we use to communicate between differnt aspects of the system, setting
+	 * Global settings in order is important
+	 * Immutable things get set up first SessionPath and SessionScale	
+	 * suggest GlobalSettings initialiseSessionSettings(pathFrom liveProjectsBasePath , scale, theSurfaceReference) 
+	 * Once this is done the ROIManager is able to return the full (sessionscale-applied) render size for Master and ROIs
+	 * The master size render is irrespective of session scale (but the content IS scaled).  The SubROIs are session scaled in image-dimension
+	 * 
 	 */
 	protected abstract void initialiseUserSession();
 	
 	
 	/**
-	 * Prepares all the graphics assets for the session. Loads from file (SampleLib or Cache). Processes images and caches.<p>
-	 * Prepares the SpriteBatches, Border cropping, sets other render targets.
+	 * Prepares all the graphics assets and scene data for the session. <p>
+	 * Prepares point-data. 
+	 * Loads from file (SampleLib or Cache). 
+	 * Processes loaded images and caches if required.
+	 * Creates or loads the SpriteBatches, sets border cropping, creates any other render targets. Sets up shadowing and lighting if required.
 	 */
 	protected abstract void loadContentUserSession();
 	
@@ -149,26 +161,45 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 	
 	
 	/**
-	 * is called by the update loop on finishing the user session. An optional method for the userSession but most likely used
+	 * is called by the update loop on finishing the updateUserSession calls - i.e. when the render is complete. An optional method for the userSession but most likely used
 	 * to save the renders from the main document
 	 */
 	protected void finaliseUserSession() {}
 	
 	
-
+	/**
+	 * Called automatically after initialiseUserSession
+	 */
+	private void checkInitialisation() {
+		
+		GlobalSettings.checkGlobalSettings();
+		
+		
+		
+		if(GlobalSettings.getROIManager()!=null) {
+			GlobalSettings.getROIManager().printCurrentROIInfo();
+		}
+		
+		
+		
+	}
 	
 	/**
 	 * 
-	 * Initialisation method called from initialise Session in User Session Straight forward session initialisation, not using a ROI manager
+	 * Straight-forward session initialisation, i.e. not using a ROI manager. Called from InitialiseSession in UserSession.
 	 * 
 	 * 
-	 * 
+	 * @param sessionName
 	 * @param fullScaleRenderW
 	 * @param fullScaleRenderH
-	 * @param mainDocumentRender   
+	 * @param mainDocumentRenderType BufferedImage.TYPE_INT_ARGB,BufferedImage.TYPE_BYTE_GRAY or BufferedImage.TYPE_USHORT_GRAY
+	 * @param render_saver_mode is either RenderSaver.FILENAME_OVERWRITE, RenderSaver.FILENAME_INCREMENT or RenderSaver.INACTIVE
 	 */
-	public void initialiseDocument(int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType, int render_saver_mode) {
-
+	public void initialiseDocument(String sessionName, int fullScaleRenderW, int fullScaleRenderH, int mainDocumentRenderType, int render_saver_mode) {
+		
+		GlobalSettings.mainSessionName = sessionName;
+		//System.out.println("initialiseDocument:: session name = " + GlobalSettings.mainSessionName);
+		
 		fullScaleRenderW = (int)(fullScaleRenderW * GlobalSettings.getSessionScale());
 		fullScaleRenderH = (int)(fullScaleRenderH * GlobalSettings.getSessionScale());
 
@@ -181,22 +212,25 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 	
 	/**
-	 * Initialisation method called from initialise Session in User Session initialising using a ROImanager. This is presumed to become the dominant way to initialise the system.
+	 * Initialisation method  using a ROImanager. This is presumed to become the dominant way to initialise the system. Called from InitialiseSession in UserSession.
 	 * 
-	 * @param roiManager -  the ROI manager is repsoible for setting the documents dimensions, and so should have already been correctly set up
-	 * @param mainDocumentRenderType TYPE_INT_ARGB,TYPE_BYTE_GRAY or TYPE_USHORT_GRAY
+	 * @param roiManager -  the ROI manager is responsible for setting the documents dimensions and name
+	 * @param mainDocumentRenderType BufferedImage.TYPE_INT_ARGB,BufferedImage.TYPE_BYTE_GRAY or BufferedImage.TYPE_USHORT_GRAY
+	 * @param render_saver_mode is either RenderSaver.FILENAME_OVERWRITE, RenderSaver.FILENAME_INCREMENT or RenderSaver.INACTIVE
 	 */
 	public void initialiseDocument(ROIManager roiManager, int mainDocumentRenderType, int render_saver_mode) {
 
 		GlobalSettings.mainSessionName = roiManager.getCurrentROIName();
 		GlobalSettings.setROIManager(roiManager);
 
-		System.out.println("initialiseDocument:: session name = " + GlobalSettings.mainSessionName);
+		//System.out.println("initialiseDocument:: session name = " + GlobalSettings.mainSessionName);
 
 		theDocument = new  MainDocument( roiManager, mainDocumentRenderType, render_saver_mode);
 
 		initialiseView();
 	}
+	
+	
 	
 	
 	/**
@@ -476,6 +510,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 
 		if(theUserSessionState == UserSessionState.INITIALISE) {
 			initialiseUserSession();
+			checkInitialisation();
 			// the ui is built after initialisation, so it can include all render targets
 			buildUI();
 			if(theDocument == null) {
@@ -489,6 +524,7 @@ public abstract class Surface extends JPanel implements ActionListener, MouseLis
 		if(theUserSessionState == UserSessionState.LOAD) {
 			theUserSessionState = UserSessionState.UPDATE;
 			loadContentUserSession();
+			System.out.println("Loaded content. Beginning render...");
 			return;
 		}
 

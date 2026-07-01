@@ -207,7 +207,8 @@ public class SceneInformationInspector {
 
 		String imageGroupName = sprite.ImageAssetGroupName;
 		String shortImageName = sprite.ImageGroupItemShortName;
-		KeyValuePairList kvpl = sprite.getSpriteData(null);
+		String[] nullArray = null;
+		KeyValuePairList kvpl = sprite.getSpriteData(nullArray);
 
 		//System.out.println("");
 		//kvpl.printMe();

@@ -54,6 +54,16 @@ public class SpriteImages{
 		return false;
 	}
 	
+	public boolean imageNameExistsContaining(String nm) {
+		if(nm == null) return false;
+		for (ImageAsset thisImage : imageList) {
+			if (thisImage.name.contains(nm)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public String getImageName(int i) {
 		if(i > getNumImages()) return null;
 		return imageList.get(i).name;
@@ -61,7 +71,7 @@ public class SpriteImages{
 
 	public void setImage(int i, BufferedImage img) {
 		//
-		imageList.get(i).image = img;
+		imageList.get(i).image = ImageProcessing.copyImage(img);
 
 	}
 
@@ -75,10 +85,10 @@ public class SpriteImages{
 			return;
 		}
 
-		img = sizeToMainImageDims(img);
-
+		//img = sizeToMainImageDims(img);
+		//checkOverlayImagesMatchingDimensions("SpriteImages::setImage");
 		if(imageNameExists(nm)) {
-			getImageAsset(nm).image = img;
+			getImageAsset(nm).image = ImageProcessing.copyImage(img);
 			return;
 		}
 
@@ -87,8 +97,9 @@ public class SpriteImages{
 	}
 
 	private void addImage(String name, BufferedImage img) {
-		img = ImageProcessing.assertImageTYPE_INT_ARGB(img);
-		imageList.add(new ImageAsset(img,name));
+		BufferedImage copyImg = ImageProcessing.copyImage(img);
+		copyImg = ImageProcessing.assertImageTYPE_INT_ARGB(copyImg);
+		imageList.add(new ImageAsset(copyImg,name));
 	}
 
 	private ImageAsset getImageAsset(String nm) {
@@ -104,16 +115,44 @@ public class SpriteImages{
 	}
 
 	BufferedImage sizeToMainImageDims(BufferedImage img) {
-		if ( !isInitialised() ) {
-			return img;
-		}
+		// DOES NOT WORK
+		System.out.println("SpriteImages::sizeToMainImageDims being called, this method does not work - returning image unaltered");
+		return img;
+//		if ( !isInitialised() ) {
+//			return img;
+//		}
+//		
+//		int w = getImage(0).getWidth();
+//		int h = getImage(0).getHeight();
+//		return ImageProcessing.resizeTo(img, w, h);
+	}
+	
+	
+	public boolean checkOverlayImagesMatchingDimensions(String message) {
 		int w = getImage(0).getWidth();
 		int h = getImage(0).getHeight();
-		return ImageProcessing.resizeTo(img, w, h);
+		int numImages = imageList.size();
+		if(numImages==1) return true;
+		for (int n = 1; n < numImages; n++) {
+			int iw = getImage(n).getWidth();
+			int ih = getImage(n).getHeight();
+			
+			if(w==iw && h== ih) {
+				//System.out.println(message + " image sizes DO match - main image is " + w + " " + h + " while overlay image is " + iw + " " + ih );
+				return true;
+			}
+			
+			System.out.println(message + " image sizes do not match - main image is " + w + " " + h + " while overlay image is " + iw + " " + ih );
+			return false;
+		}
+		return false;
 	}
 
 
 	public void scale(float scaleW, float scaleH) {
+		
+		//enforceSameSizeOnAllImages("before scale operation");
+		
 		for (ImageAsset thisImageAsset : imageList) {
 			if(scaleW==scaleH) {
 				// chance to use double scaling on very big scale reductions
@@ -122,6 +161,8 @@ public class SpriteImages{
 				thisImageAsset.image = ImageProcessing.scaleImage(thisImageAsset.image, scaleW, scaleH);
 			}
 		}
+		
+		//enforceSameSizeOnAllImages("after scale operation");
 
 	}
 
@@ -154,9 +195,12 @@ public class SpriteImages{
 	public void removeAllImages() {
 		// this should be called after the sprite has "finished" so as to to avoid
 		// taking up loads of memory.
-		for (ImageAsset thisImageAsset : imageList) {
-			thisImageAsset.image = null;
-		}
+		imageList.clear();
+		
+		
+		//for (ImageAsset thisImageAsset : imageList) {
+		//	thisImageAsset.image = null;
+		//}
 	}
 
 

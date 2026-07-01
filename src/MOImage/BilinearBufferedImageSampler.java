@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 
 import MOMaths.MOMaths;
 import MOMaths.PVector;
+import MOUtils.GlobalSettings;
 import MOUtils.ImageCoordinateSystem;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -20,16 +21,23 @@ public class BilinearBufferedImageSampler {
 	int imageType;
 
 	public BilinearBufferedImageSampler(BufferedImage img) {
+		System.out.println("new BilinearBufferedImageSampler");
 		sourceImage = img;
 		imageType = sourceImage.getType();
 		if(imageType == BufferedImage.TYPE_INT_ARGB || imageType == BufferedImage.TYPE_BYTE_GRAY) {
 			//OK
 		} else {
+			
 			System.out.println("Wrong image type is type " + imageType);
 		}
 
 		if(imageType == BufferedImage.TYPE_BYTE_GRAY) {
 			greyScaleImageAccess = new ByteImageGetterSetter(img);
+		} else {
+			BufferedImage greyImage = ImageProcessing.copyImage(img);
+			greyImage = ImageProcessing.assertImageTYPE_BYTE_GRAY(greyImage);
+			greyScaleImageAccess = new ByteImageGetterSetter(greyImage);
+			ImageProcessing.saveImage(GlobalSettings.getUserSessionPath() + "testGreyImage.png", greyImage);
 		}
 
 

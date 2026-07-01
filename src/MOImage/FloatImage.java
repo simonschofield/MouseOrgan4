@@ -118,7 +118,7 @@ public class FloatImage{
     }
     extrema.limit1 = min;
     extrema.limit2 = max;
-    System.out.println("FloatImage extrema are " + extrema.limit1 + " " + extrema.limit2);
+    //System.out.println("FloatImage extrema are " + extrema.limit1 + " " + extrema.limit2);
   }
 
 

@@ -1,6 +1,7 @@
 package MOScene3D;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 
 import MOImage.BilinearBufferedImageSampler;
 import MOImage.MOColor;
@@ -38,7 +39,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 	//
 	//
 	public Lighting_HardShadow3D(String nameOfShadowRender, String nameOfDepthRender,  PVector lightDir,   boolean addSceneSurfaceToDepth){
-		super(nameOfShadowRender);
+		super(nameOfShadowRender, BufferedImage.TYPE_BYTE_GRAY);
 
 		Range worldY = sceneData3D.depthBuffer3d.worldYExtrema;
 		System.out.println("worldY extrama " + worldY.toStr() );
@@ -179,7 +180,7 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 				}
 				//debug("here2");
 				// if the pixel already in shade?? If so, then continue. Previously shadowed pixel cannot be re-lit.
-				int shadowval = shadowImageGetSet.getPixel(x, y);
+				int shadowval = shadowByteImageGetSet.getPixel(x, y);
 
 
 				// now cast a ray from this pixel along the light ray (reverse direction).
@@ -200,10 +201,10 @@ public class Lighting_HardShadow3D  extends Lighting_CommonUtils {
 
 					if(alpha > 1) {
 						// do a darken-only
-						int existingValue = shadowImageGetSet.getPixel(x, y);
+						int existingValue = shadowByteImageGetSet.getPixel(x, y);
 						int newValue =   ((255-alpha));
 						if(newValue < existingValue) {
-							shadowImageGetSet.setPixel(x, y,newValue);
+							shadowByteImageGetSet.setPixel(x, y,newValue);
 						}
 					}
 

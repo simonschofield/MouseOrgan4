@@ -110,7 +110,7 @@ public class MainDocument{
 		GlobalSettings.setTheDocumentCoordSystem(this);
 		renderBorder = new RenderBorder();
 
-		System.out.println(">>" + documentImageCordinateSystem.toStr());
+		//System.out.println(">>" + documentImageCordinateSystem.toStr());
 		addRenderTarget("main", mainRenderType);
 		
 		theRenderSaver = new RenderSaver( render_save_mode, this); // RenderSaver.FILENAME_INCREMENT or RenderSaver.INACTIVE
@@ -171,7 +171,7 @@ public class MainDocument{
 			imageCopyGamma = 1;
 		}
 
-		FloatImageRenderTarget rt = new FloatImageRenderTarget(name, width, height,  saveTYPE_USHORT_GRAYcopy,  imageCopyGamma);// deferred
+		FloatImageRenderTarget rt = new FloatImageRenderTarget(name, width, height,  imageCopyGamma);// deferred
 		//rt.setCoordinateSystem(documentImageCordinateSystem);
 
 		//rt.setName(name);
@@ -201,7 +201,7 @@ public class MainDocument{
 	 */
 	void setRenderTargetViewMenu(Menu rtViewMenu) {
 		// called on initUI() at start, so the document can add in render targets as it goes
-		System.out.println("setting render target menu");
+		//System.out.println("setting render target menu");
 		renderTargetViewMenu = rtViewMenu;
 
 		updateRenderTargetMenu();
@@ -414,8 +414,10 @@ public class MainDocument{
 	}
 
 	/**
+	 * Crops the sprite in-place, and crops all the overlays the same. The method works by removing visible pixels, and does not alter the dimensions of the sprite images, so
+	 * the paste-point, pivot point remains intact etc. 
 	 * @param sprite
-	 * @return
+	 * @return - true is the sprite still contributes to the image, false if the sprite has been fully cropped out.
 	 */
 	public boolean cropSpriteToBorder(Sprite sprite) {
 		return renderBorder.cropSprite(sprite);

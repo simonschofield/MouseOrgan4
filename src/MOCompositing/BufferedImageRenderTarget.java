@@ -7,35 +7,17 @@ package MOCompositing;
 // hopefully open up all of Java's graphics functionality
 
 import java.awt.*;
-import java.awt.color.ColorSpace;
-//import java.awt.event.*;
-//import java.awt.geom.*;
+
 import java.awt.image.BufferedImage;
-import java.awt.image.ComponentColorModel;
-import java.awt.image.ComponentSampleModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferFloat;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-
-import javax.imageio.ImageIO;
-
-import MOAppSessionHelpers.SceneHelper;
-import MOImage.FloatImage;
 import MOImage.ImageProcessing;
 import MOImage.MOPackedColor;
 import MOMaths.Line2;
-import MOMaths.MOMaths;
 import MOMaths.PVector;
-import MOMaths.Range;
 import MOMaths.Rect;
 import MOMaths.Vertices2;
 import MOSprite.Sprite;
 import MOUtils.ImageCoordinateSystem;
-import MOUtils.MOStringUtils;
 import MOUtils.GlobalSettings;
 import MOVectorGraphics.VectorShape;
 import MOVectorGraphics.VectorShapeDrawer;
@@ -257,7 +239,7 @@ public class BufferedImageRenderTarget implements RenderTargetInterface{
 	 * case the sprite's alpha is used as to on the altImage though using AlphaComposite.SRC_IN.
 	 * @param sprite
 	 * @param altImage - The image to be used instead of the sprite's own image. It is resized to the same dimensions as the sprite's image
-	 * @param alpha - an alpha amount of the new pasted pixels
+	 * @param alpha - an alpha amount of the new pasted pixels, in the range 0..1
 	 * @param useSpriteAlpha - if true, then use the sprite's existing alpha channel tp paste the altImage "through"
 	 */
 	public void pasteSprite_AltImage(Sprite sprite, BufferedImage altImage, float alpha, boolean useSpriteAlpha) {

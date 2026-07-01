@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 import MOApplication.ROIManager;
+import MOImage.BilinearBufferedImageSampler;
 import MOImage.ConvolutionFilter;
 import MOImage.FloatImage;
 import MOImage.ImageDimensions;
@@ -46,6 +47,7 @@ public class SceneData3D {
 	// this reads in and contains all the png files within the input folder
 	ImageAssetGroup textureMapImages;
 	BufferedImage currentTextureMapImage;
+	//BilinearBufferedImageSampler bilinearBufferedImageSampler;
 	boolean currentRenderKeyImageHasAlpha;
 
 	///////////////////////////////////////////////////////////////////////
@@ -113,8 +115,8 @@ public class SceneData3D {
 		if(include!=null) {
 			include = MOStringUtils.addToStringList(include, "blank");
 			dfns.keep(include);
-			System.out.println("SceneData3D is loading " + dfns.getNumFiles() + " texturemaps");
-			dfns.printToConsoleShortFileNames();
+			//System.out.println("SceneData3D is loading " + dfns.getNumFiles() + " texturemaps");
+			//dfns.printToConsoleShortFileNames();
 		}else {
 			System.out.println("SceneData3D loading all texture maps. " + dfns.getNumFiles() + " in total");
 		}
@@ -130,6 +132,7 @@ public class SceneData3D {
 	public ROIManager createROIManager(int masterRenderWidth) {
 		int renderheight = (int) (masterRenderWidth/this.getAspect());
 		roiManager = new ROIManager(masterRenderWidth, renderheight);
+		GlobalSettings.setROIManager(roiManager);
 		return roiManager;
 	}
 
@@ -191,17 +194,30 @@ public class SceneData3D {
 	}
 
 	public BufferedImage setCurrentRenderImage(String shortName) {
+		///System.out.println("scnendata3d.setCurrentRenderImage wanting to set current image to " + shortName);
 		currentTextureMapImage = textureMapImages.getImage(shortName);
-		currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentTextureMapImage);
+		//if(proposedImage != currentTextureMapImage) {
+		//	
+		//	System.out.println("proposed image " + proposedImage + " current image " + currentTextureMapImage);
+		//	
+		//	
+		//	currentTextureMapImage = proposedImage;
+		//	bilinearBufferedImageSampler = new BilinearBufferedImageSampler(currentTextureMapImage);
+		//	currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentTextureMapImage);
+		//}
 		return currentTextureMapImage;
 	}
 
 	public void setCurrentRenderImage(int n) {
 		currentTextureMapImage = textureMapImages.getImage(n);
+		//bilinearBufferedImageSampler = new BilinearBufferedImageSampler(currentTextureMapImage);
 		String shortName = textureMapImages.getImageAssetName(n);
-		System.out.println("curren render image is " + shortName);
+		//System.out.println("curren render image is " + shortName);
 		currentRenderKeyImageHasAlpha = ImageProcessing.hasAlpha(currentTextureMapImage);
 	}
+	
+	
+
 
 	////////////////////////////////////////////////////////////////
 	//
@@ -269,8 +285,7 @@ public class SceneData3D {
 		int b = rgb.getBlue();
 		return (r + g + b) / 765f;
 	}
-
-
+	
 
 	Color getCurrentRenderColor(PVector docSpace) {
 		PVector coord = getDepthBufferCoordinateSystem().docSpaceToBufferSpaceClamped(docSpace);

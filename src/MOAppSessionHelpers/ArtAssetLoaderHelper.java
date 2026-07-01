@@ -7,6 +7,9 @@ import MOUtils.GlobalSettings;
 import MOUtils.MOStringUtils;
 
 /**
+ * This class helps load and chache (if necessary) assets originally from the sampleLibrary. Assets are named using the names defined in the  ArtAssetPaths class.  It can be set either load from a pre-existing cache (which is named),
+ * or load "fresh" from the AssetLib. It helps construct new caches, or save to existing caches, if required by the user.
+ *  
  * This is a "soft coded" helper class. i.e. it is expected to have code added by the user. In this case, new pre-procesing operations for new image-caches.<p>
  * 
  * Used in UserSession.loadContentUserSession() to load assets into the ImageAssetGroupManager from either a cache or the sampleLib, depending on the mode.<p>
@@ -222,44 +225,5 @@ public class ArtAssetLoaderHelper {
 	}
 
 
-//	private static void loadBWAssetAndApplyLevels(String assetBaseName, float[] levels, boolean overlayEdges) {
-//
-//		ScaledImageAssetGroup assetGroup = null;
-//
-//		String assetPathWhole = ArtAssetPaths.getAssetSampleLibPath(assetBaseName);
-//
-//
-//		if(overlayEdges) {
-//			String assetPathEdges = ArtAssetPaths.getAssetSampleLibPath(assetBaseName + "Edges");
-//			assetGroup = overlayScaledImageAssetGroup(assetBaseName, assetPathWhole, assetPathEdges, 1.0f);
-//		} else {
-//			assetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(assetBaseName, assetPathWhole, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
-//		}
-//
-//		MOColorTransform colorTransformGrey = new MOColorTransform();
-//		colorTransformGrey.addGreyscaleTransform();
-//		assetGroup.colorTransformAll(colorTransformGrey);
-//
-//		if(levels!=null) {
-//			MOColorTransform levelsTransform = new MOColorTransform();
-//			levelsTransform.addLevelsTransform(levels[0], levels[1], levels[2], levels[3], levels[4]);
-//			assetGroup.colorTransformAll(levelsTransform);
-//		}
-//
-//
-//
-//	}
-//
-//
-//	public static ScaledImageAssetGroup overlayScaledImageAssetGroup(String targetGroupName, String tagetAssetPath, String overlayAssetPath, float alpha) {
-//		// Loads both the target and overlay group.
-//		// Pastes the overlay sprite on-top of the target sprite groups. The composited target group is then kept in the ImageAssetGroupManager, while the overlay group is removed.
-//		// Overlay sprites must be sized exactly the same as the target (under-lay) sprite, and have the same number of assets.
-//		//
-//		ScaledImageAssetGroup targetGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup(targetGroupName,  tagetAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
-//		ScaledImageAssetGroup overlayGroup = GlobalSettings.getImageAssetGroupManager().loadImageAssetGroup("tempOverlayGroupName",  overlayAssetPath, ScaledImageAssetGroup.LOADMODE_FROM_ASSETLIB);
-//		targetGroup.overlayScaledImageAssetGroup(overlayGroup, alpha);
-//		GlobalSettings.getImageAssetGroupManager().removeImageAssetGroup("tempOverlayGroupName");
-//		return targetGroup;
-//	}
+
 }

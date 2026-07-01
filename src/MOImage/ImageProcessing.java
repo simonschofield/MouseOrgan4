@@ -210,10 +210,31 @@ public class ImageProcessing {
 
 	public static BufferedImage cropImage(BufferedImage src, Rect r) {
 		// returns a sub image, but shares the same image buffer data as the src image
-		int wid = Math.min(src.getWidth(), (int)r.getWidth());
-		int hig = Math.min(src.getHeight(), (int)r.getHeight());
-
-		BufferedImage subImg = src.getSubimage((int)r.left,(int)r.top, wid, hig);
+		
+		Rect imageRect = new Rect(0,0,src.getWidth(), src.getHeight());
+		
+		
+		if(r.intersects(imageRect)==false) {
+			System.out.println("RETURN ImageProcessing cropImage - " + src.getWidth() + " , "+ src.getWidth() + " rect " + r.toStr() );
+			return src;
+		}
+		int wid = Math.min(src.getWidth()-1, (int)r.getWidth());
+		int hig = Math.min(src.getHeight()-1, (int)r.getHeight());
+		
+		
+		if(src.getWidth() <= 1 || src.getHeight() <= 1) {
+			return src;
+		}
+		
+		
+		BufferedImage subImg = null;
+		try {
+			subImg = src.getSubimage((int)r.left,(int)r.top, wid, hig);
+		} catch (Exception e) {
+			System.out.println("PROBLEM ImageProcessing getSubImage - imge dims " + src.getWidth() + " , "+ src.getWidth() + " crop "  + r.toStr() );
+			//e.printStackTrace();
+			return src;
+		}
 		return subImg;
 	}
 
@@ -1044,6 +1065,23 @@ public class ImageProcessing {
 	public static BufferedImage adjustLevels(BufferedImage image, float shadowVal, float midtoneVal, float highlightVal) {
 		// shorthand of main function above with output set to 0,255
 		return adjustLevels( image,  shadowVal,  midtoneVal,  highlightVal, 0,  255);
+	}
+	
+	
+	/**
+	 * Maps a single input value to an output value using photoshop Levels-type. input value ranges are all 0..255 except for midtoneGamma, which is 0.01...10 s
+	 * @param inputValue - in the range 0..255
+	 * @param shadowVal - in the range 0..255
+	 * @param midtoneGamma - In the range 0.001-10.0, where 1 is "no effect".
+	 * @param highlightVal - in the range 0..255
+	 * @param outShadowVal - in the range 0..255
+	 * @param outHighlightVal - in the range 0..255
+	 * @return -  the level-mapped value
+	 */
+	public static float getLevelMapping(float inputValue, float shadowVal, float midtoneGamma, float highlightVal, float outShadowVal,  float outHighlightVal) {
+		float inputLevel  = ajustLevels_applyInputLevels(inputValue,  shadowVal,   highlightVal);
+		float midTone = ajustLevels_applyMidTones( inputLevel,  midtoneGamma);
+		return ajustLevels_applyOutputLevels(midTone,  outShadowVal,   outHighlightVal);
 	}
 
 	private static float ajustLevels_applyInputLevels(float valIn, float shadowVal,  float highlightVal){

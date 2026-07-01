@@ -176,8 +176,7 @@ public class RenderSaver {
 			if(fullSessionName.contains("spriteIDRenderTarget")) {
 				continue;
 			}
-
-
+			
 			String ext = rt.getFileExtension();
 			String fullPathAndName =  fullPath + fullSessionName + enumerator + ext;
 			theDocument.getRenderTarget(n).saveRenderToFile(fullPathAndName);
@@ -221,7 +220,7 @@ public class RenderSaver {
 		// if using folders, look for the highest folder name containing the session string
 
 		String pth = GlobalSettings.getUserSessionPath();
-		System.out.println("in render save pth is = " + pth);
+		//System.out.println("in render save pth is = " + pth);
 
 		File folder = new File(pth);
 
