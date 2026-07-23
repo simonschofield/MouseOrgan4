@@ -768,7 +768,8 @@ public class Sprite {
 		pivotPoint.x = (newX / getImageWidth()) + 0.5f;
 		pivotPoint.y = (newY / getImageHeight()) + 0.5f;
 
-
+		KeyValuePair rotationData = new KeyValuePair("Rotation", degrees);
+		this.setSpriteData(rotationData);
 
 	}
 
@@ -799,19 +800,19 @@ public class Sprite {
 
 
 	/**
-	 * Bends an image to the left
+	 * Bend the image left or right: negative bendAmt bends Left, while positive bendAmt bends right.As grass sprites are natively stored bending to the left
+	 * then a -ve bend is recommended. Any rotation to the sprite should happen AFTER the bend - i.e. bends should eb applied to unrotated sprites. 
 	 * The bend harshness is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image
-	 * @param startBend -  just set this to 0, as other results are poor. .....is always a parametric 0..1, where 0 is the bottom of the image
-	 * @param bendAmt -  0 == no displacement, 1 == the displacement is equivalent to the image height (which would be huge)
-	 * @param severity - is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image
+	 * @param bendAmt -  0 == no displacement, 1 == the displacement is equivalent to the image height (which would be huge), so recommend around 0.15-0.25 
+	 * @param severity - is the gamma applied to the curve. 1.2 == very gentle curve over the length of the image, 10.0 == very harsh curve at the end of the image. Recommend around 2 for gentle bend, and 5 for very windy.
 	 */
-	public void bend(float startBend, float bendAmt, float severity) {
+	public void bend(float bendAmt, float severity) {
 
 		imageQuad.applyHorizontalTopShear2(bendAmt);
 
 		float oldWidth = getImageWidth();
 
-		images.bend(startBend, bendAmt, severity);
+		images.bend(0, bendAmt, severity);
 		//BufferedImage bentImage = bendImage.bendImage(this.getImage(), startBend, bendAmt, severity);
 		//this.setImage(bentImage);
 

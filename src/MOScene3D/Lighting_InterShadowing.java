@@ -459,7 +459,7 @@ public class Lighting_InterShadowing  extends Lighting_CommonUtils{
 		// Take into consideration the distance of the shadow
 		float distancePlaneToPoint = shadowRenderPoint3D.dist(intersectionPoint);
 		float distanceShadowMultimplier = MOMaths.map(distancePlaneToPoint, 0, thisShadow.shadowRadius, 1, 0.1f); // should be 1 when near to the shadow, and 0.25 when far away
-		
+	    //distanceShadowMultimplier = 1;
 		
 		
 		// so the point intersectionPoint is in the bounded plane. Now get the intersectionPoint normalised within the bounded shadow plane

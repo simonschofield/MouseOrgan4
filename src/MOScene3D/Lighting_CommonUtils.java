@@ -110,7 +110,7 @@ public class Lighting_CommonUtils {
 		v.normalize();
 		lightDirection = lightDir.copy();
 		negativeLightDirection = PVector.mult(lightDir, -1);
-		
+		System.out.println("setLightDirection " + lightDirection.toStr());
 	}
 
 

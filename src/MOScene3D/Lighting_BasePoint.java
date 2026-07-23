@@ -27,7 +27,7 @@ public class Lighting_BasePoint extends Lighting_CommonUtils{
 
 	String lightingTextureName;
 	float[] lightingSourceTextureLevelMapping = {0,1f,255,0,255};
-	
+	float scaleTone = 1;
 	BilinearBufferedImageSampler lightingSourceTextureSampler;
 	
 	
@@ -208,9 +208,9 @@ public class Lighting_BasePoint extends Lighting_CommonUtils{
 			int rampedvalue;
 			
 			if(toneRamp!=null) {
-				rampedvalue = (int)  (toneRamp.modifyTone(thisYHeight3D, basePointBrightness) * 255);
+				rampedvalue = (int)  (toneRamp.modifyTone(thisYHeight3D, basePointBrightness) * 255 * scaleTone);
 			} else {
-				rampedvalue = (int)  (basePointBrightness * 255);
+				rampedvalue = (int)  (basePointBrightness * 255 * scaleTone);
 			}
 
 			for (int x = (int) spriteBoundingRectBufferSpace.left; x <= spriteBoundingRectBufferSpace.right; x++) {
@@ -238,6 +238,12 @@ public class Lighting_BasePoint extends Lighting_CommonUtils{
 			}// for X
 		}// for Y
 
+	}
+	
+	
+	public void setScaleTone(float s) {
+		
+		scaleTone = s;
 	}
 
 	
@@ -298,9 +304,9 @@ public class Lighting_BasePoint extends Lighting_CommonUtils{
 			// Using modifyTone() method, we submit the basePointBrightness and the current Height. The toneramp finds the interpolated value and alpha (based on Yheight) and used them to return 
 			// the modified final tone value in the range 0..1. 
 			if(toneRamp!=null) {
-				rampedvalue = (int)  (toneRamp.modifyTone(thisYHeight3D, basePointBrightness) * 65535);
+				rampedvalue = (int)  (toneRamp.modifyTone(thisYHeight3D, basePointBrightness) * 65535 * scaleTone);
 			} else {
-				rampedvalue = (int)  (basePointBrightness * 65535);
+				rampedvalue = (int)  (basePointBrightness * 65535 * scaleTone);
 			}
 
 			int left = (int) spriteBoundingRectBufferSpace.left;
